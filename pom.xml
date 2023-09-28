@@ -2,25 +2,31 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<!--My project inherits from the spring boot project-->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.1.4</version>
 	</parent>
+
 	<groupId>com.sethhaskellcondie</groupId>
 	<artifactId>the-game-pensive-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>the-game-pensive-api</name>
 	<description>This project will store information about different games in a database along with an api to access that data.</description>
+
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+
 	<dependencies>
+		<!--Starter web is the base dependency for running spring boot as an api server-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!--Starter test is the base dependency for running the spring boot tests for integration testing-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
