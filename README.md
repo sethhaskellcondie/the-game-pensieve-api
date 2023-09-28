@@ -1,2 +1,8 @@
 # the-game-pensive-api
-This project will store information about different games in a database along with an api to access that data.
+A Pensive in the Harry Potter series is a basin where wizards can store thoughts and memories outside themselves. This project is like a pensive but just for information on games in my collection.
+
+Setup
+This project runs on Java 17, download and install the SDK and JDK.
+This project runs on maven but a maven wrapper is included so that maven will not need to be installed.
+
+Clone the project locally and run it, the default port is 8080.
