@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi;
+package com.sethhaskellcondie.thegamepensiveapi.controllers;
 
 public class HeartbeatControllerTest
 {

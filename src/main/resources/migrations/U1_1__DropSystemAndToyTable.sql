@@ -1,3 +1,3 @@
-DROP TABLE Systems;
-
 DROP TABLE Toys;
+
+DROP TABLE Systems;
