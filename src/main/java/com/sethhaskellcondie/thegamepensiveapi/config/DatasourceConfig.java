@@ -5,6 +5,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -19,6 +20,11 @@ public class DatasourceConfig {
 	@ConfigurationProperties(prefix = "db")
 	public HikariDataSource hikariDataSource() {
 		return DataSourceBuilder.create().type(HikariDataSource.class).build();
+	}
+
+	@Bean
+	public JdbcTemplate getJdbcTemplate(HikariDataSource hikariDataSource) {
+		return new JdbcTemplate(hikariDataSource);
 	}
 }
 
