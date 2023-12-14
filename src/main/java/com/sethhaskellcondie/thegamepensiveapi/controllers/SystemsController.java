@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,8 @@ public class SystemsController
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
+	//TODO update this cross origins configuration to be at the controller or global level
+	@CrossOrigin(origins = "http://localhost:4200")
 	@GetMapping("")
 	public List<SystemResponseDto> getAllSystems() {
 		String sql = """
