@@ -4,7 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
 
-import com.sethhaskellcondie.thegamepensiveapi.system.SystemEntity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.system.System;
 
 public class EntityTest
 {
@@ -38,10 +39,10 @@ public class EntityTest
 
 	//Since Entity are abstract we will use SystemEntity Objects for the tests
 	private Entity generatePersistedEntity(Integer id) {
-		return new SystemEntity(id);
+		return new System(id, "test", 1, false);
 	}
 
 	private Entity generateEntity() {
-		return new SystemEntity();
+		return new System();
 	}
 }
