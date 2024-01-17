@@ -15,6 +15,10 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  *
  * Repositories are in charge of running any final validation on an object before it is written
  * or updated in a database table.
+ *
+ * I haven't been able to create a suitable EntityRepositoryImpl that can be extended to give
+ * the needed functionality for free to each new Entity, but I bet it can be done...somehow...
+ * until then the comments and documentation for that can be found in the SystemRepositoryImpl
  */
 public interface EntityRepository<T extends Entity> {
 	T insert(T t) throws ExceptionFailedDbValidation;
