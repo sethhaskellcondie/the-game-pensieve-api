@@ -6,8 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
  * The Entity object will extend the Entity abstract class, this will enforce the ID equality
  * and persistent check.
  */
-public class System extends Entity
-{
+public class System extends Entity {
 	/** Inherit ID from Entity */
 	private String name;
 	private int generation;
@@ -41,18 +40,15 @@ public class System extends Entity
 		this.handheld = handheld;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public int getGeneration()
-	{
+	public int getGeneration() {
 		return generation;
 	}
 
-	public boolean isHandheld()
-	{
+	public boolean isHandheld() {
 		return handheld;
 	}
 

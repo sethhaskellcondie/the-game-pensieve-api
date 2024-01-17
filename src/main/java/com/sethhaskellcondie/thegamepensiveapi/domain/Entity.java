@@ -2,8 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import java.util.Objects;
 
-abstract public class Entity
-{
+abstract public class Entity {
 	protected final Integer id;
 
 	protected Entity() {
