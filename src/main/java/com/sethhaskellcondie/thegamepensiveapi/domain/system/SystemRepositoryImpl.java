@@ -20,14 +20,11 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 public class SystemRepositoryImpl implements SystemRepository {
 	private final JdbcTemplate jdbcTemplate;
 
-	public SystemRepositoryImpl(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
-
 	// include a WHERE 1 = 1 clause at the end, so we can always append with AND
-	private final String baseQuery = "SELECT * FROM systems WHERE 1 = 1 ";
 
+	private final String baseQuery = "SELECT * FROM systems WHERE 1 = 1 ";
 	//the rowMapper is used to convert the data from the table into object that can be used in this system
+
 	private final RowMapper<System> rowMapper =
 		(resultSet, i) ->
 			new System(
@@ -36,8 +33,11 @@ public class SystemRepositoryImpl implements SystemRepository {
 				resultSet.getInt("generation"),
 				resultSet.getBoolean("handheld")
 			);
-
 	private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
+
+	public SystemRepositoryImpl(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
 
 	@Override
 	public System hydrateFromRequestDto(SystemRequestDto requestDto) {
