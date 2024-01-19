@@ -2,16 +2,21 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
-public class EntityServiceImpl<T extends Entity> implements EntityService<T> {
+@Service
+public class EntityServiceImpl<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
 
-	private final EntityRepository<T> repository;
+	private final EntityRepository<T, RequestDto, ResponseDto> repository;
 
-	public EntityServiceImpl(EntityRepository<T> repository) {
+	public EntityServiceImpl(EntityRepository<T, RequestDto, ResponseDto> repository) {
 		this.repository = repository;
 	}
+
+	@Override
 	public List<T> getWithFilters(String filters) {
 		return repository.getWithFilters(filters);
 	}

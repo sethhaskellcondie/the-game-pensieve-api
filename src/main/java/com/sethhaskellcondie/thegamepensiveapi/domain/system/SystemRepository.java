@@ -8,5 +8,5 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
  * signatures, and exceptions to be thrown. Then additional functions can
  * be included as needed.
  */
-public interface SystemRepository extends EntityRepository<System> {
+public interface SystemRepository extends EntityRepository<System, SystemRequestDto, SystemResponseDto> {
 }

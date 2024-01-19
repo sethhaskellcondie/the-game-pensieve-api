@@ -20,7 +20,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  * the needed functionality for free to each new Entity, but I bet it can be done...somehow...
  * until then the comments and documentation for that can be found in the SystemRepositoryImpl
  */
-public interface EntityRepository<T extends Entity> {
+public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 	T insert(T t) throws ExceptionFailedDbValidation;
 	List<T> getWithFilters(String filters);
 	T getById(int id) throws ExceptionResourceNotFound;

@@ -14,7 +14,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  * Services all hold any behaviors that happen between entities that are related, that
  * cannot be included in the entity object itself. Like creating a DTO from two different Entities.
  */
-public interface EntityService<T extends Entity> {
+public interface EntityService<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 	List<T> getWithFilters(String filters);
 	T getById(int id) throws ExceptionResourceNotFound;
 	T createNew(T t) throws ExceptionFailedDbValidation;
