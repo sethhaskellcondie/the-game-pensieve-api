@@ -40,6 +40,12 @@ public class SystemRepositoryImpl implements SystemRepository {
 	private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
 
 	@Override
+	public System hydrateFromRequestDto(SystemRequestDto requestDto) {
+		System newSystem = new System();
+		return newSystem.updateFromRequest(requestDto);
+	}
+
+	@Override
 	public System insert(System system) throws ExceptionFailedDbValidation {
 		//to change this into an upsert, if the system "isPersistent()" then return update();
 

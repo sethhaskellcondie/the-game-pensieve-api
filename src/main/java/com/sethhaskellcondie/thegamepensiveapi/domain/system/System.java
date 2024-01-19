@@ -68,12 +68,6 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 	}
 }
 
-record SystemRequestDto(String name, int generation, boolean handheld) {
-	public System hydrateFromRequestDto() {
-		System newSystem = new System();
-		return newSystem.updateFromRequest(this);
-	}
-}
+record SystemRequestDto(String name, int generation, boolean handheld) {}
 
-record SystemResponseDto(Integer id, String name, int generation, boolean handheld) {
-}
+record SystemResponseDto(Integer id, String name, int generation, boolean handheld) {}

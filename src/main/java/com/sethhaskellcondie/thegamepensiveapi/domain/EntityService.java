@@ -15,6 +15,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  * cannot be included in the entity object itself. Like creating a DTO from two different Entities.
  */
 public interface EntityService<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
+	T hydrateFromRequestDto(RequestDto requestDto);
 	List<T> getWithFilters(String filters);
 	T getById(int id) throws ExceptionResourceNotFound;
 	T createNew(T t) throws ExceptionFailedDbValidation;
