@@ -20,6 +20,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @Repository
 public class ToyRepositoryImpl implements ToyRepository {
 	private final JdbcTemplate jdbcTemplate;
+	private final String resourceName = "Toy";
 	private final String baseQuery = "SELECT * FROM toys WHERE 1 = 1 ";
 	private final RowMapper<Toy> rowMapper =
 		(resultSet, i) ->
@@ -75,7 +76,7 @@ public class ToyRepositoryImpl implements ToyRepository {
 		String sql = baseQuery + " AND id = ? ;";
 		Toy toy = jdbcTemplate.queryForObject(sql, rowMapper);
 		if (toy == null || !toy.isPersistent()) {
-			throw new ExceptionResourceNotFound("Toy not found in the database with id: " + id);
+			throw new ExceptionResourceNotFound(resourceName, id);
 		}
 		return toy;
 	}
@@ -109,11 +110,11 @@ public class ToyRepositoryImpl implements ToyRepository {
 			""";
 		int rowsUpdated = jdbcTemplate.update(sql, id);
 		if (rowsUpdated < 1) {
-			throw new ExceptionResourceNotFound("Toy delete failed, toy with id " + id + " not found.");
+			throw new ExceptionResourceNotFound("Delete failed", resourceName, id);
 		}
 	}
 
 	private void toyDbValidation(Toy toy) throws ExceptionFailedDbValidation {
-		//no validation for Toy table
+		//no validation needed for Toy table
 	}
 }

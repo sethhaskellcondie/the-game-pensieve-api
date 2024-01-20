@@ -19,21 +19,17 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @Repository
 public class SystemRepositoryImpl implements SystemRepository {
 	private final JdbcTemplate jdbcTemplate;
-
-	// include a WHERE 1 = 1 clause at the end, so we can always append with AND
-
-	private final String baseQuery = "SELECT * FROM systems WHERE 1 = 1 ";
-	//the rowMapper is used to convert the data from the table into object that can be used in this system
-
-	private final RowMapper<System> rowMapper =
-		(resultSet, i) ->
+	private final String resourceName = "System"; //the name passed into errors
+	private final String baseQuery = "SELECT * FROM systems WHERE 1 = 1 "; //include a WHERE 1 = 1 clause at the end, so we can always append with AND
+	private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
+	//a RowMapper is used to covert the data from the table into a constructor
+	private final RowMapper<System> rowMapper = (resultSet, i) ->
 			new System(
 				resultSet.getInt("id"),
 				resultSet.getString("name"),
 				resultSet.getInt("generation"),
 				resultSet.getBoolean("handheld")
 			);
-	private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
 
 	public SystemRepositoryImpl(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
@@ -47,7 +43,10 @@ public class SystemRepositoryImpl implements SystemRepository {
 
 	@Override
 	public System insert(System system) throws ExceptionFailedDbValidation {
-		//to change this into an upsert, if the system "isPersistent()" then return update();
+		//to change this into an upsert
+		// if (system.isPersistent()) {
+		// 		return update(system);
+		// }
 
 		systemDbValidation(system);
 
@@ -55,12 +54,11 @@ public class SystemRepositoryImpl implements SystemRepository {
    			INSERT INTO systems(name, generation, handheld) VALUES (?, ?, ?);
 			""";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
-		/**
-		 * This update call will take a preparedStatementCreator and a KeyHolder,
-		 * the preparedStatementCreator takes a connection,and the connection can
-		 * include a Statement to hold the generated key and then put them in the
-		 * KeyHolder.
-		 */
+
+		// This update call will take a preparedStatementCreator and a KeyHolder,
+		// the preparedStatementCreator takes a connection, the connection can
+		// include a Statement to hold the generated key and then put them in the
+		// KeyHolder.
 		jdbcTemplate.update(
 			connection -> {
 				PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -94,14 +92,17 @@ public class SystemRepositoryImpl implements SystemRepository {
 		String sql = baseQuery + " AND id = ? ;";
 		System system = jdbcTemplate.queryForObject(sql, rowMapper);
 		if (system == null || !system.isPersistent()) {
-			throw new ExceptionResourceNotFound("System not found in the database with id: " + id);
+			throw new ExceptionResourceNotFound(resourceName, id);
 		}
 		return system;
 	}
 
 	@Override
 	public System update(System system) throws ExceptionFailedDbValidation {
-		//to change this into an upsert: if (!system.isPersistent()) { return insert() }
+		//to change this into an upsert
+		// if (!system.isPersistent()) {
+		// 		return insert(system);
+		// }
 
 		systemDbValidation(system);
 		String sql = """
@@ -133,10 +134,12 @@ public class SystemRepositoryImpl implements SystemRepository {
 			""";
 		int rowsUpdated = jdbcTemplate.update(sql, id);
 		if (rowsUpdated < 1) {
-			throw new ExceptionResourceNotFound("System delete failed, system with id " + id + " not found.");
+			throw new ExceptionResourceNotFound("Delete failed", resourceName, id);
 		}
 	}
 
+	//This method will be commonly used to validate objects before they are inserted or updated,
+	//performing any validation that is not enforced by the database schema
 	private void systemDbValidation(System system) throws ExceptionFailedDbValidation {
 		List<System> existingSystems = getWithFilters(" AND name = " + system.getName());
 		if (!existingSystems.isEmpty()) {

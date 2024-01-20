@@ -24,8 +24,8 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  */
 @Repository
 public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
-	// hydrateFromRequestDto should be in the Controller, but since we are manually creating Repository implementations,
-	// and we want to automate the CRUD functions we need this method to create new object placed here.
+	//hydrateFromRequestDto should be in the Controller, but since we are manually creating Repository implementations,
+	//and we want to automate the CRUD functions we need a method to create new object placed here.
 	T hydrateFromRequestDto(RequestDto requestDto);
 	T insert(T t) throws ExceptionFailedDbValidation;
 	List<T> getWithFilters(String filters);
