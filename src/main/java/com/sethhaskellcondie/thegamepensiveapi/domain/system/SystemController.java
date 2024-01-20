@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 /**
  * A Controller is in charge of exposing the domain functionality through the different endpoints
@@ -32,33 +33,32 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidati
 public class SystemController {
 	private final SystemGateway gateway;
 
-	public SystemController(SystemGateway gateway)
-	{
+	public SystemController(SystemGateway gateway) {
 		this.gateway = gateway;
 	}
 
 	@GetMapping("")
-	public List<System.SystemResponseDto> getAllSystems() {
+	public List<SystemResponseDto> getAllSystems() {
 		return gateway.getWithFilters("");
 	}
 
 	@GetMapping("/{id}")
-	public System.SystemResponseDto getOneSystem(@PathVariable int id) {
+	public SystemResponseDto getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
 		return gateway.getById(id);
 	}
 
 	@PostMapping("")
-	public System.SystemResponseDto createNewSystem(@RequestBody System.SystemRequestDto system) throws ExceptionFailedDbValidation {
-		return gateway.createNewSystem(system);
+	public SystemResponseDto createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
+		return gateway.createNew(system);
 	}
 
 	@PutMapping("/{id}")
-	public System.SystemResponseDto updateExistingSystem(@PathVariable int id, @RequestBody System.SystemRequestDto system) throws ExceptionInputValidation, ExceptionFailedDbValidation {
-		return gateway.updateExistingSystem(id, system);
+	public SystemResponseDto updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system) throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound {
+		return gateway.updateExisting(id, system);
 	}
 
 	@DeleteMapping("/{id}")
-	public void deleteExistingSystem(@PathVariable int id) throws ExceptionInputValidation, ExceptionFailedDbValidation {
+	public void deleteExistingSystem(@PathVariable int id) throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound {
 		gateway.deleteById(id);
 	}
 }

@@ -2,8 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import java.util.Objects;
 
-abstract public class Entity
-{
+abstract public class Entity<RequestDto, ResponseDto> {
 	protected final Integer id;
 
 	protected Entity() {
@@ -19,31 +18,29 @@ abstract public class Entity
 		return id;
 	}
 
-	public boolean isPersistent() {
+	public final boolean isPersistent() {
 		return id == null;
 	}
+
+	public abstract Entity<RequestDto, ResponseDto> updateFromRequest(RequestDto requestDto);
+	public abstract ResponseDto convertToResponseDto();
 
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) {
 			return true;
 		}
-		if (!(obj instanceof Entity)) {
+		if (!(obj instanceof Entity<?, ?> entity)) {
 			return false;
 		}
-		Entity entity = ((Entity) obj);
 		if (!entity.isPersistent()) {
 			return false;
 		}
-		if (this.id == entity.id) {
-			return true;
-		}
-		return false;
+		return Objects.equals(this.id, entity.id);
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return Objects.hash(id);
 	}
 }

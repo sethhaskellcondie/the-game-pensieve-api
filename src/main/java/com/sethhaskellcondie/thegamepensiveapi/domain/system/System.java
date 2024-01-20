@@ -6,8 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
  * The Entity object will extend the Entity abstract class, this will enforce the ID equality
  * and persistent check.
  */
-public class System extends Entity
-{
+public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 	/** Inherit ID from Entity */
 	private String name;
 	private int generation;
@@ -22,8 +21,6 @@ public class System extends Entity
 	 * but if there is a case where a completely new DTO will need to be created that will
 	 * be complete on the Service.
 	 */
-	record SystemRequestDto(String name, int generation, boolean handheld) { }
-	record SystemResponseDto(Integer id, String name, int generation, boolean handheld) { }
 
 	public System() {
 		super();
@@ -41,18 +38,15 @@ public class System extends Entity
 		this.handheld = handheld;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public int getGeneration()
-	{
+	public int getGeneration() {
 		return generation;
 	}
 
-	public boolean isHandheld()
-	{
+	public boolean isHandheld() {
 		return handheld;
 	}
 
@@ -62,19 +56,18 @@ public class System extends Entity
 	 * meaning that the Entity has been persisted to the database
 	 */
 
-	public SystemResponseDto convertToDto() {
+	public System updateFromRequest(SystemRequestDto requestDto) {
+		this.name = requestDto.name();
+		this.generation = requestDto.generation();
+		this.handheld = requestDto.handheld();
+		return this;
+	}
+
+	public SystemResponseDto convertToResponseDto() {
 		return new SystemResponseDto(this.id, this.name, this.generation, this.handheld);
 	}
-
-	public void update(String name, int generation, boolean handheld) {
-		this.name = name;
-		this.generation = generation;
-		this.handheld = handheld;
-	}
-
-	public void update(SystemRequestDto requestDto) {
-		this.name = requestDto.name;
-		this.generation = requestDto.generation;
-		this.handheld = requestDto.handheld;
-	}
 }
+
+record SystemRequestDto(String name, int generation, boolean handheld) {}
+
+record SystemResponseDto(Integer id, String name, int generation, boolean handheld) {}
