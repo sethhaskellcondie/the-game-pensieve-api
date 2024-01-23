@@ -6,7 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayImpl;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
 
 @Component
-public class ToyGatewayImpl extends EntityGatewayImpl<Toy, ToyRequestDto, ToyResponseDto> {
+public class ToyGatewayImpl extends EntityGatewayImpl<Toy, ToyRequestDto, ToyResponseDto> implements ToyGateway {
 	public ToyGatewayImpl(EntityService<Toy, ToyRequestDto, ToyResponseDto> service) {
 		super(service);
 	}

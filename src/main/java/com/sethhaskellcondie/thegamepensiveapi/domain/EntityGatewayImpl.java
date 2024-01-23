@@ -8,8 +8,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValid
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
-@Component
-public class EntityGatewayImpl<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityGateway<T, RequestDto, ResponseDto> {
+public abstract class EntityGatewayImpl<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityGateway<T, RequestDto, ResponseDto> {
 	private final EntityService<T, RequestDto, ResponseDto> service;
 
 	public EntityGatewayImpl(EntityService<T, RequestDto, ResponseDto> service) {

@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
-@Service
-public class EntityServiceImpl<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
+public abstract class EntityServiceImpl<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
 
 	private final EntityRepository<T, RequestDto, ResponseDto> repository;
 
