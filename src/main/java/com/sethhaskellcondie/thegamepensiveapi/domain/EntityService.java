@@ -7,10 +7,10 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 
 /**
  * A Service is the bridge between the entity behavior, gateways, and repositories.
- *
+ * <p>
  * Gateways should always connect to repositories through services, the service will hold a reference
  * to the entity repository along with any other related repositories needed for that entity.
- *
+ * <p>
  * Services all hold any behaviors that happen between entities that are related, that
  * cannot be included in the entity object itself. Like creating a DTO from two different Entities.
  */

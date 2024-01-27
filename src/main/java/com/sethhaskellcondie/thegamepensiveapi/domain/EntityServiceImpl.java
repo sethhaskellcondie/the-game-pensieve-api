@@ -2,8 +2,6 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
