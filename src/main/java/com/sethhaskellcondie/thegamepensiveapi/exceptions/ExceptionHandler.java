@@ -21,4 +21,18 @@ public class ExceptionHandler {
 		ErrorResponse response = new ErrorResponse(e.getMessage(), code);
 		return new ResponseEntity<>(response, code);
 	}
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(value = {ExceptionResourceNotFound.class})
+	public ResponseEntity<Object> handleExceptionResourceNotFound(ExceptionResourceNotFound e) {
+		HttpStatusCode code = HttpStatus.NOT_FOUND;
+		ErrorResponse response = new ErrorResponse(e.getMessage(), code);
+		return new ResponseEntity<>(response, code);
+	}
+
+	@org.springframework.web.bind.annotation.ExceptionHandler(value = {IllegalArgumentException.class})
+	public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e) {
+		HttpStatusCode code = HttpStatus.BAD_REQUEST;
+		ErrorResponse response = new ErrorResponse(e.getMessage(), code);
+		return new ResponseEntity<>(response, code);
+	}
 }

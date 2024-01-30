@@ -36,12 +36,6 @@ public class ToyRepositoryImpl implements ToyRepository {
 	}
 
 	@Override
-	public Toy hydrateFromRequestDto(ToyRequestDto requestDto) {
-		Toy newToy = new Toy();
-		return newToy.updateFromRequest(requestDto);
-	}
-
-	@Override
 	public Toy insert(Toy toy) throws ExceptionFailedDbValidation {
 		toyDbValidation(toy);
 		String sql = """

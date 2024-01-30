@@ -19,7 +19,7 @@ abstract public class Entity<RequestDto, ResponseDto> {
 	}
 
 	public final boolean isPersistent() {
-		return id == null;
+		return id != null;
 	}
 
 	public abstract Entity<RequestDto, ResponseDto> updateFromRequest(RequestDto requestDto);

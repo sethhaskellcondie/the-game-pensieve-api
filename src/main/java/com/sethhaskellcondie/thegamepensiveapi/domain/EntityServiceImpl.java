@@ -14,11 +14,6 @@ public abstract class EntityServiceImpl<T extends Entity<RequestDto, ResponseDto
 	}
 
 	@Override
-	public T hydrateFromRequestDto(RequestDto requestDto) {
-		return repository.hydrateFromRequestDto(requestDto);
-	}
-
-	@Override
 	public List<T> getWithFilters(String filters) {
 		return repository.getWithFilters(filters);
 	}

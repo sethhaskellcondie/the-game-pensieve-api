@@ -22,6 +22,6 @@ public interface EntityGateway<T extends Entity<RequestDto, ResponseDto>, Reques
 	List<ResponseDto> getWithFilters(String filters);
 	ResponseDto getById(int id) throws ExceptionResourceNotFound;
 	ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
-	ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionInputValidation, ExceptionResourceNotFound;
-	void deleteById(int id) throws ExceptionFailedDbValidation, ExceptionInputValidation, ExceptionResourceNotFound;
+	ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound;
+	void deleteById(int id) throws ExceptionResourceNotFound;
 }

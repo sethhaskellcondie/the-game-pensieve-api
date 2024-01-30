@@ -7,7 +7,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidati
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 public abstract class EntityGatewayImpl<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityGateway<T, RequestDto, ResponseDto> {
-	private final EntityService<T, RequestDto, ResponseDto> service;
+	protected final EntityService<T, RequestDto, ResponseDto> service;
 
 	public EntityGatewayImpl(EntityService<T, RequestDto, ResponseDto> service) {
 		this.service = service;
@@ -25,26 +25,23 @@ public abstract class EntityGatewayImpl<T extends Entity<RequestDto, ResponseDto
 	}
 
 	@Override
-	public ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation {
-		T t = service.hydrateFromRequestDto(requestDto);
-		return service.createNew(t).convertToResponseDto();
-	}
+	public abstract ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
 
 	@Override
-	public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionInputValidation, ExceptionResourceNotFound {
+	public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
 		T t = service.getById(id);
 		if (!t.isPersistent()) {
-			throw new ExceptionInputValidation("Invalid System Id");
+			throw new ExceptionResourceNotFound("System", id);
 		}
 		t.updateFromRequest(requestDto);
 		return service.updateExisting(t).convertToResponseDto();
 	}
 
 	@Override
-	public void deleteById(int id) throws ExceptionFailedDbValidation, ExceptionInputValidation, ExceptionResourceNotFound {
+	public void deleteById(int id) throws ExceptionResourceNotFound {
 		T t = service.getById(id);
 		if (!t.isPersistent()) {
-			throw new ExceptionInputValidation("Invalid System Id");
+			throw new ExceptionResourceNotFound("System", id);
 		}
 		service.deleteById(id);
 	}
