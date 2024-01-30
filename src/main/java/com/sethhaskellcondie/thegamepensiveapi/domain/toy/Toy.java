@@ -38,5 +38,4 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 	}
 }
 
-record ToyRequestDto(String name, String set) {}
-record ToyResponseDto(Integer Id, String name, String set) {}
+record ToyResponseDto(Integer id, String name, String set) {}

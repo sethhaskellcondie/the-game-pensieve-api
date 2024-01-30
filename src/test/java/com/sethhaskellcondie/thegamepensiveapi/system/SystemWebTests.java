@@ -112,7 +112,7 @@ public class SystemWebTests {
 
 		result.andExpectAll(
 			status().isOk(),
-			content().contentType("application/json"),
+			content().contentType(MediaType.APPLICATION_JSON),
 			jsonPath("$").value(new ArrayList<>())
 		);
 	}
