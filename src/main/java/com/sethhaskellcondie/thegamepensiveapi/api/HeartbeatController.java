@@ -7,13 +7,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 // @RestController tells spring that this class is a controller and may contain methods used to handle incoming requests
 @RestController
-public class HeartbeatController
-{
+public class HeartbeatController {
 
 	private final JdbcTemplate jdbcTemplate;
 
-	public HeartbeatController(JdbcTemplate jdbcTemplate)
-	{
+	public HeartbeatController(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 

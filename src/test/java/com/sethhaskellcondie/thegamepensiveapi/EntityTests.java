@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.system.System;
 
-public class EntityTest
+public class EntityTests
 {
 	@Test
 	public void equals_PersistedAndNotPersisted_false() {
@@ -37,7 +37,7 @@ public class EntityTest
 		assertFalse(entity1.equals(entity1Again));
 	}
 
-	//Since Entity are abstract we will use SystemEntity Objects for the tests
+	//Since Entity are abstract we will use System Objects for the tests
 	private Entity generatePersistedEntity(Integer id) {
 		return new System(id, "test", 1, false);
 	}

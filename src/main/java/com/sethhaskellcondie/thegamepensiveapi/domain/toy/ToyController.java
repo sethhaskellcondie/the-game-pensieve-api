@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,10 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 @RestController
@@ -35,17 +36,19 @@ public class ToyController {
 	}
 
 	@PostMapping("")
+	@ResponseStatus(HttpStatus.CREATED)
 	public ToyResponseDto createNewToy(@RequestBody ToyRequestDto toy) throws ExceptionFailedDbValidation {
 		return gateway.createNew(toy);
 	}
 
 	@PutMapping("/{id}")
-	public ToyResponseDto updateExistingToy(@PathVariable int id, @RequestBody ToyRequestDto toy) throws ExceptionInputValidation, ExceptionResourceNotFound, ExceptionFailedDbValidation {
+	public ToyResponseDto updateExistingToy(@PathVariable int id, @RequestBody ToyRequestDto toy) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
 		return gateway.updateExisting(id, toy);
 	}
 
 	@DeleteMapping("/{id}")
-	public void deleteExistingToy(@PathVariable int id) throws ExceptionInputValidation, ExceptionResourceNotFound, ExceptionFailedDbValidation {
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteExistingToy(@PathVariable int id) throws ExceptionResourceNotFound {
 		gateway.deleteById(id);
 	}
 }

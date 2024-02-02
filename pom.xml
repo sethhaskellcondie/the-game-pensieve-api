@@ -33,6 +33,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!--Required for the WebTestClient used in end-to-end Integration tests-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!--Postgres is database used for persistence-->
 		<dependency>
 			<groupId>org.postgresql</groupId>

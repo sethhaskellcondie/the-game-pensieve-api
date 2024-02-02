@@ -16,7 +16,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 	 * Define the DTO on the Entity if the shape of an object needs to be changed
 	 * all of those changes can be made here on the Entity with minimal changes elsewhere
 	 * in the project
-	 *
+	 * <p>
 	 * Most DTO's that contain more than one Entity will be a composite of the existing DTO's
 	 * but if there is a case where a completely new DTO will need to be created that will
 	 * be complete on the Service.
@@ -67,7 +67,5 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 		return new SystemResponseDto(this.id, this.name, this.generation, this.handheld);
 	}
 }
-
-record SystemRequestDto(String name, int generation, boolean handheld) {}
 
 record SystemResponseDto(Integer id, String name, int generation, boolean handheld) {}

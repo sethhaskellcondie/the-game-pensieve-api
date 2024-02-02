@@ -36,12 +36,6 @@ public class SystemRepositoryImpl implements SystemRepository {
 	}
 
 	@Override
-	public System hydrateFromRequestDto(SystemRequestDto requestDto) {
-		System newSystem = new System();
-		return newSystem.updateFromRequest(requestDto);
-	}
-
-	@Override
 	public System insert(System system) throws ExceptionFailedDbValidation {
 		//to change this into an upsert
 		// if (system.isPersistent()) {
