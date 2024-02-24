@@ -1,4 +1,4 @@
--- CREATE DATABASE "local-game-pensive"
+-- CREATE DATABASE "pensive-db"
 --     WITH
 --     OWNER = postgres
 --     ENCODING = 'UTF8'

@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,7 @@ public class EntityTests
 	public void equals_SameIds_True() {
 		Entity entity1 = generatePersistedEntity(1);
 		Entity entity1Again = generatePersistedEntity(1);
-		assertFalse(entity1.equals(entity1Again));
+		assertTrue(entity1.equals(entity1Again));
 	}
 
 	//Since Entity are abstract we will use System Objects for the tests
