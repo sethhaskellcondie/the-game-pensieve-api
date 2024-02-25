@@ -2,19 +2,15 @@
 version: '3.8'
 
 services:
-#  api:
-#    depends_on:
-#      - db
-#    build: .
-#    ports:
-#      - "8020:8000" #host port:container port
-#    environment:
-#       dev environment
-#
-#    develop:
-#      watch:
-#        - path:
-#            action:
+  api:
+    depends_on:
+      - db
+    build:
+      context: .
+      args:
+        JAR_FILE: target/*.jar
+    ports:
+      - "8080:8080" #host port:container port
   flyway:
     depends_on:
       - db
