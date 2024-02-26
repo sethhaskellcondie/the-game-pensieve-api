@@ -11,6 +11,8 @@ services:
         JAR_FILE: target/*.jar
     ports:
       - "8080:8080" #host port:container port
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
   flyway:
     depends_on:
       - db
@@ -22,7 +24,7 @@ services:
     # migrate (tells flyway what to do on load)
     command: -configFiles=/flyway/conf/flyway.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
     volumes:
-      - ${PWD}/src/main/resources/migrations:/flyway/sql       # these are a host volumes (bind mounts)
+      - ${PWD}/src/main/resources/migrations:/flyway/sql       # these are host volumes (bind mounts)
       - ${PWD}/docker-flyway.config:/flyway/conf/flyway.config # host file path:container volume path
   db:
     image: postgres:alpine

@@ -8,8 +8,6 @@ ARG JAR_FILE
 # copy everything in the : path from host machine <space> to the path on the container
 COPY ${JAR_FILE} app.jar
 
-#COPY target/*.jar app.jar
-
 # this will run the jar file in the container
 ENTRYPOINT ["java","-jar","/app.jar"]
 

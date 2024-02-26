@@ -66,6 +66,9 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<finalName>the_game_pensive_api</finalName>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
