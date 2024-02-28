@@ -15,3 +15,18 @@ ENTRYPOINT ["java","-jar","/app.jar"]
 # docker build -t pensive-api .
 # docker : build : -t (create the image with this tag name) : <tag-name> : . (directory of Dockerfile, here)
 # -----or run this with a compose.yaml file-----
+
+# Another way to setup a docker file that copies the source code and runs it in the container
+# https://www.docker.com/blog/kickstart-your-spring-boot-application-development/
+#
+# FROM eclipse-temurin:17-jdk-focal
+#
+# WORKDIR /app
+#
+# COPY .mvn/ .mvn
+# COPY mvnw pom.xml ./
+# RUN ./mvnw dependency:go-offline
+#
+# COPY src ./src
+#
+# CMD ["./mvnw", "spring-boot:run"]
