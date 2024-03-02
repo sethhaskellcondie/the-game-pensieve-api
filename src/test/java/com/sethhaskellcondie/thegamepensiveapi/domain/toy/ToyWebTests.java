@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.toy;
+package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;

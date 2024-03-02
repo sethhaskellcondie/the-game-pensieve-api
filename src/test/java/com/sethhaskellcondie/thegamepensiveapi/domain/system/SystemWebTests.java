@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.system;
+package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,11 +29,6 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemController;
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemGateway;
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemGatewayImpl;
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemServiceImpl;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 

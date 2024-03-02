@@ -20,8 +20,6 @@ public class HeartbeatController {
 	// example request is to localhost:8080/heartbeat
 	@GetMapping("/heartbeat")
 	public String heartbeat() {
-		//return a 200?
-		//is 200 the default?
 		return "thump thump";
 	}
 

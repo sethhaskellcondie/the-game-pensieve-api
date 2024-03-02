@@ -1,0 +1,36 @@
+# the docker-compose version for this file, version is always the first line
+version: '3.8'
+
+services:
+  api:
+    depends_on:
+      - db
+    build:
+      context: .
+      args:
+        JAR_FILE: target/*.jar
+    ports:
+      - "8080:8080" #host port:container port
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+  flyway:
+    depends_on:
+      - db
+    image: flyway/flyway
+    # these commands use the provided volumes on the flyway container: https://hub.docker.com/r/flyway/flyway
+    # -configFiles=/flyway/conf/flyway.config : will use the docker-flyway.config in this container
+    # -locations=filesystem:/flyway/sql : tells the system we are using sql migration files (not java)
+    # -connectRetries=60 in case the db container isn't running before the flyway container this will cause it to retry for about a minute
+    # migrate (tells flyway what to do on load)
+    command: -configFiles=/flyway/conf/flyway.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
+    volumes:
+      - ${PWD}/src/main/resources/migrations:/flyway/sql       # these are host volumes (bind mounts)
+      - ${PWD}/docker-flyway.config:/flyway/conf/flyway.config # host file path:container volume path
+  db:
+    image: postgres:alpine
+    ports:
+      - "5432:5432" #host port:container port
+    environment:
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: pensive-db
