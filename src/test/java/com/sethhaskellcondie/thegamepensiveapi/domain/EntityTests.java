@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi;
+package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
