@@ -1,10 +1,8 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
-import java.util.List;
-
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import java.util.List;
 
 /**
  * A Controller is in charge of exposing the domain functionality through the different endpoints
@@ -26,7 +22,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  * lower in the domain.
  * <p>
  * Controllers only interact with Gateways, but also reference the shape of DTO's that are defined
- * in the entity. Gateways will always take an Entity.InputDto and will return either an 
+ * in the entity. Gateways will always take an Entity.InputDto and will return either an
  * Entity.ResponseDto or an error, the controller will format the response, then return
  * <p>
  * Controllers are also responsible for formatting the response, this is mostly transforming
@@ -35,36 +31,36 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @RestController
 @RequestMapping("systems")
 public class SystemController {
-	private final SystemGateway gateway;
+    private final SystemGateway gateway;
 
-	public SystemController(SystemGateway gateway) {
-		this.gateway = gateway;
-	}
+    public SystemController(SystemGateway gateway) {
+        this.gateway = gateway;
+    }
 
-	@GetMapping("")
-	public List<SystemResponseDto> getAllSystems() {
-		return gateway.getWithFilters("");
-	}
+    @GetMapping("")
+    public List<SystemResponseDto> getAllSystems() {
+        return gateway.getWithFilters("");
+    }
 
-	@GetMapping("/{id}")
-	public SystemResponseDto getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
-		return gateway.getById(id);
-	}
+    @GetMapping("/{id}")
+    public SystemResponseDto getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
+        return gateway.getById(id);
+    }
 
-	@PostMapping("")
-	@ResponseStatus(HttpStatus.CREATED)
-	public SystemResponseDto createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
-		return gateway.createNew(system);
-	}
+    @PostMapping("")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SystemResponseDto createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
+        return gateway.createNew(system);
+    }
 
-	@PutMapping("/{id}")
-	public SystemResponseDto updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-		return gateway.updateExisting(id, system);
-	}
+    @PutMapping("/{id}")
+    public SystemResponseDto updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        return gateway.updateExisting(id, system);
+    }
 
-	@DeleteMapping("/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {
-		gateway.deleteById(id);
-	}
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {
+        gateway.deleteById(id);
+    }
 }

@@ -1,10 +1,9 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
-import java.util.List;
-
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+
+import java.util.List;
 
 /**
  * A Gateway is how other parts of the system access the domain every Entity will have base functionality
@@ -19,9 +18,13 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  */
 public interface EntityGateway<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
-	List<ResponseDto> getWithFilters(String filters);
-	ResponseDto getById(int id) throws ExceptionResourceNotFound;
-	ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
-	ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound;
-	void deleteById(int id) throws ExceptionResourceNotFound;
+    List<ResponseDto> getWithFilters(String filters);
+
+    ResponseDto getById(int id) throws ExceptionResourceNotFound;
+
+    ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
+
+    ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound;
+
+    void deleteById(int id) throws ExceptionResourceNotFound;
 }

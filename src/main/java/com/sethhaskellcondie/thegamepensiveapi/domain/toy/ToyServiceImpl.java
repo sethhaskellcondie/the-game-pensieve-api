@@ -7,8 +7,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.EntityServiceImpl;
 
 @Service
 public class ToyServiceImpl extends EntityServiceImpl<Toy, ToyRequestDto, ToyResponseDto> implements ToyService {
-	public ToyServiceImpl(EntityRepository<Toy, ToyRequestDto, ToyResponseDto> repository)
-	{
-		super(repository);
-	}
+    public ToyServiceImpl(EntityRepository<Toy, ToyRequestDto, ToyResponseDto> repository) {
+        super(repository);
+    }
 }
