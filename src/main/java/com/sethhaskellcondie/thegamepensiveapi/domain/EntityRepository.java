@@ -1,11 +1,10 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
-
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * A Repository is in charge of all database connections, all the SQL needed to communicate
@@ -24,9 +23,13 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
  */
 @Repository
 public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
-	T insert(T t) throws ExceptionFailedDbValidation;
-	List<T> getWithFilters(String filters);
-	T getById(int id) throws ExceptionResourceNotFound;
-	T update(T t) throws ExceptionFailedDbValidation;
-	void deleteById(int id) throws ExceptionResourceNotFound;
+    T insert(T t) throws ExceptionFailedDbValidation;
+
+    List<T> getWithFilters(String filters);
+
+    T getById(int id) throws ExceptionResourceNotFound;
+
+    T update(T t) throws ExceptionFailedDbValidation;
+
+    void deleteById(int id) throws ExceptionResourceNotFound;
 }

@@ -1,21 +1,8 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,219 +14,228 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.Toy;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyController;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyGateway;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyGatewayImpl;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyServiceImpl;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ToyController.class)
 public class ToyWebTests {
-	@TestConfiguration
-	static class ToyWebTestsConfiguration {
-		@Bean
-		public ToyGateway toyGateway(ToyServiceImpl service) {
-			return new ToyGatewayImpl(service);
-		}
-	}
-	@Autowired
-	private MockMvc mockMvc;
-	@MockBean
-	private ToyServiceImpl service;
+    @TestConfiguration
+    static class ToyWebTestsConfiguration {
+        @Bean
+        public ToyGateway toyGateway(ToyServiceImpl service) {
+            return new ToyGatewayImpl(service);
+        }
+    }
 
-	@Test
-	void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
-		Toy toy = new Toy(1, "Donkey Kong", "Amiibo");
-		when(service.getById(1)).thenReturn(toy);
+    @Autowired
+    private MockMvc mockMvc;
+    @MockBean
+    private ToyServiceImpl service;
 
-		ResultActions result = mockMvc.perform(get("/toys/1"));
+    @Test
+    void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
+        Toy toy = new Toy(1, "Donkey Kong", "Amiibo");
+        when(service.getById(1)).thenReturn(toy);
 
-		result.andDo(print());
-		result.andExpectAll(
-			status().isOk(),
-			content().contentType(MediaType.APPLICATION_JSON)
-		);
-		validateToyResponseBody(result, toy);
-	}
+        ResultActions result = mockMvc.perform(get("/toys/1"));
 
-	@Test
-	void getOneToy_ToyMissing_NotFoundReturned() throws Exception {
-		when(service.getById(999)).thenThrow(ExceptionResourceNotFound.class);
+        result.andDo(print());
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateToyResponseBody(result, toy);
+    }
 
-		ResultActions result = mockMvc.perform(get("/toys/999"));
+    @Test
+    void getOneToy_ToyMissing_NotFoundReturned() throws Exception {
+        when(service.getById(999)).thenThrow(ExceptionResourceNotFound.class);
 
-		result.andExpectAll(
-			status().isNotFound(),
-			jsonPath("$.message").hasJsonPath(), //the mock can't throw a message, just check for the path
-			jsonPath("$.status").exists()
-		);
-	}
+        ResultActions result = mockMvc.perform(get("/toys/999"));
 
-	@Test
-	void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
-		Toy toy1 = new Toy(1, "Mega Man", "Amiibo");
-		Toy toy2 = new Toy(2, "Samus", "Amiibo");
-		List<Toy> toys = List.of(toy1, toy2);
-		when(service.getWithFilters("")).thenReturn(toys);
+        result.andExpectAll(
+                status().isNotFound(),
+                jsonPath("$.message").hasJsonPath(), //the mock can't throw a message, just check for the path
+                jsonPath("$.status").exists()
+        );
+    }
 
-		ResultActions result = mockMvc.perform(get("/toys"));
+    @Test
+    void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
+        Toy toy1 = new Toy(1, "Mega Man", "Amiibo");
+        Toy toy2 = new Toy(2, "Samus", "Amiibo");
+        List<Toy> toys = List.of(toy1, toy2);
+        when(service.getWithFilters("")).thenReturn(toys);
 
-		result.andExpectAll(
-			status().isOk(),
-			content().contentType(MediaType.APPLICATION_JSON)
-		);
-		validateToyResponseBody(result, toys);
-	}
+        ResultActions result = mockMvc.perform(get("/toys"));
 
-	@Test
-	void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-		when(service.getWithFilters("")).thenReturn(List.of());
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateToyResponseBody(result, toys);
+    }
 
-		ResultActions result = mockMvc.perform(get("/toys"));
+    @Test
+    void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
+        when(service.getWithFilters("")).thenReturn(List.of());
 
-		result.andExpectAll(
-			status().isOk(),
-			content().contentType(MediaType.APPLICATION_JSON),
-			jsonPath("$").value(new ArrayList<>())
-		);
-	}
+        ResultActions result = mockMvc.perform(get("/toys"));
 
-	@Test
-	void createNewToy_ValidPayload_ToyCreatedAndReturned() throws Exception {
-		int expectedId = 34;
-		String expectedName = "Sora";
-		String expectedSet = "Disney Infinity";
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$").value(new ArrayList<>())
+        );
+    }
 
-		Toy expectedToy = new Toy(expectedId, expectedName, expectedSet);
+    @Test
+    void createNewToy_ValidPayload_ToyCreatedAndReturned() throws Exception {
+        int expectedId = 34;
+        String expectedName = "Sora";
+        String expectedSet = "Disney Infinity";
 
-		when(service.createNew(any())).thenReturn(expectedToy);
+        Toy expectedToy = new Toy(expectedId, expectedName, expectedSet);
 
-		String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
-		ResultActions result = mockMvc.perform(
-			post("/toys")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(jsonContent)
-		);
+        when(service.createNew(any())).thenReturn(expectedToy);
 
-		result.andExpect(status().isCreated());
-		validateToyResponseBody(result, expectedToy);
-	}
+        String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
+        ResultActions result = mockMvc.perform(
+                post("/toys")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
-	@Test
-	void createNewToy_NameBlank_ReturnBadRequest() throws Exception {
-		String jsonContent = generateValidCreateUpdatePayload("", "set");
+        result.andExpect(status().isCreated());
+        validateToyResponseBody(result, expectedToy);
+    }
 
-		ResultActions result = mockMvc.perform(
-			post("/toys")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(jsonContent)
-		);
+    @Test
+    void createNewToy_NameBlank_ReturnBadRequest() throws Exception {
+        String jsonContent = generateValidCreateUpdatePayload("", "set");
 
-		result.andExpectAll(
-			status().isBadRequest(),
-			jsonPath("$.message").exists(),
-			jsonPath("$.status").exists()
-		);
-	}
+        ResultActions result = mockMvc.perform(
+                post("/toys")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
-	@Test
-	void updateExistingToy_ValidUpdate_ReturnOk() throws Exception {
-		int expectedId = 99;
-		String expectedName = "Baloo";
-		String expectedSet = "Disney Infinity";
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.message").exists(),
+                jsonPath("$.status").exists()
+        );
+    }
 
-		Toy existingToy = new Toy(expectedId, "Old Name", "Old Set");
-		Toy updatedToy = new Toy(expectedId, expectedName, expectedSet);
+    @Test
+    void updateExistingToy_ValidUpdate_ReturnOk() throws Exception {
+        int expectedId = 99;
+        String expectedName = "Baloo";
+        String expectedSet = "Disney Infinity";
 
-		when(service.getById(expectedId)).thenReturn(existingToy);
-		when(service.updateExisting(updatedToy)).thenReturn(updatedToy);
+        Toy existingToy = new Toy(expectedId, "Old Name", "Old Set");
+        Toy updatedToy = new Toy(expectedId, expectedName, expectedSet);
 
-		String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
-		ResultActions result = mockMvc.perform(
-			put("/toys/" + expectedId)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(jsonContent)
-		);
+        when(service.getById(expectedId)).thenReturn(existingToy);
+        when(service.updateExisting(updatedToy)).thenReturn(updatedToy);
 
-		result.andExpect(status().isOk());
-		validateToyResponseBody(result, updatedToy);
-	}
+        String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
+        ResultActions result = mockMvc.perform(
+                put("/toys/" + expectedId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
-	@Test
-	void updateExistingToy_InvalidId_ReturnNotFound() throws Exception {
-		when(service.getById(79)).thenReturn(new Toy());
+        result.andExpect(status().isOk());
+        validateToyResponseBody(result, updatedToy);
+    }
 
-		String jsonContent = generateValidCreateUpdatePayload("invalidId", "");
-		ResultActions result = mockMvc.perform(
-			put("/toys/79")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(jsonContent)
-		);
+    @Test
+    void updateExistingToy_InvalidId_ReturnNotFound() throws Exception {
+        when(service.getById(79)).thenReturn(new Toy());
 
-		result.andExpect(status().isNotFound());
-	}
+        String jsonContent = generateValidCreateUpdatePayload("invalidId", "");
+        ResultActions result = mockMvc.perform(
+                put("/toys/79")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
-	@Test
-	void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
-		when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set"));
+        result.andExpect(status().isNotFound());
+    }
 
-		ResultActions result = mockMvc.perform(
-			delete("/toys/27")
-		);
+    @Test
+    void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
+        when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set"));
 
-		result.andExpect(status().isNoContent());
-	}
+        ResultActions result = mockMvc.perform(
+                delete("/toys/27")
+        );
 
-	@Test
-	void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
+        result.andExpect(status().isNoContent());
+    }
 
-		when(service.getById(27)).thenReturn(new Toy());
+    @Test
+    void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
 
-		ResultActions result = mockMvc.perform(
-			delete("/toys/27")
-		);
+        when(service.getById(27)).thenReturn(new Toy());
 
-		result.andExpect(status().isNotFound());
-	}
+        ResultActions result = mockMvc.perform(
+                delete("/toys/27")
+        );
 
-	private String generateValidCreateUpdatePayload(String name, String set) {
-		String json = """
-			{
-				"name": "%s",
-				"generation": "%s"
-			}
-			""";
-		return String.format(json, name, set);
-	}
+        result.andExpect(status().isNotFound());
+    }
+
+    private String generateValidCreateUpdatePayload(String name, String set) {
+        String json = """
+                {
+                	"name": "%s",
+                	"generation": "%s"
+                }
+                """;
+        return String.format(json, name, set);
+    }
 
 
-	private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {
-		result.andExpectAll(
-			jsonPath("$.id").value(expectedToy.getId()),
-			jsonPath("$.name").value(expectedToy.getName()),
-			jsonPath("$.set").value(expectedToy.getSet())
-		);
-	}
+    private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.id").value(expectedToy.getId()),
+                jsonPath("$.name").value(expectedToy.getName()),
+                jsonPath("$.set").value(expectedToy.getSet())
+        );
+    }
 
-	private void validateToyResponseBody(ResultActions result, List<Toy> expectedToys) throws Exception {
-		MvcResult mvcResult = result.andReturn();
-		String body = mvcResult.getResponse().getContentAsString();
-		List<Toy> returnedToys = new ObjectMapper().readValue(body, new TypeReference<List<Toy>>(){});
-		//test the order, and the deserialization
-		for  (int i = 0; i < returnedToys.size(); i++) {
-			Toy expectedToy = expectedToys.get(i);
-			Toy returnedToy = returnedToys.get(i);
-			assertAll(
-				"The response body for Toys is not formatted correctly",
-				() -> assertEquals(expectedToy.getId(), returnedToy.getId()),
-				() -> assertEquals(expectedToy.getName(), returnedToy.getName()),
-				() -> assertEquals(expectedToy.getSet(), returnedToy.getSet())
-			);
+    private void validateToyResponseBody(ResultActions result, List<Toy> expectedToys) throws Exception {
+        MvcResult mvcResult = result.andReturn();
+        String body = mvcResult.getResponse().getContentAsString();
+        List<Toy> returnedToys = new ObjectMapper().readValue(body, new TypeReference<List<Toy>>() {
+        });
+        //test the order, and the deserialization
+        for (int i = 0; i < returnedToys.size(); i++) {
+            Toy expectedToy = expectedToys.get(i);
+            Toy returnedToy = returnedToys.get(i);
+            assertAll(
+                    "The response body for Toys is not formatted correctly",
+                    () -> assertEquals(expectedToy.getId(), returnedToy.getId()),
+                    () -> assertEquals(expectedToy.getName(), returnedToy.getName()),
+                    () -> assertEquals(expectedToy.getSet(), returnedToy.getSet())
+            );
 
-		}
-	}
+        }
+    }
 
 }

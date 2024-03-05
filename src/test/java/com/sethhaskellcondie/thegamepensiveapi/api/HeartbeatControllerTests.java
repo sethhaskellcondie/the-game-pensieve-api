@@ -11,15 +11,14 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 //if you provide a port and configuration for the @SpringBootTest annotation this will start an embedded servlet container,
 //use WebTestClient/TestRestTemplate
-@SpringBootTest( webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-public class HeartbeatControllerTests
-{
-	@Autowired
-	WebTestClient client;
+public class HeartbeatControllerTests {
+    @Autowired
+    WebTestClient client;
 
-	@Test
-	void testHeartbeat_HappyPath_ReturnOk () {
-		client.get().uri("/heartbeat").exchange().expectStatus().isOk();
-	}
+    @Test
+    void testHeartbeat_HappyPath_ReturnOk() {
+        client.get().uri("/heartbeat").exchange().expectStatus().isOk();
+    }
 }
