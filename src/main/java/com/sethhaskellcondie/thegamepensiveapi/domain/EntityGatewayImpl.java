@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 import java.util.List;
@@ -24,22 +25,24 @@ public abstract class EntityGatewayImpl<T extends Entity<RequestDto, ResponseDto
     }
 
     @Override
-    public abstract ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
+    public ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation {
+        return service.createNew(requestDto).convertToResponseDto();
+    }
 
     @Override
-    public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+    public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound {
         T t = service.getById(id);
-        if (!t.isPersistent()) {
-            throw new ExceptionResourceNotFound("System", id);
+        if (!t.isPersisted()) {
+            throw new ExceptionResourceNotFound(this.getClass().getSimpleName(), id);
         }
-        t.updateFromRequest(requestDto);
+        t.updateFromRequestDto(requestDto);
         return service.updateExisting(t).convertToResponseDto();
     }
 
     @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
         T t = service.getById(id);
-        if (!t.isPersistent()) {
+        if (!t.isPersisted()) {
             throw new ExceptionResourceNotFound("System", id);
         }
         service.deleteById(id);

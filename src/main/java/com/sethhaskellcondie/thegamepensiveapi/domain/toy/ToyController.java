@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import java.util.List;
 
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,7 @@ public class ToyController {
         this.gateway = gateway;
     }
 
-    @GetMapping("")
+    @PostMapping("")
     public List<ToyResponseDto> getAllToys() {
         return gateway.getWithFilters("");
     }
@@ -42,7 +43,7 @@ public class ToyController {
     }
 
     @PutMapping("/{id}")
-    public ToyResponseDto updateExistingToy(@PathVariable int id, @RequestBody ToyRequestDto toy) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
+    public ToyResponseDto updateExistingToy(@PathVariable int id, @RequestBody ToyRequestDto toy) throws ExceptionInputValidation, ExceptionResourceNotFound, ExceptionFailedDbValidation {
         return gateway.updateExisting(id, toy);
     }
 

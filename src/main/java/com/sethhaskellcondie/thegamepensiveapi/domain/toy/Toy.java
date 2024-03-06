@@ -27,7 +27,7 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
         return set;
     }
 
-    public Toy updateFromRequest(ToyRequestDto requestDto) {
+    public Toy updateFromRequestDto(ToyRequestDto requestDto) {
         this.name = requestDto.name();
         this.set = requestDto.set();
         return this;

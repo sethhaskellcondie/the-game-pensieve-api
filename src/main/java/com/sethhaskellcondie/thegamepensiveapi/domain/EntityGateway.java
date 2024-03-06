@@ -1,20 +1,26 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 import java.util.List;
 
 /**
- * A Gateway is how other parts of the system access the domain every Entity will have base functionality
- * inside the domain and if some of that base functionality should be unavailable it will not be exposed
- * with and endpoint on the controller.
+ * The gateway is the entrypoint into the domain, external consumers will use the controllers while
+ * internal consumers must use a gateway there is no direct access to the Entities and the business logic
+ * in the domain. All Entities have the same basic CRUD functionality. the default implementation is found
+ * in these abstract Entity classes (EntityGateway, EntityService, and EntityRepository) overwritten as needed.
  * <p>
- * A gateway primarily creates Entities and interfaces with services, but a gateway will never return an
- * Entity it will always return a DTO for that Entity, that DTO will contain relationships for other
- * Entities that can be retrieved through a gateway (internally) or an endpoint (externally)
+ * A gateway has two responsibilities interfacing with services and converting the response from the service
+ * into a responseDto to keep the Entity access encapsulated.
  * <p>
- * If I had some permissions checks I would put them here.
+ * A gateway used to have the responsibility of instantiating new objects but was fired from that because
+ * You can instantiate a new object with generics so this was delegated through the service to the repository.
+ * Each entity is designed so that the CRUD functions only need to be implemented in the Entity and the Repository,
+ * then exposed through the controller, the rest works automagically.
+ * <p>
+ * If permission checks existed in this system they would be right before or after the gateway.
  */
 public interface EntityGateway<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
@@ -24,7 +30,7 @@ public interface EntityGateway<T extends Entity<RequestDto, ResponseDto>, Reques
 
     ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
 
-    ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound;
+    ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound;
 
     void deleteById(int id) throws ExceptionResourceNotFound;
 }

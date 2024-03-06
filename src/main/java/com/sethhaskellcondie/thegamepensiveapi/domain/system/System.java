@@ -1,28 +1,18 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 
 /**
  * The Entity object will extend the Entity abstract class, this will enforce the ID equality
- * and persistent check.
+ * and persistence check.
  */
 public class System extends Entity<SystemRequestDto, SystemResponseDto> {
-    /**
-     * Inherit ID from Entity
-     */
+
+    // Inherit ID from Entity
     private String name;
     private int generation;
     private boolean handheld;
-
-    /**
-     * Define the DTO on the Entity if the shape of an object needs to be changed
-     * all of those changes can be made here on the Entity with minimal changes elsewhere
-     * in the project
-     * <p>
-     * Most DTO's that contain more than one Entity will be a composite of the existing DTO's
-     * but if there is a case where a completely new DTO will need to be created that will
-     * be complete on the Service.
-     */
 
     public System() {
         super();
@@ -53,12 +43,12 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
     }
 
     /**
-     * Also inherit isPersistent() from Entity
+     * Also inherit isPersisted() from Entity
      * this will return True if the Entity has an ID
      * meaning that the Entity has been persisted to the database
      */
 
-    public System updateFromRequest(SystemRequestDto requestDto) {
+    public System updateFromRequestDto(SystemRequestDto requestDto) {
         this.name = requestDto.name();
         this.generation = requestDto.generation();
         this.handheld = requestDto.handheld();
@@ -68,7 +58,29 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
     public SystemResponseDto convertToResponseDto() {
         return new SystemResponseDto(this.id, this.name, this.generation, this.handheld);
     }
+
+    //TODO I want this to throw one error for each failed validation check
+    //to be called after a new system is initialized or updated from a DTO
+    public boolean ValidSystem() throws ExceptionInputValidation {
+        if (this.name.isBlank()) {
+            throw new ExceptionInputValidation("ERROR! - Input Validation: Name is required for a System");
+        }
+        if (generation < 0) {
+            throw new ExceptionInputValidation("ERROR! - Input Validation: Generation is required for a System");
+        }
+        //handheld is also required
+        return true;
+    }
 }
 
-record SystemResponseDto(Integer id, String name, int generation, boolean handheld) {
-}
+/**
+ * Define the DTO on the Entity if the shape of an object needs to be changed
+ * all of those changes can be made here on the Entity with minimal changes elsewhere
+ * in the project
+ * <p>
+ * Most DTO's that contain more than one Entity will be a composite of the existing DTO's
+ * but if there is a case where a completely new DTO will need to be created that will
+ * be completed on the Service.
+ */
+record SystemRequestDto(String name, Integer generation, Boolean handheld) { }
+record SystemResponseDto(Integer id, String name, int generation, boolean handheld) { }

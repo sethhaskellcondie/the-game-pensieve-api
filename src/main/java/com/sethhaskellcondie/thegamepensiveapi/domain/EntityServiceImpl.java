@@ -24,8 +24,8 @@ public abstract class EntityServiceImpl<T extends Entity<RequestDto, ResponseDto
     }
 
     @Override
-    public T createNew(T t) throws ExceptionFailedDbValidation {
-        return repository.insert(t);
+    public T createNew(RequestDto requestDto) throws ExceptionFailedDbValidation {
+        return repository.insert(requestDto);
     }
 
     @Override
