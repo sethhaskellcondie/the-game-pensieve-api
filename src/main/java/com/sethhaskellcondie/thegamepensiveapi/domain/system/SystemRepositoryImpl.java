@@ -2,6 +2,8 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +20,8 @@ import java.util.List;
 @Repository
 public class SystemRepositoryImpl implements SystemRepository {
     private final JdbcTemplate jdbcTemplate;
-    private final String resourceName = "System"; //the name passed into errors
     private final String baseQuery = "SELECT * FROM systems WHERE 1 = 1 "; //include a WHERE 1 = 1 clause at the end, so we can always append with AND
     private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
-    //a RowMapper is used to covert the data from the table into a constructor
     private final RowMapper<System> rowMapper = (resultSet, i) ->
             new System(
                     resultSet.getInt("id"),
@@ -35,10 +35,17 @@ public class SystemRepositoryImpl implements SystemRepository {
     }
 
     @Override
+    public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
+        System system = new System().updateFromRequestDto(requestDto);
+        system.validate();
+        return this.insert(system);
+    }
+
+    @Override
     public System insert(System system) throws ExceptionFailedDbValidation {
-        //to change this into an upsert
-        // if (system.isPersistent()) {
-        // 		return update(system);
+        // ---to change this into an upsert
+        // if (requestDto.isPersisted()) {
+        // 		return update(requestDto);
         // }
 
         systemDbValidation(system);
@@ -68,9 +75,9 @@ public class SystemRepositoryImpl implements SystemRepository {
             return getById(generatedId);
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             // we shouldn't ever reach this block of code because the database is managing the ids
-            // but if we do then we better log it
+            // so if we do throw a disaster
             logger.error(ErrorLogs.InsertThenRetrieveError(system.getClass().getSimpleName(), generatedId));
-            return null;
+            throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), generatedId);
         }
     }
 
@@ -84,8 +91,8 @@ public class SystemRepositoryImpl implements SystemRepository {
     public System getById(int id) throws ExceptionResourceNotFound {
         String sql = baseQuery + " AND id = ? ;";
         System system = jdbcTemplate.queryForObject(sql, rowMapper);
-        if (system == null || !system.isPersistent()) {
-            throw new ExceptionResourceNotFound(resourceName, id);
+        if (system == null || !system.isPersisted()) {
+            throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
         return system;
     }
@@ -93,7 +100,7 @@ public class SystemRepositoryImpl implements SystemRepository {
     @Override
     public System update(System system) throws ExceptionFailedDbValidation {
         //to change this into an upsert
-        // if (!system.isPersistent()) {
+        // if (!system.isPersisted()) {
         // 		return insert(system);
         // }
 
@@ -113,9 +120,9 @@ public class SystemRepositoryImpl implements SystemRepository {
             return getById(system.getId());
         } catch (ExceptionResourceNotFound e) {
             // we shouldn't ever reach this block of code because the database is managing the ids
-            // but if we do then we better log it
+            // but if we do then we better log it and throw a disaster
             logger.error(ErrorLogs.UpdateThenRetrieveError(system.getClass().getSimpleName(), system.getId()));
-            return null;
+            throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), system.getId());
         }
     }
 
@@ -126,7 +133,7 @@ public class SystemRepositoryImpl implements SystemRepository {
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, id);
         if (rowsUpdated < 1) {
-            throw new ExceptionResourceNotFound("Delete failed", resourceName, id);
+            throw new ExceptionResourceNotFound("Delete failed", System.class.getSimpleName(), id);
         }
     }
 

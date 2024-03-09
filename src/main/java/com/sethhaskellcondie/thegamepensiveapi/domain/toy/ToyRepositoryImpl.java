@@ -4,6 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
 
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,8 +22,8 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @Repository
 public class ToyRepositoryImpl implements ToyRepository {
     private final JdbcTemplate jdbcTemplate;
-    private final String resourceName = "Toy";
     private final String baseQuery = "SELECT * FROM toys WHERE 1 = 1 ";
+    private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
     private final RowMapper<Toy> rowMapper =
             (resultSet, i) ->
                     new Toy(
@@ -29,10 +31,16 @@ public class ToyRepositoryImpl implements ToyRepository {
                             resultSet.getString("name"),
                             resultSet.getString("set")
                     );
-    private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
 
     public ToyRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    public Toy insert(ToyRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
+        Toy toy = new Toy().updateFromRequestDto(requestDto);
+        toy.validate();
+        return this.insert(toy);
     }
 
     @Override
@@ -55,7 +63,7 @@ public class ToyRepositoryImpl implements ToyRepository {
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             //we shouldn't ever reach this block because the database is managing the ID's
             logger.error(ErrorLogs.InsertThenRetrieveError(toy.getClass().getSimpleName(), generatedId));
-            return null;
+            throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), generatedId);
         }
     }
 
@@ -69,8 +77,8 @@ public class ToyRepositoryImpl implements ToyRepository {
     public Toy getById(int id) throws ExceptionResourceNotFound {
         String sql = baseQuery + " AND id = ? ;";
         Toy toy = jdbcTemplate.queryForObject(sql, rowMapper);
-        if (toy == null || !toy.isPersistent()) {
-            throw new ExceptionResourceNotFound(resourceName, id);
+        if (toy == null || !toy.isPersisted()) {
+            throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
         }
         return toy;
     }
@@ -93,7 +101,7 @@ public class ToyRepositoryImpl implements ToyRepository {
         } catch (ExceptionResourceNotFound e) {
             //we shouldn't ever reach this block of code
             logger.error(ErrorLogs.UpdateThenRetrieveError(toy.getClass().getSimpleName(), toy.getId()));
-            return null;
+            throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), toy.getId());
         }
     }
 
@@ -104,7 +112,7 @@ public class ToyRepositoryImpl implements ToyRepository {
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, id);
         if (rowsUpdated < 1) {
-            throw new ExceptionResourceNotFound("Delete failed", resourceName, id);
+            throw new ExceptionResourceNotFound("Delete failed", Toy.class.getSimpleName(), id);
         }
     }
 

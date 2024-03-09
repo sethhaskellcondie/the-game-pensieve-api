@@ -1,7 +1,12 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
+import org.springframework.http.HttpStatus;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The Entity object will extend the Entity abstract class, this will enforce the ID equality
@@ -59,17 +64,18 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return new SystemResponseDto(this.id, this.name, this.generation, this.handheld);
     }
 
-    //TODO I want this to throw one error for each failed validation check
-    //to be called after a new system is initialized or updated from a DTO
-    public boolean ValidSystem() throws ExceptionInputValidation {
+    public void validate() throws ExceptionMalformedEntity {
+        List<Exception> exceptions = new ArrayList<>();
         if (this.name.isBlank()) {
-            throw new ExceptionInputValidation("ERROR! - Input Validation: Name is required for a System");
+            exceptions.add(new ExceptionInputValidation("Name is required for a System"));
         }
         if (generation < 0) {
-            throw new ExceptionInputValidation("ERROR! - Input Validation: Generation is required for a System");
+            exceptions.add(new ExceptionInputValidation("Generation is required for a System"));
         }
         //handheld is also required
-        return true;
+        if (!exceptions.isEmpty()) {
+            throw new ExceptionMalformedEntity(exceptions);
+        }
     }
 }
 

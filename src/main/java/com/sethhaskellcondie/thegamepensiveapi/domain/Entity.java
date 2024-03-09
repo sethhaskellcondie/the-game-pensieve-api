@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 
 import java.util.Objects;
 
@@ -37,6 +38,12 @@ public abstract class Entity<RequestDto, ResponseDto> {
      * following the open/closed principle.
      */
     protected abstract ResponseDto convertToResponseDto();
+
+    /**
+     * Every Entity will need to validate itself to make sure that the object is a valid state
+     * throws ExceptionMalformedEntity if the object is not in a valid state
+     */
+    public abstract void validate() throws ExceptionMalformedEntity;
 
     @Override
     public boolean equals(Object obj) {

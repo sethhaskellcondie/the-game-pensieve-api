@@ -1,6 +1,10 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
+
+import java.util.List;
 
 public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 
@@ -36,7 +40,15 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     public ToyResponseDto convertToResponseDto() {
         return new ToyResponseDto(this.id, this.name, this.set);
     }
+
+    public void validate() throws ExceptionMalformedEntity {
+        if (this.name.isBlank()) {
+            throw new ExceptionMalformedEntity(
+                    List.of(new ExceptionInputValidation("Name is required for a Toy"))
+            );
+        }
+    }
 }
 
-record ToyResponseDto(Integer id, String name, String set) {
-}
+record ToyRequestDto(String name, String set) { }
+record ToyResponseDto(Integer id, String name, String set) { }

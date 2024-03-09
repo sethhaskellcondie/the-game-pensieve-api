@@ -20,6 +20,8 @@ import java.util.List;
 public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
     T insert(RequestDto requestDto) throws ExceptionFailedDbValidation;
 
+    T insert(T t) throws ExceptionFailedDbValidation;
+
     List<T> getWithFilters(String filters);
 
     T getById(int id) throws ExceptionResourceNotFound;
