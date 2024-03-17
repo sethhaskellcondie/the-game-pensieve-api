@@ -42,21 +42,21 @@ public class SystemController {
         this.gateway = gateway;
     }
 
+    @GetMapping("/{id}")
+    public SystemResponseDto getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
+        return gateway.getById(id);
+    }
+
     /**
      * The "Get All" endpoint is a POST endpoint instead of a GET endpoint.
      * This will allow the consumer to pass the filters as an object in the request body
      * instead of through many query parameters in a get request.
      */
-    @PostMapping("")
+    @PostMapping("/search")
     // @ResponseStatus(HttpStatus.OK) This is the default return status
     public List<SystemResponseDto> getAllSystems() {
         //WIP filters
         return gateway.getWithFilters("");
-    }
-
-    @GetMapping("/{id}")
-    public SystemResponseDto getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
-        return gateway.getById(id);
     }
 
     @PostMapping("")

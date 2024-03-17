@@ -26,14 +26,14 @@ public class ToyController {
         this.gateway = gateway;
     }
 
-    @PostMapping("")
-    public List<ToyResponseDto> getAllToys() {
-        return gateway.getWithFilters("");
-    }
-
     @GetMapping("/{id}")
     public ToyResponseDto getOneToy(@PathVariable int id) throws ExceptionResourceNotFound {
         return gateway.getById(id);
+    }
+
+    @PostMapping("/search")
+    public List<ToyResponseDto> getAllToys() {
+        return gateway.getWithFilters("");
     }
 
     @PostMapping("")

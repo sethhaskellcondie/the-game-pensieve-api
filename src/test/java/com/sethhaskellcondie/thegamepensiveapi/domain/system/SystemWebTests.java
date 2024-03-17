@@ -79,7 +79,7 @@ public class SystemWebTests {
 
         result.andExpectAll(
                 status().isNotFound(),
-                jsonPath("$.message").hasJsonPath(), //the mock can't throw a message, just check for the path
+                jsonPath("$.message").hasJsonPath(), //the mock doesn't throw a message, just check for the path
                 jsonPath("$.status").exists()
         );
     }
