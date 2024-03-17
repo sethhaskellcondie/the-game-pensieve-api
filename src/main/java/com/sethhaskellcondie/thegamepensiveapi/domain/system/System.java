@@ -3,7 +3,6 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
-import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +32,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         this.name = name;
         this.generation = generation;
         this.handheld = handheld;
+        this.validate();
     }
 
     public String getName() {
@@ -54,9 +54,26 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
      */
 
     public System updateFromRequestDto(SystemRequestDto requestDto) {
+        List<Exception> exceptions = new ArrayList<>();
         this.name = requestDto.name();
-        this.generation = requestDto.generation();
-        this.handheld = requestDto.handheld();
+        try {
+            this.generation = requestDto.generation();
+        } catch (NullPointerException e) {
+            exceptions.add(new ExceptionInputValidation("System object error, generation can't be null"));
+        }
+        try {
+            this.handheld = requestDto.handheld();
+        } catch (NullPointerException e) {
+            exceptions.add(new ExceptionInputValidation("System object error, handheld can't be null"));
+        }
+        try {
+            this.validate();
+        } catch (ExceptionMalformedEntity e) {
+            exceptions.addAll(e.getErrors());
+        }
+        if (!exceptions.isEmpty()) {
+            throw new ExceptionMalformedEntity(exceptions);
+        }
         return this;
     }
 
@@ -64,15 +81,14 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return new SystemResponseDto(this.id, this.name, this.generation, this.handheld);
     }
 
-    public void validate() throws ExceptionMalformedEntity {
+    private void validate() throws ExceptionMalformedEntity {
         List<Exception> exceptions = new ArrayList<>();
-        if (this.name.isBlank()) {
-            exceptions.add(new ExceptionInputValidation("Name is required for a System"));
+        if (null == this.name || this.name.isBlank()) {
+            exceptions.add(new ExceptionInputValidation("System object error, name cannot be blank"));
         }
         if (generation < 0) {
-            exceptions.add(new ExceptionInputValidation("Generation is required for a System"));
+            exceptions.add(new ExceptionInputValidation("System object error, generation must be a positive number"));
         }
-        //handheld is also required
         if (!exceptions.isEmpty()) {
             throw new ExceptionMalformedEntity(exceptions);
         }
@@ -87,6 +103,10 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
  * Most DTO's that contain more than one Entity will be a composite of the existing DTO's
  * but if there is a case where a completely new DTO will need to be created that will
  * be completed on the Service.
+ * <p>
+ * The request DTO will use the wrapper classes for Primitives to allow nulls to be passed
+ * in as input then it will be validated when they are used for the object to be created
+ * this way we can pass all validation errors back at the same time.
  */
 record SystemRequestDto(String name, Integer generation, Boolean handheld) { }
 record SystemResponseDto(Integer id, String name, int generation, boolean handheld) { }

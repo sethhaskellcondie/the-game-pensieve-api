@@ -37,7 +37,6 @@ public class SystemRepositoryImpl implements SystemRepository {
     @Override
     public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
         System system = new System().updateFromRequestDto(requestDto);
-        system.validate();
         return this.insert(system);
     }
 

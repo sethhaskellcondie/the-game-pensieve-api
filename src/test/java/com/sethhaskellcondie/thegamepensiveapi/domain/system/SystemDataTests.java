@@ -10,6 +10,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+//DataTests will test the Service, Repository, and connection to the database
+//usually these tests only run on the repository and the connection to the database
+//but since the service is just a pass through we will start the calls up there
+
 //@DataJpaTest works with spring data JPA and looks for @Entities
 //@JdbcTest works with projects with a data source, that do not use Spring Data JDBC it configures an in-memory database with a JdbcTemplate
 //@DataJdbcTest are for projects that use Spring Data JDBC it also configures an in-memory database with a JdbcTemplate

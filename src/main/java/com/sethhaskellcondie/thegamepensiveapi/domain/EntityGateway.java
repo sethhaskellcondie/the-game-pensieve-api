@@ -15,8 +15,6 @@ import java.util.List;
  * A gateway has two responsibilities interfacing with services and converting the response from the service
  * into a responseDto to keep the Entity access encapsulated.
  * <p>
- * A gateway used to have the responsibility of instantiating new objects but was fired from that because
- * You can instantiate a new object with generics so this was delegated through the service to the repository.
  * Each entity is designed so that the CRUD functions only need to be implemented in the Entity and the Repository,
  * then exposed through the controller, the rest works automagically.
  * <p>
