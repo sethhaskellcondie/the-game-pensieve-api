@@ -7,6 +7,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEnti
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.List;
 
 @Repository
@@ -22,7 +24,7 @@ public class SystemRepositoryImpl implements SystemRepository {
     private final JdbcTemplate jdbcTemplate;
     private final String baseQuery = "SELECT * FROM systems WHERE 1 = 1 "; //include a WHERE 1 = 1 clause at the end, so we can always append with AND
     private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
-    private final RowMapper<System> rowMapper = (resultSet, i) ->
+    private final RowMapper<System> rowMapper = (resultSet, rowNumber) ->
             new System(
                     resultSet.getInt("id"),
                     resultSet.getString("name"),
@@ -36,7 +38,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Override
     public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
-        System system = new System().updateFromRequestDto(requestDto);
+        final System system = new System().updateFromRequestDto(requestDto);
         return this.insert(system);
     }
 
@@ -49,10 +51,10 @@ public class SystemRepositoryImpl implements SystemRepository {
 
         systemDbValidation(system);
 
-        String sql = """
+        final String sql = """
                 			INSERT INTO systems(name, generation, handheld) VALUES (?, ?, ?);
                 """;
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        final KeyHolder keyHolder = new GeneratedKeyHolder();
 
         // This update call will take a preparedStatementCreator and a KeyHolder,
         // the preparedStatementCreator takes a connection, the connection can
@@ -68,7 +70,7 @@ public class SystemRepositoryImpl implements SystemRepository {
                 },
                 keyHolder
         );
-        Integer generatedId = (Integer) keyHolder.getKey();
+        Integer generatedId = (Integer) keyHolder.getKeys().get("id");
 
         try {
             return getById(generatedId);
@@ -82,14 +84,22 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Override
     public List<System> getWithFilters(String filters) {
-        String sql = baseQuery + filters + ";";
+        final String sql = baseQuery + filters + ";";
         return jdbcTemplate.query(sql, rowMapper);
     }
 
     @Override
     public System getById(int id) throws ExceptionResourceNotFound {
-        String sql = baseQuery + " AND id = ? ;";
-        System system = jdbcTemplate.queryForObject(sql, rowMapper);
+        final String sql = baseQuery + " AND id = ? ;";
+        System system = null;
+        try {
+            system = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{id}, //args to bind to the sql ?
+                    new int[]{Types.BIGINT}, //the types of the objects to bind to the sql
+                    rowMapper);
+        } catch (EmptyResultDataAccessException ignored) { }
+
         if (system == null || !system.isPersisted()) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
@@ -98,13 +108,13 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Override
     public System update(System system) throws ExceptionFailedDbValidation {
-        //to change this into an upsert
+        // ---to change this into an upsert
         // if (!system.isPersisted()) {
         // 		return insert(system);
         // }
 
         systemDbValidation(system);
-        String sql = """
+        final String sql = """
                 			UPDATE systems SET name = ?, generation = ?, handheld = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(
@@ -127,7 +137,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
-        String sql = """
+        final String sql = """
                 			DELETE FROM systems WHERE id = ?;
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, id);
@@ -139,7 +149,7 @@ public class SystemRepositoryImpl implements SystemRepository {
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
     private void systemDbValidation(System system) throws ExceptionFailedDbValidation {
-        List<System> existingSystems = getWithFilters(" AND name = '" + system.getName() + "'");
+        final List<System> existingSystems = getWithFilters(" AND name = '" + system.getName() + "'");
         if (!existingSystems.isEmpty()) {
             throw new ExceptionFailedDbValidation("System write failed, duplicate name found.");
         }
