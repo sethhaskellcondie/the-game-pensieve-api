@@ -6,7 +6,7 @@ This project is like a pensive but just for information on games in a collection
 Maven: Package Manager <br>
 Java Spring Boot: Framework for the api <br>
 Java: Language of the api <br>
-Postgres: Database persistence (version 15) <br>
+Postgres: Database persistence (version 16) <br>
 Flyway: Database migrations <br>
 JDBC Template: Database connection <br>
 Docker: Run-time container

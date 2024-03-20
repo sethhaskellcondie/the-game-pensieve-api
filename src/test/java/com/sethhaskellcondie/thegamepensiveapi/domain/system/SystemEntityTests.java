@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *  - updateFromRequestDto(RequestDto requestDto);
  *  - convertToResponseDto();
  * Along with any other logic specific to that Entity
+ * <p>
+ * This is also where Entity validation will be tested.
  */
 public class SystemEntityTests {
 

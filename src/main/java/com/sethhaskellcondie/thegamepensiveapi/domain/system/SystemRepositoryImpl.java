@@ -139,7 +139,7 @@ public class SystemRepositoryImpl implements SystemRepository {
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
     private void systemDbValidation(System system) throws ExceptionFailedDbValidation {
-        List<System> existingSystems = getWithFilters(" AND name = " + system.getName());
+        List<System> existingSystems = getWithFilters(" AND name = '" + system.getName() + "'");
         if (!existingSystems.isEmpty()) {
             throw new ExceptionFailedDbValidation("System write failed, duplicate name found.");
         }
