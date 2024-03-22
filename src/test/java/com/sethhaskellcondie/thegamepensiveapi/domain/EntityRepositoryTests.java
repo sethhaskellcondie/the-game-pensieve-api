@@ -1,16 +1,17 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * RepositoryTests are integration tests that will test the repository, and it's connection to the database
@@ -22,98 +23,111 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>
  * JdbcTest would be the closest fit for this project, but I don't want to use an in memory database instead I decided to go with @Testcontainers
  */
-@Testcontainers //Tells the test suite to look for @Container tags in this class
+@JdbcTest
+@ActiveProfiles("test-container")
 public abstract class EntityRepositoryTests<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
-    //these tests will run real postgreSQL database in a docker container
-    //then use the test containers library to run tests against it
-    //https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.testing.testcontainers
 
-    @Container
-    //The service connection annotation will inform spring boot that it should configure this database connection
-    @ServiceConnection
-    // if the container is static then it will spun up once for the entire test suite
-    // if the container is NOT static then it will be spun once for EVERY test
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:alpine");
-
-    private EntityRepository<T, RequestDto, ResponseDto> repository;
-
-    protected EntityRepositoryTests(EntityRepository<T, RequestDto, ResponseDto> repository) {
-        this.repository = repository;
+    protected EntityRepository<T, RequestDto, ResponseDto> repository;
+    protected enum Generate {
+        VALID,
+        VALID_SECOND,
+        INVALID
     }
 
-    protected abstract T generateSavedEntity();
-    protected abstract T generateNewEntity();
-    protected abstract boolean validateReturnedObject(T expected, T actual);
+    /**
+     * The tests are set up to use these abstract method that will be implemented with the Entity
+     * Specific code in the <Entity>RepositoryTests.java
+     * See SystemRepositoryTests.java for an example implementation
+     */
+    protected abstract EntityRepository<T, RequestDto, ResponseDto> setupRepository();
+    protected abstract T generateValidEntity();
+    protected abstract RequestDto generateRequestDto(Generate generate);
+    protected abstract void validateReturnedObject(T expected, T actual);
+    protected abstract void validateReturnedObject(RequestDto expected, T actual);
 
-    @DynamicPropertySource
-    public static void overrideProps(DynamicPropertyRegistry registry) {
-        registry.add("db.jdbc-url", postgres::getJdbcUrl);
-        registry.add("db.username", postgres::getUsername);
-        registry.add("db.password", postgres::getPassword);
+    @BeforeEach
+    public void setUp() {
+        repository = setupRepository();
     }
 
     @Test
-    void connectionEstablished() {
-        assertThat(postgres.isCreated()).isTrue();
-        assertThat(postgres.isRunning()).isTrue();
+    void insertRequestDto_HappyPath_ReturnEntity() throws ExceptionFailedDbValidation {
+        final RequestDto expected = generateRequestDto(Generate.VALID);
+
+        final T actual = repository.insert(expected);
+
+        validateReturnedObject(expected, actual);
     }
 
     @Test
-    void insertRequestDto_Success_ReturnEntity() throws ExceptionFailedDbValidation {
-        T expected = generateNewEntity();
-
-        T actual = repository.insert(expected);
-
-        assertTrue(validateReturnedObject(expected, actual));
+    void insertRequestDto_FailsEntityValidation_ThrowExceptionMalformedEntity() {
+        assertThrows(ExceptionMalformedEntity.class, () -> repository.insert(generateRequestDto(Generate.INVALID)));
     }
-//
-//    @Test
-//    void insertRequestDto_FailsValidation_ThrowException() {
-//
-//    }
-//
-//    @Test
-//    void insertEntity_Success_ReturnEntity() {
-//
-//    }
-//
-//    @Test
-//    void insertEntity_FailsValidation_ThrowException() {
-//
-//    }
-//
-//    @Test
-//    void getWithFilters_NoFilters_ReturnList() {
-//
-//    }
-//
-//    @Test
-//    void getById_Success_ReturnEntity() {
-//
-//    }
-//
-//    @Test
-//    void getById_BadId_ThrowException() {
-//
-//    }
-//
-//    @Test
-//    void update_Success_ReturnEntity() {
-//
-//    }
-//
-//    @Test
-//    void update_FailedValidation_ThrowException() {
-//
-//    }
-//
-//    @Test
-//    void deleteById_Success_NoException() {
-//
-//    }
-//
-//    @Test
-//    void deleteById_BadId_ThrowException() {
-//
-//    }
+
+    @Test
+    void insertEntity_HappyPath_ReturnEntity() throws ExceptionFailedDbValidation {
+        final T expected = generateValidEntity();
+
+        final T actual = repository.insert(expected);
+
+        validateReturnedObject(expected, actual);
+    }
+
+    @Test
+    void getWithFilters_NoFilters_ReturnAllEntities() throws ExceptionFailedDbValidation {
+        final RequestDto requestDto1 = generateRequestDto(Generate.VALID);
+        final T expected1 = repository.insert(requestDto1);
+        final RequestDto requestDto2 = generateRequestDto(Generate.VALID_SECOND);
+        final T expected2 = repository.insert(requestDto2);
+
+        List<T> actual = repository.getWithFilters("");
+
+        assertEquals(2, actual.size(), "There should only be 2 entities returned in the getWithFilters list");
+        assertEquals(expected1, actual.get(0));
+        assertEquals(expected2, actual.get(1));
+    }
+
+    @Test
+    void getById_HappyPath_ReturnEntity() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        final RequestDto requestDto = generateRequestDto(Generate.VALID);
+        final T expected = repository.insert(requestDto);
+
+        final T actual = repository.getById(expected.getId());
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void getById_BadId_ThrowExceptionResourceNotFound() {
+        assertThrows(ExceptionResourceNotFound.class, () -> repository.getById(-1));
+    }
+
+    @Test
+    void update_HappyPath_ReturnUpdatedEntity() throws ExceptionFailedDbValidation {
+        final RequestDto requestDto = generateRequestDto(Generate.VALID);
+        final T expected = repository.insert(requestDto);
+
+        final RequestDto updateDto = generateRequestDto(Generate.VALID_SECOND);
+        expected.updateFromRequestDto(updateDto);
+
+        final T actual = repository.update(expected);
+
+        validateReturnedObject(expected, actual);
+    }
+
+    @Test
+    void deleteById_HappyPath_NoException() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        final RequestDto requestDto = generateRequestDto(Generate.VALID);
+        final T expected = repository.insert(requestDto);
+        final int expectedId = expected.getId();
+
+        repository.deleteById(expectedId);
+
+        assertThrows(ExceptionResourceNotFound.class, () -> repository.getById(expectedId));
+    }
+
+    @Test
+    void deleteById_BadId_ThrowException() {
+        assertThrows(ExceptionResourceNotFound.class, () -> repository.deleteById(-1));
+    }
 }

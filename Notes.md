@@ -25,3 +25,5 @@ There is also a suite of unit tests for each layer making sure that the base fun
 Repository Tests use test containers to spin up a database to run tests on. They run a @JdbcTest that would usually run an in memory database, we can change that to a test container with a different @ActiveProfile "test-container."
 This profile has two lines to tell Spring to not spin up an in memory database spring.test.database.replace=none and then another line that changes the data source to a test container. With this setup we can autowire the jdbcTemplate and 
 use that to create an instance of a repository to run tests on.
+
+Currently the tests will spin up a new docker container and reinitialize the repository between each test, if this were implemented in a larger system steps would need to be taken to reuse the docker containers.
