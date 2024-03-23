@@ -78,7 +78,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
     }
 
     public SystemResponseDto convertToResponseDto() {
-        return new SystemResponseDto(this.id, this.name, this.generation, this.handheld);
+        return new SystemResponseDto("system", this.id, this.name, this.generation, this.handheld);
     }
 
     private void validate() throws ExceptionMalformedEntity {
@@ -109,4 +109,4 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
  * this way we can pass all validation errors back at the same time.
  */
 record SystemRequestDto(String name, Integer generation, Boolean handheld) { }
-record SystemResponseDto(Integer id, String name, int generation, boolean handheld) { }
+record SystemResponseDto(String type, Integer id, String name, int generation, boolean handheld) { }

@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
+import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -11,10 +12,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A Controller has three responsibilities, first process requests, deserialize and validate input and
@@ -42,9 +45,12 @@ public class SystemController {
         this.gateway = gateway;
     }
 
+    @ResponseBody
     @GetMapping("/{id}")
-    public SystemResponseDto getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
-        return gateway.getById(id);
+    public Map<String, SystemResponseDto> getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
+        SystemResponseDto responseDto = gateway.getById(id);
+        FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
     }
 
     /**
@@ -52,27 +58,38 @@ public class SystemController {
      * This will allow the consumer to pass the filters as an object in the request body
      * instead of through many query parameters in a get request.
      */
-    @PostMapping("/search")
+    @ResponseBody
     // @ResponseStatus(HttpStatus.OK) This is the default return status
-    public List<SystemResponseDto> getAllSystems() {
+    @PostMapping("/search")
+    public Map<String, List<SystemResponseDto>> getAllSystems() {
         //WIP filters
-        return gateway.getWithFilters("");
+        List<SystemResponseDto> data = gateway.getWithFilters("");
+        FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
+        return body.formatData();
     }
 
+    @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public SystemResponseDto createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
-        return gateway.createNew(system);
+    public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
+        SystemResponseDto responseDto = gateway.createNew(system);
+        FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
     }
 
     @PutMapping("/{id}")
-    public SystemResponseDto updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system) throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        return gateway.updateExisting(id, system);
+    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system)
+            throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        SystemResponseDto responseDto = gateway.updateExisting(id, system);
+        FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {
+    public Map<String, String> deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {
         gateway.deleteById(id);
+        FormattedResponseBody<String> body = new FormattedResponseBody<>("");
+        return body.formatData();
     }
 }

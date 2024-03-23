@@ -33,12 +33,9 @@ public class SystemEntityTests {
 
     @Test
     public void updateFromRequestDto_FieldsNull_ThrowMultipleErrors() {
-        String name = null;
-        Integer generation = null;
-        Boolean handheld = null;
         int numberOfErrors = 3;
 
-        SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld);
+        SystemRequestDto requestDto = new SystemRequestDto(null, null, null);
         System system = new System();
 
         try {
@@ -53,8 +50,8 @@ public class SystemEntityTests {
 
     @Test
     public void updateFromRequestDto_FieldsIncorrect_ThrowMultipleErrors() {
-        String name = "";
-        Integer generation = -1;
+        String name = ""; //name cannot be blank
+        Integer generation = -1; //generation must be positive
         Boolean handheld = false;
         int numberOfErrors = 2;
 

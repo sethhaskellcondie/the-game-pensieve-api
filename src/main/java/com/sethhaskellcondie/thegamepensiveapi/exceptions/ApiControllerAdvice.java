@@ -1,11 +1,14 @@
 package com.sethhaskellcondie.thegamepensiveapi.exceptions;
 
+import com.sethhaskellcondie.thegamepensiveapi.api.Api;
+import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
@@ -30,8 +33,9 @@ public class ApiControllerAdvice {
     @ExceptionHandler(value = {ExceptionResourceNotFound.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
-    public String handleExceptionResourceNotFound(ExceptionResourceNotFound e) {
-        return e.getMessage();
+    public Map<String, String> handleExceptionResourceNotFound(ExceptionResourceNotFound e) {
+        FormattedResponseBody<String> body = new FormattedResponseBody<>(e.getMessage());
+        return body.formatError();
     }
 
     @ExceptionHandler(value = {IllegalArgumentException.class})
