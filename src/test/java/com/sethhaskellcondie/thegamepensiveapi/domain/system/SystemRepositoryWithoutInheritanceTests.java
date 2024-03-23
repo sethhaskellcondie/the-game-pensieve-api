@@ -30,7 +30,7 @@ public class SystemRepositoryWithoutInheritanceTests {
 
     @BeforeEach
     void setUp() {
-        repository = new SystemRepositoryImpl(jdbcTemplate);
+        repository = new SystemRepository(jdbcTemplate);
     }
 
     @Test

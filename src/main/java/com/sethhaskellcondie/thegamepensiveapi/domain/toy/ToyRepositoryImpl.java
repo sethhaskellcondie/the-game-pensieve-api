@@ -14,7 +14,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRepositoryImpl;
+import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRepository;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -23,7 +23,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 public class ToyRepositoryImpl implements ToyRepository {
     private final JdbcTemplate jdbcTemplate;
     private final String baseQuery = "SELECT * FROM toys WHERE 1 = 1 ";
-    private final Logger logger = LoggerFactory.getLogger(SystemRepositoryImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<Toy> rowMapper =
             (resultSet, i) ->
                     new Toy(

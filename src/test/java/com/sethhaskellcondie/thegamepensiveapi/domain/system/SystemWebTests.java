@@ -41,8 +41,8 @@ public class SystemWebTests {
     @TestConfiguration
     static class SystemWebTestsConfiguration {
         @Bean
-        public SystemGateway systemGateway(SystemServiceImpl service) {
-            return new SystemGatewayImpl(service);
+        public SystemGateway systemGateway(SystemService service) {
+            return new SystemGateway(service);
         }
     }
 
@@ -52,7 +52,7 @@ public class SystemWebTests {
 
     //@Service beans are not included with the WebMvcTest configuration they will need to be mocked
     @MockBean
-    private SystemServiceImpl service;
+    private SystemService service;
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
@@ -61,7 +61,7 @@ public class SystemWebTests {
 
         ResultActions result = mockMvc.perform(get("/systems/1"));
 
-        result.andDo(print()); //will print out the result to the console
+        // result.andDo(print()); //will print out the result to the console
         result.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)

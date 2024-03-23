@@ -35,15 +35,15 @@ public class ToyWebTests {
     @TestConfiguration
     static class ToyWebTestsConfiguration {
         @Bean
-        public ToyGateway toyGateway(ToyServiceImpl service) {
-            return new ToyGatewayImpl(service);
+        public ToyGateway toyGateway(ToyServiceAbstract service) {
+            return new ToyGatewayAbstract(service);
         }
     }
 
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private ToyServiceImpl service;
+    private ToyServiceAbstract service;
 
     @Test
     void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {

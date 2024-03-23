@@ -19,7 +19,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     @Override
     protected void setupRepositoryAndEntityName() {
         EntityName = System.class.getSimpleName();
-        repository = new SystemRepositoryImpl(jdbcTemplate);
+        repository = new SystemRepository(jdbcTemplate);
     }
 
     @Override
