@@ -1,12 +1,12 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -17,8 +17,9 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    protected EntityRepository<System, SystemRequestDto, SystemResponseDto> setupRepository() {
-        return new SystemRepositoryImpl(jdbcTemplate);
+    protected void setupRepositoryAndEntityName() {
+        EntityName = System.class.getSimpleName();
+        repository = new SystemRepositoryImpl(jdbcTemplate);
     }
 
     @Override
@@ -59,29 +60,35 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
 
     @Override
     protected void validateReturnedObject(System expected, System actual) {
-        assertNotNull(actual.getId());
-        assertEquals(expected.getName(), actual.getName());
-        assertEquals(expected.getGeneration(), actual.getGeneration());
-        assertEquals(expected.isHandheld(), actual.isHandheld());
+        assertAll(
+            "These " + EntityName + " objects are invalid.",
+            () -> assertNotNull(actual.getId()),
+            () -> assertEquals(expected.getName(), actual.getName()),
+            () -> assertEquals(expected.getGeneration(), actual.getGeneration()),
+            () -> assertEquals(expected.isHandheld(), actual.isHandheld())
+        );
     }
 
     @Override
     protected void validateReturnedObject(SystemRequestDto expected, System actual) {
-        assertNotNull(actual.getId());
-        assertEquals(expected.name(), actual.getName());
-        assertEquals(expected.generation(), actual.getGeneration());
-        assertEquals(expected.handheld(), actual.isHandheld());
+        assertAll(
+            "These " + EntityName + " objects are invalid.",
+            () -> assertNotNull(actual.getId()),
+            () -> assertEquals(expected.name(), actual.getName()),
+            () -> assertEquals(expected.generation(), actual.getGeneration()),
+            () -> assertEquals(expected.handheld(), actual.isHandheld())
+        );
     }
 
     //End the tests for the default implementation, below are tests specific for that entity in this case System
-
 
     @Test
     void insert_duplicateNameFound_ThrowsExceptionFailedDbValidation() throws ExceptionFailedDbValidation {
         final SystemRequestDto requestDto = generateRequestDto(Generate.VALID);
         final System expected = repository.insert(requestDto);
 
-        assertThrows(ExceptionFailedDbValidation.class, () -> repository.insert(expected));
+        assertThrows(ExceptionFailedDbValidation.class, () -> repository.insert(expected),
+                "The " + EntityName + " repository allowed an insert of an object with a duplicate name when it shouldn't have.");
     }
 
     @Test
@@ -89,6 +96,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
         final SystemRequestDto requestDto = generateRequestDto(Generate.VALID);
         final System expected = repository.insert(requestDto);
 
-        assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(expected));
+        assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(expected),
+                "The " + EntityName + " repository allowed an update of an object with a duplicate name when it shouldn't have.");
     }
 }
