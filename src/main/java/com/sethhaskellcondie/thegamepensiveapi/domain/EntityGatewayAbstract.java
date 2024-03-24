@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 import java.util.List;
@@ -30,7 +29,7 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
     }
 
     @Override
-    public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound {
+    public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
         T t = service.getById(id);
         if (!t.isPersisted()) {
             throw new ExceptionResourceNotFound(this.getClass().getSimpleName(), id);
@@ -41,10 +40,6 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
 
     @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
-        T t = service.getById(id);
-        if (!t.isPersisted()) {
-            throw new ExceptionResourceNotFound("System", id);
-        }
         service.deleteById(id);
     }
 }

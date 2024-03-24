@@ -69,7 +69,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         try {
             this.validate();
         } catch (ExceptionMalformedEntity e) {
-            exceptions.addAll(e.getErrors());
+            exceptions.addAll(e.getExceptions());
         }
         if (!exceptions.isEmpty()) {
             throw new ExceptionMalformedEntity(exceptions);

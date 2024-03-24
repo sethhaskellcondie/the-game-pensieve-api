@@ -14,12 +14,14 @@ public class FormattedResponseBody<T> {
     public Map<String, T> formatData() {
         Map<String, T> responseBody = new HashMap<>();
         responseBody.put("data", data);
+        responseBody.put("errors", null);
         return responseBody;
     }
 
     public Map<String, T> formatError() {
         Map<String, T> responseBody = new HashMap<>();
-        responseBody.put("error", data);
+        responseBody.put("data", null);
+        responseBody.put("errors", data);
         return responseBody;
     }
 

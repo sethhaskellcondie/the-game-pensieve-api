@@ -1,16 +1,25 @@
 package com.sethhaskellcondie.thegamepensiveapi.exceptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExceptionMalformedEntity extends RuntimeException {
-    private final List<Exception> errors;
+    private final List<Exception> exceptions;
 
-    public ExceptionMalformedEntity(List<Exception> errors) {
+    public ExceptionMalformedEntity(List<Exception> exceptions) {
         super();
-        this.errors = errors;
+        this.exceptions = exceptions;
     }
 
-    public List<Exception> getErrors() {
-        return errors;
+    public List<Exception> getExceptions() {
+        return this.exceptions;
+    }
+
+    public List<String> getMessages() {
+        List<String> errorMessages = new ArrayList<>();
+        for (Exception e : this.exceptions) {
+            errorMessages.add(e.getMessage());
+        }
+        return errorMessages;
     }
 }

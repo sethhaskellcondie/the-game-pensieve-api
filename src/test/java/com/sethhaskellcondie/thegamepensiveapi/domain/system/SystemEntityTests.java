@@ -44,7 +44,7 @@ public class SystemEntityTests {
             // for (Exception exception: e.getErrors()) {
             //     java.lang.System.out.println(exception.getMessage() + "\n");
             // }
-            assertEquals(numberOfErrors, e.getErrors().size());
+            assertEquals(numberOfErrors, e.getMessages().size());
         }
     }
 
@@ -64,7 +64,7 @@ public class SystemEntityTests {
             // for (Exception exception: e.getErrors()) {
             //     java.lang.System.out.println(exception.getMessage() + "\n");
             // }
-            assertEquals(numberOfErrors, e.getErrors().size());
+            assertEquals(numberOfErrors, e.getMessages().size());
         }
     }
 

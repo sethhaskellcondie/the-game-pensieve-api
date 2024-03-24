@@ -9,6 +9,9 @@ This is a CRUD based Entity system. Entities all contain an ID, all entities mus
 
 Each layer only calls the layers on the same level or below it. For more information on the responsibilities of each layer check the Entity and System classes for each layer.
 
+## Return Body
+The body of requests was inspired a bit by the JSON API format. Intentional responses will have a "data" and "errors" attributes as part of the body. If the request was successful then the errors will return with a null value. Otherwise the data will be null and the errors will display one or more messages. This will illustrate when the response was intentional or not, for example a DELETE reuqest will usually not return a body in this date will be blank, and the errors will be null showing that the request was successful there was just no data to return.
+
 ## Docker Flow
 The project can be run by running the dockerfile this will spin up three containers.
 - First the postgres database along with a volume to store the data in.
