@@ -5,11 +5,11 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 
 import java.util.List;
 
-public abstract class EntityServiceImpl<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
+public abstract class EntityServiceAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
 
     private final EntityRepository<T, RequestDto, ResponseDto> repository;
 
-    public EntityServiceImpl(EntityRepository<T, RequestDto, ResponseDto> repository) {
+    public EntityServiceAbstract(EntityRepository<T, RequestDto, ResponseDto> repository) {
         this.repository = repository;
     }
 
@@ -24,8 +24,8 @@ public abstract class EntityServiceImpl<T extends Entity<RequestDto, ResponseDto
     }
 
     @Override
-    public T createNew(T t) throws ExceptionFailedDbValidation {
-        return repository.insert(t);
+    public T createNew(RequestDto requestDto) throws ExceptionFailedDbValidation {
+        return repository.insert(requestDto);
     }
 
     @Override

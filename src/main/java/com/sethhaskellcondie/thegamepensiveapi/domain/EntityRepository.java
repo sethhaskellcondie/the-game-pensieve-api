@@ -7,22 +7,19 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * A Repository is in charge of all database connections, all the SQL needed to communicate
- * with the database is encapsulated here.
+ * A Repository is responsible for instantiating new objects and encapsulating all database communications,
+ * all the SQL and JDBC code needed to communicate with the database is here.
  * <p>
- * Repositories will always return hydrated objects, the database itself will generate ID's
- * for the objects, the only way to get an object with an ID is to retrieve it from the database
- * and have a repository hydrate it.
+ * The database itself will generate ID's for objects as they are inserted into the different tables.
+ * The only way for an object to have an ID is to hydrate that object from the database with a repository.
  * <p>
  * Repositories are in charge of running any final validation on an object before it is written
- * or updated in a database table.
- * <p>
- * I haven't been able to create a suitable EntityRepositoryImpl that can be extended to give
- * the needed functionality for free to each new Entity, but I bet it can be done...somehow...
- * until then the comments and documentation for that can be found in the SystemRepositoryImpl
+ * or updated in a database table, this is usually encapsulated in a private dbValidation method.
  */
 @Repository
 public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
+    T insert(RequestDto requestDto) throws ExceptionFailedDbValidation;
+
     T insert(T t) throws ExceptionFailedDbValidation;
 
     List<T> getWithFilters(String filters);

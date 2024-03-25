@@ -14,17 +14,27 @@ public abstract class Entity<RequestDto, ResponseDto> {
         this.id = id;
     }
 
-    public Integer getId() {
+    public final Integer getId() {
         return id;
     }
 
-    public final boolean isPersistent() {
+    public final boolean isPersisted() {
         return id != null;
     }
 
-    public abstract Entity<RequestDto, ResponseDto> updateFromRequest(RequestDto requestDto);
+    /**
+     * New Entity objects are created in that Entities' repository, after creation all entities need
+     * to be able to take the data from the request and apply that to the Entity then return it.
+     * Throws an ExceptionInputValidation if the object is invalid after the requestDto has been applied.
+     */
+    protected abstract Entity<RequestDto, ResponseDto> updateFromRequestDto(RequestDto requestDto);
 
-    public abstract ResponseDto convertToResponseDto();
+    /**
+     * Every Entity will need to be able to convert into a default responseDto to be returned
+     * from the Gateway of that Entity. OtherDto objects may be created for that Entity,
+     * following the open/closed principle.
+     */
+    protected abstract ResponseDto convertToResponseDto();
 
     @Override
     public boolean equals(Object obj) {
@@ -34,7 +44,7 @@ public abstract class Entity<RequestDto, ResponseDto> {
         if (!(obj instanceof Entity<?, ?> entity)) {
             return false;
         }
-        if (!entity.isPersistent()) {
+        if (!entity.isPersisted()) {
             return false;
         }
         return Objects.equals(this.id, entity.id);

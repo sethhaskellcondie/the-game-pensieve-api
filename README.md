@@ -6,7 +6,7 @@ This project is like a pensive but just for information on games in a collection
 Maven: Package Manager <br>
 Java Spring Boot: Framework for the api <br>
 Java: Language of the api <br>
-Postgres: Database persistence (version 15) <br>
+Postgres: Database persistence (version 16) <br>
 Flyway: Database migrations <br>
 JDBC Template: Database connection <br>
 Docker: Run-time container
@@ -49,3 +49,6 @@ Commands:
   - $ java -jar /target/the_game_pensive_api.jar
 - You can access the api on port 8080
 - The test endpoint localhost:8080/heartbeat will return the string "thump thump" when working correctly.
+
+### Documentation
+The Entity and System classes are heavily commented to explain the decisions behind the design.

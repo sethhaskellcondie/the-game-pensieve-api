@@ -27,7 +27,7 @@ services:
       - ${PWD}/src/main/resources/migrations:/flyway/sql       # these are host volumes (bind mounts)
       - ${PWD}/docker-flyway.config:/flyway/conf/flyway.config # host file path:container volume path
   db:
-    image: postgres:alpine
+    image: postgres:16.2-alpine
     ports:
       - "5432:5432" #host port:container port
     environment:
