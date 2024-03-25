@@ -48,8 +48,8 @@ public class SystemController {
     @ResponseBody
     @GetMapping("/{id}")
     public Map<String, SystemResponseDto> getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
-        SystemResponseDto responseDto = gateway.getById(id);
-        FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+        final SystemResponseDto responseDto = gateway.getById(id);
+        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 
@@ -63,8 +63,8 @@ public class SystemController {
     @PostMapping("/search")
     public Map<String, List<SystemResponseDto>> getAllSystems() {
         //WIP filters
-        List<SystemResponseDto> data = gateway.getWithFilters("");
-        FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
+        final List<SystemResponseDto> data = gateway.getWithFilters("");
+        final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();
     }
 
@@ -72,19 +72,20 @@ public class SystemController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
-        SystemResponseDto responseDto = gateway.createNew(system);
-        FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+        final SystemResponseDto responseDto = gateway.createNew(system);
+        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 
+    @ResponseBody
     @PutMapping("/{id}")
-    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system)
-            throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        SystemResponseDto responseDto = gateway.updateExisting(id, system);
-        FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        final SystemResponseDto responseDto = gateway.updateExisting(id, system);
+        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 
+    @ResponseBody
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Map<String, String> deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {

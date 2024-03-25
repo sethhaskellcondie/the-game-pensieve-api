@@ -79,6 +79,7 @@ public class SystemEntityTests {
 
         SystemResponseDto responseDto = system.convertToResponseDto();
 
+        assertEquals("system", responseDto.type());
         assertEquals(id, responseDto.id());
         assertEquals(name, responseDto.name());
         assertEquals(generation, responseDto.generation());

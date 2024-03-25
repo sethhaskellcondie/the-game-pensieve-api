@@ -98,7 +98,8 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     sql,
                     new Object[]{id}, //args to bind to the sql ?
                     new int[]{Types.BIGINT}, //the types of the objects to bind to the sql
-                    rowMapper);
+                    rowMapper
+            );
         } catch (EmptyResultDataAccessException ignored) { }
 
         if (system == null || !system.isPersisted()) {

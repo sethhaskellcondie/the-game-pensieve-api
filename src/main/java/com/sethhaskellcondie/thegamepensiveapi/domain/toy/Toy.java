@@ -11,7 +11,6 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     private String name;
     private String set;
 
-
     public Toy() {
         super();
     }
@@ -21,6 +20,7 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
         super(id);
         this.name = name;
         this.set = set;
+        this.validate();
     }
 
     public String getName() {
@@ -34,15 +34,16 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     public Toy updateFromRequestDto(ToyRequestDto requestDto) {
         this.name = requestDto.name();
         this.set = requestDto.set();
+        this.validate();
         return this;
     }
 
     public ToyResponseDto convertToResponseDto() {
-        return new ToyResponseDto(this.id, this.name, this.set);
+        return new ToyResponseDto("toy", this.id, this.name, this.set);
     }
 
-    public void validate() throws ExceptionMalformedEntity {
-        if (this.name.isBlank()) {
+    private void validate() throws ExceptionMalformedEntity {
+        if (null == this.name || this.name.isBlank()) {
             throw new ExceptionMalformedEntity(
                     List.of(new ExceptionInputValidation("Name is required for a Toy"))
             );
@@ -51,4 +52,4 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 }
 
 record ToyRequestDto(String name, String set) { }
-record ToyResponseDto(Integer id, String name, String set) { }
+record ToyResponseDto(String type, Integer id, String name, String set) { }

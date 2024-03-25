@@ -18,7 +18,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
 
     @Override
     protected void setupRepositoryAndEntityName() {
-        EntityName = System.class.getSimpleName();
+        entityName = System.class.getSimpleName();
         repository = new SystemRepository(jdbcTemplate);
     }
 
@@ -61,7 +61,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     @Override
     protected void validateReturnedObject(System expected, System actual) {
         assertAll(
-            "These " + EntityName + " objects are invalid.",
+            "These " + entityName + " objects are invalid.",
             () -> assertNotNull(actual.getId()),
             () -> assertEquals(expected.getName(), actual.getName()),
             () -> assertEquals(expected.getGeneration(), actual.getGeneration()),
@@ -72,7 +72,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     @Override
     protected void validateReturnedObject(SystemRequestDto expected, System actual) {
         assertAll(
-            "These " + EntityName + " objects are invalid.",
+            "These " + entityName + " objects are invalid.",
             () -> assertNotNull(actual.getId()),
             () -> assertEquals(expected.name(), actual.getName()),
             () -> assertEquals(expected.generation(), actual.getGeneration()),
@@ -88,7 +88,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
         final System expected = repository.insert(requestDto);
 
         assertThrows(ExceptionFailedDbValidation.class, () -> repository.insert(expected),
-                "The " + EntityName + " repository allowed an insert of an object with a duplicate name when it shouldn't have.");
+                "The " + entityName + " repository allowed an insert of an object with a duplicate name when it shouldn't have.");
     }
 
     @Test
@@ -97,6 +97,6 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
         final System expected = repository.insert(requestDto);
 
         assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(expected),
-                "The " + EntityName + " repository allowed an update of an object with a duplicate name when it shouldn't have.");
+                "The " + entityName + " repository allowed an update of an object with a duplicate name when it shouldn't have.");
     }
 }

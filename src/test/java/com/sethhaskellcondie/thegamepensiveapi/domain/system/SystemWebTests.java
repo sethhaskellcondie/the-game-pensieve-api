@@ -109,7 +109,8 @@ public class SystemWebTests {
         result.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
-                jsonPath("$.data").value(new ArrayList<>())
+                jsonPath("$.data").value(new ArrayList<>()),
+                jsonPath("$.errors").isEmpty()
         );
     }
 
@@ -279,8 +280,7 @@ public class SystemWebTests {
 
         MvcResult mvcResult = result.andReturn();
         String responseString = mvcResult.getResponse().getContentAsString();
-        Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
-        });
+        Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         List<SystemResponseDto> returnedSystems = body.get("data");
         //testing order as well as each member being deserialized correctly
         for (int i = 0; i < returnedSystems.size(); i++) {

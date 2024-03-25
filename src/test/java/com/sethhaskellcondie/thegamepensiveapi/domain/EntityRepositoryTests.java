@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ActiveProfiles("test-container")
 public abstract class EntityRepositoryTests<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
-    protected String EntityName;
+    protected String entityName;
     protected EntityRepository<T, RequestDto, ResponseDto> repository;
     protected enum Generate {
         VALID,
@@ -63,7 +63,7 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
     @Test
     void insertRequestDto_FailsEntityValidation_ThrowExceptionMalformedEntity() {
         assertThrows(ExceptionMalformedEntity.class, () -> repository.insert(generateRequestDto(Generate.INVALID)),
-                "The " + EntityName + " repository didn't throw an ExceptionMalformedEntity when given an invalid " + EntityName);
+                "The " + entityName + " repository didn't throw an ExceptionMalformedEntity when given an invalid " + entityName);
     }
 
     @Test
@@ -84,9 +84,9 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
 
         List<T> actual = repository.getWithFilters("");
 
-        assertEquals(2, actual.size(), "There should only be 2 " + EntityName + " objects returned in the getWithFilters list.");
-        assertEquals(expected1, actual.get(0), "The first " + EntityName + " object is out of order.");
-        assertEquals(expected2, actual.get(1), "The second " + EntityName + " object is out of order.");
+        assertEquals(2, actual.size(), "There should only be 2 " + entityName + " objects returned in the getWithFilters list.");
+        assertEquals(expected1, actual.get(0), "The first " + entityName + " object is out of order.");
+        assertEquals(expected2, actual.get(1), "The second " + entityName + " object is out of order.");
     }
 
     @Test
@@ -96,13 +96,13 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
 
         final T actual = repository.getById(expected.getId());
 
-        assertEquals(expected, actual, "The " + EntityName + " objects don't match after a getById() call.");
+        assertEquals(expected, actual, "The " + entityName + " objects don't match after a getById() call.");
     }
 
     @Test
     void getById_BadId_ThrowExceptionResourceNotFound() {
         assertThrows(ExceptionResourceNotFound.class, () -> repository.getById(-1),
-                "The " + EntityName + " repository didn't throw an ExceptionResourceNotFound when given an invalid id for getById().");
+                "The " + entityName + " repository didn't throw an ExceptionResourceNotFound when given an invalid id for getById().");
     }
 
     @Test
@@ -127,12 +127,12 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
         repository.deleteById(expectedId);
 
         assertThrows(ExceptionResourceNotFound.class, () -> repository.getById(expectedId),
-                "Delete failure: The " + EntityName + " repository could still find a " + EntityName + " after calling deleteById() with the id: " + expectedId);
+                "Delete failure: The " + entityName + " repository could still find a " + entityName + " after calling deleteById() with the id: " + expectedId);
     }
 
     @Test
     void deleteById_BadId_ThrowException() {
         assertThrows(ExceptionResourceNotFound.class, () -> repository.deleteById(-1),
-                "The " + EntityName + " repository didn't throw an ExceptionResourceNotFound when given an invalid id for deleteById().");
+                "The " + entityName + " repository didn't throw an ExceptionResourceNotFound when given an invalid id for deleteById().");
     }
 }
