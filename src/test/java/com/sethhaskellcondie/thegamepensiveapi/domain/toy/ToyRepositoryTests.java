@@ -20,35 +20,8 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
     }
 
     @Override
-    protected Toy generateValidEntity() {
-        final String name = "Donkey Kong";
-        final String set = "Amiibo";
-        ToyRequestDto requestDto = new ToyRequestDto(name, set);
-        return new Toy().updateFromRequestDto(requestDto);
-    }
-
-    @Override
-    protected ToyRequestDto generateRequestDto(Generate generate) {
-        switch (generate) {
-            case VALID -> {
-                final String name = "MegaMan";
-                final String set = null;
-                return new ToyRequestDto(name, set);
-            }
-            case VALID_SECOND -> {
-                final String name = "Loki";
-                final String set = "Disney Infinity";
-                return new ToyRequestDto(name, set);
-            }
-            case INVALID -> {
-                final String name = ""; //the name cannot be blank
-                final String set = null;
-                return new ToyRequestDto(name, set);
-            }
-            default -> {
-                return new ToyRequestDto(null, null);
-            }
-        }
+    protected void setupFactory() {
+        factory = new ToyFactory();
     }
 
     @Override

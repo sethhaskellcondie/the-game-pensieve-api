@@ -13,12 +13,7 @@ public class ToyServiceTests extends EntityServiceTests<Toy, ToyRequestDto, ToyR
     }
 
     @Override
-    protected ToyRequestDto generateRequestDto() {
-        return new ToyRequestDto("ToyName", "ToySet");
-    }
-
-    @Override
-    protected Toy generateEntity() {
-        return new Toy();
+    protected void setupFactory() {
+        factory = new ToyFactory();
     }
 }

@@ -13,12 +13,7 @@ public class SystemServiceTests extends EntityServiceTests<System, SystemRequest
     }
 
     @Override
-    protected SystemRequestDto generateRequestDto() {
-        return new SystemRequestDto("SystemName", 3, false);
-    }
-
-    @Override
-    protected System generateEntity() {
-        return new System();
+    protected void setupFactory() {
+        factory = new SystemFactory();
     }
 }

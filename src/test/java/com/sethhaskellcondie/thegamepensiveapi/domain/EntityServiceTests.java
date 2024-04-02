@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -12,14 +13,15 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     protected EntityService<T, RequestDto, ResponseDto> service;
     protected EntityRepository<T, RequestDto, ResponseDto> repository;
+    protected EntityFactory<T, RequestDto, ResponseDto> factory;
 
     protected abstract void setupServiceMockRepository();
-    protected abstract RequestDto generateRequestDto();
-    protected abstract T generateEntity();
+    protected abstract void setupFactory();
 
     @BeforeEach
     public void testPrep() {
         setupServiceMockRepository();
+        setupFactory();
     }
 
     @Test
@@ -42,7 +44,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void createNew_Passthrough_CallRepository() throws ExceptionFailedDbValidation {
-        RequestDto requestDto = generateRequestDto();
+        RequestDto requestDto = factory.generateRequestDto(VALID);
 
         service.createNew(requestDto);
 
@@ -51,7 +53,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void updateExisting_Passthrough_CallRepository() throws ExceptionFailedDbValidation {
-        T entity = generateEntity();
+        T entity = factory.generateEntity(VALID);
 
         service.updateExisting(entity);
 

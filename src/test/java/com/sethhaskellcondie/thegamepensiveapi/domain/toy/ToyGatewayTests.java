@@ -12,22 +12,7 @@ public class ToyGatewayTests extends EntityGatewayTests<Toy, ToyRequestDto, ToyR
     }
 
     @Override
-    protected Toy generateEntity() {
-        return new Toy(1, "ToyName", "ToySet");
-    }
-
-    @Override
-    protected ToyRequestDto generateRequestFromEntity(Toy entity) {
-        return new ToyRequestDto(entity.getName(), entity.getSet());
-    }
-
-    @Override
-    protected Toy generateAnotherEntity() {
-        return new Toy(2, "AnotherToyName", "AnotherToySet");
-    }
-
-    @Override
-    protected Toy generateEmptyEntity() {
-        return new Toy();
+    protected void setupFactory() {
+        factory = new ToyFactory();
     }
 }
