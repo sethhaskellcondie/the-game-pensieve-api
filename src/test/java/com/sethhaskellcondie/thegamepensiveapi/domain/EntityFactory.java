@@ -16,6 +16,6 @@ public interface EntityFactory<T extends Entity<RequestDto, ResponseDto>, Reques
     RequestDto generateRequestDto(Generate generate);
     RequestDto generateRequestDtoFromEntity(T entity);
 
-    //implement generateCustomEntity(); as needed
-    //implement generateCustomRequestDto(); as needed
+    //implement generateCustomEntity() as needed
+    //implement generateCustomRequestDto() as needed
 }
