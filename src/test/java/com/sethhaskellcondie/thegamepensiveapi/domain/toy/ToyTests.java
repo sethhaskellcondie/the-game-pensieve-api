@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -100,35 +101,35 @@ public class ToyTests {
 
     //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
-//        final String name1 = "MegaMan";
-//        final String set1 = "Amiibo";
-//        ResultActions result1 = factory.postCustomToy(name1, set1);
-//        final ToyResponseDto toyDto1 = resultToResponseDto(result1);
-//
-//        final String name2 = "Goofy";
-//        final String set2 = "Disney Infinity";
-//        ResultActions result2 = factory.postCustomToy(name2, set2);
-//        final ToyResponseDto toyDto2 = resultToResponseDto(result2);
-//
-//        final ResultActions result = mockMvc.perform(post("/toys/search"));
-//
-//        result.andExpectAll(
-//                status().isOk(),
-//                content().contentType(MediaType.APPLICATION_JSON)
-//        );
-//        validateToyResponseBody(result, List.of(toyDto1, toyDto2));
+        final String name1 = "MegaMan";
+        final String set1 = "Amiibo";
+        ResultActions result1 = factory.postCustomToy(name1, set1);
+        final ToyResponseDto toyDto1 = resultToResponseDto(result1);
+
+        final String name2 = "Goofy";
+        final String set2 = "Disney Infinity";
+        ResultActions result2 = factory.postCustomToy(name2, set2);
+        final ToyResponseDto toyDto2 = resultToResponseDto(result2);
+
+        final ResultActions result = mockMvc.perform(post("/toys/search"));
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateToyResponseBody(result, List.of(toyDto1, toyDto2));
     }
 
     //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
     void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-//        final ResultActions result = mockMvc.perform(post("/toys/search"));
-//
-//        result.andExpectAll(
-//                status().isOk(),
-//                content().contentType(MediaType.APPLICATION_JSON),
-//                jsonPath("$.data").value(new ArrayList<>()),
-//                jsonPath("$.errors").isEmpty()
-//        );
+        final ResultActions result = mockMvc.perform(post("/toys/search"));
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$.data").value(new ArrayList<>()),
+                jsonPath("$.errors").isEmpty()
+        );
     }
 
     @Test

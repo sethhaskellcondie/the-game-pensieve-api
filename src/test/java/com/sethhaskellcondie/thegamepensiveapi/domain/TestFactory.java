@@ -48,6 +48,17 @@ public class TestFactory {
         return result;
     }
 
+    public String formatSystemPayload(String name, Integer generation, Boolean handheld) {
+        String json = """
+                {
+                  "name": "%s",
+                  "generation": %d,
+                  "handheld": %b
+                }
+                """;
+        return String.format(json, name, generation, handheld);
+    }
+
     public ResultActions postToy() throws Exception {
         final String name = "TestToy-" + randomString(4);
         final String set = "TestSet-" + randomString(4);
