@@ -46,11 +46,11 @@ public class SystemTests {
 
     @Test
     void postSystem_ValidPayload_SystemCreatedAndReturned() throws Exception {
-        String expectedName = "NES";
-        int expectedGeneration = 3;
-        boolean expectedHandheld = false;
+        final String expectedName = "NES";
+        final int expectedGeneration = 3;
+        final boolean expectedHandheld = false;
 
-        ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld);
+        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld);
 
         result.andExpect(status().isCreated());
         validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld);
@@ -58,9 +58,9 @@ public class SystemTests {
 
     @Test
     void createNewSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
-        String jsonContent = factory.formatSystemPayload("", -1, null);
+        final String jsonContent = factory.formatSystemPayload("", -1, null);
 
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 post("/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
@@ -75,13 +75,13 @@ public class SystemTests {
 
     @Test
     void createNewSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
-        String duplicateName = "Game Boy";
-        int generation = 3;
-        boolean handheld = true;
+        final String duplicateName = "Game Boy";
+        final int generation = 3;
+        final boolean handheld = true;
 
         factory.postCustomSystem(duplicateName, generation, handheld);
-        String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld);
-        ResultActions result = mockMvc.perform(
+        final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld);
+        final ResultActions result = mockMvc.perform(
                 post("/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
@@ -96,13 +96,13 @@ public class SystemTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        String name = "Genesis";
-        int generation = 4;
-        boolean handheld = true;
-        ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
+        final String name = "Genesis";
+        final int generation = 4;
+        final boolean handheld = true;
+        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
         final SystemResponseDto expectedDto = resultToResponseDto(postResult);
 
-        ResultActions result = mockMvc.perform(get("/systems/" + expectedDto.id()));
+        final ResultActions result = mockMvc.perform(get("/systems/" + expectedDto.id()));
 
         result.andExpectAll(
                 status().isOk(),
@@ -113,7 +113,7 @@ public class SystemTests {
 
     @Test
     void getOneSystem_SystemMissing_NotFoundReturned() throws Exception {
-        ResultActions result = mockMvc.perform(get("/systems/-1"));
+        final ResultActions result = mockMvc.perform(get("/systems/-1"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -136,7 +136,7 @@ public class SystemTests {
         final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        ResultActions result = mockMvc.perform(post("/systems/search"));
+        final ResultActions result = mockMvc.perform(post("/systems/search"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -148,7 +148,7 @@ public class SystemTests {
     //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
 
-        ResultActions result = mockMvc.perform(post("/systems/search"));
+        final ResultActions result = mockMvc.perform(post("/systems/search"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -181,7 +181,7 @@ public class SystemTests {
     @Test
     void updateExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         final String jsonContent = factory.formatSystemPayload("ValidButMissing", 3, false);
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 put("/systems/-1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
@@ -199,7 +199,7 @@ public class SystemTests {
         final ResultActions existingResult = factory.postSystem();
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 delete("/systems/" + responseDto.id())
         );
 
@@ -212,7 +212,7 @@ public class SystemTests {
 
     @Test
     void deleteExistingSystem_InvalidId_ReturnNotFound() throws Exception {
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 delete("/systems/-1")
         );
 
@@ -258,10 +258,10 @@ public class SystemTests {
                 jsonPath("$.errors").isEmpty()
         );
 
-        MvcResult mvcResult = result.andReturn();
-        String responseString = mvcResult.getResponse().getContentAsString();
-        Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        List<SystemResponseDto> returnedSystems = body.get("data");
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        final List<SystemResponseDto> returnedSystems = body.get("data");
         //testing order as well as each member being deserialized correctly
         for (int i = 0; i < returnedSystems.size(); i++) {
             SystemResponseDto expectedSystem = expectedSystems.get(i);

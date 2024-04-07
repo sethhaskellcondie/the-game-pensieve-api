@@ -15,5 +15,4 @@ public class SystemGatewayTests extends EntityGatewayTests<System, SystemRequest
     protected void setupFactory() {
         factory = new SystemFactory();
     }
-
 }

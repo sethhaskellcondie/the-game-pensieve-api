@@ -49,7 +49,7 @@ public class ToyTests {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
 
-        ResultActions result = factory.postCustomToy(expectedName, expectedSet);
+        final ResultActions result = factory.postCustomToy(expectedName, expectedSet);
 
         result.andExpect(status().isCreated());
         validateToyResponseBody(result, expectedName, expectedSet);
@@ -76,7 +76,7 @@ public class ToyTests {
     void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
         final String name = "Mario";
         final String set = "Amiibo";
-        ResultActions postResult = factory.postCustomToy(name, set);
+        final ResultActions postResult = factory.postCustomToy(name, set);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get("/toys/" + expectedDto.id()));
@@ -103,12 +103,12 @@ public class ToyTests {
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
         final String name1 = "MegaMan";
         final String set1 = "Amiibo";
-        ResultActions result1 = factory.postCustomToy(name1, set1);
+        final ResultActions result1 = factory.postCustomToy(name1, set1);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
         final String name2 = "Goofy";
         final String set2 = "Disney Infinity";
-        ResultActions result2 = factory.postCustomToy(name2, set2);
+        final ResultActions result2 = factory.postCustomToy(name2, set2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
         final ResultActions result = mockMvc.perform(post("/toys/search"));
@@ -136,7 +136,7 @@ public class ToyTests {
     void putExistingToy_ValidUpdate_ReturnOk() throws Exception {
         final String name = "Donald Duck";
         final String set = "Disney Infinity";
-        ResultActions postResult = factory.postCustomToy(name, set);
+        final ResultActions postResult = factory.postCustomToy(name, set);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final String newName = "Pit";
@@ -172,7 +172,7 @@ public class ToyTests {
 
     @Test
     void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
-        ResultActions postResult = factory.postToy();
+        final ResultActions postResult = factory.postToy();
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(

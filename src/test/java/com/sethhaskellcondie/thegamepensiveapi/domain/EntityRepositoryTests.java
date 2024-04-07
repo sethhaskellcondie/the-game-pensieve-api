@@ -81,7 +81,7 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
         final RequestDto requestDto2 = factory.generateRequestDto(ANOTHER_VALID);
         final T expected2 = repository.insert(requestDto2);
 
-        List<T> actual = repository.getWithFilters("");
+        final List<T> actual = repository.getWithFilters("");
 
         assertEquals(2, actual.size(), "There should only be 2 " + entityName + " objects returned in the getWithFilters list.");
         assertEquals(expected1, actual.get(0), "The first " + entityName + " object is out of order.");

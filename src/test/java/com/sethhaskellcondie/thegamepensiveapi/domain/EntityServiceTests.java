@@ -26,7 +26,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void getWithFilters_Passthrough_CallRepository() {
-        String filters = "";
+        final String filters = "";
 
         service.getWithFilters(filters);
 
@@ -35,7 +35,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void getById_Passthrough_CallRepository() throws ExceptionResourceNotFound {
-        int id = 1;
+        final int id = 1;
 
         service.getById(id);
 
@@ -44,7 +44,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void createNew_Passthrough_CallRepository() throws ExceptionFailedDbValidation {
-        RequestDto requestDto = factory.generateRequestDto(VALID);
+        final RequestDto requestDto = factory.generateRequestDto(VALID);
 
         service.createNew(requestDto);
 
@@ -53,7 +53,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void updateExisting_Passthrough_CallRepository() throws ExceptionFailedDbValidation {
-        T entity = factory.generateEntity(VALID);
+        final T entity = factory.generateEntity(VALID);
 
         service.updateExisting(entity);
 
@@ -62,7 +62,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void deleteById_Passthrough_CallRepository() throws ExceptionResourceNotFound {
-        int id = 1;
+        final int id = 1;
 
         service.deleteById(id);
 

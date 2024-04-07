@@ -38,7 +38,7 @@ public class TestFactory {
                 """;
         final String formattedJson = String.format(json, name, generation, handheld);
 
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 post("/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
@@ -49,7 +49,7 @@ public class TestFactory {
     }
 
     public String formatSystemPayload(String name, Integer generation, Boolean handheld) {
-        String json = """
+        final String json = """
                 {
                   "name": "%s",
                   "generation": %d,
@@ -68,7 +68,7 @@ public class TestFactory {
     public ResultActions postCustomToy(String name, String set) throws Exception {
         final String formattedJson = formatToyPayload(name, set);
 
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 post("/toys")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)

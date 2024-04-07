@@ -9,11 +9,11 @@ public class SystemFactory implements EntityFactory<System, SystemRequestDto, Sy
     public System generateEntity(Generate generate) {
         switch (generate) {
             case VALID -> {
-                SystemRequestDto requestDto = new SystemRequestDto("SystemName", 3, false);
+                final SystemRequestDto requestDto = new SystemRequestDto("SystemName", 3, false);
                 return new System().updateFromRequestDto(requestDto);
             }
             case ANOTHER_VALID -> {
-                SystemRequestDto requestDto = new SystemRequestDto("AnotherSystemName", 4, true);
+                final SystemRequestDto requestDto = new SystemRequestDto("AnotherSystemName", 4, true);
                 return new System().updateFromRequestDto(requestDto);
             }
             case VALID_PERSISTED -> {
