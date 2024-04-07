@@ -17,8 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * This was an early implementation of unit tests for the default CRUD implementation
- * This isn't used anymore but kept in the code base to compare with SystemRepositoryTests
+ * This it the "before" for unit tests looked like before the
+ * "after" when I wrote the abstract tests EntityRepositoryTests
  */
 @JdbcTest
 @ActiveProfiles("test-container")

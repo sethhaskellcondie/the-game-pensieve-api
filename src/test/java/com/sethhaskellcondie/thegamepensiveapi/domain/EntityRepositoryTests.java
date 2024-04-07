@@ -10,6 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_VALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.INVALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -29,11 +32,7 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
 
     protected String entityName;
     protected EntityRepository<T, RequestDto, ResponseDto> repository;
-    protected enum Generate {
-        VALID,
-        VALID_SECOND,
-        INVALID
-    }
+    protected EntityFactory<T, RequestDto, ResponseDto> factory;
 
     /**
      * The tests are set up to use these abstract method that will be implemented with the Entity
@@ -41,19 +40,19 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
      * See SystemRepositoryTests.java for an example implementation
      */
     protected abstract void setupRepositoryAndEntityName();
-    protected abstract T generateValidEntity();
-    protected abstract RequestDto generateRequestDto(Generate generate);
+    protected abstract void setupFactory();
     protected abstract void validateReturnedObject(T expected, T actual);
     protected abstract void validateReturnedObject(RequestDto expected, T actual);
 
     @BeforeEach
     public void setUp() {
         setupRepositoryAndEntityName();
+        setupFactory();
     }
 
     @Test
     void insertRequestDto_HappyPath_ReturnEntity() throws ExceptionFailedDbValidation {
-        final RequestDto expected = generateRequestDto(Generate.VALID);
+        final RequestDto expected = factory.generateRequestDto(VALID);
 
         final T actual = repository.insert(expected);
 
@@ -62,27 +61,27 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
 
     @Test
     void insertRequestDto_FailsEntityValidation_ThrowExceptionMalformedEntity() {
-        assertThrows(ExceptionMalformedEntity.class, () -> repository.insert(generateRequestDto(Generate.INVALID)),
+        assertThrows(ExceptionMalformedEntity.class, () -> repository.insert(factory.generateRequestDto(INVALID)),
                 "The " + entityName + " repository didn't throw an ExceptionMalformedEntity when given an invalid " + entityName);
     }
 
     @Test
     void insertEntity_HappyPath_ReturnEntity() throws ExceptionFailedDbValidation {
-        final T expected = generateValidEntity();
+        final T expected = factory.generateEntity(VALID);
 
         final T actual = repository.insert(expected);
 
         validateReturnedObject(expected, actual);
     }
 
-    @Test
+    //TODO come back and update this after filters have been implemented (it works on it's own but not with other tests)
     void getWithFilters_NoFilters_ReturnAllEntities() throws ExceptionFailedDbValidation {
-        final RequestDto requestDto1 = generateRequestDto(Generate.VALID);
+        final RequestDto requestDto1 = factory.generateRequestDto(VALID);
         final T expected1 = repository.insert(requestDto1);
-        final RequestDto requestDto2 = generateRequestDto(Generate.VALID_SECOND);
+        final RequestDto requestDto2 = factory.generateRequestDto(ANOTHER_VALID);
         final T expected2 = repository.insert(requestDto2);
 
-        List<T> actual = repository.getWithFilters("");
+        final List<T> actual = repository.getWithFilters("");
 
         assertEquals(2, actual.size(), "There should only be 2 " + entityName + " objects returned in the getWithFilters list.");
         assertEquals(expected1, actual.get(0), "The first " + entityName + " object is out of order.");
@@ -91,7 +90,7 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
 
     @Test
     void getById_HappyPath_ReturnEntity() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final RequestDto requestDto = generateRequestDto(Generate.VALID);
+        final RequestDto requestDto = factory.generateRequestDto(VALID);
         final T expected = repository.insert(requestDto);
 
         final T actual = repository.getById(expected.getId());
@@ -107,10 +106,10 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
 
     @Test
     void update_HappyPath_ReturnUpdatedEntity() throws ExceptionFailedDbValidation {
-        final RequestDto requestDto = generateRequestDto(Generate.VALID);
+        final RequestDto requestDto = factory.generateRequestDto(VALID);
         final T expected = repository.insert(requestDto);
 
-        final RequestDto updateDto = generateRequestDto(Generate.VALID_SECOND);
+        final RequestDto updateDto = factory.generateRequestDto(ANOTHER_VALID);
         expected.updateFromRequestDto(updateDto);
 
         final T actual = repository.update(expected);
@@ -120,7 +119,7 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
 
     @Test
     void deleteById_HappyPath_NoException() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final RequestDto requestDto = generateRequestDto(Generate.VALID);
+        final RequestDto requestDto = factory.generateRequestDto(VALID);
         final T expected = repository.insert(requestDto);
         final int expectedId = expected.getId();
 

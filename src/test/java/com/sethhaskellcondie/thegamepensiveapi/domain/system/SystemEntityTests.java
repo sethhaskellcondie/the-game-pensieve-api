@@ -17,12 +17,12 @@ public class SystemEntityTests {
 
     @Test
     public void updateFromRequestDto_ValidDto_SystemUpdated() {
-        String name = "name";
-        int generation = 3;
-        boolean handheld = false;
+        final String name = "name";
+        final int generation = 3;
+        final boolean handheld = false;
 
-        SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld);
-        System system = new System();
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld);
+        final System system = new System();
 
         system.updateFromRequestDto(requestDto);
 
@@ -33,10 +33,10 @@ public class SystemEntityTests {
 
     @Test
     public void updateFromRequestDto_FieldsNull_ThrowMultipleErrors() {
-        int numberOfErrors = 3;
+        final int numberOfErrors = 3;
 
-        SystemRequestDto requestDto = new SystemRequestDto(null, null, null);
-        System system = new System();
+        final SystemRequestDto requestDto = new SystemRequestDto(null, null, null);
+        final System system = new System();
 
         try {
             system.updateFromRequestDto(requestDto);
@@ -50,13 +50,13 @@ public class SystemEntityTests {
 
     @Test
     public void updateFromRequestDto_FieldsIncorrect_ThrowMultipleErrors() {
-        String name = ""; //name cannot be blank
-        Integer generation = -1; //generation must be positive
-        Boolean handheld = false;
-        int numberOfErrors = 2;
+        final String name = ""; //name cannot be blank
+        final Integer generation = -1; //generation must be positive
+        final Boolean handheld = false;
+        final int numberOfErrors = 2;
 
-        SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld);
-        System system = new System();
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld);
+        final System system = new System();
 
         try {
             system.updateFromRequestDto(requestDto);
@@ -70,14 +70,14 @@ public class SystemEntityTests {
 
     @Test
     public void convertToResponseDto_HappyPath_DtoCreated() {
-        int id = 987;
-        String name = "NES";
-        int generation = 3;
-        boolean handheld = false;
+        final int id = 987;
+        final String name = "NES";
+        final int generation = 3;
+        final boolean handheld = false;
 
-        System system = new System(id, name, generation, handheld);
+        final System system = new System(id, name, generation, handheld);
 
-        SystemResponseDto responseDto = system.convertToResponseDto();
+        final SystemResponseDto responseDto = system.convertToResponseDto();
 
         assertEquals("system", responseDto.type());
         assertEquals(id, responseDto.id());

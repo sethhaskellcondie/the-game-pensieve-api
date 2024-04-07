@@ -22,7 +22,7 @@ The project can be run by running the dockerfile this will spin up three contain
 ## Test Plan / Flow
 Integration tests with the database use Testcontainers, they are called "RepositoryTests" they use the file format <Entity>RepositoryTests. They test the connection with the database and the hydration of objects.
 Entity Tests using the file format "<Entity>EntityTests" test the validation of objects as they are created making sure that multiple errors are thrown when multiple issues are found with an object.
-Controller tests using the file format "<Entity>WebTests" test the serialization and deserialization of request and response bodies along with the proper status codes.
+Controller tests using the file format "<Entity>ControllerTests" test the serialization and deserialization of request and response bodies along with the proper status codes.
 There is also a suite of unit tests for each layer making sure that the base functionality and added functionality work as intended.
 
 Repository Tests use test containers to spin up a database to run tests on. They run a @JdbcTest that would usually run an in memory database, we can change that to a test container with a different @ActiveProfile "test-container."

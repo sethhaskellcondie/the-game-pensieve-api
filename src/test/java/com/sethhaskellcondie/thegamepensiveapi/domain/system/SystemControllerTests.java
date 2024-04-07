@@ -35,12 +35,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 //WebMvcTest is a "slice test" used for testing controllers with a mock servlet for http requests
 //I've included the -Limitations- that I ran into using this kind of test as comments below
 @WebMvcTest(SystemController.class)
-public class SystemWebTests {
+public class SystemControllerTests {
     //WebMvcTest will set up the dependencies for the SystemController
     //Since my gateway classes are @Components not automatically included by WebMvcTest
     //I need to manually set up a config for the gateway, just for this test
     @TestConfiguration
-    static class SystemWebTestsConfiguration {
+    static class SystemControllerTestsConfiguration {
         @Bean
         public SystemGateway systemGateway(SystemService service) {
             return new SystemGateway(service);
@@ -57,10 +57,10 @@ public class SystemWebTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        System system = new System(1, "test", 3, false);
+        final System system = new System(1, "test", 3, false);
         when(service.getById(1)).thenReturn(system);
 
-        ResultActions result = mockMvc.perform(get("/systems/1"));
+        final ResultActions result = mockMvc.perform(get("/systems/1"));
 
         // result.andDo(print()); //will print out the result to the console
         result.andExpectAll(
@@ -75,7 +75,7 @@ public class SystemWebTests {
         //-Limitation- the Mock can throw exceptions but can't include a message, so we can't check for it.
         when(service.getById(999)).thenThrow(ExceptionResourceNotFound.class);
 
-        ResultActions result = mockMvc.perform(get("/systems/999"));
+        final ResultActions result = mockMvc.perform(get("/systems/999"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -86,12 +86,12 @@ public class SystemWebTests {
 
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
-        System system1 = new System(1, "test", 10, false);
-        System system2 = new System(2, "test again", 20, true);
-        List<System> systems = List.of(system1, system2);
+        final System system1 = new System(1, "test", 10, false);
+        final System system2 = new System(2, "test again", 20, true);
+        final List<System> systems = List.of(system1, system2);
         when(service.getWithFilters("")).thenReturn(systems);
 
-        ResultActions result = mockMvc.perform(post("/systems/search"));
+        final ResultActions result = mockMvc.perform(post("/systems/search"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -104,7 +104,7 @@ public class SystemWebTests {
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
         when(service.getWithFilters("")).thenReturn(List.of());
 
-        ResultActions result = mockMvc.perform(post("/systems/search"));
+        final ResultActions result = mockMvc.perform(post("/systems/search"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -116,16 +116,16 @@ public class SystemWebTests {
 
     @Test
     void createNewSystem_ValidPayload_SystemCreatedAndReturned() throws Exception {
-        int expectedId = 44;
-        String expectedName = "Create Test";
-        int expectedGeneration = 3;
-        boolean expectedHandheld = false;
+        final int expectedId = 44;
+        final String expectedName = "Create Test";
+        final int expectedGeneration = 3;
+        final boolean expectedHandheld = false;
 
-        System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
+        final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
 
         when(service.createNew(any())).thenReturn(expectedSystemPersisted);
 
-        String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
+        final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
         ResultActions result = mockMvc.perform(
                 post("/systems")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -141,12 +141,12 @@ public class SystemWebTests {
     //but the mock cannot throw this exception with the list Input Exception so this test ALWAYS fails,
     //so I removed the @Test annotation to skip it.
     void createNewSystem_SystemNameBlank_ReturnBadRequest() throws Exception {
-        String jsonContent = generateValidCreateUpdatePayload("", 3, false);
+        final String jsonContent = generateValidCreateUpdatePayload("", 3, false);
 
         //-Limitation- the Mock can throw exceptions but can't include a message, so we can't check for it.
         when(service.createNew(any())).thenThrow(ExceptionMalformedEntity.class);
 
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 post("/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
@@ -161,11 +161,11 @@ public class SystemWebTests {
 
     @Test
     void createNewSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
-        String jsonContent = generateValidCreateUpdatePayload("duplicate check", 3, false);
+        final String jsonContent = generateValidCreateUpdatePayload("duplicate check", 3, false);
 
         when(service.createNew(any())).thenThrow(ExceptionFailedDbValidation.class);
 
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 post("/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
@@ -180,19 +180,19 @@ public class SystemWebTests {
 
     @Test
     void updateExistingSystem_ValidUpdate_ReturnOk() throws Exception {
-        int expectedId = 44;
-        String expectedName = "Updated Name";
-        int expectedGeneration = 3;
-        boolean expectedHandheld = false;
+        final int expectedId = 44;
+        final String expectedName = "Updated Name";
+        final int expectedGeneration = 3;
+        final boolean expectedHandheld = false;
 
-        System existingSystem = new System(expectedId, "Created Name", 4, true);
-        System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
+        final System existingSystem = new System(expectedId, "Created Name", 4, true);
+        final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
 
         when(service.getById(expectedId)).thenReturn(existingSystem);
         when(service.updateExisting(updatedSystem)).thenReturn(updatedSystem);
 
-        String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
-        ResultActions result = mockMvc.perform(
+        final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
+        final ResultActions result = mockMvc.perform(
                 put("/systems/" + expectedId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
@@ -206,8 +206,8 @@ public class SystemWebTests {
     void updateExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         when(service.getById(33)).thenThrow(ExceptionResourceNotFound.class);
 
-        String jsonContent = generateValidCreateUpdatePayload("testName", 3, false);
-        ResultActions result = mockMvc.perform(
+        final String jsonContent = generateValidCreateUpdatePayload("testName", 3, false);
+        final ResultActions result = mockMvc.perform(
                 put("/systems/33")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
@@ -222,7 +222,7 @@ public class SystemWebTests {
 
     @Test
     void deleteExistingSystem_SystemExists_ReturnNoContent() throws Exception {
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 delete("/systems/22")
         );
 
@@ -239,7 +239,7 @@ public class SystemWebTests {
     void deleteExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         // when(service.deleteById(22)).thenThrow(ExceptionResourceNotFound.class);
 
-        ResultActions result = mockMvc.perform(
+        final ResultActions result = mockMvc.perform(
                 delete("/systems/22")
         );
 
@@ -251,7 +251,7 @@ public class SystemWebTests {
     }
 
     private String generateValidCreateUpdatePayload(String name, int generation, boolean handheld) {
-        String json = """
+        final String json = """
                 {
                   "name": "%s",
                   "generation": %d,
@@ -278,14 +278,14 @@ public class SystemWebTests {
                 jsonPath("$.errors").isEmpty()
         );
 
-        MvcResult mvcResult = result.andReturn();
-        String responseString = mvcResult.getResponse().getContentAsString();
-        Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        List<SystemResponseDto> returnedSystems = body.get("data");
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        final List<SystemResponseDto> returnedSystems = body.get("data");
         //testing order as well as each member being deserialized correctly
         for (int i = 0; i < returnedSystems.size(); i++) {
-            System expectedSystem = expectedSystems.get(i);
-            SystemResponseDto returnedSystem = returnedSystems.get(i);
+            final System expectedSystem = expectedSystems.get(i);
+            final SystemResponseDto returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
                     () -> assertEquals("system", returnedSystem.type()),

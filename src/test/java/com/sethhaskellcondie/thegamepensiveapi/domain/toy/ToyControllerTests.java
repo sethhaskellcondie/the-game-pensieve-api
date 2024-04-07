@@ -31,13 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//TODO create abstract tests for the gateway and service layers
-//TODO create end to end tests for systems and toys
-
 @WebMvcTest(ToyController.class)
-public class ToyWebTests {
+public class ToyControllerTests {
     @TestConfiguration
-    static class ToyWebTestsConfiguration {
+    static class ToyControllerTestsConfiguration {
         @Bean
         public ToyGateway toyGateway(ToyService service) {
             return new ToyGateway(service);
@@ -227,7 +224,7 @@ public class ToyWebTests {
         final String json = """
                 {
                 	"name": "%s",
-                	"generation": "%s"
+                	"set": "%s"
                 }
                 """;
         return String.format(json, name, set);
