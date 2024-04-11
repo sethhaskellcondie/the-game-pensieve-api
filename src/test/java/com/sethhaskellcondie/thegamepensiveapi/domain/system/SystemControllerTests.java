@@ -23,6 +23,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,7 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 //WebMvcTest is a "slice test" used for testing controllers with a mock servlet for http requests
-//I've included the -Limitations- that I ran into using this kind of test as comments below
 @WebMvcTest(SystemController.class)
 public class SystemControllerTests {
     //WebMvcTest will set up the dependencies for the SystemController
@@ -72,15 +72,14 @@ public class SystemControllerTests {
 
     @Test
     void getOneSystem_SystemMissing_NotFoundReturned() throws Exception {
-        //-Limitation- the Mock can throw exceptions but can't include a message, so we can't check for it.
-        when(service.getById(999)).thenThrow(ExceptionResourceNotFound.class);
+        when(service.getById(999)).thenThrow(new ExceptionResourceNotFound("Error: Resource Not Found"));
 
         final ResultActions result = mockMvc.perform(get("/systems/999"));
 
         result.andExpectAll(
                 status().isNotFound(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty() //-Limitation- can't check for an error message the mock can't throw one
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 
@@ -136,15 +135,11 @@ public class SystemControllerTests {
         validateSystemResponseBody(result, expectedSystemPersisted);
     }
 
-    //-Limitation- I could be using exceptions wrong, but the MalformedEntity is a list of Input Exceptions
-    //then it formats them into a list that can be returned so that all the errors can be returned at the same time
-    //but the mock cannot throw this exception with the list Input Exception so this test ALWAYS fails,
-    //so I removed the @Test annotation to skip it.
+    @Test
     void createNewSystem_SystemNameBlank_ReturnBadRequest() throws Exception {
         final String jsonContent = generateValidCreateUpdatePayload("", 3, false);
 
-        //-Limitation- the Mock can throw exceptions but can't include a message, so we can't check for it.
-        when(service.createNew(any())).thenThrow(ExceptionMalformedEntity.class);
+        when(service.createNew(any())).thenThrow(new ExceptionMalformedEntity(List.of(new Exception("Error 1"), new Exception("Error 2"))));
 
         final ResultActions result = mockMvc.perform(
                 post("/systems")
@@ -155,7 +150,7 @@ public class SystemControllerTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 
@@ -163,7 +158,7 @@ public class SystemControllerTests {
     void createNewSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
         final String jsonContent = generateValidCreateUpdatePayload("duplicate check", 3, false);
 
-        when(service.createNew(any())).thenThrow(ExceptionFailedDbValidation.class);
+        when(service.createNew(any())).thenThrow(new ExceptionFailedDbValidation("Error: DB Validation"));
 
         final ResultActions result = mockMvc.perform(
                 post("/systems")
@@ -174,7 +169,7 @@ public class SystemControllerTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty() //-Limitation- the mock can't throw a message with the exception
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 
@@ -204,7 +199,7 @@ public class SystemControllerTests {
 
     @Test
     void updateExistingSystem_InvalidId_ReturnNotFound() throws Exception {
-        when(service.getById(33)).thenThrow(ExceptionResourceNotFound.class);
+        when(service.getById(33)).thenThrow(new ExceptionResourceNotFound("Error: Resource Not Found"));
 
         final String jsonContent = generateValidCreateUpdatePayload("testName", 3, false);
         final ResultActions result = mockMvc.perform(
@@ -216,7 +211,7 @@ public class SystemControllerTests {
         result.andExpectAll(
                 status().isNotFound(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 
@@ -233,11 +228,9 @@ public class SystemControllerTests {
         );
     }
 
-    //-Limitation- I could be doing this wrong, but it looks like the mock can't throw a Resource Not Found exception
-    // because service.deleteById returns void if that is the case then this test can never pass. So I've removed
-    // @Test from the test and commented out the problem code.
+    @Test
     void deleteExistingSystem_InvalidId_ReturnNotFound() throws Exception {
-        // when(service.deleteById(22)).thenThrow(ExceptionResourceNotFound.class);
+        doThrow(new ExceptionResourceNotFound("Error: Resource Not Found")).when(service).deleteById(22);
 
         final ResultActions result = mockMvc.perform(
                 delete("/systems/22")
@@ -246,7 +239,7 @@ public class SystemControllerTests {
         result.andExpectAll(
                 status().isNotFound(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 

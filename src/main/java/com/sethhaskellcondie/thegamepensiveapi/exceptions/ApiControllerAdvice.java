@@ -16,24 +16,24 @@ public class ApiControllerAdvice {
     @ExceptionHandler(value = {ExceptionFailedDbValidation.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public Map<String, String> handleExceptionFailedDbValidation(ExceptionFailedDbValidation e) {
-        FormattedResponseBody<String> body = new FormattedResponseBody<>(e.getMessage());
+    public Map<String, List<String>> handleExceptionFailedDbValidation(ExceptionFailedDbValidation e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
 
     @ExceptionHandler(value = {ExceptionInputValidation.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public Map<String, String> handleExceptionInputValidation(ExceptionInputValidation e) {
-        FormattedResponseBody<String> body = new FormattedResponseBody<>(e.getMessage());
+    public Map<String, List<String>> handleExceptionInputValidation(ExceptionInputValidation e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
 
     @ExceptionHandler(value = {ExceptionResourceNotFound.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
-    public Map<String, String> handleExceptionResourceNotFound(ExceptionResourceNotFound e) {
-        FormattedResponseBody<String> body = new FormattedResponseBody<>(e.getMessage());
+    public Map<String, List<String>> handleExceptionResourceNotFound(ExceptionResourceNotFound e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
 

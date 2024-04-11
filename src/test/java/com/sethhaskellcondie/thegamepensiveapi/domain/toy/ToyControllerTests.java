@@ -22,6 +22,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -62,14 +63,14 @@ public class ToyControllerTests {
 
     @Test
     void getOneToy_ToyMissing_NotFoundReturned() throws Exception {
-        when(service.getById(999)).thenThrow(ExceptionResourceNotFound.class);
+        when(service.getById(999)).thenThrow(new ExceptionResourceNotFound("Error: Resource Not Found"));
 
         final ResultActions result = mockMvc.perform(get("/toys/999"));
 
         result.andExpectAll(
                 status().isNotFound(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty() //-Limitation- can't check for an error message the mock can't throw one
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 
@@ -124,15 +125,11 @@ public class ToyControllerTests {
         validateToyResponseBody(result, expectedToy);
     }
 
-    //-Limitation- I could be using exceptions wrong, but the MalformedEntity is a list of Input Exceptions
-    //then it formats them into a list that can be returned so that all the errors can be returned at the same time
-    //but the mock cannot throw this exception with the list Input Exception so this test ALWAYS fails,
-    //so I removed the @Test annotation to skip it.
+    @Test
     void createNewToy_NameBlank_ReturnBadRequest() throws Exception {
         final String jsonContent = generateValidCreateUpdatePayload("", "set");
 
-        //-Limitation- the Mock can throw exceptions but can't include a message, so we can't check for it.
-        when(service.createNew(any())).thenThrow(ExceptionMalformedEntity.class);
+        when(service.createNew(any())).thenThrow(new ExceptionMalformedEntity(List.of(new Exception("Error 1"), new Exception("Error 2"))));
 
         final ResultActions result = mockMvc.perform(
                 post("/toys")
@@ -143,7 +140,7 @@ public class ToyControllerTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 
@@ -203,11 +200,9 @@ public class ToyControllerTests {
         );
     }
 
-    //-Limitation- I could be doing this wrong, but it looks like the mock can't throw a Resource Not Found exception
-    // because service.deleteById returns void if that is the case then this test can never pass. So I've removed
-    // @Test from the test and commented out the problem code.
+    @Test
     void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
-        when(service.getById(27)).thenReturn(new Toy());
+        doThrow(new ExceptionResourceNotFound("Error: Resource Not Found")).when(service).deleteById(27);
 
         final ResultActions result = mockMvc.perform(
                 delete("/toys/27")
@@ -216,7 +211,7 @@ public class ToyControllerTests {
         result.andExpectAll(
                 status().isNotFound(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isNotEmpty()
         );
     }
 
