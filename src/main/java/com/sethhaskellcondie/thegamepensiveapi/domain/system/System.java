@@ -100,13 +100,9 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
  * all of those changes can be made here on the Entity with minimal changes elsewhere
  * in the project
  * <p>
- * Most DTO's that contain more than one Entity will be a composite of the existing DTO's
- * but if there is a case where a completely new DTO will need to be created that will
- * be completed on the Service.
- * <p>
  * The request DTO will use the wrapper classes for Primitives to allow nulls to be passed
  * in as input then it will be validated when they are used for the object to be created
  * this way we can pass all validation errors back at the same time.
  */
 record SystemRequestDto(String name, Integer generation, Boolean handheld) { }
-record SystemResponseDto(String type, Integer id, String name, int generation, boolean handheld) { }
+record SystemResponseDto(String type, int id, String name, int generation, boolean handheld) { }

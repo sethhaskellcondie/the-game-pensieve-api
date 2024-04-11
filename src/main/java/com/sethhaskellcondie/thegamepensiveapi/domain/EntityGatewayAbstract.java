@@ -6,7 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 import java.util.List;
 
 public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityGateway<T, RequestDto, ResponseDto> {
-    protected final EntityService<T, RequestDto, ResponseDto> service;
+    private final EntityService<T, RequestDto, ResponseDto> service;
 
     public EntityGatewayAbstract(EntityService<T, RequestDto, ResponseDto> service) {
         this.service = service;
