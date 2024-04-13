@@ -103,24 +103,20 @@ public class SystemTests {
 
     @Test
     void getOneSystem_SystemMissing_NotFoundReturned() {
-        //TODO fix this
-        final SystemRequestDto requestDto = new SystemRequestDto("validName", -1, true);
-        final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
-
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.getForEntity("/systems/-1", Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
         assertAll(
                 "Error response wasn't returned properly on bad POST system request. (not found)",
-                () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()),
+                () -> assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode()),
                 () -> assertNull(data),
                 () -> assertEquals(1, errors.size())
         );
     }
 
     //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
+    void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() {
         final String name1 = "Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
@@ -142,7 +138,7 @@ public class SystemTests {
     }
 
     //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
+    void getAllSystems_NoSystemsPresent_EmptyArrayReturned() {
         final HttpEntity<Filter> request = new HttpEntity<>(new Filter("system", "field", "operator", "operand"));
 
         final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/search", request, Map.class);
