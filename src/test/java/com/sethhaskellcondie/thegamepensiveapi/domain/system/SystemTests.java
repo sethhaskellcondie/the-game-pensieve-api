@@ -30,6 +30,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * I've done a bunch of different tests and for this project I feel like the best option is to
+ * run with MockMvc integration tests for the rest of the tests now. It is the easiest to use
+ * I was able to get everything done with MockMvc tests. Right now the biggest limitation is that
+ * I couldn't get the body of a delete request to come back with TestRestTemplate, or WebTestClient
+ */
 @SpringBootTest
 @ActiveProfiles("test-container")
 @AutoConfigureMockMvc
