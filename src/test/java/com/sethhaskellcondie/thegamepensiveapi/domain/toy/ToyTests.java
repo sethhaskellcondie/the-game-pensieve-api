@@ -3,235 +3,189 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+/**
+ * This is another class where I experiment with a new kind of integration test. This time using a WebTestClient
+ * this runs the application context as real server through a random port. The WebTestClient can be run with or without
+ * a server, it can be run similar to a MockMvc, and it's much more like that than running the TestRestTemplate.
+ * The big advantage of the WebTestClient over the TestRestTemplate is that the TestRestTemplate runs the requests
+ * synchronously while the WebTestClient will run the test asynchronously, so they will run faster overall.
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-container")
-@AutoConfigureMockMvc
 public class ToyTests {
 
     @Autowired
-    private MockMvc mockMvc;
-    private TestFactory factory;
-
-    @BeforeEach
-    void setUp() {
-        factory = new TestFactory(mockMvc);
-    }
+    private WebTestClient client;
 
     @Test
-    void postToy_ValidPayload_ToyCreatedAndReturned() throws Exception {
+    void postToy_ValidPayload_ToyCreatedAndReturned() {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
 
-        final ResultActions result = factory.postCustomToy(expectedName, expectedSet);
+        final ResponseSpec response = this.postCustomToy(expectedName, expectedSet);
 
-        result.andExpect(status().isCreated());
-        validateToyResponseBody(result, expectedName, expectedSet);
+        response.expectStatus().isCreated();
+        validateToyResponseBody(response, expectedName, expectedSet);
     }
 
     @Test
-    void postNewToy_NameBlank_ReturnBadRequest() throws Exception {
-        final String jsonContent = factory.formatToyPayload("", "set");
+    void postNewToy_NameBlank_ReturnBadRequest() {
+        final String formattedJson = formatToyPayload("", "");
 
-        final ResultActions result = mockMvc.perform(
-                post("/toys")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-        );
+        ResponseSpec response = client.post().uri("/toys").contentType(MediaType.APPLICATION_JSON).bodyValue(formattedJson).exchange();
 
-        result.andExpectAll(
-                status().isBadRequest(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isNotEmpty()
-        );
+        response.expectStatus().isBadRequest();
+        response.expectHeader().contentType(MediaType.APPLICATION_JSON);
+        response.expectBody()
+                .jsonPath("$.data").isEmpty()
+                .jsonPath("$.errors").isNotEmpty();
     }
 
     @Test
-    void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
+    void getOneToy_ToyExists_ToySerializedCorrectly() throws JsonProcessingException {
         final String name = "Mario";
         final String set = "Amiibo";
-        final ResultActions postResult = factory.postCustomToy(name, set);
+        final ResponseSpec postResult = this.postCustomToy(name, set);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
-        final ResultActions result = mockMvc.perform(get("/toys/" + expectedDto.id()));
+        ResponseSpec response = client.get().uri("/toys/" + expectedDto.id()).exchange();
 
-        result.andExpectAll(
-                status().isOk(),
-                content().contentType(MediaType.APPLICATION_JSON)
-        );
-        validateToyResponseBody(result, expectedDto);
+        response.expectStatus().isOk();
+        response.expectHeader().contentType(MediaType.APPLICATION_JSON);
+        validateToyResponseBody(response, expectedDto);
     }
 
     @Test
-    void getOneToy_ToyMissing_NotFoundReturned() throws Exception {
-        final ResultActions result = mockMvc.perform(get("/toys/-1"));
+    void getOneToy_ToyMissing_NotFoundReturned() {
+        ResponseSpec response = client.get().uri("/toys/-1").exchange();
 
-        result.andExpectAll(
-                status().isNotFound(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isNotEmpty()
-        );
+        response.expectStatus().isNotFound();
+        response.expectHeader().contentType(MediaType.APPLICATION_JSON);
+        response.expectBody()
+                .jsonPath("$.data").isEmpty()
+                .jsonPath("$.errors").isNotEmpty();
     }
 
     //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
+    void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws JsonProcessingException {
         final String name1 = "MegaMan";
         final String set1 = "Amiibo";
-        final ResultActions result1 = factory.postCustomToy(name1, set1);
+        final ResponseSpec result1 = this.postCustomToy(name1, set1);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
         final String name2 = "Goofy";
         final String set2 = "Disney Infinity";
-        final ResultActions result2 = factory.postCustomToy(name2, set2);
+        final ResponseSpec result2 = this.postCustomToy(name2, set2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+        final ResponseSpec response = client.post().uri("/toys/search").contentType(MediaType.APPLICATION_JSON).bodyValue("").exchange();
 
-        result.andExpectAll(
-                status().isOk(),
-                content().contentType(MediaType.APPLICATION_JSON)
-        );
-        validateToyResponseBody(result, List.of(toyDto1, toyDto2));
+        validateToyResponseBody(response, List.of(toyDto1, toyDto2));
+        response.expectStatus().isOk();
+        response.expectHeader().contentType(MediaType.APPLICATION_JSON);
     }
 
     //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+    void getAllToys_NoToysPresent_EmptyArrayReturned() {
+        final ResponseSpec response = client.post().uri("/toys/search").contentType(MediaType.APPLICATION_JSON).bodyValue("").exchange();
 
-        result.andExpectAll(
-                status().isOk(),
-                content().contentType(MediaType.APPLICATION_JSON),
-                jsonPath("$.data").value(new ArrayList<>()),
-                jsonPath("$.errors").isEmpty()
-        );
+        response.expectStatus().isOk();
+        response.expectHeader().contentType(MediaType.APPLICATION_JSON);
+        response.expectBody()
+                .jsonPath("$.data").isEqualTo(new ArrayList<>())
+                .jsonPath("$.errors").isEmpty();
     }
 
     @Test
-    void putExistingToy_ValidUpdate_ReturnOk() throws Exception {
+    void putExistingToy_ValidUpdate_ReturnOk() throws JsonProcessingException {
         final String name = "Donald Duck";
         final String set = "Disney Infinity";
-        final ResultActions postResult = factory.postCustomToy(name, set);
+        final ResponseSpec postResult = this.postCustomToy(name, set);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final String newName = "Pit";
         final String newSet = "Amiibo";
 
-        final String jsonContent = factory.formatToyPayload(newName, newSet);
-        final ResultActions result = mockMvc.perform(
-                put("/toys/" + expectedDto.id())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-        );
+        final String jsonContent = this.formatToyPayload(newName, newSet);
+        final ResponseSpec response = client.put().uri("/toys/" + expectedDto.id()).contentType(MediaType.APPLICATION_JSON).bodyValue(jsonContent).exchange();
 
-        result.andExpect(status().isOk());
-        validateToyResponseBody(result, newName, newSet);
+        response.expectStatus().isOk();
+        validateToyResponseBody(response, newName, newSet);
     }
 
     @Test
-    void updateExistingToy_InvalidId_ReturnNotFound() throws Exception {
+    void updateExistingToy_InvalidId_ReturnNotFound() {
 
-        final String jsonContent = factory.formatToyPayload("invalidId", "");
-        final ResultActions result = mockMvc.perform(
-                put("/toys/-1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-        );
+        final String jsonContent = this.formatToyPayload("invalidId", "");
+        final ResponseSpec response = client.put().uri("/toys/-1").contentType(MediaType.APPLICATION_JSON).bodyValue(jsonContent).exchange();
 
-        result.andExpectAll(
-                status().isNotFound(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isNotEmpty()
-        );
+        response.expectStatus().isNotFound();
+        response.expectBody()
+                        .jsonPath("$.data").isEmpty()
+                        .jsonPath("$.errors").isNotEmpty();
     }
 
     @Test
-    void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
-        final ResultActions postResult = factory.postToy();
+    void deleteExistingToy_ToyExists_ReturnNoContent() throws JsonProcessingException {
+        final ResponseSpec postResult = this.postToy();
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
-        final ResultActions result = mockMvc.perform(
-                delete("/toys/" + expectedDto.id())
-        );
+        final ResponseSpec response = client.delete().uri("/toys/" + expectedDto.id()).exchange();
 
-        result.andExpectAll(
-                status().isNoContent(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
-        );
+        response.expectStatus().isNoContent();
+        //-Limitation- I can't get the body to return properly, it is always returned as null...
     }
 
     @Test
-    void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
-        final ResultActions result = mockMvc.perform(
-                delete("/toys/-1")
-        );
+    void deleteExistingToy_InvalidId_ReturnNotFound() {
+        final ResponseSpec response = client.delete().uri("/toys/-1").exchange();
 
-        result.andExpectAll(
-                status().isNotFound(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isNotEmpty()
-        );
+        response.expectStatus().isNotFound()
+                .expectBody()
+                .jsonPath("$.data").isEmpty()
+                .jsonPath("$.errors").isNotEmpty();
     }
 
-    private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
-                jsonPath("$.data.id").isNotEmpty(),
-                jsonPath("$.data.name").value(expectedName),
-                jsonPath("$.data.set").value(expectedSet)
-        );
+    private void validateToyResponseBody(ResponseSpec result, String expectedName, String expectedSet) {
+        result.expectBody()
+                .jsonPath("$.data.type").isEqualTo("toy")
+                .jsonPath("$.data.type").isNotEmpty()
+                .jsonPath("$.data.name").isEqualTo(expectedName)
+                .jsonPath("$.data.set").isEqualTo(expectedSet);
     }
 
-    private ToyResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
+    private ToyResponseDto resultToResponseDto(ResponseSpec result) throws JsonProcessingException {
+        final String responseString = result.expectBody(String.class).returnResult().getResponseBody();
         final Map<String, ToyResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         return body.get("data");
     }
 
-    private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
-                jsonPath("$.data.id").value(expectedResponse.id()),
-                jsonPath("$.data.name").value(expectedResponse.name()),
-                jsonPath("$.data.set").value(expectedResponse.set())
-        );
+    private void validateToyResponseBody(ResponseSpec result, ToyResponseDto expectedResponse) {
+        result.expectBody()
+                .jsonPath("$.data.type").isEqualTo("toy")
+                .jsonPath("$.data.id").isEqualTo(expectedResponse.id())
+                .jsonPath("$.data.name").isEqualTo(expectedResponse.name())
+                .jsonPath("$.data.set").isEqualTo(expectedResponse.set());
     }
 
-    private void validateToyResponseBody(ResultActions result, List<ToyResponseDto> expectedToys) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
-        );
-
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
+    private void validateToyResponseBody(ResponseSpec result, List<ToyResponseDto> expectedToys) throws JsonProcessingException {
+        final String responseString = result.expectBody(String.class).returnResult().getResponseBody();
         final Map<String, List<ToyResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         final List<ToyResponseDto> returnedToys = body.get("data");
         //test the order, and the deserialization
@@ -246,5 +200,34 @@ public class ToyTests {
                     () -> assertEquals(expectedToy.set(), returnedToy.set())
             );
         }
+    }
+
+    private String randomString(int length) {
+        return RandomStringUtils.random(length, true, true);
+    }
+
+    public ResponseSpec postToy() {
+        final String name = "TestToy-" + randomString(8);
+        final String set = "TestSet-" + randomString(8);
+        return postCustomToy(name, set);
+    }
+
+    public ResponseSpec postCustomToy(String name, String set) {
+        final String formattedJson = formatToyPayload(name, set);
+        ResponseSpec response = client.post().uri("/toys").contentType(MediaType.APPLICATION_JSON).bodyValue(formattedJson).exchange();
+
+        response.expectStatus().isCreated();
+        response.expectHeader().contentType(MediaType.APPLICATION_JSON);
+        return response;
+    }
+
+    public String formatToyPayload(String name, String set) {
+        final String json = """
+                {
+                	"name": "%s",
+                	"set": "%s"
+                }
+                """;
+        return String.format(json, name, set);
     }
 }

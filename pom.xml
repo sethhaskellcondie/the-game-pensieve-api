@@ -8,17 +8,14 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.1.4</version>
 	</parent>
-
 	<groupId>com.sethhaskellcondie</groupId>
 	<artifactId>the-game-pensive-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>the-game-pensive-api</name>
 	<description>This project will store information about different games in a database along with an api to access that data.</description>
-
 	<properties>
 		<java.version>17</java.version>
 	</properties>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -30,48 +27,41 @@
 			</plugin>
 		</plugins>
 	</build>
-
 	<dependencies>
 		<!--Starter web is the base dependency for running spring boot as an api server-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<!--Starter test is the base dependency for running the spring boot tests for integration testing-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<!--Required for the WebTestClient used in end-to-end Integration tests-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<!--Postgres is the database used for persistence-->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-
 		<!--JDBC (instead of Spring Data or JPA) to connect to the postgres database-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-jdbc</artifactId>
 			<version>3.1.4</version>
 		</dependency>
-
 		<!--Flyway is used for the database migrations-->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>
-
 		<!--Testcontainers are used for the integration testing-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -90,7 +80,5 @@
 			<artifactId>postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
-
 </project>
