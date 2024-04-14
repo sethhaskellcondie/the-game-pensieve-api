@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
@@ -58,11 +59,9 @@ public class SystemController {
      * instead of through many query parameters in a get request.
      */
     @ResponseBody
-    // @ResponseStatus(HttpStatus.OK) This is the default return status
     @PostMapping("/search")
-    public Map<String, List<SystemResponseDto>> getAllSystems() {
-        //WIP filters
-        final List<SystemResponseDto> data = gateway.getWithFilters("");
+    public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody List<Filter> filters) {
+        final List<SystemResponseDto> data = gateway.getWithFilters(filters);
         final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();
     }

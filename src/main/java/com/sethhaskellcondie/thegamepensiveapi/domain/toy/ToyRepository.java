@@ -6,6 +6,7 @@ import java.sql.Types;
 import java.util.List;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import org.slf4j.Logger;
@@ -73,7 +74,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
     }
 
     @Override
-    public List<Toy> getWithFilters(String filters) {
+    public List<Toy> getWithFilters(List<Filter> filters) {
         final String sql = baseQuery + filters + ";";
         return jdbcTemplate.query(sql, rowMapper);
     }

@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
@@ -84,7 +85,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     }
 
     @Override
-    public List<System> getWithFilters(String filters) {
+    public List<System> getWithFilters(List<Filter> filters) {
         final String sql = baseQuery + filters + ";";
         return jdbcTemplate.query(sql, rowMapper);
     }
@@ -151,7 +152,8 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
     private void systemDbValidation(System system) throws ExceptionFailedDbValidation {
-        final List<System> existingSystems = getWithFilters(" AND name = '" + system.getName() + "'");
+        Filter nameFilter = new Filter("system", "name", "equals", system.getName());
+        final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {
             throw new ExceptionFailedDbValidation("System write failed, duplicate name found.");
         }

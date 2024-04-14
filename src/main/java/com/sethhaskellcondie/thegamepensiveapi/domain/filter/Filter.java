@@ -140,6 +140,15 @@ public class Filter {
         }
         return filters;
     }
+
+    public static  List<String> convertFiltersToSql(List<Filter> filters) {
+        if (filters.isEmpty()) {
+            return List.of("");
+        }
+        //validate that this filter works for this entity
+        //convert this filter into clauses that can be added to the end of a SQL query
+        //make sure that the filters are not venerable to SQL injection
+    }
 }
 
 record FilterResponseDto(String type, Map<String, String> fields, Map<String, List<String>> filters) { }

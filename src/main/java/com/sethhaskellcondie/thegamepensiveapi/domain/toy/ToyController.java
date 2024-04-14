@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,9 +39,8 @@ public class ToyController {
 
     @ResponseBody
     @PostMapping("/search")
-    public Map<String, List<ToyResponseDto>> getAllToys() {
-        //WIP filters
-        final List<ToyResponseDto> data = gateway.getWithFilters("");
+    public Map<String, List<ToyResponseDto>> getAllToys(@RequestBody List<Filter> filters) {
+        final List<ToyResponseDto> data = gateway.getWithFilters(filters);
         final FormattedResponseBody<List<ToyResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();
     }
