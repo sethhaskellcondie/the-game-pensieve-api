@@ -46,7 +46,7 @@ public class SystemTests {
 
     @Test
     void postSystem_ValidPayload_SystemCreatedAndReturned() throws Exception {
-        final String expectedName = "NES";
+        final String expectedName = "NES 2";
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
@@ -57,7 +57,7 @@ public class SystemTests {
     }
 
     @Test
-    void createNewSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
+    void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
         final String jsonContent = factory.formatSystemPayload("", -1, null);
 
         final ResultActions result = mockMvc.perform(
@@ -74,8 +74,8 @@ public class SystemTests {
     }
 
     @Test
-    void createNewSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
-        final String duplicateName = "Game Boy";
+    void postSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
+        final String duplicateName = "Game Boy Pocket";
         final int generation = 3;
         final boolean handheld = true;
 
@@ -96,7 +96,7 @@ public class SystemTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        final String name = "Genesis";
+        final String name = "Genesis 2";
         final int generation = 4;
         final boolean handheld = true;
         final ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
@@ -163,7 +163,7 @@ public class SystemTests {
         final ResultActions existingResult = factory.postSystem();
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
-        final String newName = "Playstation 2";
+        final String newName = "Playstation 2 Slim";
         final int newGeneration = 6;
         final boolean newBoolean = false;
 
