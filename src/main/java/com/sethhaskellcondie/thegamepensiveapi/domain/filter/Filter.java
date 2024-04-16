@@ -1,6 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalError;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,20 +42,20 @@ public class Filter {
     public static final String RESOURCE_SYSTEM = "system";
     public static final String RESOURCE_TOY = "toy";
 
-    private final String entityType;
+    private final String resource;
     private final String field;
     private final String operator;
     private final String operand;
 
-    public Filter(String entityType, String field, String operator, String operand) {
-        this.entityType = entityType;
+    public Filter(String resource, String field, String operator, String operand) {
+        this.resource = resource;
         this.field = field;
         this.operator = operator;
         this.operand = operand;
     }
 
-    public String getEntityType() {
-        return entityType;
+    public String getResource() {
+        return resource;
     }
 
     public String getField() {
@@ -70,11 +70,20 @@ public class Filter {
         return operand;
     }
 
-    public static List<String> getResourcesThatHaveFilters() {
+    /**
+     * These are the characters and words that are not allowed in any filter strings,
+     * this is a protection against SQL injection in the system.
+     */
+    private static List<String> getBlacklistedWords() {
         return List.of(
-                RESOURCE_SYSTEM,
-                RESOURCE_TOY
-        );
+                ";",          // ; allows a statement to be terminated, then start a new one
+                "=",          // = allows boolean based injection
+                "or",         // 'or' allows boolean based injection
+                " union ",    // 'union' allows union based injection
+                " sleep ",    // 'sleep' allows time based injection
+                " delete ",   // 'delete' is not allowed
+                " select "    // 'select' is not allowed
+                );
     }
 
     public static Map<String, String> getFieldsForResource(String resource) {
@@ -91,7 +100,7 @@ public class Filter {
                 fields.put("set", FIELD_TYPE_STRING);
             }
             default -> {
-                throw new ExceptionInternalError("getFieldsForResource() called with an unknown resource");
+                return new LinkedHashMap<>();
             }
         }
         fields.put("created", FIELD_TYPE_TIME);
@@ -135,19 +144,91 @@ public class Filter {
                 filters.add(FILTER_OPERATOR_OFFSET);
             }
             default -> {
-                throw new ExceptionInternalError("getFilterList() called with an unknown fieldType");
+                return new ArrayList<>();
             }
         }
         return filters;
     }
 
-    public static  List<String> convertFiltersToSql(List<Filter> filters) {
+    public static Map<String, Object> convertFiltersToSql(List<Filter> filters) {
         if (filters.isEmpty()) {
-            return List.of("");
+            return new LinkedHashMap<>();
         }
-        //validate that this filter works for this entity
-        //convert this filter into clauses that can be added to the end of a SQL query
-        //make sure that the filters are not venerable to SQL injection
+
+        ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
+        for (Filter filter : filters) {
+            validateFilter(exceptionInvalidFilter, filter);
+        }
+
+        if (exceptionInvalidFilter.exceptionsFound()) {
+            throw exceptionInvalidFilter;
+        }
+
+        Map<String, Object> whereClauses = new LinkedHashMap<>();
+
+        for (Filter filter : filters) {
+            whereClauses.put(filterToWhereSql(filter), filter.getOperand());
+
+        }
+        return whereClauses;
+    }
+
+    private static void validateFilter(ExceptionInvalidFilter exception, Filter filter) {
+        Map<String, String> fields = getFieldsForResource(filter.getResource());
+        if (!fields.containsKey(filter.getField())) {
+            exception.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
+        }
+        String fieldType = fields.get(filter.getField());
+        List<String> operators = getFilterOperators(fieldType);
+        if (!operators.contains(filter.getOperator())) {
+            exception.addException(filter.getField() + " is not allowed with operator " + filter.getOperator());
+        }
+        for (String blacklistedWord : getBlacklistedWords()) {
+            if (filter.getOperand().contains(blacklistedWord)) {
+                exception.addException(blacklistedWord + " is not allowed in filters");
+            }
+        }
+    }
+
+    private static String filterToWhereSql(Filter filter) {
+        String where = "";
+
+        switch (filter.getOperator()) {
+            case FILTER_OPERATOR_EQUALS -> {
+                return " AND " + filter.getField() + " = ? ";
+            }
+            case FILTER_OPERATOR_NOT_EQUALS -> {
+                return " AND " + filter.getField() + " <> ? ";
+            }
+            case FILTER_OPERATOR_CONTAINS -> {
+                return " AND " + filter.getField() + "  %?% ";
+            }
+            case FILTER_OPERATOR_STARTS_WITH -> {
+                return " AND " + filter.getField() + " ?% ";
+            }
+            case FILTER_OPERATOR_ENDS_WITH -> {
+                return " AND " + filter.getField() + " %? ";
+            }
+            case FILTER_OPERATOR_GREATER_THAN -> {
+                return " AND " + filter.getField() + " > ? ";
+            }
+            case FILTER_OPERATOR_LESS_THAN -> {
+                return " AND " + filter.getField() + " < ? ";
+            }
+            case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
+                return " AND " + filter.getField() + " >= ? ";
+            }
+            case FILTER_OPERATOR_LESS_THAN_EQUAL_TO -> {
+                return " AND " + filter.getField() + " <= ? ";
+            }
+            case FILTER_OPERATOR_SINCE -> {
+                return " AND " + filter.getField() + " > ?  ";
+            }
+            case FILTER_OPERATOR_BEFORE -> {
+                return " AND " + filter.getField() + " < ?  ";
+            }
+        }
+        return where;
     }
 }
 

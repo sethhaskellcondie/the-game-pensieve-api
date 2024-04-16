@@ -88,7 +88,8 @@ public class SystemControllerTests {
         final System system1 = new System(1, "test", 10, false);
         final System system2 = new System(2, "test again", 20, true);
         final List<System> systems = List.of(system1, system2);
-        when(service.getWithFilters("")).thenReturn(systems);
+        //TODO update this
+        when(service.getWithFilters(any())).thenReturn(systems);
 
         final ResultActions result = mockMvc.perform(post("/systems/search"));
 
@@ -101,7 +102,8 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        when(service.getWithFilters("")).thenReturn(List.of());
+        //TODO fix this
+        when(service.getWithFilters(any())).thenReturn(List.of());
 
         final ResultActions result = mockMvc.perform(post("/systems/search"));
 

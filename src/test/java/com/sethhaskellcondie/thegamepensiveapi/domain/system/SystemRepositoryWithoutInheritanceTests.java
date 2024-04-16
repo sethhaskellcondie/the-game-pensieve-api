@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +75,7 @@ public class SystemRepositoryWithoutInheritanceTests {
     }
 
     @Test
-    void getWithFilters_NoFilters_ReturnList() throws ExceptionFailedDbValidation {
+    void getWithFilters_NoFilters_ReturnList() throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         final String name1 = "Master System";
         final int generation1 = 3;
         final boolean handheld1 = false;
@@ -87,7 +88,8 @@ public class SystemRepositoryWithoutInheritanceTests {
         final SystemRequestDto requestDto2 = new SystemRequestDto(name2, generation2, handheld2);
         final System expected2 = repository.insert(requestDto2);
 
-        List<System> actual = repository.getWithFilters("");
+        //TODO update this
+        List<System> actual = repository.getWithFilters(null);
 
         assertEquals(2, actual.size());
         assertEquals(expected1, actual.get(0));
@@ -113,7 +115,7 @@ public class SystemRepositoryWithoutInheritanceTests {
     }
 
     @Test
-    void update_Success_ReturnEntity() throws ExceptionFailedDbValidation {
+    void update_Success_ReturnEntity() throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         final String name = "Nintendo 64";
         final int generation = 5;
         final boolean handheld = false;

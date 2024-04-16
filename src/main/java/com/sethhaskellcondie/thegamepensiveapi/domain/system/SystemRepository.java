@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
@@ -39,13 +41,13 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     }
 
     @Override
-    public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
+    public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation, ExceptionInvalidFilter {
         final System system = new System().updateFromRequestDto(requestDto);
         return this.insert(system);
     }
 
     @Override
-    public System insert(System system) throws ExceptionFailedDbValidation {
+    public System insert(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         // ---to change this into an upsert
         // if (requestDto.isPersisted()) {
         // 		return update(requestDto);
@@ -86,8 +88,9 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public List<System> getWithFilters(List<Filter> filters) {
-        final String sql = baseQuery + filters + ";";
-        return jdbcTemplate.query(sql, rowMapper);
+        final Map<String, Object> whereStatements = Filter.convertFiltersToSql(filters);
+        final String sql = baseQuery + String.join(" ", whereStatements.keySet()) + ";";
+        return jdbcTemplate.query(sql, rowMapper, whereStatements.values());
     }
 
     @Override
@@ -110,7 +113,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     }
 
     @Override
-    public System update(System system) throws ExceptionFailedDbValidation {
+    public System update(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         // ---to change this into an upsert
         // if (!system.isPersisted()) {
         // 		return insert(system);
@@ -151,7 +154,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
-    private void systemDbValidation(System system) throws ExceptionFailedDbValidation {
+    private void systemDbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         Filter nameFilter = new Filter("system", "name", "equals", system.getName());
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {

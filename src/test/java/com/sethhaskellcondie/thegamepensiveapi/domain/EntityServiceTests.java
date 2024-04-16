@@ -1,9 +1,12 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
 import static org.mockito.Mockito.times;
@@ -26,7 +29,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void getWithFilters_Passthrough_CallRepository() {
-        final String filters = "";
+        final List<Filter> filters = List.of(new Filter("resource", "field", "operator", "operand"));
 
         service.getWithFilters(filters);
 

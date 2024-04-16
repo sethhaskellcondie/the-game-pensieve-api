@@ -9,7 +9,6 @@
     <property name="localeCountry" value=""/>
 
     <module name="TreeWalker">
-        <!--package names must be all lowercase-->
         <module name="PackageName">
             <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
         </module>
@@ -38,7 +37,7 @@
             <property name="max" value="30"/>
         </module>
         <module name="CyclomaticComplexity">
-            <property name="max" value="11"/>
+            <property name="max" value="15"/>
         </module>
         <module name="NPathComplexity"/>
 

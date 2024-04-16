@@ -44,4 +44,12 @@ public class ApiControllerAdvice {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
         return body.formatError();
     }
+
+    @ExceptionHandler(value = {ExceptionInvalidFilter.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Map<String, List<String>> handleExceptionInvalidFilter(ExceptionInvalidFilter e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
+        return body.formatError();
+    }
 }

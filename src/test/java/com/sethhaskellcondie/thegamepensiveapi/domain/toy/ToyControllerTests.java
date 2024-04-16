@@ -79,7 +79,8 @@ public class ToyControllerTests {
         final Toy toy1 = new Toy(1, "Mega Man", "Amiibo");
         final Toy toy2 = new Toy(2, "Samus", "Amiibo");
         final List<Toy> toys = List.of(toy1, toy2);
-        when(service.getWithFilters("")).thenReturn(toys);
+        //TODO fix this
+        when(service.getWithFilters(null)).thenReturn(toys);
 
         final ResultActions result = mockMvc.perform(post("/toys/search"));
 
@@ -92,7 +93,8 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-        when(service.getWithFilters("")).thenReturn(List.of());
+        //TODO fix this
+        when(service.getWithFilters(null)).thenReturn(List.of());
 
         final ResultActions result = mockMvc.perform(post("/toys/search"));
 

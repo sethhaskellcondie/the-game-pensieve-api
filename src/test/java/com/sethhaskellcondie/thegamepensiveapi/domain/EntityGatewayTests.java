@@ -36,10 +36,11 @@ public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDt
     public void getWithFilters_TwoFound_ReturnDtoList() {
         final T entity1 = factory.generateEntity(VALID_PERSISTED);
         final T entity2 = factory.generateEntity(ANOTHER_VALID_PERSISTED);
-        when(service.getWithFilters("")).thenReturn(List.of(entity1, entity2));
+        //TODO fix this
+        when(service.getWithFilters(null)).thenReturn(List.of(entity1, entity2));
         final List<ResponseDto> expected = List.of(entity1.convertToResponseDto(), entity2.convertToResponseDto());
 
-        final List<ResponseDto> actual = gateway.getWithFilters("");
+        final List<ResponseDto> actual = gateway.getWithFilters(null);
 
         assertEquals(expected, actual);
     }
@@ -47,9 +48,10 @@ public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDt
     @Test
     public void getWithFilters_NoneFound_ReturnEmptyList() {
         final List<ResponseDto> expected = List.of();
-        when(service.getWithFilters("")).thenReturn(List.of());
+        //TODO fix this
+        when(service.getWithFilters(null)).thenReturn(List.of());
 
-        final List<ResponseDto> actual = gateway.getWithFilters("");
+        final List<ResponseDto> actual = gateway.getWithFilters(null);
 
         assertEquals(expected, actual);
     }
