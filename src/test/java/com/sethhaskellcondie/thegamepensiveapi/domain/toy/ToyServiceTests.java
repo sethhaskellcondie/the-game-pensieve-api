@@ -14,6 +14,6 @@ public class ToyServiceTests extends EntityServiceTests<Toy, ToyRequestDto, ToyR
 
     @Override
     protected void setupFactory() {
-        factory = new ToyFactory();
+        factory = new ToyFactory("StartsWithThis!");
     }
 }

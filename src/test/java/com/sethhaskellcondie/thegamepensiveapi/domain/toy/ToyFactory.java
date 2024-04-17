@@ -4,6 +4,13 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionTestFactory;
 
 public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponseDto> {
+
+    private final String startsWith;
+
+    public ToyFactory(String startsWith) {
+        this.startsWith = startsWith;
+    }
+
     @Override
     public Toy generateEntity(Generate generate) {
         switch (generate) {
@@ -20,6 +27,12 @@ public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponse
             }
             case ANOTHER_VALID_PERSISTED -> {
                 return new Toy(2, "AnotherPersistedName", "ToySet");
+            }
+            case STARTS_WITH_VALID_PERSISTED -> {
+                return new Toy(3, startsWith + "PersistedName", "ToySet");
+            }
+            case ANOTHER_STARTS_WITH_VALID_PERSISTED -> {
+                return new Toy(4, startsWith + "AnotherPersistedName", "ToySet");
             }
             case INVALID -> {
                 throw new ExceptionTestFactory("Cannot call 'generateEntity()' with INVALID option");

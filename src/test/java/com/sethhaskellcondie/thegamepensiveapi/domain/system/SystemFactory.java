@@ -5,6 +5,12 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionTestFactory;
 
 public class SystemFactory implements EntityFactory<System, SystemRequestDto, SystemResponseDto> {
 
+    private final String startsWith;
+
+    public SystemFactory(String startsWith) {
+        this.startsWith = startsWith;
+    }
+
     @Override
     public System generateEntity(Generate generate) {
         switch (generate) {
@@ -21,6 +27,12 @@ public class SystemFactory implements EntityFactory<System, SystemRequestDto, Sy
             }
             case ANOTHER_VALID_PERSISTED -> {
                 return new System(2, "AnotherPersistedName", 6, true);
+            }
+            case STARTS_WITH_VALID_PERSISTED -> {
+                return new System(3, startsWith + "PersistedName", 5, false);
+            }
+            case ANOTHER_STARTS_WITH_VALID_PERSISTED -> {
+                return new System(4, startsWith + "AnotherPersistedName", 6, true);
             }
             case INVALID -> {
                 throw new ExceptionTestFactory("Cannot call 'generateEntity()' with INVALID option");
