@@ -14,6 +14,7 @@ public class SystemServiceTests extends EntityServiceTests<System, SystemRequest
 
     @Override
     protected void setupFactory() {
-        factory = new SystemFactory();
+        String startsWith = "SuperConsole";
+        factory = new SystemFactory(startsWith);
     }
 }
