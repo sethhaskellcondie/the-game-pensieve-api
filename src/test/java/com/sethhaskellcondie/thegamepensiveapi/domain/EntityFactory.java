@@ -7,6 +7,8 @@ public interface EntityFactory<T extends Entity<RequestDto, ResponseDto>, Reques
         ANOTHER_VALID,
         VALID_PERSISTED,
         ANOTHER_VALID_PERSISTED,
+        STARTS_WITH_VALID_PERSISTED,
+        ANOTHER_STARTS_WITH_VALID_PERSISTED,
         INVALID,
         EMPTY
     }
