@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.Test;
@@ -76,13 +77,18 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
+        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "startsWith");
         final Toy toy1 = new Toy(1, "Mega Man", "Amiibo");
         final Toy toy2 = new Toy(2, "Samus", "Amiibo");
         final List<Toy> toys = List.of(toy1, toy2);
-        //TODO fix this
-        when(service.getWithFilters(null)).thenReturn(toys);
+        when(service.getWithFilters(List.of(filter))).thenReturn(toys);
 
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/toys/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -93,10 +99,15 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-        //TODO fix this
-        when(service.getWithFilters(null)).thenReturn(List.of());
+        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/toys/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -225,6 +236,22 @@ public class ToyControllerTests {
                 }
                 """;
         return String.format(json, name, set);
+    }
+
+    private String generateValidFilterPayload(Filter filter) {
+        final String json = """
+                {
+                  "filters": [
+                    {
+                      "resource": "%s",
+                      "field": "%s",
+                      "operator": "%s",
+                      "operand": "%s"
+                    }
+                  ]
+                }
+                """;
+        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {

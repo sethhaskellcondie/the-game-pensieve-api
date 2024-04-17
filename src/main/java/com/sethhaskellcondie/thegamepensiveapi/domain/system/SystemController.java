@@ -60,8 +60,8 @@ public class SystemController {
      */
     @ResponseBody
     @PostMapping("/search")
-    public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody List<Filter> filters) {
-        final List<SystemResponseDto> data = gateway.getWithFilters(filters);
+    public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody Map<String, List<Filter>> requestBody) {
+        final List<SystemResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();
     }
@@ -70,6 +70,7 @@ public class SystemController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
+        //TODO update this to take a map instead of just the RequestDto
         final SystemResponseDto responseDto = gateway.createNew(system);
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
@@ -78,6 +79,7 @@ public class SystemController {
     @ResponseBody
     @PutMapping("/{id}")
     public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        //TODO update this to take a map instead of just the RequestDto
         final SystemResponseDto responseDto = gateway.updateExisting(id, system);
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();

@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -85,13 +86,18 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
+        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "startsWith");
         final System system1 = new System(1, "test", 10, false);
         final System system2 = new System(2, "test again", 20, true);
         final List<System> systems = List.of(system1, system2);
-        //TODO update this
-        when(service.getWithFilters(any())).thenReturn(systems);
+        when(service.getWithFilters(List.of(filter))).thenReturn(systems);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/systems/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -102,10 +108,15 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        //TODO fix this
-        when(service.getWithFilters(any())).thenReturn(List.of());
+        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/systems/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -254,6 +265,22 @@ public class SystemControllerTests {
                 }
                 """;
         return String.format(json, name, generation, handheld);
+    }
+
+    private String generateValidFilterPayload(Filter filter) {
+        final String json = """
+                {
+                  "filters": [
+                    {
+                      "resource": "%s",
+                      "field": "%s",
+                      "operator": "%s",
+                      "operand": "%s"
+                    }
+                  ]
+                }
+                """;
+        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateSystemResponseBody(ResultActions result, System expectedSystem) throws Exception {
