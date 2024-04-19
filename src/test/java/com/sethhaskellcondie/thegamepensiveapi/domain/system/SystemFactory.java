@@ -61,6 +61,13 @@ public class SystemFactory implements EntityFactory<System, SystemRequestDto, Sy
             case ANOTHER_VALID_PERSISTED -> {
                 throw new ExceptionTestFactory("Cannot call 'generateRequestDto()' with ANOTHER_VALID_PERSISTED option");
             }
+            //I know it says persisted but requestDtos are not persisted, these are intended to be persisted in the test
+            case STARTS_WITH_VALID_PERSISTED -> {
+                return new SystemRequestDto(startsWith + "SystemName", 9, false);
+            }
+            case ANOTHER_STARTS_WITH_VALID_PERSISTED -> {
+                return new SystemRequestDto(startsWith + "AnotherSystemName", 10, true);
+            }
             case INVALID -> {
                 //name cannot be blank
                 //generation must be positive

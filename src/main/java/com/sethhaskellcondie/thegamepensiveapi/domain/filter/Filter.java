@@ -201,13 +201,13 @@ public class Filter {
                 return " AND " + filter.getField() + " <> ? ";
             }
             case FILTER_OPERATOR_CONTAINS -> {
-                return " AND " + filter.getField() + "  %?% ";
+                return " AND " + filter.getField() + "  % ? % ";
             }
             case FILTER_OPERATOR_STARTS_WITH -> {
-                return " AND " + filter.getField() + " ?% ";
+                return " AND " + filter.getField() + " ? % ";
             }
             case FILTER_OPERATOR_ENDS_WITH -> {
-                return " AND " + filter.getField() + " %? ";
+                return " AND " + filter.getField() + " % ? ";
             }
             case FILTER_OPERATOR_GREATER_THAN -> {
                 return " AND " + filter.getField() + " > ? ";

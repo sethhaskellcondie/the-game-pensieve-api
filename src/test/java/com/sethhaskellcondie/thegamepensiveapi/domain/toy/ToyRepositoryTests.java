@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -12,6 +13,7 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    private String startsWith = "somethingInteresting";
 
     @Override
     protected void setupRepositoryAndEntityName() {
@@ -21,7 +23,12 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
 
     @Override
     protected void setupFactory() {
-        factory = new ToyFactory();
+        factory = new ToyFactory(startsWith);
+    }
+
+    @Override
+    protected Filter startsWithFilter() {
+        return new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, startsWith);
     }
 
     @Override

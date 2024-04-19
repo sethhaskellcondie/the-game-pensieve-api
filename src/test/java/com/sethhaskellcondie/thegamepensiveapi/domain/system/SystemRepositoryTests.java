@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    private String startsWith = "SuperConsole";
 
     @Override
     protected void setupRepositoryAndEntityName() {
@@ -25,7 +27,12 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
 
     @Override
     protected void setupFactory() {
-        factory = new SystemFactory();
+        factory = new SystemFactory(startsWith);
+    }
+
+    @Override
+    protected Filter startsWithFilter() {
+        return new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, startsWith);
     }
 
     @Override

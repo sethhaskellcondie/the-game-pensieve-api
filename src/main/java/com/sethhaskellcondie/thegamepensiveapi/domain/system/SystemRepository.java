@@ -90,7 +90,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     public List<System> getWithFilters(List<Filter> filters) {
         final Map<String, Object> whereStatements = Filter.convertFiltersToSql(filters);
         final String sql = baseQuery + String.join(" ", whereStatements.keySet()) + ";";
-        return jdbcTemplate.query(sql, rowMapper, whereStatements.values());
+        return jdbcTemplate.query(sql, rowMapper, whereStatements.values().toArray());
     }
 
     @Override

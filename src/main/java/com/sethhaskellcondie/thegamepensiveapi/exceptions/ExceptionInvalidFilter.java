@@ -21,7 +21,7 @@ public class ExceptionInvalidFilter extends RuntimeException {
     }
 
     public boolean exceptionsFound() {
-        return exceptions.isEmpty();
+        return !exceptions.isEmpty();
     }
 
     public List<String> getMessages() {

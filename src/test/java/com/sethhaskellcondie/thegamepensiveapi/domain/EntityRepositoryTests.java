@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -10,8 +11,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_STARTS_WITH_VALID_PERSISTED;
 import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_VALID;
 import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.INVALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.STARTS_WITH_VALID_PERSISTED;
 import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,6 +44,7 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
      */
     protected abstract void setupRepositoryAndEntityName();
     protected abstract void setupFactory();
+    protected abstract Filter startsWithFilter();
     protected abstract void validateReturnedObject(T expected, T actual);
     protected abstract void validateReturnedObject(RequestDto expected, T actual);
 
@@ -74,14 +78,14 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
         validateReturnedObject(expected, actual);
     }
 
-    //TODO come back and update this after filters have been implemented (it works on it's own but not with other tests)
-    void getWithFilters_NoFilters_ReturnAllEntities() throws ExceptionFailedDbValidation {
-        final RequestDto requestDto1 = factory.generateRequestDto(VALID);
+    @Test
+    void getWithFilters_StartsWithFilter_ReturnsValidEntities() throws ExceptionFailedDbValidation {
+        final RequestDto requestDto1 = factory.generateRequestDto(STARTS_WITH_VALID_PERSISTED);
         final T expected1 = repository.insert(requestDto1);
-        final RequestDto requestDto2 = factory.generateRequestDto(ANOTHER_VALID);
+        final RequestDto requestDto2 = factory.generateRequestDto(ANOTHER_STARTS_WITH_VALID_PERSISTED);
         final T expected2 = repository.insert(requestDto2);
 
-        final List<T> actual = repository.getWithFilters(null);
+        final List<T> actual = repository.getWithFilters(List.of(startsWithFilter()));
 
         assertEquals(2, actual.size(), "There should only be 2 " + entityName + " objects returned in the getWithFilters list.");
         assertEquals(expected1, actual.get(0), "The first " + entityName + " object is out of order.");
