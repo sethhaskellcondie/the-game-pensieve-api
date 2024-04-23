@@ -21,7 +21,6 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
@@ -41,13 +40,13 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     }
 
     @Override
-    public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation, ExceptionInvalidFilter {
+    public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
         final System system = new System().updateFromRequestDto(requestDto);
         return this.insert(system);
     }
 
     @Override
-    public System insert(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
+    public System insert(System system) throws ExceptionFailedDbValidation {
         // ---to change this into an upsert
         // if (requestDto.isPersisted()) {
         // 		return update(requestDto);
@@ -88,9 +87,11 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public List<System> getWithFilters(List<Filter> filters) {
-        final Map<String, Object> whereStatements = Filter.convertFiltersToSql(filters);
-        final String sql = baseQuery + String.join(" ", whereStatements.keySet()) + ";";
-        return jdbcTemplate.query(sql, rowMapper, whereStatements.values().toArray());
+        Filter.validateFilters(filters);
+        final List<String> whereStatements = Filter.formatWhereStatements(filters);
+        final List<String> operands = Filter.formatOperands(filters);
+        final String sql = baseQuery + String.join(" ", whereStatements);
+        return jdbcTemplate.query(sql, rowMapper, operands.toArray());
     }
 
     @Override

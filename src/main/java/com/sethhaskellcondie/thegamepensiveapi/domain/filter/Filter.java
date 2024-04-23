@@ -150,85 +150,113 @@ public class Filter {
         return filters;
     }
 
-    public static Map<String, Object> convertFiltersToSql(List<Filter> filters) {
-        if (filters.isEmpty()) {
-            return new LinkedHashMap<>();
-        }
-
+    public static void validateFilters(List<Filter> filters) {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
-        for (Filter filter : filters) {
-            validateFilter(exceptionInvalidFilter, filter);
-        }
 
+        for (Filter filter : filters) {
+            Map<String, String> fields = getFieldsForResource(filter.getResource());
+            if (!fields.containsKey(filter.getField())) {
+                exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
+            }
+            String fieldType = fields.get(filter.getField());
+            List<String> operators = getFilterOperators(fieldType);
+            if (!operators.contains(filter.getOperator())) {
+                exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator());
+            }
+            for (String blacklistedWord : getBlacklistedWords()) {
+                if (filter.getOperand().contains(blacklistedWord)) {
+                    exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in filters");
+                }
+            }
+        }
         if (exceptionInvalidFilter.exceptionsFound()) {
             throw exceptionInvalidFilter;
         }
+    }
 
-        Map<String, Object> whereClauses = new LinkedHashMap<>();
-
+    public static List<String> formatWhereStatements(List<Filter> filters) {
+        List<String> whereStatements = new ArrayList<>();
         for (Filter filter : filters) {
-            whereClauses.put(filterToWhereSql(filter), filter.getOperand());
-
+            switch (filter.getOperator()) {
+                case FILTER_OPERATOR_EQUALS -> {
+                    whereStatements.add(" AND " + filter.getField() + " = ? ");
+                }
+                case FILTER_OPERATOR_NOT_EQUALS -> {
+                    whereStatements.add(" AND " + filter.getField() + " <> ? ");
+                }
+                case FILTER_OPERATOR_CONTAINS -> {
+                    whereStatements.add(" AND " + filter.getField() + "  % ? % ");
+                }
+                case FILTER_OPERATOR_STARTS_WITH -> {
+                    whereStatements.add(" AND " + filter.getField() + " LIKE ? ");
+                }
+                case FILTER_OPERATOR_ENDS_WITH -> {
+                    whereStatements.add(" AND " + filter.getField() + " % ? ");
+                }
+                case FILTER_OPERATOR_GREATER_THAN -> {
+                    whereStatements.add(" AND " + filter.getField() + " > ? ");
+                }
+                case FILTER_OPERATOR_LESS_THAN -> {
+                    whereStatements.add(" AND " + filter.getField() + " < ? ");
+                }
+                case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
+                    whereStatements.add(" AND " + filter.getField() + " >= ? ");
+                }
+                case FILTER_OPERATOR_LESS_THAN_EQUAL_TO -> {
+                    whereStatements.add(" AND " + filter.getField() + " <= ? ");
+                }
+                case FILTER_OPERATOR_SINCE -> {
+                    whereStatements.add(" AND " + filter.getField() + " > ?  ");
+                }
+                case FILTER_OPERATOR_BEFORE -> {
+                    whereStatements.add(" AND " + filter.getField() + " < ?  ");
+                }
+            }
         }
-        return whereClauses;
+        return whereStatements;
     }
 
-    private static void validateFilter(ExceptionInvalidFilter exception, Filter filter) {
-        Map<String, String> fields = getFieldsForResource(filter.getResource());
-        if (!fields.containsKey(filter.getField())) {
-            exception.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
-        }
-        String fieldType = fields.get(filter.getField());
-        List<String> operators = getFilterOperators(fieldType);
-        if (!operators.contains(filter.getOperator())) {
-            exception.addException(filter.getField() + " is not allowed with operator " + filter.getOperator());
-        }
-        for (String blacklistedWord : getBlacklistedWords()) {
-            if (filter.getOperand().contains(blacklistedWord)) {
-                exception.addException(blacklistedWord + " is not allowed in filters");
+    public static List<String> formatOperands(List<Filter> filters) {
+        List<String> operands = new ArrayList<>();
+        for (Filter filter : filters) {
+            final String operand = filter.getOperand();
+            switch (filter.getOperator()) {
+                case FILTER_OPERATOR_EQUALS -> {
+                    operands.add(operand);
+                }
+                case FILTER_OPERATOR_NOT_EQUALS -> {
+                    operands.add(" AND " + filter.getField() + " <> ? ");
+                }
+                case FILTER_OPERATOR_CONTAINS -> {
+                    operands.add(" AND " + filter.getField() + "  % ? % ");
+                }
+                case FILTER_OPERATOR_STARTS_WITH -> {
+                    operands.add(operand + "%");
+                }
+                case FILTER_OPERATOR_ENDS_WITH -> {
+                    operands.add(" AND " + filter.getField() + " % ? ");
+                }
+                case FILTER_OPERATOR_GREATER_THAN -> {
+                    operands.add(" AND " + filter.getField() + " > ? ");
+                }
+                case FILTER_OPERATOR_LESS_THAN -> {
+                    operands.add(" AND " + filter.getField() + " < ? ");
+                }
+                case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
+                    operands.add(" AND " + filter.getField() + " >= ? ");
+                }
+                case FILTER_OPERATOR_LESS_THAN_EQUAL_TO -> {
+                    operands.add(" AND " + filter.getField() + " <= ? ");
+                }
+                case FILTER_OPERATOR_SINCE -> {
+                    operands.add(" AND " + filter.getField() + " > ?  ");
+                }
+                case FILTER_OPERATOR_BEFORE -> {
+                    operands.add(" AND " + filter.getField() + " < ?  ");
+                }
             }
         }
-    }
-
-    private static String filterToWhereSql(Filter filter) {
-        String where = "";
-
-        switch (filter.getOperator()) {
-            case FILTER_OPERATOR_EQUALS -> {
-                return " AND " + filter.getField() + " = ? ";
-            }
-            case FILTER_OPERATOR_NOT_EQUALS -> {
-                return " AND " + filter.getField() + " <> ? ";
-            }
-            case FILTER_OPERATOR_CONTAINS -> {
-                return " AND " + filter.getField() + "  % ? % ";
-            }
-            case FILTER_OPERATOR_STARTS_WITH -> {
-                return " AND " + filter.getField() + " ? % ";
-            }
-            case FILTER_OPERATOR_ENDS_WITH -> {
-                return " AND " + filter.getField() + " % ? ";
-            }
-            case FILTER_OPERATOR_GREATER_THAN -> {
-                return " AND " + filter.getField() + " > ? ";
-            }
-            case FILTER_OPERATOR_LESS_THAN -> {
-                return " AND " + filter.getField() + " < ? ";
-            }
-            case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
-                return " AND " + filter.getField() + " >= ? ";
-            }
-            case FILTER_OPERATOR_LESS_THAN_EQUAL_TO -> {
-                return " AND " + filter.getField() + " <= ? ";
-            }
-            case FILTER_OPERATOR_SINCE -> {
-                return " AND " + filter.getField() + " > ?  ";
-            }
-            case FILTER_OPERATOR_BEFORE -> {
-                return " AND " + filter.getField() + " < ?  ";
-            }
-        }
-        return where;
+        return operands;
     }
 }
 

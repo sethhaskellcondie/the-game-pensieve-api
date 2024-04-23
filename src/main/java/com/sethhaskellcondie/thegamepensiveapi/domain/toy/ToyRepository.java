@@ -75,9 +75,11 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
 
     @Override
     public List<Toy> getWithFilters(List<Filter> filters) {
-        //TODO finish this
-        final String sql = baseQuery + filters + ";";
-        return jdbcTemplate.query(sql, rowMapper);
+        Filter.validateFilters(filters);
+        final List<String> whereStatements = Filter.formatWhereStatements(filters);
+        final List<String> operands = Filter.formatOperands(filters);
+        final String sql = baseQuery + String.join(" ", whereStatements);
+        return jdbcTemplate.query(sql, rowMapper, operands.toArray());
     }
 
     @Override

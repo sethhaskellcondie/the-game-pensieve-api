@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -115,21 +116,24 @@ public class SystemTestRestTemplateTests {
         );
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
+    @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() {
-        final String name1 = "Super Nintendo";
+        final String name1 = "startsWith Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
         final ResponseEntity<Map> result1 = this.postCustomSystem(name1, generation1, handheld1);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
-        final String name2 = "Sony Playstation";
+        final String name2 = "startsWith Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
         final ResponseEntity<Map> result2 = this.postCustomSystem(name2, generation2, handheld2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        final HttpEntity<Filter> request = new HttpEntity<>(new Filter("system", "field", "operator", "operand"));
+        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "startsWith");
+        final Map<String, List<Filter>> requestBody = new HashMap<>();
+        requestBody.put("filters", List.of(filter));
+        final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
         final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/search", request, Map.class);
 
@@ -137,9 +141,12 @@ public class SystemTestRestTemplateTests {
         validateSystemResponseBody(response, List.of(responseDto1, responseDto2));
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
+    @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() {
-        final HttpEntity<Filter> request = new HttpEntity<>(new Filter("system", "field", "operator", "operand"));
+        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        final Map<String, List<Filter>> requestBody = new HashMap<>();
+        requestBody.put("filters", List.of(filter));
+        final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
         final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/search", request, Map.class);
         final List<Map<String, Object>> returnedSystems = (List<Map<String, Object>>) response.getBody().get("data");

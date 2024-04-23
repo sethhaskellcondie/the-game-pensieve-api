@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,19 +100,25 @@ public class ToyTests {
         );
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
-        final String name1 = "MegaMan";
+    @Test
+    void getAllToys_StartsWithFilter_TwoToysReturnedInArray() throws Exception {
+        final String name1 = "Something MegaMan";
         final String set1 = "Amiibo";
         ResultActions result1 = factory.postCustomToy(name1, set1);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
-        final String name2 = "Goofy";
+        final String name2 = "Something Goofy";
         final String set2 = "Disney Infinity";
         ResultActions result2 = factory.postCustomToy(name2, set2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "Something ");
+        final String formattedJson = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post("/toys/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(formattedJson)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -120,9 +127,14 @@ public class ToyTests {
         validateToyResponseBody(result, List.of(toyDto1, toyDto2));
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+    @Test
+    void getAllToys_NoResultFilter_EmptyArrayReturned() throws Exception {
+        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "NoResults");
+        final String formattedJson = factory.formatFiltersPayload(filter);
+        final ResultActions result = mockMvc.perform(post("/toys/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(formattedJson)
+        );
 
         result.andExpectAll(
                 status().isOk(),

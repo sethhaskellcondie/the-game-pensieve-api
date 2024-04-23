@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,21 +129,27 @@ public class SystemTests {
         );
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
-        final String name1 = "Super Nintendo";
+    @Test
+    void getWithFilters_StartsWithFilter_TwoSystemsReturnedInArray() throws Exception {
+        final String name1 = "Mega Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
         final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
-        final String name2 = "Sony Playstation";
+        final String name2 = "Mega Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
         final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "Mega ");
+        final String jsonContent = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post("/systems/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -151,10 +158,15 @@ public class SystemTests {
         validateSystemResponseBody(result, List.of(responseDto1, responseDto2));
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
+    @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
+        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final ResultActions result = mockMvc.perform(post("/systems/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -282,5 +294,4 @@ public class SystemTests {
             );
         }
     }
-
 }

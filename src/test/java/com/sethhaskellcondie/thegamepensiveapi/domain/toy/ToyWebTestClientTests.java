@@ -82,28 +82,59 @@ public class ToyWebTestClientTests {
                 .jsonPath("$.errors").isNotEmpty();
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws JsonProcessingException {
-        final String name1 = "MegaMan";
+    @Test
+    void getAllToys_StartsWithFilter_TwoToysReturnedInArray() throws JsonProcessingException {
+        final String name1 = "Epic MegaMan";
         final String set1 = "Amiibo";
         final ResponseSpec result1 = this.postCustomToy(name1, set1);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
-        final String name2 = "Goofy";
+        final String name2 = "Epic Goofy";
         final String set2 = "Disney Infinity";
         final ResponseSpec result2 = this.postCustomToy(name2, set2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
-        final ResponseSpec response = client.post().uri("/toys/search").contentType(MediaType.APPLICATION_JSON).bodyValue("").exchange();
+        final String json = """
+                {
+                  "filters": [
+                    {
+                      "resource": "toy",
+                      "field": "name",
+                      "operator": "starts_with",
+                      "operand": "Epic "
+                    }
+                  ]
+                }
+                """;
+
+        final ResponseSpec response = client.post().uri("/toys/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(json)
+                .exchange();
 
         validateToyResponseBody(response, List.of(toyDto1, toyDto2));
         response.expectStatus().isOk();
         response.expectHeader().contentType(MediaType.APPLICATION_JSON);
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllToys_NoToysPresent_EmptyArrayReturned() {
-        final ResponseSpec response = client.post().uri("/toys/search").contentType(MediaType.APPLICATION_JSON).bodyValue("").exchange();
+    @Test
+    void getAllToys_NoResultsFilter_EmptyArrayReturned() {
+        final String json = """
+                {
+                  "filters": [
+                    {
+                      "resource": "toy",
+                      "field": "name",
+                      "operator": "starts_with",
+                      "operand": "NoResultsReturned"
+                    }
+                  ]
+                }
+                """;
+        final ResponseSpec response = client.post().uri("/toys/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(json)
+                .exchange();
 
         response.expectStatus().isOk();
         response.expectHeader().contentType(MediaType.APPLICATION_JSON);
