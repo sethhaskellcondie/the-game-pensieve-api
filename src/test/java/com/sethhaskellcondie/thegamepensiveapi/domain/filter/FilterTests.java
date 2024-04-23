@@ -13,6 +13,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * These tests will test the GET endpoint results for filters
+ * There will be unit tests that will do a deep dive into converting filters into SQL
+ * in a SqlFilterTests class
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class FilterTests {

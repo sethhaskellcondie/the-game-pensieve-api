@@ -23,7 +23,7 @@ public class HeartbeatController {
         return "thump thump";
     }
 
-    //TODO create an endpoint for a more complete (default) seeding of data
+    //TODO update the seeding endpoint to go through the gateway
 
     //This endpoint will only see the systems in my collection
     @PostMapping("/seedMyCollection")
