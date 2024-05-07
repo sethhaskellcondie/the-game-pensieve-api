@@ -66,31 +66,11 @@ public class SystemController {
         return body.formatData();
     }
 
-    //This endpoint only exists to work with the SystemTestRestTemplateTests
-    @ResponseBody
-    @PostMapping("/testRestTemplate")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
-        final SystemResponseDto responseDto = gateway.createNew(system);
-        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
-    }
-
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, SystemResponseDto> createNewSystem(@RequestBody Map<String, SystemRequestDto> requestBody) throws ExceptionFailedDbValidation {
         final SystemResponseDto responseDto = gateway.createNew(requestBody.get("system"));
-        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
-    }
-
-    //This endpoint only exists to work with the SystemTestRestTemplateTests
-    @ResponseBody
-    @PutMapping("/{id}/testRestTemplate")
-    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system)
-            throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final SystemResponseDto responseDto = gateway.updateExisting(id, system);
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
@@ -110,6 +90,26 @@ public class SystemController {
     public Map<String, String> deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {
         gateway.deleteById(id);
         FormattedResponseBody<String> body = new FormattedResponseBody<>("");
+        return body.formatData();
+    }
+
+    //This endpoint only exists to work with the SystemTestRestTemplateTests
+    @ResponseBody
+    @PostMapping("/testRestTemplate")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
+        final SystemResponseDto responseDto = gateway.createNew(system);
+        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
+    }
+
+    //This endpoint only exists to work with the SystemTestRestTemplateTests
+    @ResponseBody
+    @PutMapping("/{id}/testRestTemplate")
+    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system)
+            throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        final SystemResponseDto responseDto = gateway.updateExisting(id, system);
+        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 }
