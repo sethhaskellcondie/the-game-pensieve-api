@@ -19,4 +19,4 @@ ALTER TABLE toys
 --     DROP COLUMN updated_at,
 --     DROP COLUMN deleted_at;
 --
--- DELETE FROM flyway_schema_history WHERE version = 1.2
+-- DELETE FROM flyway_schema_history WHERE version = '1.2';

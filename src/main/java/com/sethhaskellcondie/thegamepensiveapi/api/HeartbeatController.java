@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.api;
 
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemGateway;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HeartbeatController {
 
-    private final JdbcTemplate jdbcTemplate;
+    private SystemGateway gateway;
 
-    public HeartbeatController(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public HeartbeatController(SystemGateway gateway) {
+        this.gateway = gateway;
     }
 
     // @GetMapping is a composed annotation it acts as a shortcut for @RequestMapping(method = RequestMethod.GET)
@@ -23,40 +24,30 @@ public class HeartbeatController {
         return "thump thump";
     }
 
-    //TODO update the seeding endpoint to go through the gateway
-
     //This endpoint will only see the systems in my collection
     @PostMapping("/seedMyCollection")
-    public String seedMyCollectionData() {
-        //Seeding systems data
-        seedSystem("NES", 3, false);
-        seedSystem("SNES", 4, false);
-        seedSystem("Genesis", 4, false);
-        seedSystem("Sega CD", 4, false);
-        seedSystem("Game Boy", 4, true);
-        seedSystem("Game Gear", 4, true);
-        seedSystem("Playstation", 5, false);
-        seedSystem("Nintendo 64", 5, false);
-        seedSystem("Game Boy Color", 5, true);
-        seedSystem("Dreamcast", 6, false);
-        seedSystem("Gamecube", 6, false);
-        seedSystem("Playstation 2", 6, false);
-        seedSystem("Game Boy Advance", 6, true);
-        seedSystem("Wii", 7, false);
-        seedSystem("Playstation 3", 7, false);
-        seedSystem("Nintendo DS", 7, true);
-        seedSystem("Wii U", 8, false);
-        seedSystem("Nintendo 3DS", 8, true);
-        seedSystem("Switch", 9, false);
-        seedSystem("Arcade", 100, false);
-        seedSystem("PC", 101, false);
+    public String seedMyCollectionData() throws ExceptionFailedDbValidation {
+        gateway.createNew("NES", 3, false);
+        gateway.createNew("SNES", 4, false);
+        gateway.createNew("Genesis", 4, false);
+        gateway.createNew("Sega CD", 4, false);
+        gateway.createNew("Game Boy", 4, true);
+        gateway.createNew("Game Gear", 4, true);
+        gateway.createNew("Playstation", 5, false);
+        gateway.createNew("Nintendo 64", 5, false);
+        gateway.createNew("Game Boy Color", 5, true);
+        gateway.createNew("Dreamcast", 6, false);
+        gateway.createNew("Gamecube", 6, false);
+        gateway.createNew("Playstation 2", 6, false);
+        gateway.createNew("Game Boy Advance", 6, true);
+        gateway.createNew("Wii", 7, false);
+        gateway.createNew("Playstation 3", 7, false);
+        gateway.createNew("Nintendo DS", 7, true);
+        gateway.createNew("Wii U", 8, false);
+        gateway.createNew("Nintendo 3DS", 8, true);
+        gateway.createNew("Switch", 9, false);
+        gateway.createNew("Arcade", 100, false);
+        gateway.createNew("PC", 101, false);
         return "Seeding Successful";
-    }
-
-    private void seedSystem(String name, int generation, boolean handheld) {
-        String sql = """
-                			INSERT INTO systems(name, generation, handheld) VALUES (?, ?, ?);
-                """;
-        jdbcTemplate.update(sql, name, generation, handheld);
     }
 }

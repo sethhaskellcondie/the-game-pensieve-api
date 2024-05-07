@@ -79,8 +79,8 @@ public class Filter {
                 ";",          // ; allows a statement to be terminated, then start a new one
                 "=",          // = allows boolean based injection
                 "or",         // 'or' allows boolean based injection
+                "sleep(",     // 'sleep' allows time based injection
                 " union ",    // 'union' allows union based injection
-                " sleep ",    // 'sleep' allows time based injection
                 " delete ",   // 'delete' is not allowed
                 " select "    // 'select' is not allowed
                 );
