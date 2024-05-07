@@ -19,7 +19,9 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -32,7 +34,10 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     resultSet.getInt("id"),
                     resultSet.getString("name"),
                     resultSet.getInt("generation"),
-                    resultSet.getBoolean("handheld")
+                    resultSet.getBoolean("handheld"),
+                    resultSet.getTimestamp("created_at"),
+                    resultSet.getTimestamp("updated_at"),
+                    resultSet.getTimestamp("deleted_at")
             );
 
     public SystemRepository(JdbcTemplate jdbcTemplate) {
@@ -55,7 +60,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         systemDbValidation(system);
 
         final String sql = """
-                			INSERT INTO systems(name, generation, handheld) VALUES (?, ?, ?);
+                			INSERT INTO systems(name, generation, handheld, created_at, updated_at) VALUES (?, ?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -69,6 +74,8 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     ps.setString(1, system.getName());
                     ps.setInt(2, system.getGeneration());
                     ps.setBoolean(3, system.isHandheld());
+                    ps.setTimestamp(4, Timestamp.from(Instant.now()));
+                    ps.setTimestamp(5, Timestamp.from(Instant.now()));
                     return ps;
                 },
                 keyHolder

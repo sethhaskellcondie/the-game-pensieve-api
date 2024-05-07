@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto, ToyResponseDto> {
 
@@ -37,7 +38,10 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
                 "These " + entityName + " objects are invalid.",
                 () -> assertNotNull(actual.getId()),
                 () -> assertEquals(expected.getName(), actual.getName()),
-                () -> assertEquals(expected.getSet(), actual.getSet())
+                () -> assertEquals(expected.getSet(), actual.getSet()),
+                () -> assertNotNull(actual.getCreatedAt()),
+                () -> assertNotNull(actual.getUpdatedAt()),
+                () -> assertNull(actual.getDeletedAt())
         );
     }
 
@@ -47,7 +51,10 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
                 "These " + entityName + " objects are invalid.",
                 () -> assertNotNull(actual.getId()),
                 () -> assertEquals(expected.name(), actual.getName()),
-                () -> assertEquals(expected.set(), actual.getSet())
+                () -> assertEquals(expected.set(), actual.getSet()),
+                () -> assertNotNull(actual.getCreatedAt()),
+                () -> assertNotNull(actual.getUpdatedAt()),
+                () -> assertNull(actual.getDeletedAt())
         );
     }
 }

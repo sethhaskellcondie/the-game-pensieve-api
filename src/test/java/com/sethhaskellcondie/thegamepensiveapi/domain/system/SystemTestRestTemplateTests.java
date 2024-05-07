@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,7 +169,16 @@ public class SystemTestRestTemplateTests {
         final String newName = "Playstation 2";
         final int newGeneration = 6;
         final boolean newHandheld = false;
-        final SystemResponseDto expectedDto = new SystemResponseDto(responseDto.type(), responseDto.id(), newName, newGeneration, newHandheld);
+        final SystemResponseDto expectedDto = new SystemResponseDto(
+                responseDto.type(),
+                responseDto.id(),
+                newName,
+                newGeneration,
+                newHandheld,
+                responseDto.createdAt(),
+                responseDto.updatedAt(),
+                responseDto.deletedAt()
+        );
 
         final SystemRequestDto requestDto = new SystemRequestDto(newName, newGeneration, newHandheld);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
@@ -224,7 +234,10 @@ public class SystemTestRestTemplateTests {
                 (int) data.get("id"),
                 (String) data.get("name"),
                 (int) data.get("generation"),
-                (boolean) data.get("handheld")
+                (boolean) data.get("handheld"),
+                (Timestamp) data.get("created_at"),
+                (Timestamp) data.get("updated_at"),
+                (Timestamp) data.get("deleted_at")
         );
     }
 

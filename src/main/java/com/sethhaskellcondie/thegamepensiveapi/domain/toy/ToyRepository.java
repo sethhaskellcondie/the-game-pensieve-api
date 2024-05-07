@@ -33,7 +33,10 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                     new Toy(
                             resultSet.getInt("id"),
                             resultSet.getString("name"),
-                            resultSet.getString("set")
+                            resultSet.getString("set"),
+                            resultSet.getTimestamp("created_at"),
+                            resultSet.getTimestamp("updated_at"),
+                            resultSet.getTimestamp("deleted_at")
                     );
 
     public ToyRepository(JdbcTemplate jdbcTemplate) {

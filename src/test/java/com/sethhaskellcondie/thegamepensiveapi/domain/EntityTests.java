@@ -3,6 +3,9 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.system.System;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -37,7 +40,7 @@ public class EntityTests {
 
     //Since Entities are abstract we will use System Objects for the tests
     private Entity<?, ?> generatePersistedEntity(Integer id) {
-        return new System(id, "test", 1, false);
+        return new System(id, "test", 1, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
     }
 
     private Entity<?, ?> generateEntity() {

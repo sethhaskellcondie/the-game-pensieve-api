@@ -11,6 +11,7 @@ import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Gener
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemRequestDto, SystemResponseDto> {
@@ -42,7 +43,10 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
             () -> assertNotNull(actual.getId()),
             () -> assertEquals(expected.getName(), actual.getName()),
             () -> assertEquals(expected.getGeneration(), actual.getGeneration()),
-            () -> assertEquals(expected.isHandheld(), actual.isHandheld())
+            () -> assertEquals(expected.isHandheld(), actual.isHandheld()),
+            () -> assertNotNull(actual.getCreatedAt()),
+            () -> assertNotNull(actual.getUpdatedAt()),
+            () -> assertNull(actual.getDeletedAt())
         );
     }
 
@@ -53,7 +57,10 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
             () -> assertNotNull(actual.getId()),
             () -> assertEquals(expected.name(), actual.getName()),
             () -> assertEquals(expected.generation(), actual.getGeneration()),
-            () -> assertEquals(expected.handheld(), actual.isHandheld())
+            () -> assertEquals(expected.handheld(), actual.isHandheld()),
+            () -> assertNotNull(actual.getCreatedAt()),
+            () -> assertNotNull(actual.getUpdatedAt()),
+            () -> assertNull(actual.getDeletedAt())
         );
     }
 

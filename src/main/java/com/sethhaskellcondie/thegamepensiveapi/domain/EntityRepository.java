@@ -30,4 +30,6 @@ public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, Req
     T update(T t) throws ExceptionFailedDbValidation;
 
     void deleteById(int id) throws ExceptionResourceNotFound;
+
+    //TODO T getDeletedById(int Id) this is the only way to get deleted objects [don't forget to update the tests]
 }

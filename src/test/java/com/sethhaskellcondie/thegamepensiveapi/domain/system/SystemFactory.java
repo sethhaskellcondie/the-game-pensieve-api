@@ -3,6 +3,9 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionTestFactory;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
 public class SystemFactory implements EntityFactory<System, SystemRequestDto, SystemResponseDto> {
 
     private final String startsWith;
@@ -23,16 +26,16 @@ public class SystemFactory implements EntityFactory<System, SystemRequestDto, Sy
                 return new System().updateFromRequestDto(requestDto);
             }
             case VALID_PERSISTED -> {
-                return new System(1, "PersistedName", 5, false);
+                return new System(1, "PersistedName", 5, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
             }
             case ANOTHER_VALID_PERSISTED -> {
-                return new System(2, "AnotherPersistedName", 6, true);
+                return new System(2, "AnotherPersistedName", 6, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
             }
             case STARTS_WITH_VALID_PERSISTED -> {
-                return new System(3, startsWith + "PersistedName", 5, false);
+                return new System(3, startsWith + "PersistedName", 5, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
             }
             case ANOTHER_STARTS_WITH_VALID_PERSISTED -> {
-                return new System(4, startsWith + "AnotherPersistedName", 6, true);
+                return new System(4, startsWith + "AnotherPersistedName", 6, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
             }
             case INVALID -> {
                 throw new ExceptionTestFactory("Cannot call 'generateEntity()' with INVALID option");

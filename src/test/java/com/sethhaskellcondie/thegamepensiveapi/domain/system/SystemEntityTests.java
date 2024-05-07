@@ -3,7 +3,12 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * EntityTests test specific implementation of the two abstract methods
@@ -74,15 +79,23 @@ public class SystemEntityTests {
         final String name = "NES";
         final int generation = 3;
         final boolean handheld = false;
+        final Instant created_at = Instant.now();
+        final Instant updated_at = Instant.now();
 
-        final System system = new System(id, name, generation, handheld);
+        final System system = new System(id, name, generation, handheld, Timestamp.from(created_at), Timestamp.from(updated_at), null);
 
         final SystemResponseDto responseDto = system.convertToResponseDto();
 
-        assertEquals("system", responseDto.type());
-        assertEquals(id, responseDto.id());
-        assertEquals(name, responseDto.name());
-        assertEquals(generation, responseDto.generation());
-        assertEquals(handheld, responseDto.handheld());
+        assertAll(
+                "Converting system to a DTO failed",
+                () -> assertEquals("system", responseDto.type()),
+                () -> assertEquals(id, responseDto.id()),
+                () -> assertEquals(name, responseDto.name()),
+                () -> assertEquals(generation, responseDto.generation()),
+                () -> assertEquals(handheld, responseDto.handheld()),
+                () -> assertEquals(Timestamp.from(created_at), responseDto.createdAt()),
+                () -> assertEquals(Timestamp.from(updated_at), responseDto.updatedAt()),
+                () -> assertNull(responseDto.deletedAt())
+        );
     }
 }

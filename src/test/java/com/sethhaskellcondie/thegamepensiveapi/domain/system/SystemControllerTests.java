@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +60,7 @@ public class SystemControllerTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        final System system = new System(1, "test", 3, false);
+        final System system = new System(1, "test", 3, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         when(service.getById(1)).thenReturn(system);
 
         final ResultActions result = mockMvc.perform(get("/systems/1"));
@@ -87,8 +89,8 @@ public class SystemControllerTests {
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
         final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "startsWith");
-        final System system1 = new System(1, "test", 10, false);
-        final System system2 = new System(2, "test again", 20, true);
+        final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         final List<System> systems = List.of(system1, system2);
         when(service.getWithFilters(List.of(filter))).thenReturn(systems);
 
@@ -133,7 +135,7 @@ public class SystemControllerTests {
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
-        final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
+        final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
 
         when(service.createNew(any())).thenReturn(expectedSystemPersisted);
 
@@ -193,8 +195,8 @@ public class SystemControllerTests {
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
-        final System existingSystem = new System(expectedId, "Created Name", 4, true);
-        final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
+        final System existingSystem = new System(expectedId, "Created Name", 4, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
 
         when(service.getById(expectedId)).thenReturn(existingSystem);
         when(service.updateExisting(updatedSystem)).thenReturn(updatedSystem);
@@ -290,6 +292,9 @@ public class SystemControllerTests {
                 jsonPath("$.data.name").value(expectedSystem.getName()),
                 jsonPath("$.data.generation").value(expectedSystem.getGeneration()),
                 jsonPath("$.data.handheld").value(expectedSystem.isHandheld()),
+                jsonPath("$.data.createdAt").isNotEmpty(),
+                jsonPath("$.data.updatedAt").isNotEmpty(),
+                jsonPath("$.data.deletedAt").isEmpty(),
                 jsonPath("$.errors").isEmpty()
         );
     }

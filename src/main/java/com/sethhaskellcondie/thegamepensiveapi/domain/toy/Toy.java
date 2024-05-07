@@ -4,6 +4,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
@@ -16,8 +17,8 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 
     //only used in tests and repositories
-    public Toy(Integer id, String name, String set) {
-        super(id);
+    public Toy(Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
+        super(id, createdAt, updatedAt, deletedAt);
         this.name = name;
         this.set = set;
         this.validate();
@@ -39,7 +40,7 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 
     public ToyResponseDto convertToResponseDto() {
-        return new ToyResponseDto("toy", this.id, this.name, this.set);
+        return new ToyResponseDto("toy", this.id, this.name, this.set, this.created_at, this.updated_at, this.deleted_at);
     }
 
     private void validate() throws ExceptionMalformedEntity {
@@ -52,4 +53,4 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 }
 
 record ToyRequestDto(String name, String set) { }
-record ToyResponseDto(String type, Integer id, String name, String set) { }
+record ToyResponseDto(String type, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }
