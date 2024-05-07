@@ -48,18 +48,16 @@ public class ToyController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, ToyResponseDto> createNewToy(@RequestBody ToyRequestDto toy) throws ExceptionFailedDbValidation {
-        //TODO update this to take a map instead of just the RequestDto
-        final ToyResponseDto responseDto = gateway.createNew(toy);
+    public Map<String, ToyResponseDto> createNewToy(@RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionFailedDbValidation {
+        final ToyResponseDto responseDto = gateway.createNew(requestBody.get("toy"));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 
     @ResponseBody
     @PutMapping("/{id}")
-    public Map<String, ToyResponseDto> updateExistingToy(@PathVariable int id, @RequestBody ToyRequestDto toy) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
-        //TODO update this to take a map instead of just the RequestDto
-        final ToyResponseDto responseDto = gateway.updateExisting(id, toy);
+    public Map<String, ToyResponseDto> updateExistingToy(@PathVariable int id, @RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
+        final ToyResponseDto responseDto = gateway.updateExisting(id, requestBody.get("toy"));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

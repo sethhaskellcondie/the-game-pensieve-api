@@ -48,9 +48,11 @@ public class TestFactory {
     public ResultActions postCustomSystem(String name, int generation, boolean handheld) throws Exception {
         final String json = """
                 {
-                  "name": "%s",
-                  "generation": %d,
-                  "handheld": %b
+                  "system": {
+                    "name": "%s",
+                    "generation": %d,
+                    "handheld": %b
+                  }
                 }
                 """;
         final String formattedJson = String.format(json, name, generation, handheld);
@@ -68,9 +70,11 @@ public class TestFactory {
     public String formatSystemPayload(String name, Integer generation, Boolean handheld) {
         final String json = """
                 {
-                  "name": "%s",
-                  "generation": %d,
-                  "handheld": %b
+                    "system": {
+                        "name": "%s",
+                        "generation": %d,
+                        "handheld": %b
+                    }
                 }
                 """;
         return String.format(json, name, generation, handheld);
@@ -98,8 +102,10 @@ public class TestFactory {
     public String formatToyPayload(String name, String set) {
         final String json = """
                 {
-                	"name": "%s",
-                	"set": "%s"
+                	"toy": {
+                	    "name": "%s",
+                	    "set": "%s"
+                	    }
                 }
                 """;
         return String.format(json, name, set);

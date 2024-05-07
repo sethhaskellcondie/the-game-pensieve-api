@@ -261,9 +261,11 @@ public class SystemControllerTests {
     private String generateValidCreateUpdatePayload(String name, int generation, boolean handheld) {
         final String json = """
                 {
-                  "name": "%s",
-                  "generation": %d,
-                  "handheld": %b
+                    "system": {
+                        "name": "%s",
+                        "generation": %d,
+                        "handheld": %b
+                    }
                 }
                 """;
         return String.format(json, name, generation, handheld);

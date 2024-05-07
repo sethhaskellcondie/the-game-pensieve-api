@@ -255,8 +255,10 @@ public class ToyWebTestClientTests {
     public String formatToyPayload(String name, String set) {
         final String json = """
                 {
-                	"name": "%s",
-                	"set": "%s"
+                	"toy": {
+                	    "name": "%s",
+                	    "set": "%s"
+                	    }
                 }
                 """;
         return String.format(json, name, set);

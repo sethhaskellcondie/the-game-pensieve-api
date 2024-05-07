@@ -54,7 +54,7 @@ public class SystemTestRestTemplateTests {
         final SystemRequestDto requestDto = new SystemRequestDto("", -1, null);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -77,7 +77,7 @@ public class SystemTestRestTemplateTests {
         final SystemRequestDto requestDto = new SystemRequestDto(duplicateName, generation, handheld);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -183,7 +183,7 @@ public class SystemTestRestTemplateTests {
         final SystemRequestDto requestDto = new SystemRequestDto(newName, newGeneration, newHandheld);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/" + responseDto.id(), HttpMethod.PUT, request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/systems/" + responseDto.id() + "/testRestTemplate", HttpMethod.PUT, request, Map.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         validateSystemResponseBody(response, expectedDto);
@@ -194,7 +194,7 @@ public class SystemTestRestTemplateTests {
         final SystemRequestDto requestDto = new SystemRequestDto("ValidButMissing", 3, false);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/-1", HttpMethod.PUT, request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/systems/-1/testRestTemplate", HttpMethod.PUT, request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -310,8 +310,8 @@ public class SystemTestRestTemplateTests {
         final System system = new System().updateFromRequestDto(requestDto);
         final HttpEntity<System> request = new HttpEntity<>(system);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems", request, Map.class);
-        assertEquals(response.getStatusCode(), HttpStatus.CREATED);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         return response;
     }
 }
