@@ -14,6 +14,7 @@ public class SystemGateway extends EntityGatewayAbstract<System, SystemRequestDt
     }
 
     //This method is ONLY here to seed data in the HeartbeatController  TODO update how we seed data and remove this method
+    @Deprecated
     public SystemResponseDto createNew(String name, int generation, boolean handheld) throws ExceptionFailedDbValidation {
         return this.createNew(new SystemRequestDto(name, generation, handheld));
     }

@@ -25,6 +25,7 @@ public class HeartbeatController {
     }
 
     //This endpoint will only see the systems in my collection
+    @Deprecated
     @PostMapping("/seedMyCollection")
     public String seedMyCollectionData() throws ExceptionFailedDbValidation {
         gateway.createNew("NES", 3, false);
