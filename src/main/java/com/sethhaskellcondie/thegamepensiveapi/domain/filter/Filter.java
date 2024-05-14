@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import static java.lang.Integer.parseInt;
 
 /**
  * Filters are completely decoupled from the Entities they work with. We could pull in the database fields or
@@ -36,6 +39,7 @@ public class Filter {
     public static final String FILTER_OPERATOR_SINCE = "since";
     public static final String FILTER_OPERATOR_BEFORE = "before";
     public static final String FILTER_OPERATOR_ORDER_BY = "order_by";
+    public static final String FILTER_OPERATOR_ORDER_BY_DESC = "order_by_desc";
     public static final String FILTER_OPERATOR_LIMIT = "limit";
     public static final String FILTER_OPERATOR_OFFSET = "offset";
 
@@ -74,12 +78,12 @@ public class Filter {
      * These are the characters and words that are not allowed in any filter strings,
      * this is a protection against SQL injection in the system.
      */
-    private static List<String> getBlacklistedWords() {
+    public static List<String> getBlacklistedWords() {
         return List.of(
                 ";",          // ; allows a statement to be terminated, then start a new one
                 "=",          // = allows boolean based injection
-                "or",         // 'or' allows boolean based injection
                 "sleep(",     // 'sleep' allows time based injection
+                " or ",       // 'or' allows boolean based injection
                 " union ",    // 'union' allows union based injection
                 " delete ",   // 'delete' is not allowed
                 " select "    // 'select' is not allowed
@@ -103,14 +107,17 @@ public class Filter {
                 return new LinkedHashMap<>();
             }
         }
-        fields.put("created", FIELD_TYPE_TIME);
-        fields.put("updated", FIELD_TYPE_TIME);
+        fields.put("created_at", FIELD_TYPE_TIME);
+        fields.put("updated_at", FIELD_TYPE_TIME);
         fields.put("pagination", FIELD_TYPE_PAGINATION);
         return fields;
     }
 
     public static List<String> getFilterOperators(String fieldType) {
         List<String> filters = new ArrayList<>();
+        if (null == fieldType) {
+            return filters;
+        }
         switch (fieldType) {
             case FIELD_TYPE_STRING -> {
                 filters.add(FILTER_OPERATOR_EQUALS);
@@ -139,7 +146,6 @@ public class Filter {
                 filters.add(FILTER_OPERATOR_NOT_EQUALS);
             }
             case FIELD_TYPE_PAGINATION -> {
-                filters.add(FILTER_OPERATOR_ORDER_BY);
                 filters.add(FILTER_OPERATOR_LIMIT);
                 filters.add(FILTER_OPERATOR_OFFSET);
             }
@@ -147,6 +153,8 @@ public class Filter {
                 return new ArrayList<>();
             }
         }
+        filters.add(FILTER_OPERATOR_ORDER_BY);
+        filters.add(FILTER_OPERATOR_ORDER_BY_DESC);
         return filters;
     }
 
@@ -160,7 +168,10 @@ public class Filter {
             }
             String fieldType = fields.get(filter.getField());
             List<String> operators = getFilterOperators(fieldType);
-            if (!operators.contains(filter.getOperator())) {
+            if (!operators.contains(filter.getOperator()) &&
+                    !Objects.equals(filter.getResource(), FILTER_OPERATOR_ORDER_BY) &&
+                    !Objects.equals(filter.getResource(), FILTER_OPERATOR_ORDER_BY_DESC)
+            ) {
                 exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator());
             }
             for (String blacklistedWord : getBlacklistedWords()) {
@@ -168,6 +179,8 @@ public class Filter {
                     exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in filters");
                 }
             }
+            //TODO test the time filters to make sure they are formatted correctly
+            //TODO reorder the filters, any of them, then order-by, then limit, then offset
         }
         if (exceptionInvalidFilter.exceptionsFound()) {
             throw exceptionInvalidFilter;
@@ -179,84 +192,99 @@ public class Filter {
         for (Filter filter : filters) {
             switch (filter.getOperator()) {
                 case FILTER_OPERATOR_EQUALS -> {
-                    whereStatements.add(" AND " + filter.getField() + " = ? ");
+                    whereStatements.add(" AND " + filter.getField() + " = ?");
                 }
                 case FILTER_OPERATOR_NOT_EQUALS -> {
-                    whereStatements.add(" AND " + filter.getField() + " <> ? ");
+                    whereStatements.add(" AND " + filter.getField() + " <> ?");
                 }
-                case FILTER_OPERATOR_CONTAINS -> {
-                    whereStatements.add(" AND " + filter.getField() + "  % ? % ");
+                case FILTER_OPERATOR_CONTAINS,
+                        FILTER_OPERATOR_STARTS_WITH,
+                        FILTER_OPERATOR_ENDS_WITH -> {
+                    whereStatements.add(" AND " + filter.getField() + " LIKE ?");
                 }
-                case FILTER_OPERATOR_STARTS_WITH -> {
-                    whereStatements.add(" AND " + filter.getField() + " LIKE ? ");
+                case FILTER_OPERATOR_GREATER_THAN,
+                        FILTER_OPERATOR_SINCE -> {
+                    whereStatements.add(" AND " + filter.getField() + " > TO_TIMESTAMP( ? , 'YYYY-MM-DD')");
                 }
-                case FILTER_OPERATOR_ENDS_WITH -> {
-                    whereStatements.add(" AND " + filter.getField() + " % ? ");
-                }
-                case FILTER_OPERATOR_GREATER_THAN -> {
-                    whereStatements.add(" AND " + filter.getField() + " > ? ");
-                }
-                case FILTER_OPERATOR_LESS_THAN -> {
-                    whereStatements.add(" AND " + filter.getField() + " < ? ");
+                case FILTER_OPERATOR_LESS_THAN,
+                        FILTER_OPERATOR_BEFORE -> {
+                    whereStatements.add(" AND " + filter.getField() + " < ?");
                 }
                 case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
-                    whereStatements.add(" AND " + filter.getField() + " >= ? ");
+                    whereStatements.add(" AND " + filter.getField() + " >= ?");
                 }
                 case FILTER_OPERATOR_LESS_THAN_EQUAL_TO -> {
-                    whereStatements.add(" AND " + filter.getField() + " <= ? ");
+                    whereStatements.add(" AND " + filter.getField() + " <= ?");
                 }
-                case FILTER_OPERATOR_SINCE -> {
-                    whereStatements.add(" AND " + filter.getField() + " > ?  ");
+                case FILTER_OPERATOR_ORDER_BY -> {
+                    whereStatements.add(" ORDER BY " + filter.getField() + " ASC");
                 }
-                case FILTER_OPERATOR_BEFORE -> {
-                    whereStatements.add(" AND " + filter.getField() + " < ?  ");
+                case FILTER_OPERATOR_ORDER_BY_DESC -> {
+                    whereStatements.add(" ORDER BY " + filter.getField() + " DESC");
+                }
+                case FILTER_OPERATOR_LIMIT -> {
+                    whereStatements.add(" LIMIT ?");
+                }
+                case FILTER_OPERATOR_OFFSET -> {
+                    whereStatements.add(" OFFSET ?");
                 }
             }
         }
         return whereStatements;
     }
 
-    public static List<String> formatOperands(List<Filter> filters) {
-        List<String> operands = new ArrayList<>();
+    public static List<Object> formatOperands(List<Filter> filters) {
+        List<Object> operands = new ArrayList<>();
         for (Filter filter : filters) {
-            final String operand = filter.getOperand();
+            final Object operand = filter.getOperand();
             switch (filter.getOperator()) {
-                case FILTER_OPERATOR_EQUALS -> {
-                    operands.add(operand);
-                }
-                case FILTER_OPERATOR_NOT_EQUALS -> {
-                    operands.add(" AND " + filter.getField() + " <> ? ");
+                case FILTER_OPERATOR_EQUALS,
+                        FILTER_OPERATOR_NOT_EQUALS,
+                        FILTER_OPERATOR_GREATER_THAN,
+                        FILTER_OPERATOR_LESS_THAN,
+                        FILTER_OPERATOR_GREATER_THAN_EQUAL_TO,
+                        FILTER_OPERATOR_LESS_THAN_EQUAL_TO,
+                        FILTER_OPERATOR_SINCE,
+                        FILTER_OPERATOR_BEFORE,
+                        FILTER_OPERATOR_LIMIT,
+                        FILTER_OPERATOR_OFFSET -> {
+                    operands.add(castOperand(filter));
                 }
                 case FILTER_OPERATOR_CONTAINS -> {
-                    operands.add(" AND " + filter.getField() + "  % ? % ");
+                    operands.add("%" + operand + "%");
                 }
                 case FILTER_OPERATOR_STARTS_WITH -> {
                     operands.add(operand + "%");
                 }
                 case FILTER_OPERATOR_ENDS_WITH -> {
-                    operands.add(" AND " + filter.getField() + " % ? ");
+                    operands.add("%" + operand);
                 }
-                case FILTER_OPERATOR_GREATER_THAN -> {
-                    operands.add(" AND " + filter.getField() + " > ? ");
-                }
-                case FILTER_OPERATOR_LESS_THAN -> {
-                    operands.add(" AND " + filter.getField() + " < ? ");
-                }
-                case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
-                    operands.add(" AND " + filter.getField() + " >= ? ");
-                }
-                case FILTER_OPERATOR_LESS_THAN_EQUAL_TO -> {
-                    operands.add(" AND " + filter.getField() + " <= ? ");
-                }
-                case FILTER_OPERATOR_SINCE -> {
-                    operands.add(" AND " + filter.getField() + " > ?  ");
-                }
-                case FILTER_OPERATOR_BEFORE -> {
-                    operands.add(" AND " + filter.getField() + " < ?  ");
+                case FILTER_OPERATOR_ORDER_BY,
+                        FILTER_OPERATOR_ORDER_BY_DESC -> {
+                    continue;
                 }
             }
         }
         return operands;
+    }
+
+    private static Object castOperand(Filter filter) {
+        Map<String, String> fields = getFieldsForResource(filter.resource);
+
+        switch (fields.get(filter.field)) {
+            case FIELD_TYPE_NUMBER,
+                    FIELD_TYPE_PAGINATION -> {
+                //TODO handle the parseInt exception in the validate method somehow
+                return parseInt(filter.operand);
+            }
+            case FIELD_TYPE_BOOLEAN -> {
+                //TODO check the string to see if it is 'true' or 'false' in the validate method
+                return Boolean.parseBoolean(filter.operand);
+            }
+            default -> {
+                return filter.operand;
+            }
+        }
     }
 }
 
