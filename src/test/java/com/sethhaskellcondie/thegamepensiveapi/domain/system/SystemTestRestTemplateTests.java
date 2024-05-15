@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * A couple of big features for the TestRestTemplate is that it can be provided with auth credentials, and different
  * options that can be used to test different parts of the system when running as a server.
  */
+@Deprecated
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-container")
 public class SystemTestRestTemplateTests {

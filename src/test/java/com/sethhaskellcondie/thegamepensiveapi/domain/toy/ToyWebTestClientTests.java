@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * The big advantage of the WebTestClient over the TestRestTemplate is that the TestRestTemplate runs the requests
  * synchronously while the WebTestClient will run the test asynchronously, so they will run faster overall.
  */
+@Deprecated
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-container")
 public class ToyWebTestClientTests {

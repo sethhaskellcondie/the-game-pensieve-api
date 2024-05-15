@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * This it the "before" for unit tests looked like before the
  * "after" when I wrote the abstract tests EntityRepositoryTests
  */
+@Deprecated
 @JdbcTest
 @ActiveProfiles("test-container")
 public class SystemRepositoryWithoutInheritanceTests {

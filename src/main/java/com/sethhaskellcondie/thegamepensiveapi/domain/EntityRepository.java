@@ -31,5 +31,5 @@ public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, Req
 
     void deleteById(int id) throws ExceptionResourceNotFound;
 
-    //TODO T getDeletedById(int Id) this is the only way to get deleted objects [don't forget to update the tests]
+    T getDeletedById(int id) throws ExceptionResourceNotFound;
 }

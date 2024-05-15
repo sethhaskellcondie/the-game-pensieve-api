@@ -138,4 +138,32 @@ public abstract class EntityRepositoryTests<T extends Entity<RequestDto, Respons
         assertThrows(ExceptionResourceNotFound.class, () -> repository.deleteById(-1),
                 "The " + entityName + " repository didn't throw an ExceptionResourceNotFound when given an invalid id for deleteById().");
     }
+
+    @Test
+    void getDeletedById_HappyPath_ReturnedDeletedEntity() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        final RequestDto requestDto = factory.generateRequestDto(VALID);
+        final T expected = repository.insert(requestDto);
+        final int expectedId = expected.getId();
+        repository.deleteById(expectedId);
+
+        final T actual = repository.getDeletedById(expected.getId());
+
+        assertEquals(expected, actual, "The " + entityName + " objects don't match after a getDeletedById() call.");
+    }
+
+    @Test
+    void getDeletedById_BadId_ThrowException() {
+        assertThrows(ExceptionResourceNotFound.class, () -> repository.getDeletedById(-1),
+                "The " + entityName + " repository didn't throw an ExceptionResourceNotFound when given an invalid id for getDeletedById().");
+    }
+
+    @Test
+    void getDeletedById_EntityNotDeleted_ThrowException() throws ExceptionFailedDbValidation {
+        final RequestDto requestDto = factory.generateRequestDto(VALID);
+        final T expected = repository.insert(requestDto);
+        final int expectedId = expected.getId();
+
+        assertThrows(ExceptionResourceNotFound.class, () -> repository.getDeletedById(expectedId),
+                "The " + entityName + " repository didn't throw an ExceptionResourceNotFound when given an id of an entity that was NOT deleted for getDeletedById().");
+    }
 }
