@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class SqlFilterTests {
 
     @Test
-    void validateFilters_TwoExceptionsSixErrors_ThrowExceptionWithSixMessages() {
+    void validateAndOrderFilters_TwoExceptionsSixErrors_ThrowExceptionWithSixMessages() {
         //testing that a single thrown exception contains all the different types of errors, and multiple of each error
         final List<Filter> filters = List.of(
                 new Filter("system", "missingField", Filter.FILTER_OPERATOR_EQUALS, "not allowed ;"),
@@ -29,7 +29,7 @@ public class SqlFilterTests {
         );
         boolean exceptionCaught = false;
         try {
-            Filter.validateFilters(filters);
+            Filter.validateAndOrderFilters(filters);
         } catch (ExceptionInvalidFilter exception) {
             exceptionCaught = true;
             assertEquals(6, exception.getMessages().size(), "Malformed ExceptionInvalidFilter thrown while testing invalid filters.");
@@ -40,20 +40,85 @@ public class SqlFilterTests {
     }
 
     @Test
-    void validateFilters_containsAllBlacklistedWords_ThrowsMultipleErrors() {
+    void validateAndOrderFilters_containsAllBlacklistedWords_ThrowsMultipleErrors() {
         final String blacklistedWords = String.join(",", Filter.getBlacklistedWords());
         final List<Filter> filters = List.of(
                 new Filter("system", "name", Filter.FILTER_OPERATOR_EQUALS, blacklistedWords)
         );
         boolean exceptionCaught = false;
         try {
-            Filter.validateFilters(filters);
+            Filter.validateAndOrderFilters(filters);
         } catch (ExceptionInvalidFilter exception) {
             exceptionCaught = true;
             assertEquals(Filter.getBlacklistedWords().size(), exception.getMessages().size(), "Malformed ExceptionInvalidFilter thrown while testing invalid filters.");
         }
         if (!exceptionCaught) {
             fail("ExceptionInvalidFilter not caught when it should have been while testing blacklisted words in filters.");
+        }
+    }
+
+    @Test
+    void validateAndOrderFilters_FiltersInWrongOrder_ReturnedInTheCorrectOrder() {
+        Filter whereFilter = new Filter("system", "name", Filter.FILTER_OPERATOR_CONTAINS, "Force");
+        Filter orderByFilter = new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc");
+        Filter limitFilter = new Filter("system", "pagination", Filter.FILTER_OPERATOR_LIMIT, "3");
+        Filter offsetFilter = new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "2");
+
+        final List<Filter> expected = List.of(whereFilter, orderByFilter, limitFilter, offsetFilter);
+        final List<Filter> wrongOrder = List.of(offsetFilter, limitFilter, orderByFilter, whereFilter);
+        List<Filter> actual = null;
+        try {
+            actual = Filter.validateAndOrderFilters(wrongOrder);
+        } catch (ExceptionInvalidFilter exception) {
+            fail("Exception caught when it should have been valid while testing filter order validation");
+        }
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void validateAndOrderFilters_TooManyOrderByLimitAndOffsetFilters_ReturnExceptionWithMultipleErrors() {
+        final List<Filter> filters = List.of(
+                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
+                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "desc"),
+                new Filter("system", "pagination", Filter.FILTER_OPERATOR_LIMIT, "3"),
+                new Filter("system", "pagination", Filter.FILTER_OPERATOR_LIMIT, "4"),
+                new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "1"),
+                new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "2")
+        );
+        boolean exceptionCaught = false;
+        try {
+            Filter.validateAndOrderFilters(filters);
+        } catch (ExceptionInvalidFilter exception) {
+            exceptionCaught = true;
+            assertEquals(3, exception.getMessages().size(), "Malformed ExceptionInvalidFilter thrown while testing filter multiples that are not allowed.");
+        }
+        if (!exceptionCaught) {
+            fail("ExceptionInvalidFilter not caught when it should have been while testing multiple " +
+                    Filter.FILTER_OPERATOR_ORDER_BY + ", " +
+                    Filter.FILTER_OPERATOR_LIMIT + ", and " +
+                    Filter.FILTER_OPERATOR_OFFSET + " filters.");
+        }
+    }
+
+    @Test
+    void validateAndOrderFilters_MissingLimitOffSetIncluded_ThrowException() {
+        final List<Filter> filters = List.of(
+                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
+                new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "2")
+        );
+        boolean exceptionCaught = false;
+        try {
+            Filter.validateAndOrderFilters(filters);
+        } catch (ExceptionInvalidFilter exception) {
+            exceptionCaught = true;
+            assertEquals(1, exception.getMessages().size(), "Malformed ExceptionInvalidFilter thrown while testing missing " +
+                    Filter.FILTER_OPERATOR_LIMIT + " but included an " +
+                    Filter.FILTER_OPERATOR_OFFSET + " filter.");
+        }
+        if (!exceptionCaught) {
+            fail("ExceptionInvalidFilter not caught when it should have been while testing a missing " +
+                    Filter.FILTER_OPERATOR_LIMIT + " but included an " +
+                    Filter.FILTER_OPERATOR_OFFSET + " filter.");
         }
     }
 
@@ -75,7 +140,7 @@ public class SqlFilterTests {
                 new Filter("system", "name", Filter.FILTER_OPERATOR_ENDS_WITH, "Win")
         );
         try {
-            Filter.validateFilters(filters);
+            Filter.validateAndOrderFilters(filters);
         } catch (ExceptionInvalidFilter exception) {
             fail("ExceptionInvalidFilter caught when it shouldn't have been while testing Pagination filters.");
         }
@@ -99,7 +164,7 @@ public class SqlFilterTests {
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_LESS_THAN_EQUAL_TO, "8")
         );
         try {
-            Filter.validateFilters(filters);
+            Filter.validateAndOrderFilters(filters);
         } catch (ExceptionInvalidFilter exception) {
             fail("ExceptionInvalidFilter caught when it shouldn't have been while testing number filters.");
         }
@@ -121,7 +186,7 @@ public class SqlFilterTests {
                 new Filter("system", "handheld", Filter.FILTER_OPERATOR_EQUALS, "false")
         );
         try {
-            Filter.validateFilters(filters);
+            Filter.validateAndOrderFilters(filters);
         } catch (ExceptionInvalidFilter exception) {
             fail("ExceptionInvalidFilter caught when it shouldn't have been while testing boolean filters.");
         }
@@ -142,7 +207,7 @@ public class SqlFilterTests {
                 new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "1")
         );
         try {
-            Filter.validateFilters(filters);
+            Filter.validateAndOrderFilters(filters);
         } catch (ExceptionInvalidFilter exception) {
             fail("ExceptionInvalidFilter caught when it shouldn't have been while testing pagination filters.");
         }
@@ -157,13 +222,12 @@ public class SqlFilterTests {
     void formatWhereStatementsAndOperands_TimeFilters_ValidSql() {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND created_at > TO_TIMESTAMP( ? , 'YYYY-MM-DD') ORDER BY generation DESC";
         final List<Object> expectedOperands = List.of("2024-05-06");
-        //TODO reverse the order of these two to test to make sure that the sql is being created in the correct order.
         final List<Filter> filters = List.of(
                 new Filter("system", "created_at", Filter.FILTER_OPERATOR_SINCE, "2024-05-06"),
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY_DESC, "desc")
         );
         try {
-            Filter.validateFilters(filters);
+            Filter.validateAndOrderFilters(filters);
         } catch (ExceptionInvalidFilter exception) {
             fail("ExceptionInvalidFilter caught when it shouldn't have been while testing time filters.");
         }

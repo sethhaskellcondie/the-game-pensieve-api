@@ -94,7 +94,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public List<System> getWithFilters(List<Filter> filters) {
-        Filter.validateFilters(filters);
+        Filter.validateAndOrderFilters(filters);
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);

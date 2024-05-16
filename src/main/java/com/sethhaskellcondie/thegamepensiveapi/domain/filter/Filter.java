@@ -158,8 +158,13 @@ public class Filter {
         return filters;
     }
 
-    public static void validateFilters(List<Filter> filters) {
+    public static List<Filter> validateAndOrderFilters(List<Filter> filters) {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
+
+        List<Filter> whereFilters = new ArrayList<>();
+        List<Filter> orderByFilter = new ArrayList<>();
+        List<Filter> limitFilter = new ArrayList<>();
+        List<Filter> offsetFilter = new ArrayList<>();
 
         for (Filter filter : filters) {
             Map<String, String> fields = getFieldsForResource(filter.getResource());
@@ -179,12 +184,45 @@ public class Filter {
                     exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in filters");
                 }
             }
+            //TODO handle the parseInt exception for numbers and pagination filters
+            //TODO check the string in a boolean filter to see if it is 'true' or 'false'
+
             //TODO test the time filters to make sure they are formatted correctly
-            //TODO reorder the filters, any of them, then order-by, then limit, then offset
+            switch (filter.getOperator()) {
+                case FILTER_OPERATOR_ORDER_BY -> {
+                    orderByFilter.add(filter);
+                }
+                case FILTER_OPERATOR_LIMIT -> {
+                    limitFilter.add(filter);
+                }
+                case FILTER_OPERATOR_OFFSET -> {
+                    offsetFilter.add(filter);
+                }
+                default -> {
+                    whereFilters.add(filter);
+                }
+            }
+        }
+        if (orderByFilter.size() > 1) {
+            exceptionInvalidFilter.addException("No more than one " + FILTER_OPERATOR_ORDER_BY + " allowed in a single request");
+        }
+        if (limitFilter.size() > 1) {
+            exceptionInvalidFilter.addException("No more than one " + FILTER_OPERATOR_LIMIT + " allowed in a single request");
+        }
+        if (offsetFilter.size() > 1) {
+            exceptionInvalidFilter.addException("No more than one " + FILTER_OPERATOR_OFFSET + " allowed in a single request");
+        }
+        if (limitFilter.size() < 1 && offsetFilter.size() > 0) {
+            exceptionInvalidFilter.addException(FILTER_OPERATOR_OFFSET + " filter is not allowed without also including one " + FILTER_OPERATOR_LIMIT + " filter");
         }
         if (exceptionInvalidFilter.exceptionsFound()) {
             throw exceptionInvalidFilter;
         }
+
+        whereFilters.add(orderByFilter.get(0));
+        whereFilters.add(limitFilter.get(0));
+        whereFilters.add(offsetFilter.get(0));
+        return whereFilters;
     }
 
     public static List<String> formatWhereStatements(List<Filter> filters) {
@@ -274,11 +312,9 @@ public class Filter {
         switch (fields.get(filter.field)) {
             case FIELD_TYPE_NUMBER,
                     FIELD_TYPE_PAGINATION -> {
-                //TODO handle the parseInt exception in the validate method somehow
                 return parseInt(filter.operand);
             }
             case FIELD_TYPE_BOOLEAN -> {
-                //TODO check the string to see if it is 'true' or 'false' in the validate method
                 return Boolean.parseBoolean(filter.operand);
             }
             default -> {
