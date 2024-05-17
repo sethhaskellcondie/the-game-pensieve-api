@@ -21,8 +21,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class SqlFilterTests {
 
     @Test
-    void validateAndOrderFilters_TwoExceptionsSixErrors_ThrowExceptionWithSixMessages() {
-        //testing that a single thrown exception contains all the different types of errors, and multiple of each error
+    void validateAndOrderFilters_TwoFiltersSixErrors_ThrowExceptionWithSixMessages() {
         final List<Filter> filters = List.of(
                 new Filter("system", "missingField", Filter.FILTER_OPERATOR_EQUALS, "not allowed ;"),
                 new Filter("system", "anotherMissingField", Filter.FILTER_OPERATOR_STARTS_WITH, "keyword select is not allowed")
@@ -66,7 +65,7 @@ public class SqlFilterTests {
 
         final List<Filter> expected = List.of(whereFilter, orderByFilter, limitFilter, offsetFilter);
         final List<Filter> wrongOrder = List.of(offsetFilter, limitFilter, orderByFilter, whereFilter);
-        List<Filter> actual = null;
+        List<Filter> actual = Filter.validateAndOrderFilters(wrongOrder);
         try {
             actual = Filter.validateAndOrderFilters(wrongOrder);
         } catch (ExceptionInvalidFilter exception) {
@@ -101,7 +100,7 @@ public class SqlFilterTests {
     }
 
     @Test
-    void validateAndOrderFilters_MissingLimitOffSetIncluded_ThrowException() {
+    void validateAndOrderFilters_MissingLimitWhileOffSetIncluded_ThrowException() {
         final List<Filter> filters = List.of(
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
                 new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "2")
@@ -220,10 +219,11 @@ public class SqlFilterTests {
 
     @Test
     void formatWhereStatementsAndOperands_TimeFilters_ValidSql() {
-        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND created_at > TO_TIMESTAMP( ? , 'YYYY-MM-DD') ORDER BY generation DESC";
-        final List<Object> expectedOperands = List.of("2024-05-06");
+        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND created_at > TO_TIMESTAMP( ? , 'YYYY-MM-DD') AND updated_at < TO_TIMESTAMP( ? , 'YYYY-MM-DD') ORDER BY generation DESC";
+        final List<Object> expectedOperands = List.of("2024-05-06", "2024-05-04");
         final List<Filter> filters = List.of(
                 new Filter("system", "created_at", Filter.FILTER_OPERATOR_SINCE, "2024-05-06"),
+                new Filter("system", "updated_at", Filter.FILTER_OPERATOR_BEFORE, "2024-05-04"),
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY_DESC, "desc")
         );
         try {
