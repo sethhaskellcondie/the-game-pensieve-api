@@ -219,9 +219,15 @@ public class Filter {
             throw exceptionInvalidFilter;
         }
 
-        whereFilters.add(orderByFilter.get(0));
-        whereFilters.add(limitFilter.get(0));
-        whereFilters.add(offsetFilter.get(0));
+        if (orderByFilter.size() == 1) {
+            whereFilters.add(orderByFilter.get(0));
+        }
+        if (limitFilter.size() == 1) {
+            whereFilters.add(limitFilter.get(0));
+        }
+        if (offsetFilter.size() == 1) {
+            whereFilters.add(offsetFilter.get(0));
+        }
         return whereFilters;
     }
 
@@ -240,12 +246,10 @@ public class Filter {
                         FILTER_OPERATOR_ENDS_WITH -> {
                     whereStatements.add(" AND " + filter.getField() + " LIKE ?");
                 }
-                case FILTER_OPERATOR_GREATER_THAN,
-                        FILTER_OPERATOR_SINCE -> {
-                    whereStatements.add(" AND " + filter.getField() + " > TO_TIMESTAMP( ? , 'YYYY-MM-DD')");
+                case FILTER_OPERATOR_GREATER_THAN -> {
+                    whereStatements.add(" AND " + filter.getField() + " > ?");
                 }
-                case FILTER_OPERATOR_LESS_THAN,
-                        FILTER_OPERATOR_BEFORE -> {
+                case FILTER_OPERATOR_LESS_THAN -> {
                     whereStatements.add(" AND " + filter.getField() + " < ?");
                 }
                 case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
@@ -259,6 +263,12 @@ public class Filter {
                 }
                 case FILTER_OPERATOR_ORDER_BY_DESC -> {
                     whereStatements.add(" ORDER BY " + filter.getField() + " DESC");
+                }
+                case FILTER_OPERATOR_SINCE -> {
+                    whereStatements.add(" AND " + filter.getField() + " > TO_TIMESTAMP( ? , 'YYYY-MM-DD')");
+                }
+                case FILTER_OPERATOR_BEFORE -> {
+                    whereStatements.add(" AND " + filter.getField() + " < TO_TIMESTAMP( ? , 'YYYY-MM-DD')");
                 }
                 case FILTER_OPERATOR_LIMIT -> {
                     whereStatements.add(" LIMIT ?");
