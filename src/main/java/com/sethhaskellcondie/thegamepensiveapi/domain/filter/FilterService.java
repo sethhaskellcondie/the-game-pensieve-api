@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class FilterService {
@@ -14,7 +15,7 @@ public class FilterService {
         //using a linkedHashMap to preserve the order of the elements as they are added to the map.
         Map<String, List<String>> filters = new LinkedHashMap<>();
         for (Map.Entry<String, String> field : fields.entrySet()) {
-            filters.put(field.getKey(), Filter.getFilterOperators(field.getValue()));
+            filters.put(field.getKey(), Filter.getFilterOperators(field.getValue(), false));
         }
         return filters;
     }

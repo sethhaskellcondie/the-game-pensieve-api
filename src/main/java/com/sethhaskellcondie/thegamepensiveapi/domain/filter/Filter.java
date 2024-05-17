@@ -21,10 +21,14 @@ import static java.lang.Integer.parseInt;
  * want to build it myself.
  */
 public class Filter {
+    public static final String ALL_FIELDS = "all_fields";
+    public static final String PAGINATION_FIELDS = "pagination_fields";
+
     public static final String FIELD_TYPE_STRING = "string";
     public static final String FIELD_TYPE_NUMBER = "number";
     public static final String FIELD_TYPE_BOOLEAN = "boolean";
     public static final String FIELD_TYPE_TIME = "time";
+    public static final String FIELD_TYPE_SORT = "sort";
     public static final String FIELD_TYPE_ENUM = "enum";
     public static final String FIELD_TYPE_PAGINATION = "pagination";
 
@@ -110,11 +114,12 @@ public class Filter {
         }
         fields.put("created_at", FIELD_TYPE_TIME);
         fields.put("updated_at", FIELD_TYPE_TIME);
-        fields.put("pagination", FIELD_TYPE_PAGINATION);
+        fields.put(ALL_FIELDS, FIELD_TYPE_SORT);
+        fields.put(PAGINATION_FIELDS, FIELD_TYPE_PAGINATION);
         return fields;
     }
 
-    public static List<String> getFilterOperators(String fieldType) {
+    public static List<String> getFilterOperators(String fieldType, boolean includeSort) {
         List<String> filters = new ArrayList<>();
         if (null == fieldType) {
             return filters;
@@ -146,6 +151,13 @@ public class Filter {
                 filters.add(FILTER_OPERATOR_EQUALS);
                 filters.add(FILTER_OPERATOR_NOT_EQUALS);
             }
+            case FIELD_TYPE_SORT -> {
+                //don't include the sort fields twice
+                if (!includeSort) {
+                    filters.add(FILTER_OPERATOR_ORDER_BY);
+                    filters.add(FILTER_OPERATOR_ORDER_BY_DESC);
+                }
+            }
             case FIELD_TYPE_PAGINATION -> {
                 filters.add(FILTER_OPERATOR_LIMIT);
                 filters.add(FILTER_OPERATOR_OFFSET);
@@ -154,8 +166,10 @@ public class Filter {
                 return new ArrayList<>();
             }
         }
-        filters.add(FILTER_OPERATOR_ORDER_BY);
-        filters.add(FILTER_OPERATOR_ORDER_BY_DESC);
+        if (includeSort) {
+            filters.add(FILTER_OPERATOR_ORDER_BY);
+            filters.add(FILTER_OPERATOR_ORDER_BY_DESC);
+        }
         return filters;
     }
 
@@ -173,11 +187,8 @@ public class Filter {
                 exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
             }
             String fieldType = fields.get(filter.getField());
-            List<String> operators = getFilterOperators(fieldType);
-            if (!operators.contains(filter.getOperator()) &&
-                    !Objects.equals(filter.getResource(), FILTER_OPERATOR_ORDER_BY) &&
-                    !Objects.equals(filter.getResource(), FILTER_OPERATOR_ORDER_BY_DESC)
-            ) {
+            List<String> operators = getFilterOperators(fieldType, true);
+            if (!operators.contains(filter.getOperator())) {
                 exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator());
             }
             for (String blacklistedWord : getBlacklistedWords()) {
@@ -186,24 +197,29 @@ public class Filter {
                 }
             }
 
+            //TODO refactor this section to not use triple if statements
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_NUMBER) || Objects.equals(fields.get(filter.field), FIELD_TYPE_PAGINATION)) {
-                try {
-                    parseInt(filter.operand);
-                } catch (NumberFormatException exception) {
-                    exceptionInvalidFilter.addException("Number and Pagination must include whole numbers as operands");
+                if (!Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY_DESC)) {
+                    try {
+                        parseInt(filter.operand);
+                    } catch (NumberFormatException exception) {
+                        exceptionInvalidFilter.addException("Number and Pagination must include whole numbers as operands");
+                    }
                 }
             }
 
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_BOOLEAN)) {
-                if (!Objects.equals(filter.operand, "true") && !Objects.equals(filter.operand, "false")) {
-                    exceptionInvalidFilter.addException("operands for Boolean type filters must equal exactly 'true' or 'false'");
+                if (!Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY_DESC)) {
+                    if (!Objects.equals(filter.operand, "true") && !Objects.equals(filter.operand, "false")) {
+                        exceptionInvalidFilter.addException("operands for Boolean type filters must equal exactly 'true' or 'false'");
+                    }
                 }
             }
 
             //TODO test the time filters to make sure they are formatted correctly
 
             switch (filter.getOperator()) {
-                case FILTER_OPERATOR_ORDER_BY -> {
+                case FILTER_OPERATOR_ORDER_BY, FILTER_OPERATOR_ORDER_BY_DESC -> {
                     orderByFilter.add(filter);
                 }
                 case FILTER_OPERATOR_LIMIT -> {

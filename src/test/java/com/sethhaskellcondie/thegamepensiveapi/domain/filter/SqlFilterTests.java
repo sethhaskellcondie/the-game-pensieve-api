@@ -60,12 +60,12 @@ public class SqlFilterTests {
     void validateAndOrderFilters_FiltersInWrongOrder_ReturnedInTheCorrectOrder() {
         Filter whereFilter = new Filter("system", "name", Filter.FILTER_OPERATOR_CONTAINS, "Force");
         Filter orderByFilter = new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc");
-        Filter limitFilter = new Filter("system", "pagination", Filter.FILTER_OPERATOR_LIMIT, "3");
-        Filter offsetFilter = new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "2");
+        Filter limitFilter = new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "3");
+        Filter offsetFilter = new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "2");
 
         final List<Filter> expected = List.of(whereFilter, orderByFilter, limitFilter, offsetFilter);
         final List<Filter> wrongOrder = List.of(offsetFilter, limitFilter, orderByFilter, whereFilter);
-        List<Filter> actual = Filter.validateAndOrderFilters(wrongOrder);
+        List<Filter> actual = null;
         try {
             actual = Filter.validateAndOrderFilters(wrongOrder);
         } catch (ExceptionInvalidFilter exception) {
@@ -78,11 +78,11 @@ public class SqlFilterTests {
     void validateAndOrderFilters_TooManyOrderByLimitAndOffsetFilters_ReturnExceptionWithMultipleErrors() {
         final List<Filter> filters = List.of(
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "desc"),
-                new Filter("system", "pagination", Filter.FILTER_OPERATOR_LIMIT, "3"),
-                new Filter("system", "pagination", Filter.FILTER_OPERATOR_LIMIT, "4"),
-                new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "1"),
-                new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "2")
+                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY_DESC, "desc"),
+                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "3"),
+                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "4"),
+                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "1"),
+                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "2")
         );
         boolean exceptionCaught = false;
         try {
@@ -103,7 +103,7 @@ public class SqlFilterTests {
     void validateAndOrderFilters_MissingLimitWhileOffSetIncluded_ThrowException() {
         final List<Filter> filters = List.of(
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
-                new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "2")
+                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "2")
         );
         boolean exceptionCaught = false;
         try {
@@ -220,8 +220,8 @@ public class SqlFilterTests {
         final List<Object> expectedOperands = List.of(5, 1);
         final List<Filter> filters = List.of(
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
-                new Filter("system", "pagination", Filter.FILTER_OPERATOR_LIMIT, "5"),
-                new Filter("system", "pagination", Filter.FILTER_OPERATOR_OFFSET, "1")
+                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "5"),
+                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "1")
         );
         try {
             Filter.validateAndOrderFilters(filters);
