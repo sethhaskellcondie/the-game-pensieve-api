@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 
 import java.util.ArrayList;
@@ -184,10 +185,23 @@ public class Filter {
                     exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in filters");
                 }
             }
-            //TODO handle the parseInt exception for numbers and pagination filters
-            //TODO check the string in a boolean filter to see if it is 'true' or 'false'
+
+            if (Objects.equals(fields.get(filter.field), FIELD_TYPE_NUMBER) || Objects.equals(fields.get(filter.field), FIELD_TYPE_PAGINATION)) {
+                try {
+                    parseInt(filter.operand);
+                } catch (NumberFormatException exception) {
+                    exceptionInvalidFilter.addException("Number and Pagination must include whole numbers as operands");
+                }
+            }
+
+            if (Objects.equals(fields.get(filter.field), FIELD_TYPE_BOOLEAN)) {
+                if (!Objects.equals(filter.operand, "true") && !Objects.equals(filter.operand, "false")) {
+                    exceptionInvalidFilter.addException("operands for Boolean type filters must equal exactly 'true' or 'false'");
+                }
+            }
 
             //TODO test the time filters to make sure they are formatted correctly
+
             switch (filter.getOperator()) {
                 case FILTER_OPERATOR_ORDER_BY -> {
                     orderByFilter.add(filter);
@@ -322,10 +336,18 @@ public class Filter {
         switch (fields.get(filter.field)) {
             case FIELD_TYPE_NUMBER,
                     FIELD_TYPE_PAGINATION -> {
-                return parseInt(filter.operand);
+                try {
+                    return parseInt(filter.operand);
+                } catch (NumberFormatException exception) {
+                    throw new ExceptionInternalError("Filters not validated before casting operands, call validateAndOrderFilters() before calling formatOperands()");
+                }
             }
             case FIELD_TYPE_BOOLEAN -> {
-                return Boolean.parseBoolean(filter.operand);
+                if (Objects.equals(filter.operand, "true") || Objects.equals(filter.operand, "false")) {
+                    return Boolean.parseBoolean(filter.operand);
+                } else {
+                    throw new ExceptionInternalError("Filters not validated before casting operands, call validateAndOrderFilters() before calling formatOperands()");
+                }
             }
             default -> {
                 return filter.operand;

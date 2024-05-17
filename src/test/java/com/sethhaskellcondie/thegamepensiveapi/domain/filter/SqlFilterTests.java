@@ -122,6 +122,24 @@ public class SqlFilterTests {
     }
 
     @Test
+    void validationAndOrderFilters_ErrorOnCastingBooleanAndInteger_ThrowException() {
+        final List<Filter> filters = List.of(
+                new Filter("system", "generation", Filter.FILTER_OPERATOR_GREATER_THAN, "not_a_number"),
+                new Filter("system", "handheld", Filter.FILTER_OPERATOR_EQUALS, "not_a_boolean")
+        );
+        boolean exceptionCaught = false;
+        try {
+            Filter.validateAndOrderFilters(filters);
+        } catch (ExceptionInvalidFilter exception) {
+            exceptionCaught = true;
+            assertEquals(2, exception.getMessages().size(), "Malformed ExceptionInvalidFilter thrown while testing the casting of boolean and number filters.");
+        }
+        if (!exceptionCaught) {
+            fail("ExceptionInvalidFilter not caught when it should have been while testing the casting of boolean and number filters.");
+        }
+    }
+
+    @Test
     void formatWhereStatementsAndOperands_StringFilters_ValidSql() {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND name = ? AND name <> ? AND name LIKE ? AND name LIKE ? AND name LIKE ?";
         final List<Object> expectedOperands = List.of(
