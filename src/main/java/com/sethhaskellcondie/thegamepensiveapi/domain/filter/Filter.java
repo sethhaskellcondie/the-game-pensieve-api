@@ -3,6 +3,8 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -216,7 +218,15 @@ public class Filter {
                 }
             }
 
-            //TODO test the time filters to make sure they are formatted correctly
+            if (Objects.equals(fields.get(filter.field), FIELD_TYPE_TIME)) {
+                if (!Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY_DESC)) {
+                    try {
+                        Timestamp.valueOf(filter.operand);
+                    } catch (IllegalArgumentException exception) {
+                        exceptionInvalidFilter.addException("operands for Time type filters must be able to format to yyyy-mm-dd hh:mm:ss");
+                    }
+                }
+            }
 
             switch (filter.getOperator()) {
                 case FILTER_OPERATOR_ORDER_BY, FILTER_OPERATOR_ORDER_BY_DESC -> {
@@ -295,10 +305,10 @@ public class Filter {
                     whereStatements.add(" ORDER BY " + filter.getField() + " DESC");
                 }
                 case FILTER_OPERATOR_SINCE -> {
-                    whereStatements.add(" AND " + filter.getField() + " > TO_TIMESTAMP( ? , 'YYYY-MM-DD')");
+                    whereStatements.add(" AND " + filter.getField() + " >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
                 }
                 case FILTER_OPERATOR_BEFORE -> {
-                    whereStatements.add(" AND " + filter.getField() + " < TO_TIMESTAMP( ? , 'YYYY-MM-DD')");
+                    whereStatements.add(" AND " + filter.getField() + " <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
                 }
                 case FILTER_OPERATOR_LIMIT -> {
                     whereStatements.add(" LIMIT ?");

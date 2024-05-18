@@ -122,7 +122,7 @@ public class SqlFilterTests {
     }
 
     @Test
-    void validationAndOrderFilters_ErrorOnCastingBooleanAndInteger_ThrowException() {
+    void validateAndOrderFilters_ErrorOnCastingBooleanAndInteger_ThrowException() {
         final List<Filter> filters = List.of(
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_GREATER_THAN, "not_a_number"),
                 new Filter("system", "handheld", Filter.FILTER_OPERATOR_EQUALS, "not_a_boolean")
@@ -140,7 +140,25 @@ public class SqlFilterTests {
     }
 
     @Test
-    void formatWhereStatementsAndOperands_StringFilters_ValidSql() {
+    void validateAndOrderFilters_TimeFiltersIncorrectlyFormatted_ThrowException() {
+        final List<Filter> filters = List.of(
+                new Filter("system", "created_at", Filter.FILTER_OPERATOR_SINCE, "2024-05-32"),
+                new Filter("system", "updated_at", Filter.FILTER_OPERATOR_BEFORE, "2024-13-06")
+        );
+        boolean exceptionCaught = false;
+        try {
+            Filter.validateAndOrderFilters(filters);
+        } catch (ExceptionInvalidFilter exception) {
+            exceptionCaught = true;
+            assertEquals(2, exception.getMessages().size(), "Malformed ExceptionInvalidFilter thrown while testing time operator format.");
+        }
+        if (!exceptionCaught) {
+            fail("ExceptionInvalidFilter not caught when it should have been while testing time operator format.");
+        }
+    }
+
+    @Test
+    void formatWhereStatementsAndFormatOperands_StringFilters_ValidSql() {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND name = ? AND name <> ? AND name LIKE ? AND name LIKE ? AND name LIKE ?";
         final List<Object> expectedOperands = List.of(
                 "SuperMegaForceWin",
@@ -169,7 +187,7 @@ public class SqlFilterTests {
     }
 
     @Test
-    void formatWhereStatementsAndOperands_NumberFilters_ValidSql() {
+    void formatWhereStatementsAndFormatOperands_NumberFilters_ValidSql() {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND generation = ? AND generation <> ? AND generation > ? AND generation >= ? AND generation < ? AND generation <= ?";
         final List<Object> expectedOperands = List.of(3, 4, 5, 6, 7, 8);
         final List<Filter> filters = List.of(
@@ -193,7 +211,7 @@ public class SqlFilterTests {
     }
 
     @Test
-    void formatWhereStatementsAndOperands_BooleanFilters_ValidSql() {
+    void formatWhereStatementsAndFormatOperands_BooleanFilters_ValidSql() {
         //This SQL wouldn't return any results, because we are testing the same field with true and false
         //perhaps I will update this when another resource has two different boolean fields
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND handheld = ? AND handheld = ?";
@@ -215,7 +233,7 @@ public class SqlFilterTests {
     }
 
     @Test
-    void formatWhereStatementsAndOperands_PaginationFilters_ValidSql() {
+    void formatWhereStatementsAndFormatOperands_PaginationFilters_ValidSql() {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 ORDER BY generation ASC LIMIT ? OFFSET ?";
         final List<Object> expectedOperands = List.of(5, 1);
         final List<Filter> filters = List.of(
@@ -236,12 +254,13 @@ public class SqlFilterTests {
     }
 
     @Test
-    void formatWhereStatementsAndOperands_TimeFilters_ValidSql() {
-        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND created_at > TO_TIMESTAMP( ? , 'YYYY-MM-DD') AND updated_at < TO_TIMESTAMP( ? , 'YYYY-MM-DD') ORDER BY generation DESC";
-        final List<Object> expectedOperands = List.of("2024-05-06", "2024-05-04");
+    void formatWhereStatementsAndFormatOperands_TimeFilters_ValidSql() {
+        final String expectedSql =
+                "SELECT * FROM systems WHERE 1 = 1 AND created_at >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') AND updated_at <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') ORDER BY generation DESC";
+        final List<Object> expectedOperands = List.of("2024-05-06 00:00:00", "2024-05-04 00:00:00");
         final List<Filter> filters = List.of(
-                new Filter("system", "created_at", Filter.FILTER_OPERATOR_SINCE, "2024-05-06"),
-                new Filter("system", "updated_at", Filter.FILTER_OPERATOR_BEFORE, "2024-05-04"),
+                new Filter("system", "created_at", Filter.FILTER_OPERATOR_SINCE, "2024-05-06 00:00:00"),
+                new Filter("system", "updated_at", Filter.FILTER_OPERATOR_BEFORE, "2024-05-04 00:00:00"),
                 new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY_DESC, "desc")
         );
         try {
