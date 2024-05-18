@@ -11,7 +11,7 @@ import java.util.Objects;
 public class FilterService {
 
     public Map<String, List<String>> getFiltersForResource(String resource) {
-        Map<String, String> fields = Filter.getFieldsForResource(resource);
+        Map<String, String> fields = FilterResource.getFieldsForResource(resource);
         //using a linkedHashMap to preserve the order of the elements as they are added to the map.
         Map<String, List<String>> filters = new LinkedHashMap<>();
         for (Map.Entry<String, String> field : fields.entrySet()) {

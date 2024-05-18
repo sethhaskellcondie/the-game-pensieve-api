@@ -5,7 +5,6 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,9 +48,6 @@ public class Filter {
     public static final String OPERATOR_LIMIT = "limit";
     public static final String OPERATOR_OFFSET = "offset";
 
-    public static final String RESOURCE_SYSTEM = "system";
-    public static final String RESOURCE_TOY = "toy";
-
     private final String resource;
     private final String field;
     private final String operator;
@@ -94,31 +90,6 @@ public class Filter {
                 " delete ",   // 'delete' is not allowed
                 " select "    // 'select' is not allowed
                 );
-    }
-
-    //TODO consider moving this function to the Entity so that none of the Filter code in here will need to be changed as new entities are added to the system
-    public static Map<String, String> getFieldsForResource(String resource) {
-        //Using a LinkedHashMap to preserve the order of the elements as they are added to the Map.
-        Map<String, String> fields = new LinkedHashMap<>();
-        switch (resource) {
-            case RESOURCE_SYSTEM -> {
-                fields.put("name", FIELD_TYPE_STRING);
-                fields.put("generation", FIELD_TYPE_NUMBER);
-                fields.put("handheld", FIELD_TYPE_BOOLEAN);
-            }
-            case RESOURCE_TOY -> {
-                fields.put("name", FIELD_TYPE_STRING);
-                fields.put("set", FIELD_TYPE_STRING);
-            }
-            default -> {
-                return new LinkedHashMap<>();
-            }
-        }
-        fields.put("created_at", FIELD_TYPE_TIME);
-        fields.put("updated_at", FIELD_TYPE_TIME);
-        fields.put(ALL_FIELDS, FIELD_TYPE_SORT);
-        fields.put(PAGINATION_FIELDS, FIELD_TYPE_PAGINATION);
-        return fields;
     }
 
     /**
@@ -184,7 +155,7 @@ public class Filter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
-            Map<String, String> fields = getFieldsForResource(filter.getResource());
+            Map<String, String> fields = FilterResource.getFieldsForResource(filter.getResource());
             if (!fields.containsKey(filter.getField())) {
                 exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
             }
@@ -376,7 +347,7 @@ public class Filter {
     }
 
     private static Object castOperand(Filter filter) {
-        Map<String, String> fields = getFieldsForResource(filter.resource);
+        Map<String, String> fields = FilterResource.getFieldsForResource(filter.resource);
 
         switch (fields.get(filter.field)) {
             case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> {
