@@ -22,6 +22,6 @@ public class SystemGatewayTests extends EntityGatewayTests<System, SystemRequest
 
     @Override
     protected Filter startsWithFilter() {
-        return new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, startsWith);
+        return new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
     }
 }

@@ -22,6 +22,6 @@ public class ToyGatewayTests extends EntityGatewayTests<Toy, ToyRequestDto, ToyR
 
     @Override
     protected Filter startsWithFilter() {
-        return new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, startsWith);
+        return new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
     }
 }

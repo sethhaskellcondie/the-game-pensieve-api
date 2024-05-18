@@ -132,7 +132,7 @@ public class SystemTestRestTemplateTests {
         final ResponseEntity<Map> result2 = this.postCustomSystem(name2, generation2, handheld2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "startsWith");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
         final Map<String, List<Filter>> requestBody = new HashMap<>();
         requestBody.put("filters", List.of(filter));
         final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
@@ -145,7 +145,7 @@ public class SystemTestRestTemplateTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() {
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         final Map<String, List<Filter>> requestBody = new HashMap<>();
         requestBody.put("filters", List.of(filter));
         final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);

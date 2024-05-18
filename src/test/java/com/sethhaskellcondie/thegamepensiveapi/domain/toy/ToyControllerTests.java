@@ -79,7 +79,7 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
-        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "startsWith");
+        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
         final Toy toy1 = new Toy(1, "Mega Man", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         final Toy toy2 = new Toy(2, "Samus", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         final List<Toy> toys = List.of(toy1, toy2);
@@ -101,7 +101,7 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
         final String jsonContent = generateValidFilterPayload(filter);

@@ -33,7 +33,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
 
     @Override
     protected Filter startsWithFilter() {
-        return new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, startsWith);
+        return new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
     }
 
     @Override

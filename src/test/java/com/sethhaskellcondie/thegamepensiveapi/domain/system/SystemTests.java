@@ -143,7 +143,7 @@ public class SystemTests {
         final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "Mega ");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
         final ResultActions result = mockMvc.perform(post("/systems/search")
@@ -160,7 +160,7 @@ public class SystemTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
         final ResultActions result = mockMvc.perform(post("/systems/search")

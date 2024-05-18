@@ -4,7 +4,6 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalError
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 
 import java.sql.Timestamp;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,7 +15,7 @@ import static java.lang.Integer.parseInt;
 /**
  * Filters are completely decoupled from the Entities they work with. We could pull in the database fields or
  * the fields on the entity class but instead the field must be manually entered in the fields map as it would
- * work in a SQL query to be used on that table. Perhaps in the future they will couple together and the basic
+ * work in a SQL query to be used on that table. Perhaps in the future they will be more tightly coupled and the basic
  * filters will work automagically but as for now setting up and using filters must be done manually.
  * <p>
  * Another direction that I could go is trying to find a library that already does this. But in this project I
@@ -34,21 +33,21 @@ public class Filter {
     public static final String FIELD_TYPE_ENUM = "enum";
     public static final String FIELD_TYPE_PAGINATION = "pagination";
 
-    public static final String FILTER_OPERATOR_EQUALS = "equals";
-    public static final String FILTER_OPERATOR_NOT_EQUALS = "not_equals";
-    public static final String FILTER_OPERATOR_CONTAINS = "contains";
-    public static final String FILTER_OPERATOR_STARTS_WITH = "starts_with";
-    public static final String FILTER_OPERATOR_ENDS_WITH = "ends_with";
-    public static final String FILTER_OPERATOR_GREATER_THAN = "greater_than";
-    public static final String FILTER_OPERATOR_LESS_THAN = "less_than";
-    public static final String FILTER_OPERATOR_GREATER_THAN_EQUAL_TO = "greater_than_equal_to";
-    public static final String FILTER_OPERATOR_LESS_THAN_EQUAL_TO = "less_than_equal_to";
-    public static final String FILTER_OPERATOR_SINCE = "since";
-    public static final String FILTER_OPERATOR_BEFORE = "before";
-    public static final String FILTER_OPERATOR_ORDER_BY = "order_by";
-    public static final String FILTER_OPERATOR_ORDER_BY_DESC = "order_by_desc";
-    public static final String FILTER_OPERATOR_LIMIT = "limit";
-    public static final String FILTER_OPERATOR_OFFSET = "offset";
+    public static final String OPERATOR_EQUALS = "equals";
+    public static final String OPERATOR_NOT_EQUALS = "not_equals";
+    public static final String OPERATOR_CONTAINS = "contains";
+    public static final String OPERATOR_STARTS_WITH = "starts_with";
+    public static final String OPERATOR_ENDS_WITH = "ends_with";
+    public static final String OPERATOR_GREATER_THAN = "greater_than";
+    public static final String OPERATOR_LESS_THAN = "less_than";
+    public static final String OPERATOR_GREATER_THAN_EQUAL_TO = "greater_than_equal_to";
+    public static final String OPERATOR_LESS_THAN_EQUAL_TO = "less_than_equal_to";
+    public static final String OPERATOR_SINCE = "since";
+    public static final String OPERATOR_BEFORE = "before";
+    public static final String OPERATOR_ORDER_BY = "order_by";
+    public static final String OPERATOR_ORDER_BY_DESC = "order_by_desc";
+    public static final String OPERATOR_LIMIT = "limit";
+    public static final String OPERATOR_OFFSET = "offset";
 
     public static final String RESOURCE_SYSTEM = "system";
     public static final String RESOURCE_TOY = "toy";
@@ -97,6 +96,7 @@ public class Filter {
                 );
     }
 
+    //TODO consider moving this function to the Entity so that none of the Filter code in here will need to be changed as new entities are added to the system
     public static Map<String, String> getFieldsForResource(String resource) {
         //Using a LinkedHashMap to preserve the order of the elements as they are added to the Map.
         Map<String, String> fields = new LinkedHashMap<>();
@@ -128,49 +128,49 @@ public class Filter {
         }
         switch (fieldType) {
             case FIELD_TYPE_STRING -> {
-                filters.add(FILTER_OPERATOR_EQUALS);
-                filters.add(FILTER_OPERATOR_NOT_EQUALS);
-                filters.add(FILTER_OPERATOR_CONTAINS);
-                filters.add(FILTER_OPERATOR_STARTS_WITH);
-                filters.add(FILTER_OPERATOR_ENDS_WITH);
+                filters.add(OPERATOR_EQUALS);
+                filters.add(OPERATOR_NOT_EQUALS);
+                filters.add(OPERATOR_CONTAINS);
+                filters.add(OPERATOR_STARTS_WITH);
+                filters.add(OPERATOR_ENDS_WITH);
             }
             case FIELD_TYPE_NUMBER -> {
-                filters.add(FILTER_OPERATOR_EQUALS);
-                filters.add(FILTER_OPERATOR_NOT_EQUALS);
-                filters.add(FILTER_OPERATOR_GREATER_THAN);
-                filters.add(FILTER_OPERATOR_GREATER_THAN_EQUAL_TO);
-                filters.add(FILTER_OPERATOR_LESS_THAN);
-                filters.add(FILTER_OPERATOR_LESS_THAN_EQUAL_TO);
+                filters.add(OPERATOR_EQUALS);
+                filters.add(OPERATOR_NOT_EQUALS);
+                filters.add(OPERATOR_GREATER_THAN);
+                filters.add(OPERATOR_GREATER_THAN_EQUAL_TO);
+                filters.add(OPERATOR_LESS_THAN);
+                filters.add(OPERATOR_LESS_THAN_EQUAL_TO);
             }
             case FIELD_TYPE_BOOLEAN -> {
-                filters.add(FILTER_OPERATOR_EQUALS);
+                filters.add(OPERATOR_EQUALS);
             }
             case FIELD_TYPE_TIME -> {
-                filters.add(FILTER_OPERATOR_SINCE);
-                filters.add(FILTER_OPERATOR_BEFORE);
+                filters.add(OPERATOR_SINCE);
+                filters.add(OPERATOR_BEFORE);
             }
             case FIELD_TYPE_ENUM -> {
-                filters.add(FILTER_OPERATOR_EQUALS);
-                filters.add(FILTER_OPERATOR_NOT_EQUALS);
+                filters.add(OPERATOR_EQUALS);
+                filters.add(OPERATOR_NOT_EQUALS);
             }
             case FIELD_TYPE_SORT -> {
                 //don't include the sort fields twice
                 if (!includeSort) {
-                    filters.add(FILTER_OPERATOR_ORDER_BY);
-                    filters.add(FILTER_OPERATOR_ORDER_BY_DESC);
+                    filters.add(OPERATOR_ORDER_BY);
+                    filters.add(OPERATOR_ORDER_BY_DESC);
                 }
             }
             case FIELD_TYPE_PAGINATION -> {
-                filters.add(FILTER_OPERATOR_LIMIT);
-                filters.add(FILTER_OPERATOR_OFFSET);
+                filters.add(OPERATOR_LIMIT);
+                filters.add(OPERATOR_OFFSET);
             }
             default -> {
                 return new ArrayList<>();
             }
         }
         if (includeSort) {
-            filters.add(FILTER_OPERATOR_ORDER_BY);
-            filters.add(FILTER_OPERATOR_ORDER_BY_DESC);
+            filters.add(OPERATOR_ORDER_BY);
+            filters.add(OPERATOR_ORDER_BY_DESC);
         }
         return filters;
     }
@@ -201,7 +201,7 @@ public class Filter {
 
             //TODO refactor this section to not use triple if statements
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_NUMBER) || Objects.equals(fields.get(filter.field), FIELD_TYPE_PAGINATION)) {
-                if (!Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY_DESC)) {
+                if (!Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
                     try {
                         parseInt(filter.operand);
                     } catch (NumberFormatException exception) {
@@ -211,7 +211,7 @@ public class Filter {
             }
 
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_BOOLEAN)) {
-                if (!Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY_DESC)) {
+                if (!Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
                     if (!Objects.equals(filter.operand, "true") && !Objects.equals(filter.operand, "false")) {
                         exceptionInvalidFilter.addException("operands for Boolean type filters must equal exactly 'true' or 'false'");
                     }
@@ -219,7 +219,7 @@ public class Filter {
             }
 
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_TIME)) {
-                if (!Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), FILTER_OPERATOR_ORDER_BY_DESC)) {
+                if (!Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
                     try {
                         Timestamp.valueOf(filter.operand);
                     } catch (IllegalArgumentException exception) {
@@ -229,13 +229,13 @@ public class Filter {
             }
 
             switch (filter.getOperator()) {
-                case FILTER_OPERATOR_ORDER_BY, FILTER_OPERATOR_ORDER_BY_DESC -> {
+                case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> {
                     orderByFilter.add(filter);
                 }
-                case FILTER_OPERATOR_LIMIT -> {
+                case OPERATOR_LIMIT -> {
                     limitFilter.add(filter);
                 }
-                case FILTER_OPERATOR_OFFSET -> {
+                case OPERATOR_OFFSET -> {
                     offsetFilter.add(filter);
                 }
                 default -> {
@@ -244,16 +244,16 @@ public class Filter {
             }
         }
         if (orderByFilter.size() > 1) {
-            exceptionInvalidFilter.addException("No more than one " + FILTER_OPERATOR_ORDER_BY + " allowed in a single request");
+            exceptionInvalidFilter.addException("No more than one " + OPERATOR_ORDER_BY + " allowed in a single request");
         }
         if (limitFilter.size() > 1) {
-            exceptionInvalidFilter.addException("No more than one " + FILTER_OPERATOR_LIMIT + " allowed in a single request");
+            exceptionInvalidFilter.addException("No more than one " + OPERATOR_LIMIT + " allowed in a single request");
         }
         if (offsetFilter.size() > 1) {
-            exceptionInvalidFilter.addException("No more than one " + FILTER_OPERATOR_OFFSET + " allowed in a single request");
+            exceptionInvalidFilter.addException("No more than one " + OPERATOR_OFFSET + " allowed in a single request");
         }
         if (limitFilter.size() < 1 && offsetFilter.size() > 0) {
-            exceptionInvalidFilter.addException(FILTER_OPERATOR_OFFSET + " filter is not allowed without also including one " + FILTER_OPERATOR_LIMIT + " filter");
+            exceptionInvalidFilter.addException(OPERATOR_OFFSET + " filter is not allowed without also including one " + OPERATOR_LIMIT + " filter");
         }
         if (exceptionInvalidFilter.exceptionsFound()) {
             throw exceptionInvalidFilter;
@@ -275,45 +275,45 @@ public class Filter {
         List<String> whereStatements = new ArrayList<>();
         for (Filter filter : filters) {
             switch (filter.getOperator()) {
-                case FILTER_OPERATOR_EQUALS -> {
+                case OPERATOR_EQUALS -> {
                     whereStatements.add(" AND " + filter.getField() + " = ?");
                 }
-                case FILTER_OPERATOR_NOT_EQUALS -> {
+                case OPERATOR_NOT_EQUALS -> {
                     whereStatements.add(" AND " + filter.getField() + " <> ?");
                 }
-                case FILTER_OPERATOR_CONTAINS,
-                        FILTER_OPERATOR_STARTS_WITH,
-                        FILTER_OPERATOR_ENDS_WITH -> {
+                case OPERATOR_CONTAINS,
+                        OPERATOR_STARTS_WITH,
+                        OPERATOR_ENDS_WITH -> {
                     whereStatements.add(" AND " + filter.getField() + " LIKE ?");
                 }
-                case FILTER_OPERATOR_GREATER_THAN -> {
+                case OPERATOR_GREATER_THAN -> {
                     whereStatements.add(" AND " + filter.getField() + " > ?");
                 }
-                case FILTER_OPERATOR_LESS_THAN -> {
+                case OPERATOR_LESS_THAN -> {
                     whereStatements.add(" AND " + filter.getField() + " < ?");
                 }
-                case FILTER_OPERATOR_GREATER_THAN_EQUAL_TO -> {
+                case OPERATOR_GREATER_THAN_EQUAL_TO -> {
                     whereStatements.add(" AND " + filter.getField() + " >= ?");
                 }
-                case FILTER_OPERATOR_LESS_THAN_EQUAL_TO -> {
+                case OPERATOR_LESS_THAN_EQUAL_TO -> {
                     whereStatements.add(" AND " + filter.getField() + " <= ?");
                 }
-                case FILTER_OPERATOR_ORDER_BY -> {
+                case OPERATOR_ORDER_BY -> {
                     whereStatements.add(" ORDER BY " + filter.getField() + " ASC");
                 }
-                case FILTER_OPERATOR_ORDER_BY_DESC -> {
+                case OPERATOR_ORDER_BY_DESC -> {
                     whereStatements.add(" ORDER BY " + filter.getField() + " DESC");
                 }
-                case FILTER_OPERATOR_SINCE -> {
+                case OPERATOR_SINCE -> {
                     whereStatements.add(" AND " + filter.getField() + " >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
                 }
-                case FILTER_OPERATOR_BEFORE -> {
+                case OPERATOR_BEFORE -> {
                     whereStatements.add(" AND " + filter.getField() + " <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
                 }
-                case FILTER_OPERATOR_LIMIT -> {
+                case OPERATOR_LIMIT -> {
                     whereStatements.add(" LIMIT ?");
                 }
-                case FILTER_OPERATOR_OFFSET -> {
+                case OPERATOR_OFFSET -> {
                     whereStatements.add(" OFFSET ?");
                 }
             }
@@ -326,29 +326,29 @@ public class Filter {
         for (Filter filter : filters) {
             final Object operand = filter.getOperand();
             switch (filter.getOperator()) {
-                case FILTER_OPERATOR_EQUALS,
-                        FILTER_OPERATOR_NOT_EQUALS,
-                        FILTER_OPERATOR_GREATER_THAN,
-                        FILTER_OPERATOR_LESS_THAN,
-                        FILTER_OPERATOR_GREATER_THAN_EQUAL_TO,
-                        FILTER_OPERATOR_LESS_THAN_EQUAL_TO,
-                        FILTER_OPERATOR_SINCE,
-                        FILTER_OPERATOR_BEFORE,
-                        FILTER_OPERATOR_LIMIT,
-                        FILTER_OPERATOR_OFFSET -> {
+                case OPERATOR_EQUALS,
+                        OPERATOR_NOT_EQUALS,
+                        OPERATOR_GREATER_THAN,
+                        OPERATOR_LESS_THAN,
+                        OPERATOR_GREATER_THAN_EQUAL_TO,
+                        OPERATOR_LESS_THAN_EQUAL_TO,
+                        OPERATOR_SINCE,
+                        OPERATOR_BEFORE,
+                        OPERATOR_LIMIT,
+                        OPERATOR_OFFSET -> {
                     operands.add(castOperand(filter));
                 }
-                case FILTER_OPERATOR_CONTAINS -> {
+                case OPERATOR_CONTAINS -> {
                     operands.add("%" + operand + "%");
                 }
-                case FILTER_OPERATOR_STARTS_WITH -> {
+                case OPERATOR_STARTS_WITH -> {
                     operands.add(operand + "%");
                 }
-                case FILTER_OPERATOR_ENDS_WITH -> {
+                case OPERATOR_ENDS_WITH -> {
                     operands.add("%" + operand);
                 }
-                case FILTER_OPERATOR_ORDER_BY,
-                        FILTER_OPERATOR_ORDER_BY_DESC -> {
+                case OPERATOR_ORDER_BY,
+                        OPERATOR_ORDER_BY_DESC -> {
                     continue;
                 }
             }

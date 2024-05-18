@@ -23,8 +23,8 @@ public class SqlFilterTests {
     @Test
     void validateAndOrderFilters_TwoFiltersSixErrors_ThrowExceptionWithSixMessages() {
         final List<Filter> filters = List.of(
-                new Filter("system", "missingField", Filter.FILTER_OPERATOR_EQUALS, "not allowed ;"),
-                new Filter("system", "anotherMissingField", Filter.FILTER_OPERATOR_STARTS_WITH, "keyword select is not allowed")
+                new Filter("system", "missingField", Filter.OPERATOR_EQUALS, "not allowed ;"),
+                new Filter("system", "anotherMissingField", Filter.OPERATOR_STARTS_WITH, "keyword select is not allowed")
         );
         boolean exceptionCaught = false;
         try {
@@ -42,7 +42,7 @@ public class SqlFilterTests {
     void validateAndOrderFilters_containsAllBlacklistedWords_ThrowsMultipleErrors() {
         final String blacklistedWords = String.join(",", Filter.getBlacklistedWords());
         final List<Filter> filters = List.of(
-                new Filter("system", "name", Filter.FILTER_OPERATOR_EQUALS, blacklistedWords)
+                new Filter("system", "name", Filter.OPERATOR_EQUALS, blacklistedWords)
         );
         boolean exceptionCaught = false;
         try {
@@ -58,10 +58,10 @@ public class SqlFilterTests {
 
     @Test
     void validateAndOrderFilters_FiltersInWrongOrder_ReturnedInTheCorrectOrder() {
-        Filter whereFilter = new Filter("system", "name", Filter.FILTER_OPERATOR_CONTAINS, "Force");
-        Filter orderByFilter = new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc");
-        Filter limitFilter = new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "3");
-        Filter offsetFilter = new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "2");
+        Filter whereFilter = new Filter("system", "name", Filter.OPERATOR_CONTAINS, "Force");
+        Filter orderByFilter = new Filter("system", "generation", Filter.OPERATOR_ORDER_BY, "asc");
+        Filter limitFilter = new Filter("system", "pagination_fields", Filter.OPERATOR_LIMIT, "3");
+        Filter offsetFilter = new Filter("system", "pagination_fields", Filter.OPERATOR_OFFSET, "2");
 
         final List<Filter> expected = List.of(whereFilter, orderByFilter, limitFilter, offsetFilter);
         final List<Filter> wrongOrder = List.of(offsetFilter, limitFilter, orderByFilter, whereFilter);
@@ -77,12 +77,12 @@ public class SqlFilterTests {
     @Test
     void validateAndOrderFilters_TooManyOrderByLimitAndOffsetFilters_ReturnExceptionWithMultipleErrors() {
         final List<Filter> filters = List.of(
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY_DESC, "desc"),
-                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "3"),
-                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "4"),
-                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "1"),
-                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "2")
+                new Filter("system", "generation", Filter.OPERATOR_ORDER_BY, "asc"),
+                new Filter("system", "generation", Filter.OPERATOR_ORDER_BY_DESC, "desc"),
+                new Filter("system", "pagination_fields", Filter.OPERATOR_LIMIT, "3"),
+                new Filter("system", "pagination_fields", Filter.OPERATOR_LIMIT, "4"),
+                new Filter("system", "pagination_fields", Filter.OPERATOR_OFFSET, "1"),
+                new Filter("system", "pagination_fields", Filter.OPERATOR_OFFSET, "2")
         );
         boolean exceptionCaught = false;
         try {
@@ -93,17 +93,17 @@ public class SqlFilterTests {
         }
         if (!exceptionCaught) {
             fail("ExceptionInvalidFilter not caught when it should have been while testing multiple " +
-                    Filter.FILTER_OPERATOR_ORDER_BY + ", " +
-                    Filter.FILTER_OPERATOR_LIMIT + ", and " +
-                    Filter.FILTER_OPERATOR_OFFSET + " filters.");
+                    Filter.OPERATOR_ORDER_BY + ", " +
+                    Filter.OPERATOR_LIMIT + ", and " +
+                    Filter.OPERATOR_OFFSET + " filters.");
         }
     }
 
     @Test
     void validateAndOrderFilters_MissingLimitWhileOffSetIncluded_ThrowException() {
         final List<Filter> filters = List.of(
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
-                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "2")
+                new Filter("system", "generation", Filter.OPERATOR_ORDER_BY, "asc"),
+                new Filter("system", "pagination_fields", Filter.OPERATOR_OFFSET, "2")
         );
         boolean exceptionCaught = false;
         try {
@@ -111,21 +111,21 @@ public class SqlFilterTests {
         } catch (ExceptionInvalidFilter exception) {
             exceptionCaught = true;
             assertEquals(1, exception.getMessages().size(), "Malformed ExceptionInvalidFilter thrown while testing missing " +
-                    Filter.FILTER_OPERATOR_LIMIT + " but included an " +
-                    Filter.FILTER_OPERATOR_OFFSET + " filter.");
+                    Filter.OPERATOR_LIMIT + " but included an " +
+                    Filter.OPERATOR_OFFSET + " filter.");
         }
         if (!exceptionCaught) {
             fail("ExceptionInvalidFilter not caught when it should have been while testing a missing " +
-                    Filter.FILTER_OPERATOR_LIMIT + " but included an " +
-                    Filter.FILTER_OPERATOR_OFFSET + " filter.");
+                    Filter.OPERATOR_LIMIT + " but included an " +
+                    Filter.OPERATOR_OFFSET + " filter.");
         }
     }
 
     @Test
     void validateAndOrderFilters_ErrorOnCastingBooleanAndInteger_ThrowException() {
         final List<Filter> filters = List.of(
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_GREATER_THAN, "not_a_number"),
-                new Filter("system", "handheld", Filter.FILTER_OPERATOR_EQUALS, "not_a_boolean")
+                new Filter("system", "generation", Filter.OPERATOR_GREATER_THAN, "not_a_number"),
+                new Filter("system", "handheld", Filter.OPERATOR_EQUALS, "not_a_boolean")
         );
         boolean exceptionCaught = false;
         try {
@@ -142,8 +142,8 @@ public class SqlFilterTests {
     @Test
     void validateAndOrderFilters_TimeFiltersIncorrectlyFormatted_ThrowException() {
         final List<Filter> filters = List.of(
-                new Filter("system", "created_at", Filter.FILTER_OPERATOR_SINCE, "2024-05-32"),
-                new Filter("system", "updated_at", Filter.FILTER_OPERATOR_BEFORE, "2024-13-06")
+                new Filter("system", "created_at", Filter.OPERATOR_SINCE, "2024-05-32"),
+                new Filter("system", "updated_at", Filter.OPERATOR_BEFORE, "2024-13-06")
         );
         boolean exceptionCaught = false;
         try {
@@ -168,11 +168,11 @@ public class SqlFilterTests {
                 "%Win"
         );
         final List<Filter> filters = List.of(
-                new Filter("system", "name", Filter.FILTER_OPERATOR_EQUALS, "SuperMegaForceWin"),
-                new Filter("system", "name", Filter.FILTER_OPERATOR_NOT_EQUALS, "NotMe"),
-                new Filter("system", "name", Filter.FILTER_OPERATOR_CONTAINS, "Force"),
-                new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "SuperMega"),
-                new Filter("system", "name", Filter.FILTER_OPERATOR_ENDS_WITH, "Win")
+                new Filter("system", "name", Filter.OPERATOR_EQUALS, "SuperMegaForceWin"),
+                new Filter("system", "name", Filter.OPERATOR_NOT_EQUALS, "NotMe"),
+                new Filter("system", "name", Filter.OPERATOR_CONTAINS, "Force"),
+                new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "SuperMega"),
+                new Filter("system", "name", Filter.OPERATOR_ENDS_WITH, "Win")
         );
         try {
             Filter.validateAndOrderFilters(filters);
@@ -191,12 +191,12 @@ public class SqlFilterTests {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND generation = ? AND generation <> ? AND generation > ? AND generation >= ? AND generation < ? AND generation <= ?";
         final List<Object> expectedOperands = List.of(3, 4, 5, 6, 7, 8);
         final List<Filter> filters = List.of(
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_EQUALS, "3"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_NOT_EQUALS, "4"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_GREATER_THAN, "5"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_GREATER_THAN_EQUAL_TO, "6"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_LESS_THAN, "7"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_LESS_THAN_EQUAL_TO, "8")
+                new Filter("system", "generation", Filter.OPERATOR_EQUALS, "3"),
+                new Filter("system", "generation", Filter.OPERATOR_NOT_EQUALS, "4"),
+                new Filter("system", "generation", Filter.OPERATOR_GREATER_THAN, "5"),
+                new Filter("system", "generation", Filter.OPERATOR_GREATER_THAN_EQUAL_TO, "6"),
+                new Filter("system", "generation", Filter.OPERATOR_LESS_THAN, "7"),
+                new Filter("system", "generation", Filter.OPERATOR_LESS_THAN_EQUAL_TO, "8")
         );
         try {
             Filter.validateAndOrderFilters(filters);
@@ -217,8 +217,8 @@ public class SqlFilterTests {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND handheld = ? AND handheld = ?";
         final List<Object> expectedOperands = List.of(true, false);
         final List<Filter> filters = List.of(
-                new Filter("system", "handheld", Filter.FILTER_OPERATOR_EQUALS, "true"),
-                new Filter("system", "handheld", Filter.FILTER_OPERATOR_EQUALS, "false")
+                new Filter("system", "handheld", Filter.OPERATOR_EQUALS, "true"),
+                new Filter("system", "handheld", Filter.OPERATOR_EQUALS, "false")
         );
         try {
             Filter.validateAndOrderFilters(filters);
@@ -237,9 +237,9 @@ public class SqlFilterTests {
         final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 ORDER BY generation ASC LIMIT ? OFFSET ?";
         final List<Object> expectedOperands = List.of(5, 1);
         final List<Filter> filters = List.of(
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY, "asc"),
-                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_LIMIT, "5"),
-                new Filter("system", "pagination_fields", Filter.FILTER_OPERATOR_OFFSET, "1")
+                new Filter("system", "generation", Filter.OPERATOR_ORDER_BY, "asc"),
+                new Filter("system", "pagination_fields", Filter.OPERATOR_LIMIT, "5"),
+                new Filter("system", "pagination_fields", Filter.OPERATOR_OFFSET, "1")
         );
         try {
             Filter.validateAndOrderFilters(filters);
@@ -259,9 +259,9 @@ public class SqlFilterTests {
                 "SELECT * FROM systems WHERE 1 = 1 AND created_at >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') AND updated_at <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') ORDER BY generation DESC";
         final List<Object> expectedOperands = List.of("2024-05-06 00:00:00", "2024-05-04 00:00:00");
         final List<Filter> filters = List.of(
-                new Filter("system", "created_at", Filter.FILTER_OPERATOR_SINCE, "2024-05-06 00:00:00"),
-                new Filter("system", "updated_at", Filter.FILTER_OPERATOR_BEFORE, "2024-05-04 00:00:00"),
-                new Filter("system", "generation", Filter.FILTER_OPERATOR_ORDER_BY_DESC, "desc")
+                new Filter("system", "created_at", Filter.OPERATOR_SINCE, "2024-05-06 00:00:00"),
+                new Filter("system", "updated_at", Filter.OPERATOR_BEFORE, "2024-05-04 00:00:00"),
+                new Filter("system", "generation", Filter.OPERATOR_ORDER_BY_DESC, "desc")
         );
         try {
             Filter.validateAndOrderFilters(filters);

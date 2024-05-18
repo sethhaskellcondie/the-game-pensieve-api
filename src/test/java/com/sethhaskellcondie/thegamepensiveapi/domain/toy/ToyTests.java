@@ -112,7 +112,7 @@ public class ToyTests {
         ResultActions result2 = factory.postCustomToy(name2, set2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
-        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "Something ");
+        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "Something ");
         final String formattedJson = factory.formatFiltersPayload(filter);
 
         final ResultActions result = mockMvc.perform(post("/toys/search")
@@ -129,7 +129,7 @@ public class ToyTests {
 
     @Test
     void getAllToys_NoResultFilter_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "NoResults");
+        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "NoResults");
         final String formattedJson = factory.formatFiltersPayload(filter);
         final ResultActions result = mockMvc.perform(post("/toys/search")
                 .contentType(MediaType.APPLICATION_JSON)

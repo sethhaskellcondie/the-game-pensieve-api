@@ -29,7 +29,7 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
 
     @Override
     protected Filter startsWithFilter() {
-        return new Filter("toy", "name", Filter.FILTER_OPERATOR_STARTS_WITH, startsWith);
+        return new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
     }
 
     @Override

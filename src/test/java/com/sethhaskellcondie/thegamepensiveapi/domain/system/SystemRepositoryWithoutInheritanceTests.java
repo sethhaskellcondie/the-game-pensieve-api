@@ -90,7 +90,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final SystemRequestDto requestDto2 = new SystemRequestDto(name2, generation2, handheld2);
         final System expected2 = repository.insert(requestDto2);
 
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "Epic ");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Epic ");
         List<System> actual = repository.getWithFilters(List.of(filter));
 
         assertEquals(2, actual.size());
@@ -101,7 +101,7 @@ public class SystemRepositoryWithoutInheritanceTests {
     @Test
     void getWithFilters_NoFilters_ReturnEmptyList() throws ExceptionInvalidFilter {
 
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "NoResults");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "NoResults");
         List<System> actual = repository.getWithFilters(List.of(filter));
 
         assertEquals(0, actual.size());

@@ -88,7 +88,7 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "startsWith");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
         final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         final List<System> systems = List.of(system1, system2);
@@ -110,7 +110,7 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("system", "name", Filter.FILTER_OPERATOR_STARTS_WITH, "noResults");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
         final String jsonContent = generateValidFilterPayload(filter);
