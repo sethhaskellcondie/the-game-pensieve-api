@@ -48,20 +48,20 @@ public class Filter {
     public static final String OPERATOR_LIMIT = "limit";
     public static final String OPERATOR_OFFSET = "offset";
 
-    private final String resource;
+    private final String key;
     private final String field;
     private final String operator;
     private final String operand;
 
-    public Filter(String resource, String field, String operator, String operand) {
-        this.resource = resource;
+    public Filter(String key, String field, String operator, String operand) {
+        this.key = key;
         this.field = field;
         this.operator = operator;
         this.operand = operand;
     }
 
-    public String getResource() {
-        return resource;
+    public String getKey() {
+        return key;
     }
 
     public String getField() {
@@ -155,9 +155,9 @@ public class Filter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
-            Map<String, String> fields = FilterEntity.getFieldsForResource(filter.getResource());
+            Map<String, String> fields = FilterEntity.getFilterFieldsByKey(filter.getKey());
             if (!fields.containsKey(filter.getField())) {
-                exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
+                exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
             }
             String fieldType = fields.get(filter.getField());
             List<String> operators = getFilterOperators(fieldType, true);
@@ -349,7 +349,7 @@ public class Filter {
     }
 
     private static Object castOperand(Filter filter) {
-        Map<String, String> fields = FilterEntity.getFieldsForResource(filter.resource);
+        Map<String, String> fields = FilterEntity.getFilterFieldsByKey(filter.key);
 
         switch (fields.get(filter.field)) {
             case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> {

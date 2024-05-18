@@ -255,7 +255,7 @@ public class ToyControllerTests {
                   ]
                 }
                 """;
-        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {

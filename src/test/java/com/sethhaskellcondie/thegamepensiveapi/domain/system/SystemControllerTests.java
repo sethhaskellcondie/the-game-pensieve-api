@@ -284,7 +284,7 @@ public class SystemControllerTests {
                   ]
                 }
                 """;
-        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateSystemResponseBody(ResultActions result, System expectedSystem) throws Exception {

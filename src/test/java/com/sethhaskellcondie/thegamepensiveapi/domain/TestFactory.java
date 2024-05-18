@@ -26,7 +26,7 @@ public class TestFactory {
                 {
                   "filters": [
                     {
-                      "resource": "%s",
+                      "key": "%s",
                       "field": "%s",
                       "operator": "%s",
                       "operand": "%s"
@@ -34,7 +34,7 @@ public class TestFactory {
                   ]
                 }
                 """;
-        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     public ResultActions postSystem() throws Exception {

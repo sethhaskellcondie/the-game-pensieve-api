@@ -99,7 +99,7 @@ public class ToyWebTestClientTests {
                 {
                   "filters": [
                     {
-                      "resource": "toy",
+                      "key": "toy",
                       "field": "name",
                       "operator": "starts_with",
                       "operand": "Epic "
@@ -124,7 +124,7 @@ public class ToyWebTestClientTests {
                 {
                   "filters": [
                     {
-                      "resource": "toy",
+                      "key": "toy",
                       "field": "name",
                       "operator": "starts_with",
                       "operand": "NoResultsReturned"
