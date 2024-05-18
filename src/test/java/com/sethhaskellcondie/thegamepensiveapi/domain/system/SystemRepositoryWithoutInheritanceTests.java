@@ -1,6 +1,8 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * This it the "before" for unit tests looked like before the
  * "after" when I wrote the abstract tests EntityRepositoryTests
  */
+@Deprecated
 @JdbcTest
 @ActiveProfiles("test-container")
 public class SystemRepositoryWithoutInheritanceTests {
@@ -74,24 +77,34 @@ public class SystemRepositoryWithoutInheritanceTests {
     }
 
     @Test
-    void getWithFilters_NoFilters_ReturnList() throws ExceptionFailedDbValidation {
-        final String name1 = "Master System";
+    void getWithFilters_StartsWithFilter_ReturnList() throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
+        final String name1 = "Epic Master System";
         final int generation1 = 3;
         final boolean handheld1 = false;
         final SystemRequestDto requestDto1 = new SystemRequestDto(name1, generation1, handheld1);
         final System expected1 = repository.insert(requestDto1);
 
-        final String name2 = "Genesis";
+        final String name2 = "Epic Genesis";
         final int generation2 = 4;
         final boolean handheld2 = false;
         final SystemRequestDto requestDto2 = new SystemRequestDto(name2, generation2, handheld2);
         final System expected2 = repository.insert(requestDto2);
 
-        List<System> actual = repository.getWithFilters("");
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Epic ");
+        List<System> actual = repository.getWithFilters(List.of(filter));
 
         assertEquals(2, actual.size());
         assertEquals(expected1, actual.get(0));
         assertEquals(expected2, actual.get(1));
+    }
+
+    @Test
+    void getWithFilters_NoFilters_ReturnEmptyList() throws ExceptionInvalidFilter {
+
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "NoResults");
+        List<System> actual = repository.getWithFilters(List.of(filter));
+
+        assertEquals(0, actual.size());
     }
 
     @Test
@@ -113,7 +126,7 @@ public class SystemRepositoryWithoutInheritanceTests {
     }
 
     @Test
-    void update_Success_ReturnEntity() throws ExceptionFailedDbValidation {
+    void update_Success_ReturnEntity() throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         final String name = "Nintendo 64";
         final int generation = 5;
         final boolean handheld = false;

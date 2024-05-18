@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -8,8 +9,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_VALID_PERSISTED;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_STARTS_WITH_VALID_PERSISTED;
 import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.EMPTY;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.STARTS_WITH_VALID_PERSISTED;
 import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID_PERSISTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,6 +27,7 @@ public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDt
 
     protected abstract void setupGatewayMockService();
     protected abstract void setupFactory();
+    protected abstract Filter startsWithFilter();
 
     @BeforeEach
     public void testPrep() {
@@ -34,12 +37,14 @@ public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void getWithFilters_TwoFound_ReturnDtoList() {
-        final T entity1 = factory.generateEntity(VALID_PERSISTED);
-        final T entity2 = factory.generateEntity(ANOTHER_VALID_PERSISTED);
-        when(service.getWithFilters("")).thenReturn(List.of(entity1, entity2));
+        final T entity1 = factory.generateEntity(STARTS_WITH_VALID_PERSISTED);
+        final T entity2 = factory.generateEntity(ANOTHER_STARTS_WITH_VALID_PERSISTED);
+        final List<Filter> filters = List.of(startsWithFilter());
+
+        when(service.getWithFilters(filters)).thenReturn(List.of(entity1, entity2));
         final List<ResponseDto> expected = List.of(entity1.convertToResponseDto(), entity2.convertToResponseDto());
 
-        final List<ResponseDto> actual = gateway.getWithFilters("");
+        final List<ResponseDto> actual = gateway.getWithFilters(filters);
 
         assertEquals(expected, actual);
     }
@@ -47,9 +52,9 @@ public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDt
     @Test
     public void getWithFilters_NoneFound_ReturnEmptyList() {
         final List<ResponseDto> expected = List.of();
-        when(service.getWithFilters("")).thenReturn(List.of());
+        when(service.getWithFilters(List.of(startsWithFilter()))).thenReturn(List.of());
 
-        final List<ResponseDto> actual = gateway.getWithFilters("");
+        final List<ResponseDto> actual = gateway.getWithFilters(List.of(startsWithFilter()));
 
         assertEquals(expected, actual);
     }

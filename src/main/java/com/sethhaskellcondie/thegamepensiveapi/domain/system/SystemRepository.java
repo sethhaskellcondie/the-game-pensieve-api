@@ -1,9 +1,11 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
@@ -17,20 +19,25 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.List;
 
 @Repository
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
     private final JdbcTemplate jdbcTemplate;
-    private final String baseQuery = "SELECT * FROM systems WHERE 1 = 1 "; //include a WHERE 1 = 1 clause at the end, so we can always append with AND
+    private final String baseQuery = "SELECT * FROM systems WHERE deleted_at IS NULL";
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<System> rowMapper = (resultSet, rowNumber) ->
             new System(
                     resultSet.getInt("id"),
                     resultSet.getString("name"),
                     resultSet.getInt("generation"),
-                    resultSet.getBoolean("handheld")
+                    resultSet.getBoolean("handheld"),
+                    resultSet.getTimestamp("created_at"),
+                    resultSet.getTimestamp("updated_at"),
+                    resultSet.getTimestamp("deleted_at")
             );
 
     public SystemRepository(JdbcTemplate jdbcTemplate) {
@@ -53,7 +60,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         systemDbValidation(system);
 
         final String sql = """
-                			INSERT INTO systems(name, generation, handheld) VALUES (?, ?, ?);
+                			INSERT INTO systems(name, generation, handheld, created_at, updated_at) VALUES (?, ?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -67,6 +74,8 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     ps.setString(1, system.getName());
                     ps.setInt(2, system.getGeneration());
                     ps.setBoolean(3, system.isHandheld());
+                    ps.setTimestamp(4, Timestamp.from(Instant.now()));
+                    ps.setTimestamp(5, Timestamp.from(Instant.now()));
                     return ps;
                 },
                 keyHolder
@@ -84,9 +93,12 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     }
 
     @Override
-    public List<System> getWithFilters(String filters) {
-        final String sql = baseQuery + filters + ";";
-        return jdbcTemplate.query(sql, rowMapper);
+    public List<System> getWithFilters(List<Filter> filters) {
+        filters = Filter.validateAndOrderFilters(filters);
+        final List<String> whereStatements = Filter.formatWhereStatements(filters);
+        final List<Object> operands = Filter.formatOperands(filters);
+        final String sql = baseQuery + String.join(" ", whereStatements);
+        return jdbcTemplate.query(sql, rowMapper, operands.toArray());
     }
 
     @Override
@@ -100,16 +112,14 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     new int[]{Types.BIGINT}, //the types of the objects to bind to the sql
                     rowMapper
             );
-        } catch (EmptyResultDataAccessException ignored) { }
-
-        if (system == null || !system.isPersisted()) {
+        } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
         return system;
     }
 
     @Override
-    public System update(System system) throws ExceptionFailedDbValidation {
+    public System update(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         // ---to change this into an upsert
         // if (!system.isPersisted()) {
         // 		return insert(system);
@@ -117,13 +127,14 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
         systemDbValidation(system);
         final String sql = """
-                			UPDATE systems SET name = ?, generation = ?, handheld = ? WHERE id = ?;
+                			UPDATE systems SET name = ?, generation = ?, handheld = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(
                 sql,
                 system.getName(),
                 system.getGeneration(),
                 system.isHandheld(),
+                Timestamp.from(Instant.now()),
                 system.getId()
         );
 
@@ -140,20 +151,39 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
         final String sql = """
-                			DELETE FROM systems WHERE id = ?;
+                			UPDATE systems SET deleted_at = ? WHERE id = ?;
                 """;
-        int rowsUpdated = jdbcTemplate.update(sql, id);
+        int rowsUpdated = jdbcTemplate.update(sql, Timestamp.from(Instant.now()), id);
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", System.class.getSimpleName(), id);
         }
     }
 
+    @Override
+    public System getDeletedById(int id) throws ExceptionResourceNotFound {
+        final String sql = "SELECT * FROM systems WHERE id = ? AND deleted_at IS NOT NULL";
+        System system = null;
+        try {
+            system = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{id},
+                    new int[]{Types.BIGINT},
+                    rowMapper
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
+        }
+
+        return system;
+    }
+
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
-    private void systemDbValidation(System system) throws ExceptionFailedDbValidation {
-        final List<System> existingSystems = getWithFilters(" AND name = '" + system.getName() + "'");
+    private void systemDbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
+        Filter nameFilter = new Filter("system", "name", "equals", system.getName());
+        final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {
-            throw new ExceptionFailedDbValidation("System write failed, duplicate name found.");
+            throw new ExceptionFailedDbValidation("System insert/update failed, duplicate name found.");
         }
     }
 }

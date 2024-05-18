@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
@@ -14,7 +15,7 @@ public abstract class EntityServiceAbstract<T extends Entity<RequestDto, Respons
     }
 
     @Override
-    public List<T> getWithFilters(String filters) {
+    public List<T> getWithFilters(List<Filter> filters) {
         return repository.getWithFilters(filters);
     }
 

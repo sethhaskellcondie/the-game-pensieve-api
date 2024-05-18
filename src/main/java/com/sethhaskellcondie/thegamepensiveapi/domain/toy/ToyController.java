@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,9 +39,8 @@ public class ToyController {
 
     @ResponseBody
     @PostMapping("/search")
-    public Map<String, List<ToyResponseDto>> getAllToys() {
-        //WIP filters
-        final List<ToyResponseDto> data = gateway.getWithFilters("");
+    public Map<String, List<ToyResponseDto>> getAllToys(@RequestBody Map<String, List<Filter>> requestBody) {
+        final List<ToyResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<ToyResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();
     }
@@ -48,16 +48,16 @@ public class ToyController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, ToyResponseDto> createNewToy(@RequestBody ToyRequestDto toy) throws ExceptionFailedDbValidation {
-        final ToyResponseDto responseDto = gateway.createNew(toy);
+    public Map<String, ToyResponseDto> createNewToy(@RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionFailedDbValidation {
+        final ToyResponseDto responseDto = gateway.createNew(requestBody.get("toy"));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 
     @ResponseBody
     @PutMapping("/{id}")
-    public Map<String, ToyResponseDto> updateExistingToy(@PathVariable int id, @RequestBody ToyRequestDto toy) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
-        final ToyResponseDto responseDto = gateway.updateExisting(id, toy);
+    public Map<String, ToyResponseDto> updateExistingToy(@PathVariable int id, @RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
+        final ToyResponseDto responseDto = gateway.updateExisting(id, requestBody.get("toy"));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

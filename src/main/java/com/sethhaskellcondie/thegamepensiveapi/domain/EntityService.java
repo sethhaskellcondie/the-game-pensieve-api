@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * are not included in the entity object itself. Like creating a DTO from two different Entities.
  */
 public interface EntityService<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
-    List<T> getWithFilters(String filters);
+    List<T> getWithFilters(List<Filter> filters);
 
     T getById(int id) throws ExceptionResourceNotFound;
 

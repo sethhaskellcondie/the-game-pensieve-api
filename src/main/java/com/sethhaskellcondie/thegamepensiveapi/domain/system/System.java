@@ -4,6 +4,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
      * this constructor should only be used in repositories and tests.
      * To hydrate an Entity with an ID call getWithId on the repository.
      */
-    public System(Integer id, String name, int generation, boolean handheld) {
-        super(id);
+    public System(Integer id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
+        super(id, createdAt, updatedAt, deletedAt);
         this.name = name;
         this.generation = generation;
         this.handheld = handheld;
@@ -78,7 +79,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
     }
 
     public SystemResponseDto convertToResponseDto() {
-        return new SystemResponseDto("system", this.id, this.name, this.generation, this.handheld);
+        return new SystemResponseDto("system", this.id, this.name, this.generation, this.handheld, this.created_at, this.updated_at, this.deleted_at);
     }
 
     private void validate() throws ExceptionMalformedEntity {
@@ -105,4 +106,4 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
  * this way we can pass all validation errors back at the same time.
  */
 record SystemRequestDto(String name, Integer generation, Boolean handheld) { }
-record SystemResponseDto(String type, int id, String name, int generation, boolean handheld) { }
+record SystemResponseDto(String type, int id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }

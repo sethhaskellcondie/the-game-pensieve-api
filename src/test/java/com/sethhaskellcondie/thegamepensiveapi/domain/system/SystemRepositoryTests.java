@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,14 @@ import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Gener
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemRequestDto, SystemResponseDto> {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    private String startsWith = "SuperConsole";
 
     @Override
     protected void setupRepositoryAndEntityName() {
@@ -25,7 +28,12 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
 
     @Override
     protected void setupFactory() {
-        factory = new SystemFactory();
+        factory = new SystemFactory(startsWith);
+    }
+
+    @Override
+    protected Filter startsWithFilter() {
+        return new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
     }
 
     @Override
@@ -35,7 +43,10 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
             () -> assertNotNull(actual.getId()),
             () -> assertEquals(expected.getName(), actual.getName()),
             () -> assertEquals(expected.getGeneration(), actual.getGeneration()),
-            () -> assertEquals(expected.isHandheld(), actual.isHandheld())
+            () -> assertEquals(expected.isHandheld(), actual.isHandheld()),
+            () -> assertNotNull(actual.getCreatedAt()),
+            () -> assertNotNull(actual.getUpdatedAt()),
+            () -> assertNull(actual.getDeletedAt())
         );
     }
 
@@ -46,7 +57,10 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
             () -> assertNotNull(actual.getId()),
             () -> assertEquals(expected.name(), actual.getName()),
             () -> assertEquals(expected.generation(), actual.getGeneration()),
-            () -> assertEquals(expected.handheld(), actual.isHandheld())
+            () -> assertEquals(expected.handheld(), actual.isHandheld()),
+            () -> assertNotNull(actual.getCreatedAt()),
+            () -> assertNotNull(actual.getUpdatedAt()),
+            () -> assertNull(actual.getDeletedAt())
         );
     }
 

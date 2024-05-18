@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +52,7 @@ public class ToyControllerTests {
 
     @Test
     void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
-        final Toy toy = new Toy(1, "Donkey Kong", "Amiibo");
+        final Toy toy = new Toy(1, "Donkey Kong", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         when(service.getById(1)).thenReturn(toy);
 
         final ResultActions result = mockMvc.perform(get("/toys/1"));
@@ -76,12 +79,18 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
-        final Toy toy1 = new Toy(1, "Mega Man", "Amiibo");
-        final Toy toy2 = new Toy(2, "Samus", "Amiibo");
+        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
+        final Toy toy1 = new Toy(1, "Mega Man", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy toy2 = new Toy(2, "Samus", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         final List<Toy> toys = List.of(toy1, toy2);
-        when(service.getWithFilters("")).thenReturn(toys);
+        when(service.getWithFilters(List.of(filter))).thenReturn(toys);
 
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/toys/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -92,9 +101,15 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-        when(service.getWithFilters("")).thenReturn(List.of());
+        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
+        when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
-        final ResultActions result = mockMvc.perform(post("/toys/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/toys/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -110,7 +125,7 @@ public class ToyControllerTests {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
 
-        final Toy expectedToy = new Toy(expectedId, expectedName, expectedSet);
+        final Toy expectedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
 
         when(service.createNew(any())).thenReturn(expectedToy);
 
@@ -150,8 +165,8 @@ public class ToyControllerTests {
         final String expectedName = "Baloo";
         final String expectedSet = "Disney Infinity";
 
-        final Toy existingToy = new Toy(expectedId, "Old Name", "Old Set");
-        final Toy updatedToy = new Toy(expectedId, expectedName, expectedSet);
+        final Toy existingToy = new Toy(expectedId, "Old Name", "Old Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy updatedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
 
         when(service.getById(expectedId)).thenReturn(existingToy);
         when(service.updateExisting(updatedToy)).thenReturn(updatedToy);
@@ -187,7 +202,7 @@ public class ToyControllerTests {
 
     @Test
     void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
-        when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set"));
+        when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null));
 
         final ResultActions result = mockMvc.perform(
                 delete("/toys/27")
@@ -218,11 +233,29 @@ public class ToyControllerTests {
     private String generateValidCreateUpdatePayload(String name, String set) {
         final String json = """
                 {
-                	"name": "%s",
-                	"set": "%s"
+                	"toy": {
+                	    "name": "%s",
+                	    "set": "%s"
+                	    }
                 }
                 """;
         return String.format(json, name, set);
+    }
+
+    private String generateValidFilterPayload(Filter filter) {
+        final String json = """
+                {
+                  "filters": [
+                    {
+                      "resource": "%s",
+                      "field": "%s",
+                      "operator": "%s",
+                      "operand": "%s"
+                    }
+                  ]
+                }
+                """;
+        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {
@@ -230,7 +263,11 @@ public class ToyControllerTests {
                 jsonPath("$.data.type").value("toy"),
                 jsonPath("$.data.id").value(expectedToy.getId()),
                 jsonPath("$.data.name").value(expectedToy.getName()),
-                jsonPath("$.data.set").value(expectedToy.getSet())
+                jsonPath("$.data.set").value(expectedToy.getSet()),
+                jsonPath("$.data.createdAt").isNotEmpty(),
+                jsonPath("$.data.updatedAt").isNotEmpty(),
+                jsonPath("$.data.deletedAt").isEmpty(),
+                jsonPath("$.errors").isEmpty()
         );
     }
 

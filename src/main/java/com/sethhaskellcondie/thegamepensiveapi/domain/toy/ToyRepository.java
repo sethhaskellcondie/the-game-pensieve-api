@@ -2,10 +2,13 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.List;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import org.slf4j.Logger;
@@ -25,14 +28,17 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @Repository
 public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyResponseDto> {
     private final JdbcTemplate jdbcTemplate;
-    private final String baseQuery = "SELECT * FROM toys WHERE 1 = 1 ";
+    private final String baseQuery = "SELECT * FROM toys WHERE deleted_at IS NULL";
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<Toy> rowMapper =
             (resultSet, i) ->
                     new Toy(
                             resultSet.getInt("id"),
                             resultSet.getString("name"),
-                            resultSet.getString("set")
+                            resultSet.getString("set"),
+                            resultSet.getTimestamp("created_at"),
+                            resultSet.getTimestamp("updated_at"),
+                            resultSet.getTimestamp("deleted_at")
                     );
 
     public ToyRepository(JdbcTemplate jdbcTemplate) {
@@ -49,7 +55,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
     public Toy insert(Toy toy) throws ExceptionFailedDbValidation {
         toyDbValidation(toy);
         final String sql = """
-                			INSERT INTO toys(name, set) VALUES (?, ?);
+                			INSERT INTO toys(name, set, created_at, updated_at) VALUES (?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -57,6 +63,8 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                     PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, toy.getName());
                     ps.setString(2, toy.getSet());
+                    ps.setTimestamp(3, Timestamp.from(Instant.now()));
+                    ps.setTimestamp(4, Timestamp.from(Instant.now()));
                     return ps;
                 },
                 keyHolder
@@ -73,9 +81,12 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
     }
 
     @Override
-    public List<Toy> getWithFilters(String filters) {
-        final String sql = baseQuery + filters + ";";
-        return jdbcTemplate.query(sql, rowMapper);
+    public List<Toy> getWithFilters(List<Filter> filters) {
+        filters = Filter.validateAndOrderFilters(filters);
+        final List<String> whereStatements = Filter.formatWhereStatements(filters);
+        final List<Object> operands = Filter.formatOperands(filters);
+        final String sql = baseQuery + String.join(" ", whereStatements);
+        return jdbcTemplate.query(sql, rowMapper, operands.toArray());
     }
 
     @Override
@@ -89,9 +100,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                     new int[]{Types.BIGINT},
                     rowMapper
             );
-        } catch (EmptyResultDataAccessException ignored) { }
-
-        if (toy == null || !toy.isPersisted()) {
+        } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
         }
         return toy;
@@ -101,12 +110,13 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
     public Toy update(Toy toy) throws ExceptionFailedDbValidation {
         toyDbValidation(toy);
         String sql = """
-                			UPDATE toys SET name = ?, set = ? WHERE id = ?;
+                			UPDATE toys SET name = ?, set = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(
                 sql,
                 toy.getName(),
                 toy.getSet(),
+                Timestamp.from(Instant.now()),
                 toy.getId()
         );
 
@@ -122,12 +132,29 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
     @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
         String sql = """
-                			DELETE FROM toys WHERE id = ?;
+                			UPDATE toys SET deleted_at = ? WHERE id = ?;
                 """;
-        int rowsUpdated = jdbcTemplate.update(sql, id);
+        int rowsUpdated = jdbcTemplate.update(sql, Timestamp.from(Instant.now()), id);
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", Toy.class.getSimpleName(), id);
         }
+    }
+
+    @Override
+    public Toy getDeletedById(int id) throws ExceptionResourceNotFound {
+        final String sql = "SELECT * FROM toys WHERE id = ? AND deleted_at IS NOT NULL;";
+        Toy toy = null;
+        try {
+            toy = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{id},
+                    new int[]{Types.BIGINT},
+                    rowMapper
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
+        }
+        return toy;
     }
 
     private void toyDbValidation(Toy toy) throws ExceptionFailedDbValidation {

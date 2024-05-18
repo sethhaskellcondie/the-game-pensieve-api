@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
@@ -58,11 +59,9 @@ public class SystemController {
      * instead of through many query parameters in a get request.
      */
     @ResponseBody
-    // @ResponseStatus(HttpStatus.OK) This is the default return status
     @PostMapping("/search")
-    public Map<String, List<SystemResponseDto>> getAllSystems() {
-        //WIP filters
-        final List<SystemResponseDto> data = gateway.getWithFilters("");
+    public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody Map<String, List<Filter>> requestBody) {
+        final List<SystemResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();
     }
@@ -70,16 +69,17 @@ public class SystemController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
-        final SystemResponseDto responseDto = gateway.createNew(system);
+    public Map<String, SystemResponseDto> createNewSystem(@RequestBody Map<String, SystemRequestDto> requestBody) throws ExceptionFailedDbValidation {
+        final SystemResponseDto responseDto = gateway.createNew(requestBody.get("system"));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 
     @ResponseBody
     @PutMapping("/{id}")
-    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final SystemResponseDto responseDto = gateway.updateExisting(id, system);
+    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody Map<String, SystemRequestDto> requestBody)
+            throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        final SystemResponseDto responseDto = gateway.updateExisting(id, requestBody.get("system"));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
@@ -90,6 +90,26 @@ public class SystemController {
     public Map<String, String> deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {
         gateway.deleteById(id);
         FormattedResponseBody<String> body = new FormattedResponseBody<>("");
+        return body.formatData();
+    }
+
+    //This endpoint only exists to work with the SystemTestRestTemplateTests
+    @ResponseBody
+    @PostMapping("/testRestTemplate")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
+        final SystemResponseDto responseDto = gateway.createNew(system);
+        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
+    }
+
+    //This endpoint only exists to work with the SystemTestRestTemplateTests
+    @ResponseBody
+    @PutMapping("/{id}/testRestTemplate")
+    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system)
+            throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+        final SystemResponseDto responseDto = gateway.updateExisting(id, system);
+        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 }

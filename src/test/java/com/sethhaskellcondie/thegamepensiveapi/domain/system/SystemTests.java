@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * I've done a bunch of different tests and for this project I feel like the best option is to
+ * run with MockMvc integration tests for the rest of the tests now. It is the easiest to use
+ * I was able to get everything done with MockMvc tests. Right now the biggest limitation is that
+ * I couldn't get the body of a delete request to come back with TestRestTemplate, or WebTestClient
+ */
 @SpringBootTest
 @ActiveProfiles("test-container")
 @AutoConfigureMockMvc
@@ -46,7 +53,7 @@ public class SystemTests {
 
     @Test
     void postSystem_ValidPayload_SystemCreatedAndReturned() throws Exception {
-        final String expectedName = "NES";
+        final String expectedName = "NES 2";
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
@@ -57,7 +64,7 @@ public class SystemTests {
     }
 
     @Test
-    void createNewSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
+    void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
         final String jsonContent = factory.formatSystemPayload("", -1, null);
 
         final ResultActions result = mockMvc.perform(
@@ -74,8 +81,8 @@ public class SystemTests {
     }
 
     @Test
-    void createNewSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
-        final String duplicateName = "Game Boy";
+    void postSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
+        final String duplicateName = "Game Boy Pocket";
         final int generation = 3;
         final boolean handheld = true;
 
@@ -96,7 +103,7 @@ public class SystemTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        final String name = "Genesis";
+        final String name = "Genesis 2";
         final int generation = 4;
         final boolean handheld = true;
         final ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
@@ -122,21 +129,27 @@ public class SystemTests {
         );
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
-    void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
-        final String name1 = "Super Nintendo";
+    @Test
+    void getWithFilters_StartsWithFilter_TwoSystemsReturnedInArray() throws Exception {
+        final String name1 = "Mega Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
         final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
-        final String name2 = "Sony Playstation";
+        final String name2 = "Mega Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
         final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
+        final String jsonContent = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post("/systems/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -145,10 +158,15 @@ public class SystemTests {
         validateSystemResponseBody(result, List.of(responseDto1, responseDto2));
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
+    @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
+        final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final ResultActions result = mockMvc.perform(post("/systems/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -163,7 +181,7 @@ public class SystemTests {
         final ResultActions existingResult = factory.postSystem();
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
-        final String newName = "Playstation 2";
+        final String newName = "Playstation 2 Slim";
         final int newGeneration = 6;
         final boolean newBoolean = false;
 
@@ -276,5 +294,4 @@ public class SystemTests {
             );
         }
     }
-
 }

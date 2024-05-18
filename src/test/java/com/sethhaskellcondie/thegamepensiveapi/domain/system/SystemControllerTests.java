@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -16,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +60,7 @@ public class SystemControllerTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        final System system = new System(1, "test", 3, false);
+        final System system = new System(1, "test", 3, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         when(service.getById(1)).thenReturn(system);
 
         final ResultActions result = mockMvc.perform(get("/systems/1"));
@@ -85,12 +88,18 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
-        final System system1 = new System(1, "test", 10, false);
-        final System system2 = new System(2, "test again", 20, true);
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
+        final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
         final List<System> systems = List.of(system1, system2);
-        when(service.getWithFilters("")).thenReturn(systems);
+        when(service.getWithFilters(List.of(filter))).thenReturn(systems);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/systems/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -101,9 +110,15 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        when(service.getWithFilters("")).thenReturn(List.of());
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
+        when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
-        final ResultActions result = mockMvc.perform(post("/systems/search"));
+        final String jsonContent = generateValidFilterPayload(filter);
+        final ResultActions result = mockMvc.perform(
+                post("/systems/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+        );
 
         result.andExpectAll(
                 status().isOk(),
@@ -120,7 +135,7 @@ public class SystemControllerTests {
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
-        final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
+        final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
 
         when(service.createNew(any())).thenReturn(expectedSystemPersisted);
 
@@ -180,8 +195,8 @@ public class SystemControllerTests {
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
-        final System existingSystem = new System(expectedId, "Created Name", 4, true);
-        final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld);
+        final System existingSystem = new System(expectedId, "Created Name", 4, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
 
         when(service.getById(expectedId)).thenReturn(existingSystem);
         when(service.updateExisting(updatedSystem)).thenReturn(updatedSystem);
@@ -246,12 +261,30 @@ public class SystemControllerTests {
     private String generateValidCreateUpdatePayload(String name, int generation, boolean handheld) {
         final String json = """
                 {
-                  "name": "%s",
-                  "generation": %d,
-                  "handheld": %b
+                    "system": {
+                        "name": "%s",
+                        "generation": %d,
+                        "handheld": %b
+                    }
                 }
                 """;
         return String.format(json, name, generation, handheld);
+    }
+
+    private String generateValidFilterPayload(Filter filter) {
+        final String json = """
+                {
+                  "filters": [
+                    {
+                      "resource": "%s",
+                      "field": "%s",
+                      "operator": "%s",
+                      "operand": "%s"
+                    }
+                  ]
+                }
+                """;
+        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateSystemResponseBody(ResultActions result, System expectedSystem) throws Exception {
@@ -261,6 +294,9 @@ public class SystemControllerTests {
                 jsonPath("$.data.name").value(expectedSystem.getName()),
                 jsonPath("$.data.generation").value(expectedSystem.getGeneration()),
                 jsonPath("$.data.handheld").value(expectedSystem.isHandheld()),
+                jsonPath("$.data.createdAt").isNotEmpty(),
+                jsonPath("$.data.updatedAt").isNotEmpty(),
+                jsonPath("$.data.deletedAt").isEmpty(),
                 jsonPath("$.errors").isEmpty()
         );
     }

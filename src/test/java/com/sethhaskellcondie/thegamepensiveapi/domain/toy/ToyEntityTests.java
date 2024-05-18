@@ -3,7 +3,12 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ToyEntityTests {
 
@@ -56,13 +61,21 @@ public class ToyEntityTests {
         final int id = 99;
         final String name = "Super Mario";
         final String set = "Amiibo";
+        final Instant created_at = Instant.now();
+        final Instant updated_at = Instant.now();
 
-        final Toy toy = new Toy(id, name, set);
+        final Toy toy = new Toy(id, name, set, Timestamp.from(created_at), Timestamp.from(updated_at), null);
 
         final ToyResponseDto responseDto = toy.convertToResponseDto();
 
-        assertEquals("toy", responseDto.type());
-        assertEquals(id, responseDto.id());
-        assertEquals(name, responseDto.name());
+        assertAll(
+                "Converting a Toy to a DTO has failed",
+                () -> assertEquals("toy", responseDto.type()),
+                () -> assertEquals(id, responseDto.id()),
+                () -> assertEquals(name, responseDto.name()),
+                () -> assertEquals(Timestamp.from(created_at), responseDto.createdAt()),
+                () -> assertEquals(Timestamp.from(updated_at), responseDto.updatedAt()),
+                () -> assertNull(responseDto.deletedAt())
+        );
     }
 }

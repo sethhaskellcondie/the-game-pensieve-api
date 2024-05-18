@@ -1,25 +1,51 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import java.sql.Timestamp;
 import java.util.Objects;
 
 public abstract class Entity<RequestDto, ResponseDto> {
     protected final Integer id;
+    protected final Timestamp created_at;
+    protected final Timestamp updated_at;
+    protected final Timestamp deleted_at;
 
     protected Entity() {
         id = null;
+        created_at = null;
+        updated_at = null;
+        deleted_at = null;
     }
 
     //IDs are ONLY generated in tests and by the database
-    protected Entity(Integer id) {
+    protected Entity(Integer id, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
         this.id = id;
+        created_at = createdAt;
+        updated_at = updatedAt;
+        deleted_at = deletedAt;
     }
 
     public final Integer getId() {
         return id;
     }
 
+    public final Timestamp getCreatedAt() {
+        return created_at;
+    }
+
+    public final Timestamp getUpdatedAt() {
+        return created_at;
+    }
+
+    public final Timestamp getDeletedAt() {
+        return deleted_at;
+    }
+
     public final boolean isPersisted() {
         return id != null;
+    }
+
+    public final boolean isDeleted() {
+        return deleted_at != null;
     }
 
     /**

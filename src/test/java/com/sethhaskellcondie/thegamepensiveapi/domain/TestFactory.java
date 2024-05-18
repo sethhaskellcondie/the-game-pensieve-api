@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -20,6 +21,22 @@ public class TestFactory {
         return RandomStringUtils.random(length, true, true);
     }
 
+    public String formatFiltersPayload(Filter filter) {
+        final String json = """
+                {
+                  "filters": [
+                    {
+                      "resource": "%s",
+                      "field": "%s",
+                      "operator": "%s",
+                      "operand": "%s"
+                    }
+                  ]
+                }
+                """;
+        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
+    }
+
     public ResultActions postSystem() throws Exception {
         final String name = "TestSystem-" + randomString(8);
         final int generation = 1;
@@ -31,9 +48,11 @@ public class TestFactory {
     public ResultActions postCustomSystem(String name, int generation, boolean handheld) throws Exception {
         final String json = """
                 {
-                  "name": "%s",
-                  "generation": %d,
-                  "handheld": %b
+                  "system": {
+                    "name": "%s",
+                    "generation": %d,
+                    "handheld": %b
+                  }
                 }
                 """;
         final String formattedJson = String.format(json, name, generation, handheld);
@@ -51,9 +70,11 @@ public class TestFactory {
     public String formatSystemPayload(String name, Integer generation, Boolean handheld) {
         final String json = """
                 {
-                  "name": "%s",
-                  "generation": %d,
-                  "handheld": %b
+                    "system": {
+                        "name": "%s",
+                        "generation": %d,
+                        "handheld": %b
+                    }
                 }
                 """;
         return String.format(json, name, generation, handheld);
@@ -81,8 +102,10 @@ public class TestFactory {
     public String formatToyPayload(String name, String set) {
         final String json = """
                 {
-                	"name": "%s",
-                	"set": "%s"
+                	"toy": {
+                	    "name": "%s",
+                	    "set": "%s"
+                	    }
                 }
                 """;
         return String.format(json, name, set);

@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * A couple of big features for the TestRestTemplate is that it can be provided with auth credentials, and different
  * options that can be used to test different parts of the system when running as a server.
  */
+@Deprecated
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-container")
 public class SystemTestRestTemplateTests {
@@ -52,7 +55,7 @@ public class SystemTestRestTemplateTests {
         final SystemRequestDto requestDto = new SystemRequestDto("", -1, null);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -75,7 +78,7 @@ public class SystemTestRestTemplateTests {
         final SystemRequestDto requestDto = new SystemRequestDto(duplicateName, generation, handheld);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -115,21 +118,24 @@ public class SystemTestRestTemplateTests {
         );
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
+    @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() {
-        final String name1 = "Super Nintendo";
+        final String name1 = "startsWith Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
         final ResponseEntity<Map> result1 = this.postCustomSystem(name1, generation1, handheld1);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
-        final String name2 = "Sony Playstation";
+        final String name2 = "startsWith Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
         final ResponseEntity<Map> result2 = this.postCustomSystem(name2, generation2, handheld2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        final HttpEntity<Filter> request = new HttpEntity<>(new Filter("system", "field", "operator", "operand"));
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
+        final Map<String, List<Filter>> requestBody = new HashMap<>();
+        requestBody.put("filters", List.of(filter));
+        final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
         final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/search", request, Map.class);
 
@@ -137,9 +143,12 @@ public class SystemTestRestTemplateTests {
         validateSystemResponseBody(response, List.of(responseDto1, responseDto2));
     }
 
-    //TODO return to this after get with filters has been implemented (it works but not in sequence with the other tests)
+    @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() {
-        final HttpEntity<Filter> request = new HttpEntity<>(new Filter("system", "field", "operator", "operand"));
+        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
+        final Map<String, List<Filter>> requestBody = new HashMap<>();
+        requestBody.put("filters", List.of(filter));
+        final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
         final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/search", request, Map.class);
         final List<Map<String, Object>> returnedSystems = (List<Map<String, Object>>) response.getBody().get("data");
@@ -161,12 +170,21 @@ public class SystemTestRestTemplateTests {
         final String newName = "Playstation 2";
         final int newGeneration = 6;
         final boolean newHandheld = false;
-        final SystemResponseDto expectedDto = new SystemResponseDto(responseDto.type(), responseDto.id(), newName, newGeneration, newHandheld);
+        final SystemResponseDto expectedDto = new SystemResponseDto(
+                responseDto.type(),
+                responseDto.id(),
+                newName,
+                newGeneration,
+                newHandheld,
+                responseDto.createdAt(),
+                responseDto.updatedAt(),
+                responseDto.deletedAt()
+        );
 
         final SystemRequestDto requestDto = new SystemRequestDto(newName, newGeneration, newHandheld);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/" + responseDto.id(), HttpMethod.PUT, request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/systems/" + responseDto.id() + "/testRestTemplate", HttpMethod.PUT, request, Map.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         validateSystemResponseBody(response, expectedDto);
@@ -177,7 +195,7 @@ public class SystemTestRestTemplateTests {
         final SystemRequestDto requestDto = new SystemRequestDto("ValidButMissing", 3, false);
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/-1", HttpMethod.PUT, request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/systems/-1/testRestTemplate", HttpMethod.PUT, request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -217,7 +235,10 @@ public class SystemTestRestTemplateTests {
                 (int) data.get("id"),
                 (String) data.get("name"),
                 (int) data.get("generation"),
-                (boolean) data.get("handheld")
+                (boolean) data.get("handheld"),
+                (Timestamp) data.get("created_at"),
+                (Timestamp) data.get("updated_at"),
+                (Timestamp) data.get("deleted_at")
         );
     }
 
@@ -290,8 +311,8 @@ public class SystemTestRestTemplateTests {
         final System system = new System().updateFromRequestDto(requestDto);
         final HttpEntity<System> request = new HttpEntity<>(system);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems", request, Map.class);
-        assertEquals(response.getStatusCode(), HttpStatus.CREATED);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         return response;
     }
 }
