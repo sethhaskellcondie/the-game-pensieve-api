@@ -196,8 +196,7 @@ public class ToyWebTestClientTests {
 
     private void validateToyResponseBody(ResponseSpec result, String expectedName, String expectedSet) {
         result.expectBody()
-                .jsonPath("$.data.type").isEqualTo("toy")
-                .jsonPath("$.data.type").isNotEmpty()
+                .jsonPath("$.data.key").isEqualTo("toy")
                 .jsonPath("$.data.name").isEqualTo(expectedName)
                 .jsonPath("$.data.set").isEqualTo(expectedSet);
     }
@@ -210,7 +209,7 @@ public class ToyWebTestClientTests {
 
     private void validateToyResponseBody(ResponseSpec result, ToyResponseDto expectedResponse) {
         result.expectBody()
-                .jsonPath("$.data.type").isEqualTo("toy")
+                .jsonPath("$.data.key").isEqualTo("toy")
                 .jsonPath("$.data.id").isEqualTo(expectedResponse.id())
                 .jsonPath("$.data.name").isEqualTo(expectedResponse.name())
                 .jsonPath("$.data.set").isEqualTo(expectedResponse.set());
@@ -226,7 +225,7 @@ public class ToyWebTestClientTests {
             ToyResponseDto returnedToy = returnedToys.get(i);
             assertAll(
                     "The response body for Toys is not formatted correctly",
-                    () -> assertEquals("toy", returnedToy.type()),
+                    () -> assertEquals("toy", returnedToy.key()),
                     () -> assertEquals(expectedToy.id(), returnedToy.id()),
                     () -> assertEquals(expectedToy.name(), returnedToy.name()),
                     () -> assertEquals(expectedToy.set(), returnedToy.set())

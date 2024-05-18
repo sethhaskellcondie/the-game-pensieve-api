@@ -213,7 +213,7 @@ public class ToyTests {
 
     private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
+                jsonPath("$.data.key").value("toy"),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.set").value(expectedSet)
@@ -229,7 +229,7 @@ public class ToyTests {
 
     private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
+                jsonPath("$.data.key").value("toy"),
                 jsonPath("$.data.id").value(expectedResponse.id()),
                 jsonPath("$.data.name").value(expectedResponse.name()),
                 jsonPath("$.data.set").value(expectedResponse.set())
@@ -252,7 +252,7 @@ public class ToyTests {
             ToyResponseDto returnedToy = returnedToys.get(i);
             assertAll(
                     "The response body for Toys is not formatted correctly",
-                    () -> assertEquals("toy", returnedToy.type()),
+                    () -> assertEquals("toy", returnedToy.key()),
                     () -> assertEquals(expectedToy.id(), returnedToy.id()),
                     () -> assertEquals(expectedToy.name(), returnedToy.name()),
                     () -> assertEquals(expectedToy.set(), returnedToy.set())

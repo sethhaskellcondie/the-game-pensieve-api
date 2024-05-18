@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -70,7 +71,7 @@ public class SystemController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, SystemResponseDto> createNewSystem(@RequestBody Map<String, SystemRequestDto> requestBody) throws ExceptionFailedDbValidation {
-        final SystemResponseDto responseDto = gateway.createNew(requestBody.get("system"));
+        final SystemResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.SYSTEM_KEY));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
@@ -79,7 +80,7 @@ public class SystemController {
     @PutMapping("/{id}")
     public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody Map<String, SystemRequestDto> requestBody)
             throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final SystemResponseDto responseDto = gateway.updateExisting(id, requestBody.get("system"));
+        final SystemResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.SYSTEM_KEY));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

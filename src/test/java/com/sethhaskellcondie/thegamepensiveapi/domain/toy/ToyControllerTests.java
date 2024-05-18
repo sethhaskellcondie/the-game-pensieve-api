@@ -260,7 +260,7 @@ public class ToyControllerTests {
 
     private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
+                jsonPath("$.data.key").value("toy"),
                 jsonPath("$.data.id").value(expectedToy.getId()),
                 jsonPath("$.data.name").value(expectedToy.getName()),
                 jsonPath("$.data.set").value(expectedToy.getSet()),
@@ -287,7 +287,7 @@ public class ToyControllerTests {
             ToyResponseDto returnedToy = returnedToys.get(i);
             assertAll(
                     "The response body for Toys is not formatted correctly",
-                    () -> assertEquals("toy", returnedToy.type()),
+                    () -> assertEquals("toy", returnedToy.key()),
                     () -> assertEquals(expectedToy.getId(), returnedToy.id()),
                     () -> assertEquals(expectedToy.getName(), returnedToy.name()),
                     () -> assertEquals(expectedToy.getSet(), returnedToy.set())

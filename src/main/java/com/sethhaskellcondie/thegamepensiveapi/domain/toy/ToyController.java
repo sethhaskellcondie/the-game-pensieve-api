@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,7 +50,7 @@ public class ToyController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, ToyResponseDto> createNewToy(@RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionFailedDbValidation {
-        final ToyResponseDto responseDto = gateway.createNew(requestBody.get("toy"));
+        final ToyResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.TOY_KEY));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
@@ -57,7 +58,7 @@ public class ToyController {
     @ResponseBody
     @PutMapping("/{id}")
     public Map<String, ToyResponseDto> updateExistingToy(@PathVariable int id, @RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
-        final ToyResponseDto responseDto = gateway.updateExisting(id, requestBody.get("toy"));
+        final ToyResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.TOY_KEY));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

@@ -41,7 +41,7 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 
     public ToyResponseDto convertToResponseDto() {
-        return new ToyResponseDto("toy", this.id, this.name, this.set, this.created_at, this.updated_at, this.deleted_at);
+        return new ToyResponseDto(getKey(), this.id, this.name, this.set, this.created_at, this.updated_at, this.deleted_at);
     }
 
     @Override
@@ -59,4 +59,4 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 }
 
 record ToyRequestDto(String name, String set) { }
-record ToyResponseDto(String type, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }
+record ToyResponseDto(String key, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }

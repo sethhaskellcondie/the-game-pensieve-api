@@ -70,7 +70,7 @@ public class ToyEntityTests {
 
         assertAll(
                 "Converting a Toy to a DTO has failed",
-                () -> assertEquals("toy", responseDto.type()),
+                () -> assertEquals("toy", responseDto.key()),
                 () -> assertEquals(id, responseDto.id()),
                 () -> assertEquals(name, responseDto.name()),
                 () -> assertEquals(Timestamp.from(created_at), responseDto.createdAt()),
