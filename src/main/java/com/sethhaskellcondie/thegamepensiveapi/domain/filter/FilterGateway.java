@@ -14,7 +14,7 @@ public class FilterGateway {
     public FilterResponseDto getFiltersForResource(String resource) {
         return new FilterResponseDto(
                 resource + "_filters",
-                FilterResource.getFieldsForResource(resource),
+                FilterEntity.getFieldsForResource(resource),
                 service.getFiltersForResource(resource)
         );
     }

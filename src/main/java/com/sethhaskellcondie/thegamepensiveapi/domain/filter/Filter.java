@@ -155,7 +155,7 @@ public class Filter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
-            Map<String, String> fields = FilterResource.getFieldsForResource(filter.getResource());
+            Map<String, String> fields = FilterEntity.getFieldsForResource(filter.getResource());
             if (!fields.containsKey(filter.getField())) {
                 exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
             }
@@ -349,7 +349,7 @@ public class Filter {
     }
 
     private static Object castOperand(Filter filter) {
-        Map<String, String> fields = FilterResource.getFieldsForResource(filter.resource);
+        Map<String, String> fields = FilterEntity.getFieldsForResource(filter.resource);
 
         switch (fields.get(filter.field)) {
             case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> {
