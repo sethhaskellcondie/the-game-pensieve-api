@@ -94,7 +94,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public List<System> getWithFilters(List<Filter> filters) {
-        Filter.validateAndOrderFilters(filters);
+        filters = Filter.validateAndOrderFilters(filters);
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);
@@ -183,7 +183,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         Filter nameFilter = new Filter("system", "name", "equals", system.getName());
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {
-            throw new ExceptionFailedDbValidation("System write failed, duplicate name found.");
+            throw new ExceptionFailedDbValidation("System insert/update failed, duplicate name found.");
         }
     }
 }

@@ -267,7 +267,9 @@ public class Filter {
         whereFilters.add(orderByFilter);
         whereFilters.add(limitFilter);
         whereFilters.add(offsetFilter);
-        return whereFilters;
+        // the NPathComplexity is over 200 if I put null checks on the add calls this causes the checkstyle to fail
+        // instead all the filters include the null values will be added and the null values will be removed
+        return whereFilters.stream().filter(Objects::nonNull).toList();
     }
 
     public static List<String> formatWhereStatements(List<Filter> filters) {
