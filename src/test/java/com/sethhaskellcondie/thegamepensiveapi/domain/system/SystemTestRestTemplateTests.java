@@ -171,7 +171,7 @@ public class SystemTestRestTemplateTests {
         final int newGeneration = 6;
         final boolean newHandheld = false;
         final SystemResponseDto expectedDto = new SystemResponseDto(
-                responseDto.type(),
+                responseDto.key(),
                 responseDto.id(),
                 newName,
                 newGeneration,
@@ -249,7 +249,7 @@ public class SystemTestRestTemplateTests {
 
         assertAll(
                 "The SystemResponseBody was formatted incorrectly",
-                () -> assertEquals("system", data.get("type")),
+                () -> assertEquals("system", data.get("key")),
                 () -> assertNotNull(data.get("id")),
                 () -> assertEquals(expectedName, data.get("name")),
                 () -> assertEquals(expectedGeneration, data.get("generation")),
@@ -264,7 +264,7 @@ public class SystemTestRestTemplateTests {
 
         assertAll(
                 "The SystemResponseBody was formatted incorrectly",
-                () -> assertEquals(responseDto.type(), data.get("type")),
+                () -> assertEquals(responseDto.key(), data.get("type")),
                 () -> assertEquals(responseDto.id(), (int) data.get("id")),
                 () -> assertEquals(responseDto.name(), data.get("name")),
                 () -> assertEquals(responseDto.generation(), data.get("generation")),
@@ -284,7 +284,7 @@ public class SystemTestRestTemplateTests {
             Map<String, Object> returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
-                    () -> assertEquals("system", returnedSystem.get("type")),
+                    () -> assertEquals("system", returnedSystem.get("key")),
                     () -> assertEquals(expectedSystem.id(), (int) returnedSystem.get("id")),
                     () -> assertEquals(expectedSystem.name(), returnedSystem.get("name")),
                     () -> assertEquals(expectedSystem.generation(), (int) returnedSystem.get("generation")),

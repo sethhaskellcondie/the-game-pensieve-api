@@ -289,7 +289,7 @@ public class SystemControllerTests {
 
     private void validateSystemResponseBody(ResultActions result, System expectedSystem) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("system"),
+                jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").value(expectedSystem.getId()),
                 jsonPath("$.data.name").value(expectedSystem.getName()),
                 jsonPath("$.data.generation").value(expectedSystem.getGeneration()),
@@ -317,7 +317,7 @@ public class SystemControllerTests {
             final SystemResponseDto returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
-                    () -> assertEquals("system", returnedSystem.type()),
+                    () -> assertEquals("system", returnedSystem.key()),
                     () -> assertEquals(expectedSystem.getId(), returnedSystem.id()),
                     () -> assertEquals(expectedSystem.getName(), returnedSystem.name()),
                     () -> assertEquals(expectedSystem.getGeneration(), returnedSystem.generation()),

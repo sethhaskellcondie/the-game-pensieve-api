@@ -250,7 +250,7 @@ public class SystemTests {
 
     private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("system"),
+                jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.generation").value(expectedGeneration),
@@ -261,7 +261,7 @@ public class SystemTests {
 
     private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("system"),
+                jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").value(responseDto.id()),
                 jsonPath("$.data.name").value(responseDto.name()),
                 jsonPath("$.data.generation").value(responseDto.generation()),
@@ -286,7 +286,7 @@ public class SystemTests {
             SystemResponseDto returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
-                    () -> assertEquals("system", returnedSystem.type()),
+                    () -> assertEquals("system", returnedSystem.key()),
                     () -> assertEquals(expectedSystem.id(), returnedSystem.id()),
                     () -> assertEquals(expectedSystem.name(), returnedSystem.name()),
                     () -> assertEquals(expectedSystem.generation(), returnedSystem.generation()),

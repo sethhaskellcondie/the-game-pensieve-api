@@ -88,7 +88,7 @@ public class SystemEntityTests {
 
         assertAll(
                 "Converting system to a DTO failed",
-                () -> assertEquals("system", responseDto.type()),
+                () -> assertEquals("system", responseDto.key()),
                 () -> assertEquals(id, responseDto.id()),
                 () -> assertEquals(name, responseDto.name()),
                 () -> assertEquals(generation, responseDto.generation()),

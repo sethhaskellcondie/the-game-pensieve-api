@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 
@@ -41,6 +42,11 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 
     public ToyResponseDto convertToResponseDto() {
         return new ToyResponseDto("toy", this.id, this.name, this.set, this.created_at, this.updated_at, this.deleted_at);
+    }
+
+    @Override
+    protected String getKey() {
+        return Keychain.TOY_KEY;
     }
 
     private void validate() throws ExceptionMalformedEntity {

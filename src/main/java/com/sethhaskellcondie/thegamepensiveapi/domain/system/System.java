@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 
@@ -54,7 +55,8 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
      * meaning that the Entity has been persisted to the database
      */
 
-    public System updateFromRequestDto(SystemRequestDto requestDto) {
+    @Override
+    protected System updateFromRequestDto(SystemRequestDto requestDto) {
         List<Exception> exceptions = new ArrayList<>();
         this.name = requestDto.name();
         try {
@@ -78,8 +80,14 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return this;
     }
 
-    public SystemResponseDto convertToResponseDto() {
-        return new SystemResponseDto("system", this.id, this.name, this.generation, this.handheld, this.created_at, this.updated_at, this.deleted_at);
+    @Override
+    protected SystemResponseDto convertToResponseDto() {
+        return new SystemResponseDto(this.getKey(), this.id, this.name, this.generation, this.handheld, this.created_at, this.updated_at, this.deleted_at);
+    }
+
+    @Override
+    protected String getKey() {
+        return Keychain.SYSTEM_KEY;
     }
 
     private void validate() throws ExceptionMalformedEntity {
@@ -106,4 +114,4 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
  * this way we can pass all validation errors back at the same time.
  */
 record SystemRequestDto(String name, Integer generation, Boolean handheld) { }
-record SystemResponseDto(String type, int id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }
+record SystemResponseDto(String key, int id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }
