@@ -142,8 +142,8 @@ public class SqlFilterTests {
     @Test
     void validateAndOrderFilters_TimeFiltersIncorrectlyFormatted_ThrowException() {
         final List<Filter> filters = List.of(
-                new Filter("system", "created_at", Filter.OPERATOR_SINCE, "2024-05-32"),
-                new Filter("system", "updated_at", Filter.OPERATOR_BEFORE, "2024-13-06")
+                new Filter("system", "created_at", Filter.OPERATOR_SINCE, "2024-05-32 00:00:00"),
+                new Filter("system", "updated_at", Filter.OPERATOR_BEFORE, "2024-13-06 00:00:00")
         );
         boolean exceptionCaught = false;
         try {

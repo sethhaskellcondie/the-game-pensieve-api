@@ -121,6 +121,12 @@ public class Filter {
         return fields;
     }
 
+    /**
+     * All fields can use the sort (order_by) operators, if includeSort is 'true' the sort filters are included in EACH list of field types
+     *     if includeSort is 'false' then it will only be included in the 'all_fields' list
+     *     generally includeSort is set to false when we are returning the filters in a response
+     *     and includeSort is set to true when performing internal validation on incoming requests
+     */
     public static List<String> getFilterOperators(String fieldType, boolean includeSort) {
         List<String> filters = new ArrayList<>();
         if (null == fieldType) {
@@ -154,7 +160,6 @@ public class Filter {
                 filters.add(OPERATOR_NOT_EQUALS);
             }
             case FIELD_TYPE_SORT -> {
-                //don't include the sort fields twice
                 if (!includeSort) {
                     filters.add(OPERATOR_ORDER_BY);
                     filters.add(OPERATOR_ORDER_BY_DESC);
@@ -178,11 +183,6 @@ public class Filter {
     public static List<Filter> validateAndOrderFilters(List<Filter> filters) {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
-        List<Filter> whereFilters = new ArrayList<>();
-        List<Filter> orderByFilter = new ArrayList<>();
-        List<Filter> limitFilter = new ArrayList<>();
-        List<Filter> offsetFilter = new ArrayList<>();
-
         for (Filter filter : filters) {
             Map<String, String> fields = getFieldsForResource(filter.getResource());
             if (!fields.containsKey(filter.getField())) {
@@ -191,83 +191,111 @@ public class Filter {
             String fieldType = fields.get(filter.getField());
             List<String> operators = getFilterOperators(fieldType, true);
             if (!operators.contains(filter.getOperator())) {
-                exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator());
+                exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator() + ".");
             }
             for (String blacklistedWord : getBlacklistedWords()) {
                 if (filter.getOperand().contains(blacklistedWord)) {
-                    exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in filters");
+                    exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in filters.");
                 }
             }
 
-            //TODO refactor this section to not use triple if statements
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_NUMBER) || Objects.equals(fields.get(filter.field), FIELD_TYPE_PAGINATION)) {
-                if (!Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
-                    try {
-                        parseInt(filter.operand);
-                    } catch (NumberFormatException exception) {
-                        exceptionInvalidFilter.addException("Number and Pagination must include whole numbers as operands");
-                    }
-                }
+                exceptionInvalidFilter = additionalNumberAndPaginationFilterValidation(filter, exceptionInvalidFilter);
             }
 
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_BOOLEAN)) {
-                if (!Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
-                    if (!Objects.equals(filter.operand, "true") && !Objects.equals(filter.operand, "false")) {
-                        exceptionInvalidFilter.addException("operands for Boolean type filters must equal exactly 'true' or 'false'");
-                    }
-                }
+                exceptionInvalidFilter = additionalBooleanFilterValidation(filter, exceptionInvalidFilter);
             }
 
             if (Objects.equals(fields.get(filter.field), FIELD_TYPE_TIME)) {
-                if (!Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) && !Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
-                    try {
-                        Timestamp.valueOf(filter.operand);
-                    } catch (IllegalArgumentException exception) {
-                        exceptionInvalidFilter.addException("operands for Time type filters must be able to format to yyyy-mm-dd hh:mm:ss");
-                    }
-                }
+                exceptionInvalidFilter = additionalTimeValidation(filter, exceptionInvalidFilter);
             }
+        }
 
+        return orderFilters(filters, exceptionInvalidFilter);
+    }
+
+    private static ExceptionInvalidFilter additionalNumberAndPaginationFilterValidation(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
+        if (Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) || Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
+            return exceptionInvalidFilter;
+        }
+        try {
+            parseInt(filter.operand);
+        } catch (NumberFormatException exception) {
+            exceptionInvalidFilter.addException("Number and pagination filters must include whole numbers as operands.");
+        }
+        return exceptionInvalidFilter;
+    }
+
+    private static ExceptionInvalidFilter additionalBooleanFilterValidation(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
+        if (Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) || Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
+            return exceptionInvalidFilter;
+        }
+        if (!Objects.equals(filter.operand, "true") && !Objects.equals(filter.operand, "false")) {
+            exceptionInvalidFilter.addException("Boolean type filters must have their operands match exactly 'true' or 'false'.");
+        }
+        return exceptionInvalidFilter;
+    }
+
+    private static ExceptionInvalidFilter additionalTimeValidation(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
+        if (Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) || Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
+            return exceptionInvalidFilter;
+        }
+        try {
+            Timestamp.valueOf(filter.operand);
+        } catch (IllegalArgumentException exception) {
+            exceptionInvalidFilter.addException("Operands for Time filters must be able to be formatted to yyyy-mm-dd hh:mm:ss format. Example: 2024-05-17 00:00:00");
+        }
+        return exceptionInvalidFilter;
+    }
+
+    // This was originally one function with validateAndOrderFilters() but it was very long and hard to read, it was split up to improve readability
+    private static List<Filter> orderFilters(List<Filter> filters, ExceptionInvalidFilter exceptionInvalidFilter) {
+        List<Filter> whereFilters = new ArrayList<>();
+        Filter orderByFilter = null;
+        Filter limitFilter = null;
+        Filter offsetFilter = null;
+
+        for (Filter filter : filters) {
             switch (filter.getOperator()) {
                 case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> {
-                    orderByFilter.add(filter);
+                    if (null == orderByFilter) {
+                        orderByFilter = filter;
+                    } else {
+                        exceptionInvalidFilter.addException("No more than one 'order_by' or 'order_by_desc' filter allowed in a single request");
+                    }
                 }
                 case OPERATOR_LIMIT -> {
-                    limitFilter.add(filter);
+                    if (null == limitFilter) {
+                        limitFilter = filter;
+                    } else {
+                        exceptionInvalidFilter.addException("No more than one 'limit' filter allowed in a single request");
+                    }
                 }
                 case OPERATOR_OFFSET -> {
-                    offsetFilter.add(filter);
+                    if (null == offsetFilter) {
+                        offsetFilter = filter;
+                    } else {
+                        exceptionInvalidFilter.addException("No more than one 'offset' filter allowed in a single request");
+                    }
                 }
                 default -> {
                     whereFilters.add(filter);
                 }
             }
         }
-        if (orderByFilter.size() > 1) {
-            exceptionInvalidFilter.addException("No more than one " + OPERATOR_ORDER_BY + " allowed in a single request");
+
+        if (null == limitFilter && null != offsetFilter) {
+            exceptionInvalidFilter.addException("'Offset' filter is not allowed without also including one 'limit' filter");
         }
-        if (limitFilter.size() > 1) {
-            exceptionInvalidFilter.addException("No more than one " + OPERATOR_LIMIT + " allowed in a single request");
-        }
-        if (offsetFilter.size() > 1) {
-            exceptionInvalidFilter.addException("No more than one " + OPERATOR_OFFSET + " allowed in a single request");
-        }
-        if (limitFilter.size() < 1 && offsetFilter.size() > 0) {
-            exceptionInvalidFilter.addException(OPERATOR_OFFSET + " filter is not allowed without also including one " + OPERATOR_LIMIT + " filter");
-        }
+
         if (exceptionInvalidFilter.exceptionsFound()) {
             throw exceptionInvalidFilter;
         }
 
-        if (orderByFilter.size() == 1) {
-            whereFilters.add(orderByFilter.get(0));
-        }
-        if (limitFilter.size() == 1) {
-            whereFilters.add(limitFilter.get(0));
-        }
-        if (offsetFilter.size() == 1) {
-            whereFilters.add(offsetFilter.get(0));
-        }
+        whereFilters.add(orderByFilter);
+        whereFilters.add(limitFilter);
+        whereFilters.add(offsetFilter);
         return whereFilters;
     }
 
@@ -326,18 +354,6 @@ public class Filter {
         for (Filter filter : filters) {
             final Object operand = filter.getOperand();
             switch (filter.getOperator()) {
-                case OPERATOR_EQUALS,
-                        OPERATOR_NOT_EQUALS,
-                        OPERATOR_GREATER_THAN,
-                        OPERATOR_LESS_THAN,
-                        OPERATOR_GREATER_THAN_EQUAL_TO,
-                        OPERATOR_LESS_THAN_EQUAL_TO,
-                        OPERATOR_SINCE,
-                        OPERATOR_BEFORE,
-                        OPERATOR_LIMIT,
-                        OPERATOR_OFFSET -> {
-                    operands.add(castOperand(filter));
-                }
                 case OPERATOR_CONTAINS -> {
                     operands.add("%" + operand + "%");
                 }
@@ -347,9 +363,12 @@ public class Filter {
                 case OPERATOR_ENDS_WITH -> {
                     operands.add("%" + operand);
                 }
-                case OPERATOR_ORDER_BY,
-                        OPERATOR_ORDER_BY_DESC -> {
+                case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> {
+                    //the order_by operators are ignored
                     continue;
+                }
+                default -> {
+                    operands.add(castOperand(filter));
                 }
             }
         }
@@ -360,8 +379,7 @@ public class Filter {
         Map<String, String> fields = getFieldsForResource(filter.resource);
 
         switch (fields.get(filter.field)) {
-            case FIELD_TYPE_NUMBER,
-                    FIELD_TYPE_PAGINATION -> {
+            case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> {
                 try {
                     return parseInt(filter.operand);
                 } catch (NumberFormatException exception) {
