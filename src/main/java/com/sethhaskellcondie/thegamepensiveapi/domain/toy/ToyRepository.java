@@ -5,6 +5,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
@@ -38,7 +39,9 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                             resultSet.getString("set"),
                             resultSet.getTimestamp("created_at"),
                             resultSet.getTimestamp("updated_at"),
-                            resultSet.getTimestamp("deleted_at")
+                            resultSet.getTimestamp("deleted_at"),
+                            new HashMap<>(), //TODO update this
+                            new HashMap<>()  //TODO update this
                     );
 
     public ToyRepository(JdbcTemplate jdbcTemplate) {

@@ -52,7 +52,7 @@ public class SystemTestRestTemplateTests {
 
     @Test
     void postSystem_FailedValidation_ReturnArrayOfErrors() {
-        final SystemRequestDto requestDto = new SystemRequestDto("", -1, null);
+        final SystemRequestDto requestDto = new SystemRequestDto("", -1, null, new HashMap<>(), new HashMap<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
         final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
@@ -75,7 +75,7 @@ public class SystemTestRestTemplateTests {
 
         this.postCustomSystem(duplicateName, generation, handheld);
 
-        final SystemRequestDto requestDto = new SystemRequestDto(duplicateName, generation, handheld);
+        final SystemRequestDto requestDto = new SystemRequestDto(duplicateName, generation, handheld, new HashMap<>(), new HashMap<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
         final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
@@ -178,10 +178,12 @@ public class SystemTestRestTemplateTests {
                 newHandheld,
                 responseDto.createdAt(),
                 responseDto.updatedAt(),
-                responseDto.deletedAt()
+                responseDto.deletedAt(),
+                new HashMap<>(),
+                new HashMap<>()
         );
 
-        final SystemRequestDto requestDto = new SystemRequestDto(newName, newGeneration, newHandheld);
+        final SystemRequestDto requestDto = new SystemRequestDto(newName, newGeneration, newHandheld, new HashMap<>(), new HashMap<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
         final ResponseEntity<Map> response = restTemplate.exchange("/systems/" + responseDto.id() + "/testRestTemplate", HttpMethod.PUT, request, Map.class);
@@ -192,7 +194,7 @@ public class SystemTestRestTemplateTests {
 
     @Test
     void updateExistingSystem_InvalidId_ReturnNotFound() {
-        final SystemRequestDto requestDto = new SystemRequestDto("ValidButMissing", 3, false);
+        final SystemRequestDto requestDto = new SystemRequestDto("ValidButMissing", 3, false, new HashMap<>(), new HashMap<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
         final ResponseEntity<Map> response = restTemplate.exchange("/systems/-1/testRestTemplate", HttpMethod.PUT, request, Map.class);
@@ -238,7 +240,9 @@ public class SystemTestRestTemplateTests {
                 (boolean) data.get("handheld"),
                 (Timestamp) data.get("created_at"),
                 (Timestamp) data.get("updated_at"),
-                (Timestamp) data.get("deleted_at")
+                (Timestamp) data.get("deleted_at"),
+                new HashMap<>(),
+                new HashMap<>()
         );
     }
 
@@ -307,7 +311,7 @@ public class SystemTestRestTemplateTests {
     }
 
     private ResponseEntity<Map> postCustomSystem(String name, int generation, boolean handheld) {
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld);
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
         final System system = new System().updateFromRequestDto(requestDto);
         final HttpEntity<System> request = new HttpEntity<>(system);
 

@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ public class ToyControllerTests {
 
     @Test
     void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
-        final Toy toy = new Toy(1, "Donkey Kong", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy toy = new Toy(1, "Donkey Kong", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
         when(service.getById(1)).thenReturn(toy);
 
         final ResultActions result = mockMvc.perform(get("/toys/1"));
@@ -80,8 +81,8 @@ public class ToyControllerTests {
     @Test
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
         final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
-        final Toy toy1 = new Toy(1, "Mega Man", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
-        final Toy toy2 = new Toy(2, "Samus", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy toy1 = new Toy(1, "Mega Man", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+        final Toy toy2 = new Toy(2, "Samus", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
         final List<Toy> toys = List.of(toy1, toy2);
         when(service.getWithFilters(List.of(filter))).thenReturn(toys);
 
@@ -125,7 +126,7 @@ public class ToyControllerTests {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
 
-        final Toy expectedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy expectedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
 
         when(service.createNew(any())).thenReturn(expectedToy);
 
@@ -165,8 +166,8 @@ public class ToyControllerTests {
         final String expectedName = "Baloo";
         final String expectedSet = "Disney Infinity";
 
-        final Toy existingToy = new Toy(expectedId, "Old Name", "Old Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
-        final Toy updatedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy existingToy = new Toy(expectedId, "Old Name", "Old Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+        final Toy updatedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
 
         when(service.getById(expectedId)).thenReturn(existingToy);
         when(service.updateExisting(updatedToy)).thenReturn(updatedToy);
@@ -202,7 +203,7 @@ public class ToyControllerTests {
 
     @Test
     void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
-        when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null));
+        when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>()));
 
         final ResultActions result = mockMvc.perform(
                 delete("/toys/27")

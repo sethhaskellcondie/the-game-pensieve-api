@@ -7,6 +7,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEnti
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 
@@ -18,8 +19,10 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 
     //only used in tests and repositories
-    public Toy(Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
-        super(id, createdAt, updatedAt, deletedAt);
+    public Toy(Integer id, String name, String set,
+               Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt,
+               Map<String, String> customFields, Map<String, String> customFieldsValues) {
+        super(id, createdAt, updatedAt, deletedAt, customFields, customFieldsValues);
         this.name = name;
         this.set = set;
         this.validate();
@@ -36,12 +39,21 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     public Toy updateFromRequestDto(ToyRequestDto requestDto) {
         this.name = requestDto.name();
         this.set = requestDto.set();
+        if (null != requestDto.customFields()) {
+            this.customFields = requestDto.customFields();
+        }
+        if (null != requestDto.customFieldsValues()) {
+            this.customFieldsValues = requestDto.customFieldsValues();
+        }
         this.validate();
         return this;
     }
 
     public ToyResponseDto convertToResponseDto() {
-        return new ToyResponseDto(getKey(), this.id, this.name, this.set, this.created_at, this.updated_at, this.deleted_at);
+        return new ToyResponseDto(getKey(), this.id, this.name, this.set,
+                this.created_at, this.updated_at, this.deleted_at,
+                this.customFields, this.customFieldsValues
+        );
     }
 
     @Override
@@ -58,5 +70,8 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 }
 
-record ToyRequestDto(String name, String set) { }
-record ToyResponseDto(String key, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }
+record ToyRequestDto(String name, String set, Map<String, String> customFields, Map<String, String> customFieldsValues) { }
+
+record ToyResponseDto(String key, Integer id, String name, String set,
+                      Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt,
+                      Map<String, String> customFields, Map<String, String> customFieldsValues) { }

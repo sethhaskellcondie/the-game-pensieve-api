@@ -1,6 +1,8 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public abstract class Entity<RequestDto, ResponseDto> {
@@ -8,20 +10,26 @@ public abstract class Entity<RequestDto, ResponseDto> {
     protected final Timestamp created_at;
     protected final Timestamp updated_at;
     protected final Timestamp deleted_at;
+    protected Map<String, String> customFields;
+    protected Map<String, String> customFieldsValues;
 
     protected Entity() {
         id = null;
         created_at = null;
         updated_at = null;
         deleted_at = null;
+        customFields = new HashMap<>();
+        customFieldsValues = new HashMap<>();
     }
 
     //IDs are ONLY generated in tests and by the database
-    protected Entity(Integer id, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
+    protected Entity(Integer id, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, Map<String, String> customFields, Map<String, String> customFieldsValues) {
         this.id = id;
         created_at = createdAt;
         updated_at = updatedAt;
         deleted_at = deletedAt;
+        this.customFields = customFields;
+        this.customFieldsValues = customFieldsValues;
     }
 
     public final Integer getId() {
@@ -38,6 +46,26 @@ public abstract class Entity<RequestDto, ResponseDto> {
 
     public final Timestamp getDeletedAt() {
         return deleted_at;
+    }
+
+    public final Map<String, String> getCustomFields() {
+        return customFields;
+    }
+
+    public final Map<String, String> getCustomFieldsValues() {
+        return customFieldsValues;
+    }
+
+    public final void setCustomFields(Map<String, String> customFields) {
+        if (null != customFields) {
+            this.customFields = customFields;
+        }
+    }
+
+    public final void setCustomFieldsValues(Map<String, String> customFieldsValues) {
+        if (null != customFieldsValues) {
+            this.customFieldsValues = customFieldsValues;
+        }
     }
 
     public final boolean isPersisted() {

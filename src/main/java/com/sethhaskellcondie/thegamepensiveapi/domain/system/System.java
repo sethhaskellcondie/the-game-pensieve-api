@@ -8,6 +8,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidati
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Entity object will extend the Entity abstract class, this will enforce the ID equality
@@ -15,7 +16,6 @@ import java.util.List;
  */
 public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 
-    // Inherit ID from Entity
     private String name;
     private int generation;
     private boolean handheld;
@@ -29,8 +29,10 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
      * this constructor should only be used in repositories and tests.
      * To hydrate an Entity with an ID call getWithId on the repository.
      */
-    public System(Integer id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
-        super(id, createdAt, updatedAt, deletedAt);
+    public System(Integer id, String name, int generation, boolean handheld,
+                  Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt,
+                  Map<String, String> customFields, Map<String, String> customFieldsValues) {
+        super(id, createdAt, updatedAt, deletedAt, customFields, customFieldsValues);
         this.name = name;
         this.generation = generation;
         this.handheld = handheld;
@@ -49,12 +51,6 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return handheld;
     }
 
-    /**
-     * Also inherit isPersisted() from Entity
-     * this will return True if the Entity has an ID
-     * meaning that the Entity has been persisted to the database
-     */
-
     @Override
     protected System updateFromRequestDto(SystemRequestDto requestDto) {
         List<Exception> exceptions = new ArrayList<>();
@@ -69,6 +65,12 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         } catch (NullPointerException e) {
             exceptions.add(new ExceptionInputValidation("System object error, handheld can't be null"));
         }
+        if (null != requestDto.customFields()) {
+            this.customFields = requestDto.customFields();
+        }
+        if (null != requestDto.customFieldsValues()) {
+            this.customFieldsValues = requestDto.customFieldsValues();
+        }
         try {
             this.validate();
         } catch (ExceptionMalformedEntity e) {
@@ -82,7 +84,10 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 
     @Override
     protected SystemResponseDto convertToResponseDto() {
-        return new SystemResponseDto(this.getKey(), this.id, this.name, this.generation, this.handheld, this.created_at, this.updated_at, this.deleted_at);
+        return new SystemResponseDto(this.getKey(), this.id, this.name, this.generation, this.handheld,
+                this.created_at, this.updated_at, this.deleted_at,
+                this.customFields, this.customFieldsValues
+        );
     }
 
     @Override
@@ -113,5 +118,9 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
  * in as input then it will be validated when they are used for the object to be created
  * this way we can pass all validation errors back at the same time.
  */
-record SystemRequestDto(String name, Integer generation, Boolean handheld) { }
-record SystemResponseDto(String key, int id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) { }
+record SystemRequestDto(String name, Integer generation, Boolean handheld,
+                        Map<String, String> customFields, Map<String, String> customFieldsValues) { }
+
+record SystemResponseDto(String key, int id, String name, int generation, boolean handheld,
+                         Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt,
+                         Map<String, String> customFields, Map<String, String> customFieldsValues) { }
