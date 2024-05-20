@@ -29,7 +29,6 @@ public class Filter {
     public static final String FIELD_TYPE_BOOLEAN = "boolean";
     public static final String FIELD_TYPE_TIME = "time";
     public static final String FIELD_TYPE_SORT = "sort";
-    public static final String FIELD_TYPE_ENUM = "enum";
     public static final String FIELD_TYPE_PAGINATION = "pagination";
 
     public static final String OPERATOR_EQUALS = "equals";
@@ -125,10 +124,6 @@ public class Filter {
             case FIELD_TYPE_TIME -> {
                 filters.add(OPERATOR_SINCE);
                 filters.add(OPERATOR_BEFORE);
-            }
-            case FIELD_TYPE_ENUM -> {
-                filters.add(OPERATOR_EQUALS);
-                filters.add(OPERATOR_NOT_EQUALS);
             }
             case FIELD_TYPE_SORT -> {
                 if (!includeSort) {
