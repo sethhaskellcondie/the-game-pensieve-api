@@ -113,7 +113,7 @@ public class TestFactory {
 
     public ResultActions postCustomField() throws Exception {
         final String name = "TestCustomField-" + randomString(6);
-        final String type = "Text";
+        final String type = "text";
         final String entityKey = "toy";
         return postCustomCustomField(name, type, entityKey);
     }
