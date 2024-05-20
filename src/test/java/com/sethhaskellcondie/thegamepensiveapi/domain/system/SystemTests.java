@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +78,7 @@ public class SystemTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isArray()
+                jsonPath("$.errors.length()").value(2)
         );
     }
 
@@ -98,7 +99,7 @@ public class SystemTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isNotEmpty()
+                jsonPath("$.errors.length()").value(1)
         );
     }
 
@@ -287,7 +288,7 @@ public class SystemTests {
             SystemResponseDto returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
-                    () -> assertEquals("system", returnedSystem.key()),
+                    () -> assertEquals(Keychain.SYSTEM_KEY, returnedSystem.key()),
                     () -> assertEquals(expectedSystem.id(), returnedSystem.id()),
                     () -> assertEquals(expectedSystem.name(), returnedSystem.name()),
                     () -> assertEquals(expectedSystem.generation(), returnedSystem.generation()),

@@ -17,7 +17,7 @@ public class ApiControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public Map<String, List<String>> handleExceptionFailedDbValidation(ExceptionFailedDbValidation e) {
-        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
         return body.formatError();
     }
 

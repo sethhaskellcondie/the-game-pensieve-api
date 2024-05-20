@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
+import java.util.List;
+
 /**
  * CustomFieldValues belong to Entities
  * There are two additional fields saved into the database the
@@ -39,4 +41,14 @@ public class CustomFieldValue {
 }
 
 record CustomFieldRequest(String name, String type, String entityKey) { }
-record CustomField(int id, String name, String type, String entityKey) { }
+
+record CustomField(int id, String name, String type, String entityKey) {
+
+    public static final String TYPE_TEXT = "text";
+    public static final String TYPE_NUMBER = "number";
+    public static final String TYPE_BOOLEAN = "boolean";
+
+    public static List<String> getAllCustomFieldTypes() {
+        return List.of(TYPE_TEXT, TYPE_NUMBER, TYPE_BOOLEAN);
+    }
+}

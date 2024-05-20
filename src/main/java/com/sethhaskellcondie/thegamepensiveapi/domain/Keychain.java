@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import java.util.List;
+
 /**
  * Each entity will have a key that is essentially the name of the entity it will
  * act like a key when implementing features like filters and custom fields.
@@ -14,4 +16,11 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 public class Keychain {
     public static final String SYSTEM_KEY = "system";
     public static final String TOY_KEY = "toy";
+
+    public static List<String> getAllKeys() {
+        return List.of(
+                SYSTEM_KEY,
+                TOY_KEY
+        );
+    }
 }

@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,7 +33,7 @@ public class CustomFieldController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequest> requestBody) {
+    public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequest> requestBody) throws ExceptionFailedDbValidation {
         final CustomFieldRequest newCustomField = requestBody.get("custom_field");
         final CustomField savedCustomField = repository.insertCustomField(newCustomField);
         final FormattedResponseBody<CustomField> body = new FormattedResponseBody<>(savedCustomField);
