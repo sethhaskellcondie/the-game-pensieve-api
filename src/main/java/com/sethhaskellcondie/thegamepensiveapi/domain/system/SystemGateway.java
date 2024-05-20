@@ -1,14 +1,12 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGateway;
+import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayAbstract;
+import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.springframework.stereotype.Component;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayAbstract;
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 
 @Component
 public class SystemGateway extends EntityGatewayAbstract<System, SystemRequestDto, SystemResponseDto> implements EntityGateway<System, SystemRequestDto, SystemResponseDto> {

@@ -1,14 +1,12 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGateway;
+import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayAbstract;
+import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.springframework.stereotype.Component;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayAbstract;
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 
 @Component
 public class ToyGateway extends EntityGatewayAbstract<Toy, ToyRequestDto, ToyResponseDto> implements EntityGateway<Toy, ToyRequestDto, ToyResponseDto> {

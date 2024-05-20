@@ -6,7 +6,6 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionTestFactory;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class SystemFactory implements EntityFactory<System, SystemRequestDto, SystemResponseDto> {
 
