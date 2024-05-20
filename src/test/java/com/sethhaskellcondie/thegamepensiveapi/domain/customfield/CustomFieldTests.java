@@ -22,6 +22,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -111,13 +112,44 @@ public class CustomFieldTests {
     }
 
     @Test
-    void patchCustomFieldName_HappyPath_CustomFieldReturned() {
+    void patchCustomFieldName_HappyPath_CustomFieldReturned() throws Exception {
+        final CustomField existingCustomField = resultToResponseDto(factory.postCustomField());
+        final String newName = "patched name!";
 
+        final String json = """
+                {
+                    "name": "%s"
+                }
+                """;
+        final String formattedJson = String.format(json, newName);
+        final ResultActions result = mockMvc.perform(
+                patch(baseUrlSlash + existingCustomField.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isOk());
+        validateCustomFieldResponseBody(result, resultToResponseDto(result));
     }
 
     @Test
-    void patchCustomFieldName_InvalidId_ReturnError() {
+    void patchCustomFieldName_InvalidId_ReturnError() throws Exception {
+        final String json = """
+                {
+                    "name": "validButMissingName"
+                }
+                """;
+        final ResultActions result = mockMvc.perform(
+                patch(baseUrlSlash + "-1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        );
 
+        result.andExpectAll(
+                status().isNotFound(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
     }
 
     @Test
