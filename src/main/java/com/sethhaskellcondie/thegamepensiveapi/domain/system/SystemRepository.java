@@ -82,7 +82,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                 },
                 keyHolder
         );
-        Integer generatedId = (Integer) keyHolder.getKeys().get("id");
+        final Integer generatedId = (Integer) keyHolder.getKeys().get("id");
 
         try {
             return getById(generatedId);
