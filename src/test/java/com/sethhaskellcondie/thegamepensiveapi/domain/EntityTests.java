@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,7 +55,7 @@ public class EntityTests {
 
     //Since Entities are abstract we will use System Objects for the tests
     private Entity<?, ?> generatePersistedEntity(Integer id) {
-        return new System(id, "test", 1, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+        return new System(id, "test", 1, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
     }
 
     private Entity<?, ?> generateEntity() {
@@ -62,6 +63,6 @@ public class EntityTests {
     }
 
     private Entity<?, ?> generateDeletedEntity(Integer id) {
-        return new System(id, "deletedTest", 1, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), new HashMap<>(), new HashMap<>());
+        return new System(id, "deletedTest", 1, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), new ArrayList<>());
     }
 }

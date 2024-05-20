@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -27,7 +28,7 @@ public class SystemEntityTests {
         final int generation = 3;
         final boolean handheld = false;
 
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System system = new System();
 
         system.updateFromRequestDto(requestDto);
@@ -41,7 +42,7 @@ public class SystemEntityTests {
     public void updateFromRequestDto_FieldsNull_ThrowMultipleErrors() {
         final int numberOfErrors = 3;
 
-        final SystemRequestDto requestDto = new SystemRequestDto(null, null, null, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(null, null, null, new ArrayList<>());
         final System system = new System();
 
         try {
@@ -61,7 +62,7 @@ public class SystemEntityTests {
         final Boolean handheld = false;
         final int numberOfErrors = 2;
 
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System system = new System();
 
         try {
@@ -83,7 +84,7 @@ public class SystemEntityTests {
         final Instant created_at = Instant.now();
         final Instant updated_at = Instant.now();
 
-        final System system = new System(id, name, generation, handheld, Timestamp.from(created_at), Timestamp.from(updated_at), null, new HashMap<>(), new HashMap<>());
+        final System system = new System(id, name, generation, handheld, Timestamp.from(created_at), Timestamp.from(updated_at), null, new ArrayList<>());
 
         final SystemResponseDto responseDto = system.convertToResponseDto();
 

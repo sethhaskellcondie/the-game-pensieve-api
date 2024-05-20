@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionTestFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponseDto> {
@@ -19,24 +20,24 @@ public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponse
     public Toy generateEntity(Generate generate) {
         switch (generate) {
             case VALID -> {
-                ToyRequestDto requestDto = new ToyRequestDto("ToyName", "ToySet", new HashMap<>(), new HashMap<>());
+                ToyRequestDto requestDto = new ToyRequestDto("ToyName", "ToySet", new ArrayList<>());
                 return new Toy().updateFromRequestDto(requestDto);
             }
             case ANOTHER_VALID -> {
-                ToyRequestDto requestDto = new ToyRequestDto("AnotherToyName", "ToySet", new HashMap<>(), new HashMap<>());
+                ToyRequestDto requestDto = new ToyRequestDto("AnotherToyName", "ToySet", new ArrayList<>());
                 return new Toy().updateFromRequestDto(requestDto);
             }
             case VALID_PERSISTED -> {
-                return new Toy(1, "PersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+                return new Toy(1, "PersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
             }
             case ANOTHER_VALID_PERSISTED -> {
-                return new Toy(2, "AnotherPersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+                return new Toy(2, "AnotherPersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
             }
             case STARTS_WITH_VALID_PERSISTED -> {
-                return new Toy(3, startsWith + "PersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+                return new Toy(3, startsWith + "PersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
             }
             case ANOTHER_STARTS_WITH_VALID_PERSISTED -> {
-                return new Toy(4, startsWith + "AnotherPersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+                return new Toy(4, startsWith + "AnotherPersistedName", "ToySet", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
             }
             case INVALID -> {
                 throw new ExceptionTestFactory("Cannot call 'generateEntity()' with INVALID option");
@@ -54,10 +55,10 @@ public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponse
     public ToyRequestDto generateRequestDto(Generate generate) {
         switch (generate) {
             case VALID -> {
-                return new ToyRequestDto("ToyDtoName", "ToySet", new HashMap<>(), new HashMap<>());
+                return new ToyRequestDto("ToyDtoName", "ToySet", new ArrayList<>());
             }
             case ANOTHER_VALID -> {
-                return new ToyRequestDto("AnotherToyDtoName", "ToySet", new HashMap<>(), new HashMap<>());
+                return new ToyRequestDto("AnotherToyDtoName", "ToySet", new ArrayList<>());
             }
             case VALID_PERSISTED -> {
                 throw new ExceptionTestFactory("Cannot call 'generateRequestDto()' with VALID_PERSISTED option");
@@ -67,17 +68,17 @@ public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponse
             }
             //I know it says persisted but requestDtos are not persisted, these are intended to be persisted in the test
             case STARTS_WITH_VALID_PERSISTED -> {
-                return new ToyRequestDto(startsWith + "ToyName", "ToySet", new HashMap<>(), new HashMap<>());
+                return new ToyRequestDto(startsWith + "ToyName", "ToySet", new ArrayList<>());
             }
             case ANOTHER_STARTS_WITH_VALID_PERSISTED -> {
-                return new ToyRequestDto(startsWith + "AnotherToyName", "ToySet", new HashMap<>(), new HashMap<>());
+                return new ToyRequestDto(startsWith + "AnotherToyName", "ToySet", new ArrayList<>());
             }
             case INVALID -> {
                 //name cannot be blank
-                return new ToyRequestDto("", "", new HashMap<>(), new HashMap<>());
+                return new ToyRequestDto("", "", new ArrayList<>());
             }
             case EMPTY -> {
-                return new ToyRequestDto(null, null, new HashMap<>(), new HashMap<>());
+                return new ToyRequestDto(null, null, new ArrayList<>());
             }
             default -> {
                 throw new ExceptionTestFactory("Call made to 'generateRequestDto()' with unknown Generate enum");
@@ -87,6 +88,6 @@ public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponse
 
     @Override
     public ToyRequestDto generateRequestDtoFromEntity(Toy entity) {
-        return new ToyRequestDto(entity.getName(), entity.getSet(), new HashMap<>(), new HashMap<>());
+        return new ToyRequestDto(entity.getName(), entity.getSet(), new ArrayList<>());
     }
 }

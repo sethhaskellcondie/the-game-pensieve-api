@@ -22,6 +22,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -39,8 +40,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     resultSet.getTimestamp("created_at"),
                     resultSet.getTimestamp("updated_at"),
                     resultSet.getTimestamp("deleted_at"),
-                    new HashMap<>(), //TODO update this
-                    new HashMap<>()  //TODO update this
+                    new ArrayList<>() //TODO update this
             );
 
     public SystemRepository(JdbcTemplate jdbcTemplate) {

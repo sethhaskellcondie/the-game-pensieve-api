@@ -61,7 +61,7 @@ public class SystemControllerTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        final System system = new System(1, "test", 3, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+        final System system = new System(1, "test", 3, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         when(service.getById(1)).thenReturn(system);
 
         final ResultActions result = mockMvc.perform(get("/systems/1"));
@@ -90,8 +90,8 @@ public class SystemControllerTests {
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
-        final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
-        final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+        final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
+        final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final List<System> systems = List.of(system1, system2);
         when(service.getWithFilters(List.of(filter))).thenReturn(systems);
 
@@ -137,8 +137,7 @@ public class SystemControllerTests {
         final boolean expectedHandheld = false;
 
         final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld,
-                Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null,
-                new HashMap<>(), new HashMap<>()
+                Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>()
         );
 
         when(service.createNew(any())).thenReturn(expectedSystemPersisted);
@@ -199,9 +198,9 @@ public class SystemControllerTests {
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
-        final System existingSystem = new System(expectedId, "Created Name", 4, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>());
+        final System existingSystem = new System(expectedId, "Created Name", 4, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld,
-                Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new HashMap<>(), new HashMap<>()
+                Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>()
         );
 
         when(service.getById(expectedId)).thenReturn(existingSystem);

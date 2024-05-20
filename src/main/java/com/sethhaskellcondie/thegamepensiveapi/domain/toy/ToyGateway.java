@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @Component
@@ -18,6 +19,6 @@ public class ToyGateway extends EntityGatewayAbstract<Toy, ToyRequestDto, ToyRes
     //This method is ONLY here to seed data in the HeartbeatController  TODO update how we seed data and remove this method
     @Deprecated
     public ToyResponseDto createNew(String name, String set) throws ExceptionFailedDbValidation {
-        return this.createNew(new ToyRequestDto(name, set, new HashMap<>(), new HashMap<>()));
+        return this.createNew(new ToyRequestDto(name, set, new ArrayList<>()));
     }
 }

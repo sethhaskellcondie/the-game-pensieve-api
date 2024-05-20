@@ -1,8 +1,10 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class Entity<RequestDto, ResponseDto> {
@@ -10,26 +12,23 @@ public abstract class Entity<RequestDto, ResponseDto> {
     protected final Timestamp created_at;
     protected final Timestamp updated_at;
     protected final Timestamp deleted_at;
-    protected Map<String, String> customFields;
-    protected Map<String, String> customFieldsValues;
+    protected List<CustomFieldValue> customFieldValues;
 
     protected Entity() {
         id = null;
         created_at = null;
         updated_at = null;
         deleted_at = null;
-        customFields = new HashMap<>();
-        customFieldsValues = new HashMap<>();
+        customFieldValues = new ArrayList<>();
     }
 
     //IDs are ONLY generated in tests and by the database
-    protected Entity(Integer id, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, Map<String, String> customFields, Map<String, String> customFieldsValues) {
+    protected Entity(Integer id, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) {
         this.id = id;
         created_at = createdAt;
         updated_at = updatedAt;
         deleted_at = deletedAt;
-        this.customFields = customFields;
-        this.customFieldsValues = customFieldsValues;
+        setCustomFieldValues(customFieldValues);
     }
 
     public final Integer getId() {
@@ -48,23 +47,15 @@ public abstract class Entity<RequestDto, ResponseDto> {
         return deleted_at;
     }
 
-    public final Map<String, String> getCustomFields() {
-        return customFields;
+    public final List<CustomFieldValue> getCustomFieldValues() {
+        return customFieldValues;
     }
 
-    public final Map<String, String> getCustomFieldsValues() {
-        return customFieldsValues;
-    }
-
-    public final void setCustomFields(Map<String, String> customFields) {
-        if (null != customFields) {
-            this.customFields = customFields;
-        }
-    }
-
-    public final void setCustomFieldsValues(Map<String, String> customFieldsValues) {
-        if (null != customFieldsValues) {
-            this.customFieldsValues = customFieldsValues;
+    public final void setCustomFieldValues(List<CustomFieldValue> customFieldValues) {
+        if (null != customFieldValues) {
+            this.customFieldValues = customFieldValues;
+        } else {
+            this.customFieldValues = new ArrayList<>();
         }
     }
 

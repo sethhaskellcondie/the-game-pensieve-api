@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name = "NES";
         final int generation = 3;
         final boolean handheld = false;
-        final SystemRequestDto expected = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto expected = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
 
         final System actual = repository.insert(expected);
 
@@ -56,7 +57,7 @@ public class SystemRepositoryWithoutInheritanceTests {
     void insertRequestDto_FailsEntityValidation_ThrowExceptionMalformedEntity() {
         final int generation = 3;
         final boolean handheld = false;
-        final SystemRequestDto expected = new SystemRequestDto(null, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto expected = new SystemRequestDto(null, generation, handheld, new ArrayList<>());
 
         assertThrows(ExceptionMalformedEntity.class, () -> repository.insert(expected));
     }
@@ -66,7 +67,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name = "SNES";
         final int generation = 4;
         final boolean handheld = false;
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System expected = new System().updateFromRequestDto(requestDto);
 
         System actual = repository.insert(expected);
@@ -82,13 +83,13 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name1 = "Epic Master System";
         final int generation1 = 3;
         final boolean handheld1 = false;
-        final SystemRequestDto requestDto1 = new SystemRequestDto(name1, generation1, handheld1, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto1 = new SystemRequestDto(name1, generation1, handheld1, new ArrayList<>());
         final System expected1 = repository.insert(requestDto1);
 
         final String name2 = "Epic Genesis";
         final int generation2 = 4;
         final boolean handheld2 = false;
-        final SystemRequestDto requestDto2 = new SystemRequestDto(name2, generation2, handheld2, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto2 = new SystemRequestDto(name2, generation2, handheld2, new ArrayList<>());
         final System expected2 = repository.insert(requestDto2);
 
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Epic ");
@@ -113,7 +114,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name = "Playstation";
         final int generation = 5;
         final boolean handheld = false;
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System expected = repository.insert(requestDto);
 
         final System actual = repository.getById(expected.getId());
@@ -131,14 +132,14 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name = "Nintendo 64";
         final int generation = 5;
         final boolean handheld = false;
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System expected = repository.insert(requestDto);
         final int expectedId = expected.getId();
 
         final String updatedName = "Game Boy";
         final int updatedGeneration = 3;
         final boolean updatedHandheld = true;
-        final SystemRequestDto updatedRequestDto = new SystemRequestDto(updatedName, updatedGeneration, updatedHandheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto updatedRequestDto = new SystemRequestDto(updatedName, updatedGeneration, updatedHandheld, new ArrayList<>());
         expected.updateFromRequestDto(updatedRequestDto);
 
         final System actual = repository.update(expected);
@@ -154,7 +155,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name = "Playstation 2";
         final int generation = 6;
         final boolean handheld = false;
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System expected = repository.insert(requestDto);
         final int expectedId = expected.getId();
 
@@ -176,7 +177,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name = "Playstation 3";
         final int generation = 7;
         final boolean handheld = false;
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System expected = repository.insert(requestDto);
 
         assertThrows(ExceptionFailedDbValidation.class, () -> repository.insert(expected));
@@ -187,7 +188,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final String name = "Playstation 3";
         final int generation = 7;
         final boolean handheld = false;
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new HashMap<>(), new HashMap<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System expected = repository.insert(requestDto);
 
         assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(expected));

@@ -2,12 +2,12 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 
@@ -21,8 +21,8 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     //only used in tests and repositories
     public Toy(Integer id, String name, String set,
                Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt,
-               Map<String, String> customFields, Map<String, String> customFieldsValues) {
-        super(id, createdAt, updatedAt, deletedAt, customFields, customFieldsValues);
+               List<CustomFieldValue> customFieldValues) {
+        super(id, createdAt, updatedAt, deletedAt, customFieldValues);
         this.name = name;
         this.set = set;
         this.validate();
@@ -39,21 +39,13 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     public Toy updateFromRequestDto(ToyRequestDto requestDto) {
         this.name = requestDto.name();
         this.set = requestDto.set();
-        if (null != requestDto.customFields()) {
-            this.customFields = requestDto.customFields();
-        }
-        if (null != requestDto.customFieldsValues()) {
-            this.customFieldsValues = requestDto.customFieldsValues();
-        }
+        setCustomFieldValues(requestDto.customFieldValues());
         this.validate();
         return this;
     }
 
     public ToyResponseDto convertToResponseDto() {
-        return new ToyResponseDto(getKey(), this.id, this.name, this.set,
-                this.created_at, this.updated_at, this.deleted_at,
-                this.customFields, this.customFieldsValues
-        );
+        return new ToyResponseDto(getKey(), this.id, this.name, this.set, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 
     @Override
@@ -70,8 +62,6 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 }
 
-record ToyRequestDto(String name, String set, Map<String, String> customFields, Map<String, String> customFieldsValues) { }
+record ToyRequestDto(String name, String set, List<CustomFieldValue> customFieldValues) { }
 
-record ToyResponseDto(String key, Integer id, String name, String set,
-                      Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt,
-                      Map<String, String> customFields, Map<String, String> customFieldsValues) { }
+record ToyResponseDto(String key, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) { }
