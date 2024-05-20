@@ -58,7 +58,7 @@ public class TestFactory {
         final String formattedJson = String.format(json, name, generation, handheld);
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );
@@ -90,7 +90,7 @@ public class TestFactory {
         final String formattedJson = formatToyPayload(name, set);
 
         final ResultActions result = mockMvc.perform(
-                post("/toys")
+                post("/v1/toys")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );

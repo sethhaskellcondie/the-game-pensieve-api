@@ -38,10 +38,9 @@ import java.util.Map;
  * ResponseDto or an error, the controller will then format the response.
  */
 @RestController
-@RequestMapping("systems")
+@RequestMapping("v1/systems")
 public class SystemController {
     private final SystemGateway gateway;
-    //TODO update this to have a v1 in the request mapping
 
     public SystemController(SystemGateway gateway) {
         this.gateway = gateway;

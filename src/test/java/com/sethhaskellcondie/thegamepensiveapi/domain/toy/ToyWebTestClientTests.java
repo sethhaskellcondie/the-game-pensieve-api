@@ -49,7 +49,7 @@ public class ToyWebTestClientTests {
     void postNewToy_NameBlank_ReturnBadRequest() {
         final String formattedJson = formatToyPayload("", "");
 
-        ResponseSpec response = client.post().uri("/toys").contentType(MediaType.APPLICATION_JSON).bodyValue(formattedJson).exchange();
+        ResponseSpec response = client.post().uri("/v1/toys").contentType(MediaType.APPLICATION_JSON).bodyValue(formattedJson).exchange();
 
         response.expectStatus().isBadRequest();
         response.expectHeader().contentType(MediaType.APPLICATION_JSON);
@@ -65,7 +65,7 @@ public class ToyWebTestClientTests {
         final ResponseSpec postResult = this.postCustomToy(name, set);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
-        ResponseSpec response = client.get().uri("/toys/" + expectedDto.id()).exchange();
+        ResponseSpec response = client.get().uri("/v1/toys/" + expectedDto.id()).exchange();
 
         response.expectStatus().isOk();
         response.expectHeader().contentType(MediaType.APPLICATION_JSON);
@@ -74,7 +74,7 @@ public class ToyWebTestClientTests {
 
     @Test
     void getOneToy_ToyMissing_NotFoundReturned() {
-        ResponseSpec response = client.get().uri("/toys/-1").exchange();
+        ResponseSpec response = client.get().uri("/v1/toys/-1").exchange();
 
         response.expectStatus().isNotFound();
         response.expectHeader().contentType(MediaType.APPLICATION_JSON);
@@ -108,7 +108,7 @@ public class ToyWebTestClientTests {
                 }
                 """;
 
-        final ResponseSpec response = client.post().uri("/toys/search")
+        final ResponseSpec response = client.post().uri("/v1/toys/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(json)
                 .exchange();
@@ -132,7 +132,7 @@ public class ToyWebTestClientTests {
                   ]
                 }
                 """;
-        final ResponseSpec response = client.post().uri("/toys/search")
+        final ResponseSpec response = client.post().uri("/v1/toys/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(json)
                 .exchange();
@@ -155,7 +155,7 @@ public class ToyWebTestClientTests {
         final String newSet = "Amiibo";
 
         final String jsonContent = this.formatToyPayload(newName, newSet);
-        final ResponseSpec response = client.put().uri("/toys/" + expectedDto.id()).contentType(MediaType.APPLICATION_JSON).bodyValue(jsonContent).exchange();
+        final ResponseSpec response = client.put().uri("/v1/toys/" + expectedDto.id()).contentType(MediaType.APPLICATION_JSON).bodyValue(jsonContent).exchange();
 
         response.expectStatus().isOk();
         validateToyResponseBody(response, newName, newSet);
@@ -165,7 +165,7 @@ public class ToyWebTestClientTests {
     void updateExistingToy_InvalidId_ReturnNotFound() {
 
         final String jsonContent = this.formatToyPayload("invalidId", "");
-        final ResponseSpec response = client.put().uri("/toys/-1").contentType(MediaType.APPLICATION_JSON).bodyValue(jsonContent).exchange();
+        final ResponseSpec response = client.put().uri("/v1/toys/-1").contentType(MediaType.APPLICATION_JSON).bodyValue(jsonContent).exchange();
 
         response.expectStatus().isNotFound();
         response.expectBody()
@@ -178,7 +178,7 @@ public class ToyWebTestClientTests {
         final ResponseSpec postResult = this.postToy();
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
-        final ResponseSpec response = client.delete().uri("/toys/" + expectedDto.id()).exchange();
+        final ResponseSpec response = client.delete().uri("/v1/toys/" + expectedDto.id()).exchange();
 
         response.expectStatus().isNoContent();
         //-Limitation- I can't get the body to return properly, it is always returned as null...
@@ -186,7 +186,7 @@ public class ToyWebTestClientTests {
 
     @Test
     void deleteExistingToy_InvalidId_ReturnNotFound() {
-        final ResponseSpec response = client.delete().uri("/toys/-1").exchange();
+        final ResponseSpec response = client.delete().uri("/v1/toys/-1").exchange();
 
         response.expectStatus().isNotFound()
                 .expectBody()
@@ -245,7 +245,7 @@ public class ToyWebTestClientTests {
 
     public ResponseSpec postCustomToy(String name, String set) {
         final String formattedJson = formatToyPayload(name, set);
-        ResponseSpec response = client.post().uri("/toys").contentType(MediaType.APPLICATION_JSON).bodyValue(formattedJson).exchange();
+        ResponseSpec response = client.post().uri("/v1/toys").contentType(MediaType.APPLICATION_JSON).bodyValue(formattedJson).exchange();
 
         response.expectStatus().isCreated();
         response.expectHeader().contentType(MediaType.APPLICATION_JSON);

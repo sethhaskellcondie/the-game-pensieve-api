@@ -55,7 +55,7 @@ public class ToyControllerTests {
         final Toy toy = new Toy(1, "Donkey Kong", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         when(service.getById(1)).thenReturn(toy);
 
-        final ResultActions result = mockMvc.perform(get("/toys/1"));
+        final ResultActions result = mockMvc.perform(get("/v1/toys/1"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -68,7 +68,7 @@ public class ToyControllerTests {
     void getOneToy_ToyMissing_NotFoundReturned() throws Exception {
         when(service.getById(999)).thenThrow(new ExceptionResourceNotFound("Error: Resource Not Found"));
 
-        final ResultActions result = mockMvc.perform(get("/toys/999"));
+        final ResultActions result = mockMvc.perform(get("/v1/toys/999"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -87,7 +87,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/toys/search")
+                post("/v1/toys/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -106,7 +106,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/toys/search")
+                post("/v1/toys/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -131,7 +131,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
         final ResultActions result = mockMvc.perform(
-                post("/toys")
+                post("/v1/toys")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -147,7 +147,7 @@ public class ToyControllerTests {
         when(service.createNew(any())).thenThrow(new ExceptionMalformedEntity(List.of(new Exception("Error 1"), new Exception("Error 2"))));
 
         final ResultActions result = mockMvc.perform(
-                post("/toys")
+                post("/v1/toys")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -173,7 +173,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
         final ResultActions result = mockMvc.perform(
-                put("/toys/" + expectedId)
+                put("/v1/toys/" + expectedId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -188,7 +188,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload("invalidId", "");
         final ResultActions result = mockMvc.perform(
-                put("/toys/79")
+                put("/v1/toys/79")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -205,7 +205,7 @@ public class ToyControllerTests {
         when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>()));
 
         final ResultActions result = mockMvc.perform(
-                delete("/toys/27")
+                delete("/v1/toys/27")
         );
 
         result.andExpectAll(
@@ -220,7 +220,7 @@ public class ToyControllerTests {
         doThrow(new ExceptionResourceNotFound("Error: Resource Not Found")).when(service).deleteById(27);
 
         final ResultActions result = mockMvc.perform(
-                delete("/toys/27")
+                delete("/v1/toys/27")
         );
 
         result.andExpectAll(

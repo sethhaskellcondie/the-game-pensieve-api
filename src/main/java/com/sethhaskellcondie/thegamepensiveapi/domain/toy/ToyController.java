@@ -22,10 +22,9 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValid
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 @RestController
-@RequestMapping("toys")
+@RequestMapping("v1/toys")
 public class ToyController {
     private final ToyGateway gateway;
-    //TODO update this to have a v1 in the request mapping
 
     public ToyController(ToyGateway gateway) {
         this.gateway = gateway;

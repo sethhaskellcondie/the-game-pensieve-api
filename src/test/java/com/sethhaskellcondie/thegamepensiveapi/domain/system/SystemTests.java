@@ -45,6 +45,7 @@ public class SystemTests {
     @Autowired
     private MockMvc mockMvc;
     private TestFactory factory;
+    private final String baseUrl = "/v1/systems";
 
     @BeforeEach
     void setUp() {
@@ -68,7 +69,7 @@ public class SystemTests {
         final String jsonContent = factory.formatSystemPayload("", -1, null);
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -89,7 +90,7 @@ public class SystemTests {
         factory.postCustomSystem(duplicateName, generation, handheld);
         final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld);
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );
@@ -109,7 +110,7 @@ public class SystemTests {
         final ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
         final SystemResponseDto expectedDto = resultToResponseDto(postResult);
 
-        final ResultActions result = mockMvc.perform(get("/systems/" + expectedDto.id()));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "/" + expectedDto.id()));
 
         result.andExpectAll(
                 status().isOk(),
@@ -120,7 +121,7 @@ public class SystemTests {
 
     @Test
     void getOneSystem_SystemMissing_NotFoundReturned() throws Exception {
-        final ResultActions result = mockMvc.perform(get("/systems/-1"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "/-1"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -146,7 +147,7 @@ public class SystemTests {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
@@ -163,7 +164,7 @@ public class SystemTests {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
@@ -187,7 +188,7 @@ public class SystemTests {
 
         final String jsonContent = factory.formatSystemPayload(newName, newGeneration, newBoolean);
         final ResultActions result = mockMvc.perform(
-                put("/systems/" + responseDto.id())
+                put(baseUrl + "/" + responseDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -200,7 +201,7 @@ public class SystemTests {
     void updateExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         final String jsonContent = factory.formatSystemPayload("ValidButMissing", 3, false);
         final ResultActions result = mockMvc.perform(
-                put("/systems/-1")
+                put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -218,7 +219,7 @@ public class SystemTests {
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
         final ResultActions result = mockMvc.perform(
-                delete("/systems/" + responseDto.id())
+                delete(baseUrl + "/" + responseDto.id())
         );
 
         result.andExpectAll(
@@ -231,7 +232,7 @@ public class SystemTests {
     @Test
     void deleteExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
-                delete("/systems/-1")
+                delete(baseUrl + "/-1")
         );
 
         result.andExpectAll(

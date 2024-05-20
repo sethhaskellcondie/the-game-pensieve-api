@@ -63,7 +63,7 @@ public class SystemControllerTests {
         final System system = new System(1, "test", 3, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         when(service.getById(1)).thenReturn(system);
 
-        final ResultActions result = mockMvc.perform(get("/systems/1"));
+        final ResultActions result = mockMvc.perform(get("/v1/systems/1"));
 
         // result.andDo(print()); //will print out the result to the console
         result.andExpectAll(
@@ -77,7 +77,7 @@ public class SystemControllerTests {
     void getOneSystem_SystemMissing_NotFoundReturned() throws Exception {
         when(service.getById(999)).thenThrow(new ExceptionResourceNotFound("Error: Resource Not Found"));
 
-        final ResultActions result = mockMvc.perform(get("/systems/999"));
+        final ResultActions result = mockMvc.perform(get("/v1/systems/999"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -96,7 +96,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/systems/search")
+                post("/v1/systems/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -115,7 +115,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/systems/search")
+                post("/v1/systems/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
         );
@@ -143,7 +143,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
         ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -159,7 +159,7 @@ public class SystemControllerTests {
         when(service.createNew(any())).thenThrow(new ExceptionMalformedEntity(List.of(new Exception("Error 1"), new Exception("Error 2"))));
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -178,7 +178,7 @@ public class SystemControllerTests {
         when(service.createNew(any())).thenThrow(new ExceptionFailedDbValidation("Error: DB Validation"));
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -207,7 +207,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
         final ResultActions result = mockMvc.perform(
-                put("/systems/" + expectedId)
+                put("/v1/systems/" + expectedId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -222,7 +222,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload("testName", 3, false);
         final ResultActions result = mockMvc.perform(
-                put("/systems/33")
+                put("/v1/systems/33")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -237,7 +237,7 @@ public class SystemControllerTests {
     @Test
     void deleteExistingSystem_SystemExists_ReturnNoContent() throws Exception {
         final ResultActions result = mockMvc.perform(
-                delete("/systems/22")
+                delete("/v1/systems/22")
         );
 
         result.andExpectAll(
@@ -252,7 +252,7 @@ public class SystemControllerTests {
         doThrow(new ExceptionResourceNotFound("Error: Resource Not Found")).when(service).deleteById(22);
 
         final ResultActions result = mockMvc.perform(
-                delete("/systems/22")
+                delete("/v1/systems/22")
         );
 
         result.andExpectAll(
