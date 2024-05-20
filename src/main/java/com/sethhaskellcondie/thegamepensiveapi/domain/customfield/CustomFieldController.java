@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("custom_fields")
+@RequestMapping("v1/custom_fields")
 public class CustomFieldController {
     private final CustomFieldRepository repository;
 
@@ -32,8 +32,8 @@ public class CustomFieldController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomField> requestBody) {
-        final CustomField newCustomField = requestBody.get("custom_field");
+    public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequest> requestBody) {
+        final CustomFieldRequest newCustomField = requestBody.get("custom_field");
         final CustomField savedCustomField = repository.insertCustomField(newCustomField);
         final FormattedResponseBody<CustomField> body = new FormattedResponseBody<>(savedCustomField);
         return body.formatData();

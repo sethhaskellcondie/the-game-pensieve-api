@@ -25,14 +25,14 @@ public class HeartbeatController {
     // @GetMapping is a composed annotation it acts as a shortcut for @RequestMapping(method = RequestMethod.GET)
     // This takes a route as a parameter and when a request is routed here this method is called.
     // example request is to localhost:8080/heartbeat
-    @GetMapping("/heartbeat")
+    @GetMapping("/v1/heartbeat")
     public String heartbeat() {
         return "thump thump";
     }
 
     //This endpoint will only see the systems in my collection
     @Deprecated
-    @PostMapping("/seedMyCollection")
+    @PostMapping("/v1/seedMyCollection")
     public String seedMyCollectionData() throws ExceptionFailedDbValidation {
         systemGateway.createNew("NES", 3, false);
         systemGateway.createNew("SNES", 4, false);

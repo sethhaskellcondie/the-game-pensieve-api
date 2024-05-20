@@ -38,4 +38,5 @@ public class CustomFieldValue {
     }
 }
 
+record CustomFieldRequest(String name, String type, String entityKey) { }
 record CustomField(int id, String name, String type, String entityKey) { }

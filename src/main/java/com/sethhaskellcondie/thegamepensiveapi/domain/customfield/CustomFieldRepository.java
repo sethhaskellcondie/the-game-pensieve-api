@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class CustomFieldRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public CustomField insertCustomField(CustomField customField) {
+    public CustomField insertCustomField(CustomFieldRequest customField) {
         final String sql = """
                 			INSERT INTO custom_fields(name, type, entity_key) VALUES (?, ?, ?);
                 """;
@@ -111,5 +112,9 @@ public class CustomFieldRepository {
     public CustomFieldValue upsertValue(CustomFieldValue value) {
         //TODO finish this
         return null;
+    }
+
+    private void customFieldDbValidation(CustomField customField) throws ExceptionFailedDbValidation {
+        //TODO include a check to make sure that the given type and entityKey are valid
     }
 }

@@ -25,6 +25,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @RequestMapping("toys")
 public class ToyController {
     private final ToyGateway gateway;
+    //TODO update this to have a v1 in the request mapping
 
     public ToyController(ToyGateway gateway) {
         this.gateway = gateway;
