@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -153,13 +154,27 @@ public class CustomFieldTests {
     }
 
     @Test
-    void deleteCustomField_HappyPath_CustomFieldDeleted() {
+    void deleteCustomField_HappyPath_CustomFieldDeleted() throws Exception {
+        final CustomField existingCustomField = resultToResponseDto(factory.postCustomField());
 
+        final ResultActions result = mockMvc.perform(delete(baseUrlSlash + existingCustomField.id()));
+
+        result.andExpectAll(
+                status().isNoContent(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isEmpty()
+        );
     }
 
     @Test
-    void deleteCustomField_InvalidId_ReturnError() {
+    void deleteCustomField_InvalidId_ReturnError() throws Exception {
+        final ResultActions result = mockMvc.perform(delete(baseUrlSlash + "-1"));
 
+        result.andExpectAll(
+                status().isNotFound(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
     }
 
     private CustomField resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
