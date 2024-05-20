@@ -108,7 +108,7 @@ public class ToyWebTestClientTests {
                 }
                 """;
 
-        final ResponseSpec response = client.post().uri("/v1/toys/search")
+        final ResponseSpec response = client.post().uri("/v1/toys/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(json)
                 .exchange();
@@ -132,7 +132,7 @@ public class ToyWebTestClientTests {
                   ]
                 }
                 """;
-        final ResponseSpec response = client.post().uri("/v1/toys/search")
+        final ResponseSpec response = client.post().uri("/v1/toys/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(json)
                 .exchange();

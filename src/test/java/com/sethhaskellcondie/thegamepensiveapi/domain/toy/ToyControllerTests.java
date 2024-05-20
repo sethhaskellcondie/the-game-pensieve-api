@@ -87,7 +87,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/v1/toys/search")
+                post("/v1/toys/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -106,7 +106,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/v1/toys/search")
+                post("/v1/toys/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );

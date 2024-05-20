@@ -39,7 +39,7 @@ public class ToyController {
     }
 
     @ResponseBody
-    @PostMapping("/search")
+    @PostMapping("/function/search")
     public Map<String, List<ToyResponseDto>> getAllToys(@RequestBody Map<String, List<Filter>> requestBody) {
         final List<ToyResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<ToyResponseDto>> body = new FormattedResponseBody<>(data);

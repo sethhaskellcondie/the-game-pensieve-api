@@ -147,7 +147,7 @@ public class SystemTests {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
@@ -164,7 +164,7 @@ public class SystemTests {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );

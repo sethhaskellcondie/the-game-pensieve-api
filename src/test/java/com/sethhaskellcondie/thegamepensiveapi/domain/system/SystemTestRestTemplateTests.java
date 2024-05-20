@@ -138,7 +138,7 @@ public class SystemTestRestTemplateTests {
         requestBody.put("filters", List.of(filter));
         final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/search", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/function/search", request, Map.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         validateSystemResponseBody(response, List.of(responseDto1, responseDto2));
@@ -151,7 +151,7 @@ public class SystemTestRestTemplateTests {
         requestBody.put("filters", List.of(filter));
         final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/search", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/function/search", request, Map.class);
         final List<Map<String, Object>> returnedSystems = (List<Map<String, Object>>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 

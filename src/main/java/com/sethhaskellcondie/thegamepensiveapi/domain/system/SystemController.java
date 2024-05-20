@@ -55,12 +55,12 @@ public class SystemController {
     }
 
     /**
-     * The "Get All" endpoint is a POST endpoint instead of a GET endpoint.
+     * The "Get All" endpoint is an RPC POST endpoint instead of a GET endpoint.
      * This will allow the consumer to pass the filters as an object in the request body
      * instead of through many query parameters in a get request.
      */
     @ResponseBody
-    @PostMapping("/search")
+    @PostMapping("/function/search")
     public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody Map<String, List<Filter>> requestBody) {
         final List<SystemResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);

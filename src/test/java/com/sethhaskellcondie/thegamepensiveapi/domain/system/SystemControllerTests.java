@@ -96,7 +96,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/v1/systems/search")
+                post("/v1/systems/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -115,7 +115,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/v1/systems/search")
+                post("/v1/systems/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
         );
