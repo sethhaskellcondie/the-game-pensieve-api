@@ -33,8 +33,8 @@ public class CustomFieldController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequest> requestBody) throws ExceptionFailedDbValidation {
-        final CustomFieldRequest newCustomField = requestBody.get("custom_field");
+    public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequestDto> requestBody) throws ExceptionFailedDbValidation {
+        final CustomFieldRequestDto newCustomField = requestBody.get("custom_field");
         final CustomField savedCustomField = repository.insertCustomField(newCustomField);
         final FormattedResponseBody<CustomField> body = new FormattedResponseBody<>(savedCustomField);
         return body.formatData();

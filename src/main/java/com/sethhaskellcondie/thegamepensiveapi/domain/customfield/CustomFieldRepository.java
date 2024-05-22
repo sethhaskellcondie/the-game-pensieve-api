@@ -36,7 +36,7 @@ public class CustomFieldRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public CustomField insertCustomField(CustomFieldRequest customField) throws ExceptionFailedDbValidation {
+    public CustomField insertCustomField(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
         customFieldDbValidation(customField);
         final String sql = """
                 			INSERT INTO custom_fields(name, type, entity_key) VALUES (?, ?, ?);
@@ -116,7 +116,7 @@ public class CustomFieldRepository {
         return null;
     }
 
-    private void customFieldDbValidation(CustomFieldRequest customField) throws ExceptionFailedDbValidation {
+    private void customFieldDbValidation(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
             exception.addException("Custom Field Type: " + customField.type() + " is not a valid type. " +

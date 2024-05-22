@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
 /**
@@ -11,15 +13,16 @@ import java.util.List;
  * that this value relates to.
  */
 public class CustomFieldValue {
+    //TODO find a way to allow the customFieldId to be null? Or let 0 be ok?
     private int customFieldId;
-    private String name;
-    private final String type;
-    private final Object value;
+    private String customFieldName;
+    private final String customFieldType;
+    private final String value;
 
-    public CustomFieldValue(int customFieldId, String name, String type, Object value) {
+    public CustomFieldValue(int customFieldId, String customFieldName, String customFieldType, String value) {
         this.customFieldId = customFieldId;
-        this.name = name;
-        this.type = type;
+        this.customFieldName = customFieldName;
+        this.customFieldType = customFieldType;
         this.value = value;
     }
 
@@ -27,20 +30,20 @@ public class CustomFieldValue {
         return customFieldId;
     }
 
-    public String getName() {
-        return name;
+    public String getCustomFieldName() {
+        return customFieldName;
     }
 
-    public String getType() {
-        return type;
+    public String getCustomFieldType() {
+        return customFieldType;
     }
 
-    public Object getValue() {
+    public String getValue() {
         return value;
     }
 }
 
-record CustomFieldRequest(String name, String type, String entityKey) { }
+record CustomFieldRequestDto(String name, String type, String entityKey) { }
 
 record CustomField(int id, String name, String type, String entityKey) {
 

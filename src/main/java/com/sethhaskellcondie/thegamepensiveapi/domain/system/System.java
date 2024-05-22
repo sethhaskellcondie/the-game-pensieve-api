@@ -64,7 +64,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         } catch (NullPointerException e) {
             exceptions.add(new ExceptionInputValidation("System object error, handheld can't be null"));
         }
-        setCustomFieldValues(requestDto.customFieldValues());
+        setCustomFieldValues(requestDto.customFields());
         try {
             this.validate();
         } catch (ExceptionMalformedEntity e) {
@@ -105,12 +105,15 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 /**
  * Define the DTO on the Entity if the shape of an object needs to be changed
  * all of those changes can be made here on the Entity with minimal changes elsewhere
- * in the project
+ * in the project.
  * <p>
  * The request DTO will use the wrapper classes for Primitives to allow nulls to be passed
  * in as input then it will be validated when they are used for the object to be created
  * this way we can pass all validation errors back at the same time.
+ * <p>
+ * All entities request and response data transfer objects should include List<CustomFieldValue> customFields because all entities have CustomFieldValues
+ * They are named customFields, so they can be labeled as such through the jackson serialization and deserialization.
  */
-record SystemRequestDto(String name, Integer generation, Boolean handheld, List<CustomFieldValue> customFieldValues) { }
+record SystemRequestDto(String name, Integer generation, Boolean handheld, List<CustomFieldValue> customFields) { }
 
-record SystemResponseDto(String key, int id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) { }
+record SystemResponseDto(String key, int id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFields) { }

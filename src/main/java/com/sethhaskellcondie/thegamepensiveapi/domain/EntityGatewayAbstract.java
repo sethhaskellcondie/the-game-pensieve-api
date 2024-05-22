@@ -33,7 +33,7 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
     public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
         T t = service.getById(id);
         if (!t.isPersisted()) {
-            throw new ExceptionResourceNotFound(this.getClass().getSimpleName(), id);
+            throw new ExceptionResourceNotFound(t.getKey(), id);
         }
         t.updateFromRequestDto(requestDto);
         return service.updateExisting(t).convertToResponseDto();

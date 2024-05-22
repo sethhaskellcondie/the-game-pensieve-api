@@ -39,7 +39,7 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     public Toy updateFromRequestDto(ToyRequestDto requestDto) {
         this.name = requestDto.name();
         this.set = requestDto.set();
-        setCustomFieldValues(requestDto.customFieldValues());
+        setCustomFieldValues(requestDto.customFields());
         this.validate();
         return this;
     }
@@ -62,6 +62,6 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 }
 
-record ToyRequestDto(String name, String set, List<CustomFieldValue> customFieldValues) { }
+record ToyRequestDto(String name, String set, List<CustomFieldValue> customFields) { }
 
-record ToyResponseDto(String key, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) { }
+record ToyResponseDto(String key, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFields) { }
