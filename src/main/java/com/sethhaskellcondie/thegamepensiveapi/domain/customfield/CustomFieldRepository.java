@@ -121,7 +121,20 @@ public class CustomFieldRepository {
     }
 
     public CustomFieldValue upsertValue(CustomFieldValue value) {
-        // TODO finish this
+        if (value.getCustomFieldId() > 0) {
+            return updateValue(value);
+        } else {
+            return insertValue(value);
+        }
+    }
+
+    private CustomFieldValue insertValue(CustomFieldValue value) {
+        //TODO finish this
+        return value;
+    }
+
+    private CustomFieldValue updateValue(CustomFieldValue value) {
+        //TODO finish this
         return value;
     }
 
