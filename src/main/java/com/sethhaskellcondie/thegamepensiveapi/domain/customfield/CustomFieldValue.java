@@ -1,8 +1,9 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * CustomFieldValues belong to Entities
@@ -40,6 +41,31 @@ public class CustomFieldValue {
     public String getValue() {
         return value;
     }
+
+    public CustomFieldValueDao convertToDao(int entityId, String entityKey) {
+        switch (this.getCustomFieldType()) {
+            case CustomField.TYPE_TEXT -> {
+                return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null);
+            }
+            case CustomField.TYPE_NUMBER -> {
+                try {
+                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, null, Integer.parseInt(this.value));
+                } catch (NumberFormatException exception) {
+                    throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is number the value must be a valid Integer.")));
+                }
+            }
+            case CustomField.TYPE_BOOLEAN -> {
+                if (Objects.equals(this.value, "true") || Objects.equals(this.value, "false")) {
+                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null);
+                }
+                throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
+            }
+            default -> {
+                throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: unknown Custom Field Type provided: " + this.getCustomFieldType() +
+                        ". Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]")));
+            }
+        }
+    }
 }
 
 record CustomFieldRequestDto(String name, String type, String entityKey) { }
@@ -52,5 +78,14 @@ record CustomField(int id, String name, String type, String entityKey) {
 
     public static List<String> getAllCustomFieldTypes() {
         return List.of(TYPE_TEXT, TYPE_NUMBER, TYPE_BOOLEAN);
+    }
+}
+
+record CustomFieldValueDao(int customFieldsId, int entityId, String entityKey, String valueText, Integer valueNumber) {
+    public CustomFieldValue convertToValue(String customFieldName, String customFieldType) {
+        if (Objects.equals(customFieldType, CustomField.TYPE_TEXT) || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
+            return new CustomFieldValue(this.customFieldsId, customFieldName, customFieldType, this.valueText);
+        }
+        return new CustomFieldValue(this.customFieldsId, customFieldName, customFieldType, this.valueNumber.toString());
     }
 }

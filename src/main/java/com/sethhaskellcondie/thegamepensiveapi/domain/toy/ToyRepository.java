@@ -85,7 +85,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), generatedId);
         }
 
-        savedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues()));
+        savedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues(), savedToy.getId(), savedToy.getKey()));
         return savedToy;
     }
 
@@ -95,6 +95,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);
+        //TODO figure out how to attach the customFields to the results?
         return jdbcTemplate.query(sql, rowMapper, operands.toArray());
     }
 
@@ -112,6 +113,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
         }
+        //TODO figure out how to attach the customFields to the result
         return toy;
     }
 
@@ -129,16 +131,16 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                 toy.getId()
         );
 
-        Toy savedToy;
+        Toy updatedToy;
         try {
-            savedToy = getById(toy.getId());
+            updatedToy = getById(toy.getId());
         } catch (ExceptionResourceNotFound e) {
             //we shouldn't ever reach this block of code
             logger.error(ErrorLogs.UpdateThenRetrieveError(toy.getClass().getSimpleName(), toy.getId()));
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), toy.getId());
         }
-        savedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues()));
-        return savedToy;
+        updatedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues(), updatedToy.getId(), updatedToy.getKey()));
+        return updatedToy;
     }
 
     @Override
@@ -150,6 +152,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", Toy.class.getSimpleName(), id);
         }
+        //TODO delete the customFieldValues
     }
 
     @Override
@@ -166,6 +169,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
         }
+        //TODO get the custom field values?
         return toy;
     }
 

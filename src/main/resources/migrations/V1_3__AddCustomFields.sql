@@ -3,6 +3,9 @@ CREATE TABLE IF NOT EXISTS custom_fields (
     name VARCHAR NOT NULL,
     type VARCHAR NOT NULL, -- This will be an enum enforced by the Repository
     entity_key VARCHAR NOT NULL
+    -- TODO update these tables to be soft deleted
+    -- Revive the field if called during an upsert
+    -- Update the CustomField controller to soft delete and hard delete
 );
 
 CREATE TABLE IF NOT EXISTS custom_field_values (

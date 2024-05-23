@@ -112,28 +112,30 @@ public class CustomFieldRepository {
         }
     }
 
-    public List<CustomFieldValue> upsertValues(List<CustomFieldValue> values) {
+    public List<CustomFieldValue> upsertValues(List<CustomFieldValue> values, int entityId, String entityKey) {
         List<CustomFieldValue> savedValues = new ArrayList<>();
         for (CustomFieldValue value: values) {
-            savedValues.add(upsertValue(value));
+            savedValues.add(upsertValue(value, entityId, entityKey));
         }
         return savedValues;
     }
 
-    public CustomFieldValue upsertValue(CustomFieldValue value) {
+    public CustomFieldValue upsertValue(CustomFieldValue value, int entityId, String entityKey) {
+        CustomFieldValueDao valueDao = value.convertToDao(entityId, entityKey);
         if (value.getCustomFieldId() > 0) {
-            return updateValue(value);
+            valueDao = updateValue(valueDao);
         } else {
-            return insertValue(value);
+            valueDao = insertValue(valueDao);
         }
+        return valueDao.convertToValue(value.getCustomFieldName(), value.getCustomFieldType());
     }
 
-    private CustomFieldValue insertValue(CustomFieldValue value) {
+    private CustomFieldValueDao insertValue(CustomFieldValueDao value) {
         //TODO finish this
         return value;
     }
 
-    private CustomFieldValue updateValue(CustomFieldValue value) {
+    private CustomFieldValueDao updateValue(CustomFieldValueDao value) {
         //TODO finish this
         return value;
     }

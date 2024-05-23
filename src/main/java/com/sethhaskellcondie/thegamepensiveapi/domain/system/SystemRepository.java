@@ -96,7 +96,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
             logger.error(ErrorLogs.InsertThenRetrieveError(system.getClass().getSimpleName(), generatedId));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), generatedId);
         }
-        savedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues()));
+        savedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues(), savedSystem.getId(), savedSystem.getKey()));
         return savedSystem;
     }
 
@@ -106,6 +106,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);
+        //TODO figure out how to attach the customFields to the results?
         return jdbcTemplate.query(sql, rowMapper, operands.toArray());
     }
 
@@ -123,6 +124,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
+        //TODO figure out how to attach the customFields to the result
         return system;
     }
 
@@ -146,17 +148,17 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                 system.getId()
         );
 
-        System savedSystem;
+        System updatedSystem;
         try {
-            savedSystem = getById(system.getId());
+            updatedSystem = getById(system.getId());
         } catch (ExceptionResourceNotFound e) {
             // we shouldn't ever reach this block of code because the database is managing the ids
             // but if we do then we better log it and throw a disaster
             logger.error(ErrorLogs.UpdateThenRetrieveError(system.getClass().getSimpleName(), system.getId()));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), system.getId());
         }
-        savedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues()));
-        return savedSystem;
+        updatedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues(), updatedSystem.getId(), updatedSystem.getKey()));
+        return updatedSystem;
     }
 
     @Override
@@ -168,6 +170,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", System.class.getSimpleName(), id);
         }
+        //TODO delete the customFieldValues
     }
 
     @Override
@@ -184,7 +187,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
-
+        //TODO get the custom field values?
         return system;
     }
 
