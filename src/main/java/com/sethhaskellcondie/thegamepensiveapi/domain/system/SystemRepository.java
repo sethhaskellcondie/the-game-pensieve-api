@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
@@ -28,6 +29,7 @@ import java.util.List;
 @Repository
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
     private final JdbcTemplate jdbcTemplate;
+    private final CustomFieldRepository customFieldRepository;
     private final String baseQuery = "SELECT * FROM systems WHERE deleted_at IS NULL";
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<System> rowMapper = (resultSet, rowNumber) ->
@@ -42,8 +44,9 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     new ArrayList<>() //TODO update this
             );
 
-    public SystemRepository(JdbcTemplate jdbcTemplate) {
+    public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository) {
         this.jdbcTemplate = jdbcTemplate;
+        this.customFieldRepository = customFieldRepository;
     }
 
     @Override
@@ -84,14 +87,17 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         );
         final Integer generatedId = (Integer) keyHolder.getKeys().get("id");
 
+        System savedSystem;
         try {
-            return getById(generatedId);
+            savedSystem = getById(generatedId);
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             // we shouldn't ever reach this block of code because the database is managing the ids
             // so if we do throw a disaster
             logger.error(ErrorLogs.InsertThenRetrieveError(system.getClass().getSimpleName(), generatedId));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), generatedId);
         }
+        savedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues()));
+        return savedSystem;
     }
 
     @Override
@@ -140,14 +146,17 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                 system.getId()
         );
 
+        System savedSystem;
         try {
-            return getById(system.getId());
+            savedSystem = getById(system.getId());
         } catch (ExceptionResourceNotFound e) {
             // we shouldn't ever reach this block of code because the database is managing the ids
             // but if we do then we better log it and throw a disaster
             logger.error(ErrorLogs.UpdateThenRetrieveError(system.getClass().getSimpleName(), system.getId()));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), system.getId());
         }
+        savedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues()));
+        return savedSystem;
     }
 
     @Override

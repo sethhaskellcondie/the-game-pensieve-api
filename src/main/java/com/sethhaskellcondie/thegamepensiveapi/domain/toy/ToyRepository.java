@@ -129,15 +129,16 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                 toy.getId()
         );
 
-        toy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues()));
-
+        Toy savedToy;
         try {
-            return getById(toy.getId());
+            savedToy = getById(toy.getId());
         } catch (ExceptionResourceNotFound e) {
             //we shouldn't ever reach this block of code
             logger.error(ErrorLogs.UpdateThenRetrieveError(toy.getClass().getSimpleName(), toy.getId()));
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), toy.getId());
         }
+        savedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues()));
+        return savedToy;
     }
 
     @Override

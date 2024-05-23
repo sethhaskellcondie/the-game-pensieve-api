@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
@@ -34,7 +35,8 @@ public class SystemRepositoryWithoutInheritanceTests {
 
     @BeforeEach
     void setUp() {
-        repository = new SystemRepository(jdbcTemplate);
+        CustomFieldRepository customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        repository = new SystemRepository(jdbcTemplate, customFieldRepository);
     }
 
     @Test
