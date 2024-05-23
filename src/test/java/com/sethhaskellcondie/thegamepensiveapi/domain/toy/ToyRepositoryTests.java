@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,7 +20,8 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
     @Override
     protected void setupRepositoryAndEntityName() {
         entityName = Toy.class.getSimpleName();
-        repository = new ToyRepository(jdbcTemplate);
+        CustomFieldRepository customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        repository = new ToyRepository(jdbcTemplate, customFieldRepository);
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
@@ -29,6 +30,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @Repository
 public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyResponseDto> {
     private final JdbcTemplate jdbcTemplate;
+    private final CustomFieldRepository customFieldRepository;
     private final String baseQuery = "SELECT * FROM toys WHERE deleted_at IS NULL";
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<Toy> rowMapper =
@@ -43,8 +45,9 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                             new ArrayList<>() //TODO update this
                     );
 
-    public ToyRepository(JdbcTemplate jdbcTemplate) {
+    public ToyRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository) {
         this.jdbcTemplate = jdbcTemplate;
+        this.customFieldRepository = customFieldRepository;
     }
 
     @Override
@@ -73,13 +76,17 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         );
         final Integer generatedId = (Integer) keyHolder.getKeys().get("id");
 
+        Toy savedToy;
         try {
-            return getById(generatedId);
+            savedToy = getById(generatedId);
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             //we shouldn't ever reach this block because the database is managing the ID's
             logger.error(ErrorLogs.InsertThenRetrieveError(toy.getClass().getSimpleName(), generatedId));
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), generatedId);
         }
+
+        savedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues()));
+        return savedToy;
     }
 
     @Override
@@ -121,6 +128,8 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                 Timestamp.from(Instant.now()),
                 toy.getId()
         );
+
+        toy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues()));
 
         try {
             return getById(toy.getId());

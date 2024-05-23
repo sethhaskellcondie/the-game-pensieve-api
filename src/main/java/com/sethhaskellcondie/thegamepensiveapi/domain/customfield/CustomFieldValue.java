@@ -13,7 +13,6 @@ import java.util.List;
  * that this value relates to.
  */
 public class CustomFieldValue {
-    //TODO find a way to allow the customFieldId to be null? Or let 0 be ok?
     private int customFieldId;
     private String customFieldName;
     private final String customFieldType;

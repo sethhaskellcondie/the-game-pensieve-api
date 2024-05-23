@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,9 +112,17 @@ public class CustomFieldRepository {
         }
     }
 
+    public List<CustomFieldValue> upsertValues(List<CustomFieldValue> values) {
+        List<CustomFieldValue> savedValues = new ArrayList<>();
+        for (CustomFieldValue value: values) {
+            savedValues.add(upsertValue(value));
+        }
+        return savedValues;
+    }
+
     public CustomFieldValue upsertValue(CustomFieldValue value) {
         // TODO finish this
-        return null;
+        return value;
     }
 
     private void customFieldDbValidation(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
