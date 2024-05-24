@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
