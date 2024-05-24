@@ -1,7 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
@@ -29,7 +29,7 @@ import java.util.List;
 @Repository
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
     private final JdbcTemplate jdbcTemplate;
-    private final CustomFieldRepository customFieldRepository;
+    private final CustomFieldValueRepository customFieldValueRepository;
     private final String baseQuery = "SELECT * FROM systems WHERE deleted_at IS NULL";
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<System> rowMapper = (resultSet, rowNumber) ->
@@ -44,9 +44,9 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     new ArrayList<>() //TODO update this
             );
 
-    public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository) {
+    public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldValueRepository customFieldValueRepository) {
         this.jdbcTemplate = jdbcTemplate;
-        this.customFieldRepository = customFieldRepository;
+        this.customFieldValueRepository = customFieldValueRepository;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
             logger.error(ErrorLogs.InsertThenRetrieveError(system.getClass().getSimpleName(), generatedId));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), generatedId);
         }
-        savedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues(), savedSystem.getId(), savedSystem.getKey()));
+        savedSystem.setCustomFieldValues(customFieldValueRepository.upsertValues(system.getCustomFieldValues(), savedSystem.getId(), savedSystem.getKey()));
         return savedSystem;
     }
 
@@ -157,7 +157,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
             logger.error(ErrorLogs.UpdateThenRetrieveError(system.getClass().getSimpleName(), system.getId()));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), system.getId());
         }
-        updatedSystem.setCustomFieldValues(customFieldRepository.upsertValues(system.getCustomFieldValues(), updatedSystem.getId(), updatedSystem.getKey()));
+        updatedSystem.setCustomFieldValues(customFieldValueRepository.upsertValues(system.getCustomFieldValues(), updatedSystem.getId(), updatedSystem.getKey()));
         return updatedSystem;
     }
 

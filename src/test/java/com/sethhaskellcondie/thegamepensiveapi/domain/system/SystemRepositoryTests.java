@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,8 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     @Override
     protected void setupRepositoryAndEntityName() {
         entityName = System.class.getSimpleName();
-        CustomFieldRepository customFieldRepository = new CustomFieldRepository(jdbcTemplate);
-        repository = new SystemRepository(jdbcTemplate, customFieldRepository);
+        CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
+        repository = new SystemRepository(jdbcTemplate, customFieldValueRepository);
     }
 
     @Override

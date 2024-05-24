@@ -64,7 +64,7 @@ public class CustomFieldRepository {
     }
 
     public CustomField getById(int id) throws ExceptionResourceNotFound {
-        final String sql = "SELECT * FROM custom_fields WHERE id = ?";
+        final String sql = "SELECT * FROM custom_fields WHERE id = ? AND deleted = false";
         CustomField customField;
         try {
             customField = jdbcTemplate.queryForObject(
@@ -75,6 +75,22 @@ public class CustomFieldRepository {
             );
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound("custom_fields", id);
+        }
+        return customField;
+    }
+
+    public CustomField getByIdIncludeDeleted(int id) throws ExceptionResourceNotFound {
+        final String sql = "SELECT * FROM custom_fields WHERE id = ?";
+        CustomField customField;
+        try {
+            customField = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{id}, //args to bind to the sql ?
+                    new int[]{Types.BIGINT}, //the types of the objects to bind to the sql
+                    rowMapper
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ExceptionResourceNotFound("custom_fields (include deleted)", id);
         }
         return customField;
     }
@@ -104,7 +120,7 @@ public class CustomFieldRepository {
 
     public void deleteById(int id) throws ExceptionResourceNotFound {
         final String sql = """
-                			DELETE FROM custom_fields WHERE id = ?;
+                			UPDATE custom_fields SET deleted = true WHERE id = ?;
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, id);
         if (rowsUpdated < 1) {
@@ -112,32 +128,14 @@ public class CustomFieldRepository {
         }
     }
 
-    public List<CustomFieldValue> upsertValues(List<CustomFieldValue> values, int entityId, String entityKey) {
-        List<CustomFieldValue> savedValues = new ArrayList<>();
-        for (CustomFieldValue value: values) {
-            savedValues.add(upsertValue(value, entityId, entityKey));
+    public void hardDeleteById(int id) throws ExceptionResourceNotFound {
+        final String sql = """
+                			DELETE FROM custom_fields WHERE id = ?;
+                """;
+        int rowsUpdated = jdbcTemplate.update(sql, id);
+        if (rowsUpdated < 1) {
+            throw new ExceptionResourceNotFound("Hard delete failed", "custom_fields", id);
         }
-        return savedValues;
-    }
-
-    public CustomFieldValue upsertValue(CustomFieldValue value, int entityId, String entityKey) {
-        CustomFieldValueDao valueDao = value.convertToDao(entityId, entityKey);
-        if (value.getCustomFieldId() > 0) {
-            valueDao = updateValue(valueDao);
-        } else {
-            valueDao = insertValue(valueDao);
-        }
-        return valueDao.convertToValue(value.getCustomFieldName(), value.getCustomFieldType());
-    }
-
-    private CustomFieldValueDao insertValue(CustomFieldValueDao value) {
-        //TODO finish this
-        return value;
-    }
-
-    private CustomFieldValueDao updateValue(CustomFieldValueDao value) {
-        //TODO finish this
-        return value;
     }
 
     private void customFieldDbValidation(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {

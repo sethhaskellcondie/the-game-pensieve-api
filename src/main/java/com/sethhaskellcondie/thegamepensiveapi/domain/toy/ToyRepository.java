@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
@@ -30,7 +30,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFo
 @Repository
 public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyResponseDto> {
     private final JdbcTemplate jdbcTemplate;
-    private final CustomFieldRepository customFieldRepository;
+    private final CustomFieldValueRepository customFieldValueRespository;
     private final String baseQuery = "SELECT * FROM toys WHERE deleted_at IS NULL";
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<Toy> rowMapper =
@@ -45,9 +45,9 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                             new ArrayList<>() //TODO update this
                     );
 
-    public ToyRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository) {
+    public ToyRepository(JdbcTemplate jdbcTemplate, CustomFieldValueRepository customFieldValueRespository) {
         this.jdbcTemplate = jdbcTemplate;
-        this.customFieldRepository = customFieldRepository;
+        this.customFieldValueRespository = customFieldValueRespository;
     }
 
     @Override
@@ -85,7 +85,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), generatedId);
         }
 
-        savedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues(), savedToy.getId(), savedToy.getKey()));
+        savedToy.setCustomFieldValues(customFieldValueRespository.upsertValues(toy.getCustomFieldValues(), savedToy.getId(), savedToy.getKey()));
         return savedToy;
     }
 
@@ -139,7 +139,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
             logger.error(ErrorLogs.UpdateThenRetrieveError(toy.getClass().getSimpleName(), toy.getId()));
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), toy.getId());
         }
-        updatedToy.setCustomFieldValues(customFieldRepository.upsertValues(toy.getCustomFieldValues(), updatedToy.getId(), updatedToy.getKey()));
+        updatedToy.setCustomFieldValues(customFieldValueRespository.upsertValues(toy.getCustomFieldValues(), updatedToy.getId(), updatedToy.getKey()));
         return updatedToy;
     }
 
