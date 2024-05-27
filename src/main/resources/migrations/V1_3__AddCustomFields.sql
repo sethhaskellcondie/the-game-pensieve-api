@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS custom_fields (
 );
 
 CREATE TABLE IF NOT EXISTS custom_field_values (
-    custom_fields_id INTEGER REFERENCES  custom_fields (id),
+    custom_field_id INTEGER REFERENCES  custom_fields (id),
     entity_id INTEGER NOT NULL, -- This will be a foreign key enforced by the Repository
     entity_key VARCHAR NOT NULL,
     value_text VARCHAR,

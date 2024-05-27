@@ -18,16 +18,23 @@ public class CustomFieldValue {
     private String customFieldName;
     private final String customFieldType;
     private final String value;
+    private final boolean deleted;
 
-    public CustomFieldValue(int customFieldId, String customFieldName, String customFieldType, String value) {
+    public CustomFieldValue(int customFieldId, String customFieldName, String customFieldType, String value, boolean deleted) {
         this.customFieldId = customFieldId;
         this.customFieldName = customFieldName;
         this.customFieldType = customFieldType;
         this.value = value;
+        this.deleted = deleted;
     }
 
     public int getCustomFieldId() {
         return customFieldId;
+    }
+
+    //should only be called in the CustomFieldValueRepository to update the customFieldValue id after a new one is created
+    public void setCustomFieldId(int customFieldId) {
+        this.customFieldId = customFieldId;
     }
 
     public String getCustomFieldName() {
@@ -42,21 +49,25 @@ public class CustomFieldValue {
         return value;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
     public CustomFieldValueDao convertToDao(int entityId, String entityKey) {
         switch (this.getCustomFieldType()) {
             case CustomField.TYPE_TEXT -> {
-                return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null);
+                return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null, this.deleted);
             }
             case CustomField.TYPE_NUMBER -> {
                 try {
-                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, null, Integer.parseInt(this.value));
+                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, null, Integer.parseInt(this.value), this.deleted);
                 } catch (NumberFormatException exception) {
                     throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is number the value must be a valid Integer.")));
                 }
             }
             case CustomField.TYPE_BOOLEAN -> {
                 if (Objects.equals(this.value, "true") || Objects.equals(this.value, "false")) {
-                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null);
+                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null, this.deleted);
                 }
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
             }
@@ -78,14 +89,5 @@ record CustomField(int id, String name, String type, String entityKey) {
 
     public static List<String> getAllCustomFieldTypes() {
         return List.of(TYPE_TEXT, TYPE_NUMBER, TYPE_BOOLEAN);
-    }
-}
-
-record CustomFieldValueDao(int customFieldsId, int entityId, String entityKey, String valueText, Integer valueNumber) {
-    public CustomFieldValue convertToValue(String customFieldName, String customFieldType) {
-        if (Objects.equals(customFieldType, CustomField.TYPE_TEXT) || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
-            return new CustomFieldValue(this.customFieldsId, customFieldName, customFieldType, this.valueText);
-        }
-        return new CustomFieldValue(this.customFieldsId, customFieldName, customFieldType, this.valueNumber.toString());
     }
 }

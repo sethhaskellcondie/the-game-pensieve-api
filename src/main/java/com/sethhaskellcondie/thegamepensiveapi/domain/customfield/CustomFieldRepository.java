@@ -37,6 +37,10 @@ public class CustomFieldRepository {
     }
 
     public CustomField insertCustomField(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
+        return insertCustomField(new CustomField(0, customField.name(), customField.type(), customField.entityKey()));
+    }
+
+    public CustomField insertCustomField(CustomField customField) throws ExceptionFailedDbValidation {
         customFieldDbValidation(customField);
         final String sql = """
                 			INSERT INTO custom_fields(name, type, entity_key) VALUES (?, ?, ?);
@@ -100,7 +104,7 @@ public class CustomFieldRepository {
     }
 
     public Optional<Integer> getValueCountOfCustomFieldById(int customFieldId) {
-        final String sql = "SELECT count(*) FROM custom_field_values WHERE custom_fields_id = ?";
+        final String sql = "SELECT count(*) FROM custom_field_values WHERE custom_field_id = ?";
         return Optional.ofNullable(jdbcTemplate.queryForObject(
                 sql,
                 new Object[]{customFieldId},
@@ -137,7 +141,7 @@ public class CustomFieldRepository {
         }
     }
 
-    private void customFieldDbValidation(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
+    private void customFieldDbValidation(CustomField customField) throws ExceptionFailedDbValidation {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
             exception.addException("Custom Field Type: " + customField.type() + " is not a valid type. " +
