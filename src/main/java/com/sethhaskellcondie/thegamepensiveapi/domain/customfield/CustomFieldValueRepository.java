@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionCustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,13 +58,15 @@ public class CustomFieldValueRepository {
             insertedCustomField = customFieldRepository.insertCustomField(new CustomField(value.getCustomFieldId(), value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
             value.setCustomFieldId(insertedCustomField.id());
         } catch (ExceptionFailedDbValidation exception) {
-            //TODO update this to return a custom runtime exception CustomFieldValueException
+            throw new ExceptionCustomFieldValue("Cannot create new custom field needed to insert a new value: " + exception.getMessage());
         }
+
         CustomFieldValueDao valueDao = value.convertToDao(entityId, entityKey);
         final String sql = """
                 			INSERT INTO custom_field_values(custom_field_id, entity_id, entity_key, value_text, value_number) VALUES (?, ?, ?, ?, ?);
                 """;
         jdbcTemplate.update(sql, valueDao.customFieldId(), valueDao.entityId(), valueDao.entityKey(), valueDao.valueText(), valueDao.valueNumber());
+
         return getByCustomFieldIdAndEntityId(valueDao.customFieldId(), valueDao.entityId()).convertToValue(value.getCustomFieldName(), value.getCustomFieldType());
     }
 
@@ -86,8 +89,7 @@ public class CustomFieldValueRepository {
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            //TODO update this to return a custom runtime exception CustomFieldValueException
-            throw new RuntimeException("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId +
+            throw new ExceptionCustomFieldValue("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId +
                     "AND entity_id: " + entityId + ".");
         }
         return valueDao;
