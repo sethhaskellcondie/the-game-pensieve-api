@@ -67,7 +67,7 @@ public class CustomFieldValueRepositoryTests {
     }
 
     @Test
-    public void upsertValue_ExistingCustomField_UpdateCustomFieldName() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+    public void upsertValue_ExistingCustomFieldNewValue_CustomFieldUpdatedNewValueCreated() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
         final String newCustomFieldName = "NewCustomFieldName";
         final String valueText = "valueText";
         final CustomFieldRequestDto customFieldRequestDto = new CustomFieldRequestDto("OldCustomFieldName", "text", "system");

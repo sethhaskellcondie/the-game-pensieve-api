@@ -213,6 +213,29 @@ public class ToyTests {
         );
     }
 
+    @Test
+    void testCustomFields() {
+        postToyWithCustomFields_NewCustomFieldsAndValues_ToyCustomFieldsAndValuesCreatedAndReturned();
+        putToyWithCustomFields_UpdateCustomFieldNameExistingValue_ToyCustomFieldAndValueUpdated();
+        postToyWithCustomFields_ExistingCustomFieldsNewValues_ToyAndValuesCreatedAndReturned();
+    }
+
+    void postToyWithCustomFields_NewCustomFieldsAndValues_ToyCustomFieldsAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void postToyWithCustomFields_ExistingCustomFieldsNewValues_ToyAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void putToyWithCustomFields_UpdateCustomFieldNameExistingValue_ToyCustomFieldAndValueUpdated() {
+        //TODO finish this
+    }
+
+    void testFilteringOnCustomFields() {
+        //TODO finish this after filtering on custom fields has been implemented
+    }
+
     private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value("toy"),

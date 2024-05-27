@@ -243,6 +243,29 @@ public class SystemTests {
         );
     }
 
+    @Test
+    void testCustomFields() {
+        postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned();
+        putSystemWithCustomFields_UpdateCustomFieldNameExistingValue_SystemCustomFieldAndValueUpdated();
+        postSystemWithCustomFields_ExistingCustomFieldsNewValues_SystemAndValuesCreatedAndReturned();
+    }
+
+    void postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void postSystemWithCustomFields_ExistingCustomFieldsNewValues_SystemAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void putSystemWithCustomFields_UpdateCustomFieldNameExistingValue_SystemCustomFieldAndValueUpdated() {
+        //TODO finish this
+    }
+
+    void testFilteringOnCustomFields() {
+        //TODO finish this after filtering on custom fields has been implemented
+    }
+
     private SystemResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();

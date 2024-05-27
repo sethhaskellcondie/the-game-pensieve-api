@@ -47,6 +47,10 @@ public class CustomFieldValueRepository {
         return savedValues;
     }
 
+    public void deleteValues(List<CustomFieldValue> values) {
+        //TODO finish this, it should be called by the delete function of an entity repository
+    }
+
     public CustomFieldValue upsertValue(CustomFieldValue value, int entityId, String entityKey) {
         if (value.getCustomFieldId() > 0) {
             value = updateValue(value, entityId, entityKey);
