@@ -1,9 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
-
 import java.util.List;
-import java.util.Objects;
 
 /**
  * CustomFieldValues belong to Entities
@@ -51,31 +48,6 @@ public class CustomFieldValue {
 
     public boolean isDeleted() {
         return deleted;
-    }
-
-    public CustomFieldValueDao convertToDao(int entityId, String entityKey) {
-        switch (this.getCustomFieldType()) {
-            case CustomField.TYPE_TEXT -> {
-                return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null, this.deleted);
-            }
-            case CustomField.TYPE_NUMBER -> {
-                try {
-                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, null, Integer.parseInt(this.value), this.deleted);
-                } catch (NumberFormatException exception) {
-                    throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is number the value must be a valid Integer.")));
-                }
-            }
-            case CustomField.TYPE_BOOLEAN -> {
-                if (Objects.equals(this.value, "true") || Objects.equals(this.value, "false")) {
-                    return new CustomFieldValueDao(this.customFieldId, entityId, entityKey, this.value, null, this.deleted);
-                }
-                throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
-            }
-            default -> {
-                throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: unknown Custom Field Type provided: " + this.getCustomFieldType() +
-                        ". Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]")));
-            }
-        }
     }
 }
 
