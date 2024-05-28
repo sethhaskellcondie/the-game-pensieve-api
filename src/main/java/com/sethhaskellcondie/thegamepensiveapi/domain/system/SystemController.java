@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -37,7 +38,7 @@ import java.util.Map;
  * ResponseDto or an error, the controller will then format the response.
  */
 @RestController
-@RequestMapping("systems")
+@RequestMapping("v1/systems")
 public class SystemController {
     private final SystemGateway gateway;
 
@@ -54,12 +55,12 @@ public class SystemController {
     }
 
     /**
-     * The "Get All" endpoint is a POST endpoint instead of a GET endpoint.
+     * The "Get All" endpoint is an RPC POST endpoint instead of a GET endpoint.
      * This will allow the consumer to pass the filters as an object in the request body
      * instead of through many query parameters in a get request.
      */
     @ResponseBody
-    @PostMapping("/search")
+    @PostMapping("/function/search")
     public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody Map<String, List<Filter>> requestBody) {
         final List<SystemResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
@@ -70,7 +71,7 @@ public class SystemController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, SystemResponseDto> createNewSystem(@RequestBody Map<String, SystemRequestDto> requestBody) throws ExceptionFailedDbValidation {
-        final SystemResponseDto responseDto = gateway.createNew(requestBody.get("system"));
+        final SystemResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.SYSTEM_KEY));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
@@ -79,7 +80,7 @@ public class SystemController {
     @PutMapping("/{id}")
     public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody Map<String, SystemRequestDto> requestBody)
             throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final SystemResponseDto responseDto = gateway.updateExisting(id, requestBody.get("system"));
+        final SystemResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.SYSTEM_KEY));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

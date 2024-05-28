@@ -9,8 +9,8 @@ import java.util.Map;
 @Service
 public class FilterService {
 
-    public Map<String, List<String>> getFiltersForResource(String resource) {
-        Map<String, String> fields = FilterResource.getFieldsForResource(resource);
+    public Map<String, List<String>> getFiltersByKey(String key) {
+        Map<String, String> fields = FilterEntity.getFilterFieldsByKey(key);
         //using a linkedHashMap to preserve the order of the elements as they are added to the map.
         Map<String, List<String>> filters = new LinkedHashMap<>();
         for (Map.Entry<String, String> field : fields.entrySet()) {

@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
@@ -22,11 +23,13 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
     private final JdbcTemplate jdbcTemplate;
+    private final CustomFieldValueRepository customFieldValueRepository;
     private final String baseQuery = "SELECT * FROM systems WHERE deleted_at IS NULL";
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<System> rowMapper = (resultSet, rowNumber) ->
@@ -37,11 +40,13 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     resultSet.getBoolean("handheld"),
                     resultSet.getTimestamp("created_at"),
                     resultSet.getTimestamp("updated_at"),
-                    resultSet.getTimestamp("deleted_at")
+                    resultSet.getTimestamp("deleted_at"),
+                    new ArrayList<>() //TODO update this
             );
 
-    public SystemRepository(JdbcTemplate jdbcTemplate) {
+    public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldValueRepository customFieldValueRepository) {
         this.jdbcTemplate = jdbcTemplate;
+        this.customFieldValueRepository = customFieldValueRepository;
     }
 
     @Override
@@ -80,16 +85,19 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                 },
                 keyHolder
         );
-        Integer generatedId = (Integer) keyHolder.getKeys().get("id");
+        final Integer generatedId = (Integer) keyHolder.getKeys().get("id");
 
+        System savedSystem;
         try {
-            return getById(generatedId);
+            savedSystem = getById(generatedId);
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             // we shouldn't ever reach this block of code because the database is managing the ids
             // so if we do throw a disaster
             logger.error(ErrorLogs.InsertThenRetrieveError(system.getClass().getSimpleName(), generatedId));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), generatedId);
         }
+        savedSystem.setCustomFieldValues(customFieldValueRepository.upsertValues(system.getCustomFieldValues(), savedSystem.getId(), savedSystem.getKey()));
+        return savedSystem;
     }
 
     @Override
@@ -98,6 +106,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);
+        //TODO figure out how to attach the customFields to the results?
         return jdbcTemplate.query(sql, rowMapper, operands.toArray());
     }
 
@@ -115,6 +124,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
+        //TODO figure out how to attach the customFields to the result
         return system;
     }
 
@@ -138,14 +148,17 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                 system.getId()
         );
 
+        System updatedSystem;
         try {
-            return getById(system.getId());
+            updatedSystem = getById(system.getId());
         } catch (ExceptionResourceNotFound e) {
             // we shouldn't ever reach this block of code because the database is managing the ids
             // but if we do then we better log it and throw a disaster
             logger.error(ErrorLogs.UpdateThenRetrieveError(system.getClass().getSimpleName(), system.getId()));
             throw new ExceptionInternalCatastrophe(system.getClass().getSimpleName(), system.getId());
         }
+        updatedSystem.setCustomFieldValues(customFieldValueRepository.upsertValues(system.getCustomFieldValues(), updatedSystem.getId(), updatedSystem.getKey()));
+        return updatedSystem;
     }
 
     @Override
@@ -173,7 +186,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
-
+        //TODO get the custom field values?
         return system;
     }
 

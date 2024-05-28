@@ -1,6 +1,10 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class Entity<RequestDto, ResponseDto> {
@@ -8,20 +12,23 @@ public abstract class Entity<RequestDto, ResponseDto> {
     protected final Timestamp created_at;
     protected final Timestamp updated_at;
     protected final Timestamp deleted_at;
+    protected List<CustomFieldValue> customFieldValues;
 
     protected Entity() {
         id = null;
         created_at = null;
         updated_at = null;
         deleted_at = null;
+        customFieldValues = new ArrayList<>();
     }
 
     //IDs are ONLY generated in tests and by the database
-    protected Entity(Integer id, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
+    protected Entity(Integer id, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) {
         this.id = id;
         created_at = createdAt;
         updated_at = updatedAt;
         deleted_at = deletedAt;
+        setCustomFieldValues(customFieldValues);
     }
 
     public final Integer getId() {
@@ -38,6 +45,18 @@ public abstract class Entity<RequestDto, ResponseDto> {
 
     public final Timestamp getDeletedAt() {
         return deleted_at;
+    }
+
+    public final List<CustomFieldValue> getCustomFieldValues() {
+        return customFieldValues;
+    }
+
+    public final void setCustomFieldValues(List<CustomFieldValue> customFieldValues) {
+        if (null != customFieldValues) {
+            this.customFieldValues = customFieldValues;
+        } else {
+            this.customFieldValues = new ArrayList<>();
+        }
     }
 
     public final boolean isPersisted() {
@@ -61,6 +80,12 @@ public abstract class Entity<RequestDto, ResponseDto> {
      * following the open/closed principle.
      */
     protected abstract ResponseDto convertToResponseDto();
+
+    /**
+     * Every Entity will have a key that is a constant form of the name of the entity.
+     * This function will return the proper key from the Keychain.
+     */
+    protected abstract String getKey();
 
     @Override
     public boolean equals(Object obj) {

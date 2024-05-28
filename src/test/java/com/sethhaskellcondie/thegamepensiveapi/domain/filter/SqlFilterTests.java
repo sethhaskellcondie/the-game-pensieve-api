@@ -275,8 +275,6 @@ public class SqlFilterTests {
         assertEquals(expectedOperands, operands);
     }
 
-    //TODO Test Enum filters (after an entity uses enums)
-
     private String getBaseQuery() {
         return "SELECT * FROM systems WHERE 1 = 1";
     }

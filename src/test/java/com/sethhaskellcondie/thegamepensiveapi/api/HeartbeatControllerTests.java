@@ -19,6 +19,6 @@ public class HeartbeatControllerTests {
 
     @Test
     void testHeartbeat_HappyPath_ReturnOk() {
-        client.get().uri("/heartbeat").exchange().expectStatus().isOk();
+        client.get().uri("v1/heartbeat").exchange().expectStatus().isOk();
     }
 }

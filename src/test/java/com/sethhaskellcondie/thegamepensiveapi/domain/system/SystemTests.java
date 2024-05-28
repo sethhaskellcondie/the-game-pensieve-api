@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +46,7 @@ public class SystemTests {
     @Autowired
     private MockMvc mockMvc;
     private TestFactory factory;
+    private final String baseUrl = "/v1/systems";
 
     @BeforeEach
     void setUp() {
@@ -68,7 +70,7 @@ public class SystemTests {
         final String jsonContent = factory.formatSystemPayload("", -1, null);
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -76,7 +78,7 @@ public class SystemTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isArray()
+                jsonPath("$.errors.length()").value(2)
         );
     }
 
@@ -89,7 +91,7 @@ public class SystemTests {
         factory.postCustomSystem(duplicateName, generation, handheld);
         final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld);
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );
@@ -97,7 +99,7 @@ public class SystemTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isNotEmpty()
+                jsonPath("$.errors.length()").value(1)
         );
     }
 
@@ -109,7 +111,7 @@ public class SystemTests {
         final ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
         final SystemResponseDto expectedDto = resultToResponseDto(postResult);
 
-        final ResultActions result = mockMvc.perform(get("/systems/" + expectedDto.id()));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "/" + expectedDto.id()));
 
         result.andExpectAll(
                 status().isOk(),
@@ -120,7 +122,7 @@ public class SystemTests {
 
     @Test
     void getOneSystem_SystemMissing_NotFoundReturned() throws Exception {
-        final ResultActions result = mockMvc.perform(get("/systems/-1"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "/-1"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -146,7 +148,7 @@ public class SystemTests {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
@@ -163,7 +165,7 @@ public class SystemTests {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         final String jsonContent = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post("/systems/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
@@ -187,7 +189,7 @@ public class SystemTests {
 
         final String jsonContent = factory.formatSystemPayload(newName, newGeneration, newBoolean);
         final ResultActions result = mockMvc.perform(
-                put("/systems/" + responseDto.id())
+                put(baseUrl + "/" + responseDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -200,7 +202,7 @@ public class SystemTests {
     void updateExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         final String jsonContent = factory.formatSystemPayload("ValidButMissing", 3, false);
         final ResultActions result = mockMvc.perform(
-                put("/systems/-1")
+                put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -218,7 +220,7 @@ public class SystemTests {
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
         final ResultActions result = mockMvc.perform(
-                delete("/systems/" + responseDto.id())
+                delete(baseUrl + "/" + responseDto.id())
         );
 
         result.andExpectAll(
@@ -231,7 +233,7 @@ public class SystemTests {
     @Test
     void deleteExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
-                delete("/systems/-1")
+                delete(baseUrl + "/-1")
         );
 
         result.andExpectAll(
@@ -239,6 +241,29 @@ public class SystemTests {
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors").isNotEmpty()
         );
+    }
+
+    @Test
+    void testCustomFields() {
+        postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned();
+        putSystemWithCustomFields_UpdateCustomFieldNameExistingValue_SystemCustomFieldAndValueUpdated();
+        postSystemWithCustomFields_ExistingCustomFieldsNewValues_SystemAndValuesCreatedAndReturned();
+    }
+
+    void postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void postSystemWithCustomFields_ExistingCustomFieldsNewValues_SystemAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void putSystemWithCustomFields_UpdateCustomFieldNameExistingValue_SystemCustomFieldAndValueUpdated() {
+        //TODO finish this
+    }
+
+    void testFilteringOnCustomFields() {
+        //TODO finish this after filtering on custom fields has been implemented
     }
 
     private SystemResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
@@ -250,7 +275,7 @@ public class SystemTests {
 
     private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("system"),
+                jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.generation").value(expectedGeneration),
@@ -261,7 +286,7 @@ public class SystemTests {
 
     private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("system"),
+                jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").value(responseDto.id()),
                 jsonPath("$.data.name").value(responseDto.name()),
                 jsonPath("$.data.generation").value(responseDto.generation()),
@@ -286,7 +311,7 @@ public class SystemTests {
             SystemResponseDto returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
-                    () -> assertEquals("system", returnedSystem.type()),
+                    () -> assertEquals(Keychain.SYSTEM_KEY, returnedSystem.key()),
                     () -> assertEquals(expectedSystem.id(), returnedSystem.id()),
                     () -> assertEquals(expectedSystem.name(), returnedSystem.name()),
                     () -> assertEquals(expectedSystem.generation(), returnedSystem.generation()),

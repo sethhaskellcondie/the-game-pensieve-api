@@ -11,11 +11,11 @@ public class FilterGateway {
         this.service = service;
     }
 
-    public FilterResponseDto getFiltersForResource(String resource) {
+    public FilterResponseDto getFiltersByKey(String key) {
         return new FilterResponseDto(
-                resource + "_filters",
-                FilterResource.getFieldsForResource(resource),
-                service.getFiltersForResource(resource)
+                key + "_filters",
+                FilterEntity.getFilterFieldsByKey(key),
+                service.getFiltersByKey(key)
         );
     }
 }

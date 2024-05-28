@@ -19,9 +19,9 @@ public class FilterController {
     }
 
     @ResponseBody
-    @GetMapping("/{resource}")
-    public Map<String, FilterResponseDto> getFiltersForResource(@PathVariable String resource) {
-        final FilterResponseDto responseDto = gateway.getFiltersForResource(resource);
+    @GetMapping("/{key}")
+    public Map<String, FilterResponseDto> getFiltersByKey(@PathVariable String key) {
+        final FilterResponseDto responseDto = gateway.getFiltersByKey(key);
         final FormattedResponseBody<FilterResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

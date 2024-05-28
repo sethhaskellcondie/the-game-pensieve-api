@@ -39,6 +39,8 @@ public class ToyTests {
     @Autowired
     private MockMvc mockMvc;
     private TestFactory factory;
+    private final String baseUrl = "/v1/toys";
+    private final String baseUrlSlash = "/v1/toys/";
 
     @BeforeEach
     void setUp() {
@@ -61,7 +63,7 @@ public class ToyTests {
         final String jsonContent = factory.formatToyPayload("", "set");
 
         final ResultActions result = mockMvc.perform(
-                post("/toys")
+                post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -80,7 +82,7 @@ public class ToyTests {
         ResultActions postResult = factory.postCustomToy(name, set);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
-        final ResultActions result = mockMvc.perform(get("/toys/" + expectedDto.id()));
+        final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
 
         result.andExpectAll(
                 status().isOk(),
@@ -91,7 +93,7 @@ public class ToyTests {
 
     @Test
     void getOneToy_ToyMissing_NotFoundReturned() throws Exception {
-        final ResultActions result = mockMvc.perform(get("/toys/-1"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "/-1"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -115,7 +117,7 @@ public class ToyTests {
         final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "Something ");
         final String formattedJson = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post("/toys/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(formattedJson)
         );
@@ -131,7 +133,7 @@ public class ToyTests {
     void getAllToys_NoResultFilter_EmptyArrayReturned() throws Exception {
         final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "NoResults");
         final String formattedJson = factory.formatFiltersPayload(filter);
-        final ResultActions result = mockMvc.perform(post("/toys/search")
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(formattedJson)
         );
@@ -156,7 +158,7 @@ public class ToyTests {
 
         final String jsonContent = factory.formatToyPayload(newName, newSet);
         final ResultActions result = mockMvc.perform(
-                put("/toys/" + expectedDto.id())
+                put(baseUrlSlash + expectedDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -170,7 +172,7 @@ public class ToyTests {
 
         final String jsonContent = factory.formatToyPayload("invalidId", "");
         final ResultActions result = mockMvc.perform(
-                put("/toys/-1")
+                put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -188,7 +190,7 @@ public class ToyTests {
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(
-                delete("/toys/" + expectedDto.id())
+                delete(baseUrlSlash + expectedDto.id())
         );
 
         result.andExpectAll(
@@ -201,7 +203,7 @@ public class ToyTests {
     @Test
     void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
-                delete("/toys/-1")
+                delete(baseUrl + "/-1")
         );
 
         result.andExpectAll(
@@ -211,9 +213,32 @@ public class ToyTests {
         );
     }
 
+    @Test
+    void testCustomFields() {
+        postToyWithCustomFields_NewCustomFieldsAndValues_ToyCustomFieldsAndValuesCreatedAndReturned();
+        putToyWithCustomFields_UpdateCustomFieldNameExistingValue_ToyCustomFieldAndValueUpdated();
+        postToyWithCustomFields_ExistingCustomFieldsNewValues_ToyAndValuesCreatedAndReturned();
+    }
+
+    void postToyWithCustomFields_NewCustomFieldsAndValues_ToyCustomFieldsAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void postToyWithCustomFields_ExistingCustomFieldsNewValues_ToyAndValuesCreatedAndReturned() {
+        //TODO finish this
+    }
+
+    void putToyWithCustomFields_UpdateCustomFieldNameExistingValue_ToyCustomFieldAndValueUpdated() {
+        //TODO finish this
+    }
+
+    void testFilteringOnCustomFields() {
+        //TODO finish this after filtering on custom fields has been implemented
+    }
+
     private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
+                jsonPath("$.data.key").value("toy"),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.set").value(expectedSet)
@@ -229,7 +254,7 @@ public class ToyTests {
 
     private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
+                jsonPath("$.data.key").value("toy"),
                 jsonPath("$.data.id").value(expectedResponse.id()),
                 jsonPath("$.data.name").value(expectedResponse.name()),
                 jsonPath("$.data.set").value(expectedResponse.set())
@@ -252,7 +277,7 @@ public class ToyTests {
             ToyResponseDto returnedToy = returnedToys.get(i);
             assertAll(
                     "The response body for Toys is not formatted correctly",
-                    () -> assertEquals("toy", returnedToy.type()),
+                    () -> assertEquals("toy", returnedToy.key()),
                     () -> assertEquals(expectedToy.id(), returnedToy.id()),
                     () -> assertEquals(expectedToy.name(), returnedToy.name()),
                     () -> assertEquals(expectedToy.set(), returnedToy.set())

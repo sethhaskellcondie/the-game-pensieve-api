@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,7 +18,7 @@ public class ToyEntityTests {
         final String name = "name";
         final String set = "set";
 
-        final ToyRequestDto requestDto = new ToyRequestDto(name, set);
+        final ToyRequestDto requestDto = new ToyRequestDto(name, set, new ArrayList<>());
         final Toy toy = new Toy();
 
         toy.updateFromRequestDto(requestDto);
@@ -30,7 +31,7 @@ public class ToyEntityTests {
     public void updateFromRequestDto_FieldsNull_ThrowExceptionMalformedEntity() {
         final int numberOfErrors = 1;
 
-        final ToyRequestDto requestDto = new ToyRequestDto(null, null);
+        final ToyRequestDto requestDto = new ToyRequestDto(null, null, new ArrayList<>());
         final Toy toy = new Toy();
 
         try {
@@ -46,7 +47,7 @@ public class ToyEntityTests {
         final String set = null;
         final int numberOfErrors = 1;
 
-        final ToyRequestDto requestDto = new ToyRequestDto(name, set);
+        final ToyRequestDto requestDto = new ToyRequestDto(name, set, new ArrayList<>());
         final Toy toy = new Toy();
 
         try {
@@ -64,13 +65,13 @@ public class ToyEntityTests {
         final Instant created_at = Instant.now();
         final Instant updated_at = Instant.now();
 
-        final Toy toy = new Toy(id, name, set, Timestamp.from(created_at), Timestamp.from(updated_at), null);
+        final Toy toy = new Toy(id, name, set, Timestamp.from(created_at), Timestamp.from(updated_at), null, new ArrayList<>());
 
         final ToyResponseDto responseDto = toy.convertToResponseDto();
 
         assertAll(
                 "Converting a Toy to a DTO has failed",
-                () -> assertEquals("toy", responseDto.type()),
+                () -> assertEquals("toy", responseDto.key()),
                 () -> assertEquals(id, responseDto.id()),
                 () -> assertEquals(name, responseDto.name()),
                 () -> assertEquals(Timestamp.from(created_at), responseDto.createdAt()),

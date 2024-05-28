@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS toys (
 -- Undo
 -- I had this in it's own migration file but I now know that is only a feature in the paid version of flyway (Flyway Teams)
 --
--- DROP TABLE Toys;
+-- DROP TABLE toys;
 --
--- DROP TABLE Systems;
+-- DROP TABLE systems;
+--
+-- DELETE FROM flyway_schema_history WHERE version = '1.1';

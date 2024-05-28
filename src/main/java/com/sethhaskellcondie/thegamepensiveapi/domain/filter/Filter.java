@@ -29,7 +29,6 @@ public class Filter {
     public static final String FIELD_TYPE_BOOLEAN = "boolean";
     public static final String FIELD_TYPE_TIME = "time";
     public static final String FIELD_TYPE_SORT = "sort";
-    public static final String FIELD_TYPE_ENUM = "enum";
     public static final String FIELD_TYPE_PAGINATION = "pagination";
 
     public static final String OPERATOR_EQUALS = "equals";
@@ -48,20 +47,20 @@ public class Filter {
     public static final String OPERATOR_LIMIT = "limit";
     public static final String OPERATOR_OFFSET = "offset";
 
-    private final String resource;
+    private final String key;
     private final String field;
     private final String operator;
     private final String operand;
 
-    public Filter(String resource, String field, String operator, String operand) {
-        this.resource = resource;
+    public Filter(String key, String field, String operator, String operand) {
+        this.key = key;
         this.field = field;
         this.operator = operator;
         this.operand = operand;
     }
 
-    public String getResource() {
-        return resource;
+    public String getKey() {
+        return key;
     }
 
     public String getField() {
@@ -126,10 +125,6 @@ public class Filter {
                 filters.add(OPERATOR_SINCE);
                 filters.add(OPERATOR_BEFORE);
             }
-            case FIELD_TYPE_ENUM -> {
-                filters.add(OPERATOR_EQUALS);
-                filters.add(OPERATOR_NOT_EQUALS);
-            }
             case FIELD_TYPE_SORT -> {
                 if (!includeSort) {
                     filters.add(OPERATOR_ORDER_BY);
@@ -155,9 +150,9 @@ public class Filter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
-            Map<String, String> fields = FilterResource.getFieldsForResource(filter.getResource());
+            Map<String, String> fields = FilterEntity.getFilterFieldsByKey(filter.getKey());
             if (!fields.containsKey(filter.getField())) {
-                exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getResource() + ".");
+                exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
             }
             String fieldType = fields.get(filter.getField());
             List<String> operators = getFilterOperators(fieldType, true);
@@ -349,7 +344,7 @@ public class Filter {
     }
 
     private static Object castOperand(Filter filter) {
-        Map<String, String> fields = FilterResource.getFieldsForResource(filter.resource);
+        Map<String, String> fields = FilterEntity.getFilterFieldsByKey(filter.key);
 
         switch (fields.get(filter.field)) {
             case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> {

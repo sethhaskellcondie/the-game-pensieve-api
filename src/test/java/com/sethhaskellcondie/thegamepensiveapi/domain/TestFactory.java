@@ -26,7 +26,7 @@ public class TestFactory {
                 {
                   "filters": [
                     {
-                      "resource": "%s",
+                      "key": "%s",
                       "field": "%s",
                       "operator": "%s",
                       "operand": "%s"
@@ -34,7 +34,7 @@ public class TestFactory {
                   ]
                 }
                 """;
-        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     public ResultActions postSystem() throws Exception {
@@ -58,7 +58,7 @@ public class TestFactory {
         final String formattedJson = String.format(json, name, generation, handheld);
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );
@@ -90,7 +90,7 @@ public class TestFactory {
         final String formattedJson = formatToyPayload(name, set);
 
         final ResultActions result = mockMvc.perform(
-                post("/toys")
+                post("/v1/toys")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );
@@ -109,5 +109,38 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, name, set);
+    }
+
+    public ResultActions postCustomField() throws Exception {
+        final String name = "TestCustomField-" + randomString(6);
+        final String type = "text";
+        final String entityKey = "toy";
+        return postCustomCustomField(name, type, entityKey);
+    }
+
+    public ResultActions postCustomCustomField(String name, String type, String entityKey) throws Exception {
+        final String formattedJson = formatCustomFieldPayload(name, type, entityKey);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/custom_fields")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public String formatCustomFieldPayload(String name, String type, String entityKey) {
+        final String json = """
+                {
+                	"custom_field": {
+                	    "name": "%s",
+                	    "type": "%s",
+                	    "entityKey": "%s"
+                	    }
+                }
+                """;
+        return String.format(json, name, type, entityKey);
     }
 }

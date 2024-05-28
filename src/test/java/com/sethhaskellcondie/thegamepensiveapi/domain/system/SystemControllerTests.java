@@ -60,10 +60,10 @@ public class SystemControllerTests {
 
     @Test
     void getOneSystem_SystemExists_SystemSerializedCorrectly() throws Exception {
-        final System system = new System(1, "test", 3, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System system = new System(1, "test", 3, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         when(service.getById(1)).thenReturn(system);
 
-        final ResultActions result = mockMvc.perform(get("/systems/1"));
+        final ResultActions result = mockMvc.perform(get("/v1/systems/1"));
 
         // result.andDo(print()); //will print out the result to the console
         result.andExpectAll(
@@ -77,7 +77,7 @@ public class SystemControllerTests {
     void getOneSystem_SystemMissing_NotFoundReturned() throws Exception {
         when(service.getById(999)).thenThrow(new ExceptionResourceNotFound("Error: Resource Not Found"));
 
-        final ResultActions result = mockMvc.perform(get("/systems/999"));
+        final ResultActions result = mockMvc.perform(get("/v1/systems/999"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -89,14 +89,14 @@ public class SystemControllerTests {
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
-        final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
-        final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
+        final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final List<System> systems = List.of(system1, system2);
         when(service.getWithFilters(List.of(filter))).thenReturn(systems);
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/systems/search")
+                post("/v1/systems/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -115,7 +115,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/systems/search")
+                post("/v1/systems/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
         );
@@ -135,13 +135,15 @@ public class SystemControllerTests {
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
-        final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System expectedSystemPersisted = new System(expectedId, expectedName, expectedGeneration, expectedHandheld,
+                Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>()
+        );
 
         when(service.createNew(any())).thenReturn(expectedSystemPersisted);
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
         ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -157,7 +159,7 @@ public class SystemControllerTests {
         when(service.createNew(any())).thenThrow(new ExceptionMalformedEntity(List.of(new Exception("Error 1"), new Exception("Error 2"))));
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -176,7 +178,7 @@ public class SystemControllerTests {
         when(service.createNew(any())).thenThrow(new ExceptionFailedDbValidation("Error: DB Validation"));
 
         final ResultActions result = mockMvc.perform(
-                post("/systems")
+                post("/v1/systems")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -195,15 +197,17 @@ public class SystemControllerTests {
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
 
-        final System existingSystem = new System(expectedId, "Created Name", 4, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
-        final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final System existingSystem = new System(expectedId, "Created Name", 4, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
+        final System updatedSystem = new System(expectedId, expectedName, expectedGeneration, expectedHandheld,
+                Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>()
+        );
 
         when(service.getById(expectedId)).thenReturn(existingSystem);
         when(service.updateExisting(updatedSystem)).thenReturn(updatedSystem);
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedGeneration, expectedHandheld);
         final ResultActions result = mockMvc.perform(
-                put("/systems/" + expectedId)
+                put("/v1/systems/" + expectedId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -218,7 +222,7 @@ public class SystemControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload("testName", 3, false);
         final ResultActions result = mockMvc.perform(
-                put("/systems/33")
+                put("/v1/systems/33")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -233,7 +237,7 @@ public class SystemControllerTests {
     @Test
     void deleteExistingSystem_SystemExists_ReturnNoContent() throws Exception {
         final ResultActions result = mockMvc.perform(
-                delete("/systems/22")
+                delete("/v1/systems/22")
         );
 
         result.andExpectAll(
@@ -248,7 +252,7 @@ public class SystemControllerTests {
         doThrow(new ExceptionResourceNotFound("Error: Resource Not Found")).when(service).deleteById(22);
 
         final ResultActions result = mockMvc.perform(
-                delete("/systems/22")
+                delete("/v1/systems/22")
         );
 
         result.andExpectAll(
@@ -284,12 +288,12 @@ public class SystemControllerTests {
                   ]
                 }
                 """;
-        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateSystemResponseBody(ResultActions result, System expectedSystem) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("system"),
+                jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").value(expectedSystem.getId()),
                 jsonPath("$.data.name").value(expectedSystem.getName()),
                 jsonPath("$.data.generation").value(expectedSystem.getGeneration()),
@@ -317,7 +321,7 @@ public class SystemControllerTests {
             final SystemResponseDto returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
-                    () -> assertEquals("system", returnedSystem.type()),
+                    () -> assertEquals("system", returnedSystem.key()),
                     () -> assertEquals(expectedSystem.getId(), returnedSystem.id()),
                     () -> assertEquals(expectedSystem.getName(), returnedSystem.name()),
                     () -> assertEquals(expectedSystem.getGeneration(), returnedSystem.generation()),

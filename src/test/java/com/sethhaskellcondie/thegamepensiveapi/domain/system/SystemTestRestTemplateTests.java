@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,10 +53,10 @@ public class SystemTestRestTemplateTests {
 
     @Test
     void postSystem_FailedValidation_ReturnArrayOfErrors() {
-        final SystemRequestDto requestDto = new SystemRequestDto("", -1, null);
+        final SystemRequestDto requestDto = new SystemRequestDto("", -1, null, new ArrayList<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/testRestTemplate", request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -75,10 +76,10 @@ public class SystemTestRestTemplateTests {
 
         this.postCustomSystem(duplicateName, generation, handheld);
 
-        final SystemRequestDto requestDto = new SystemRequestDto(duplicateName, generation, handheld);
+        final SystemRequestDto requestDto = new SystemRequestDto(duplicateName, generation, handheld, new ArrayList<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/testRestTemplate", request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -98,7 +99,7 @@ public class SystemTestRestTemplateTests {
         final ResponseEntity<Map> postResponse = this.postCustomSystem(name, generation, handheld);
         final SystemResponseDto expectedDto = resultToResponseDto(postResponse);
 
-        final ResponseEntity<Map> response = restTemplate.getForEntity("/systems/" + expectedDto.id(), Map.class);
+        final ResponseEntity<Map> response = restTemplate.getForEntity("/v1/systems/" + expectedDto.id(), Map.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         validateSystemResponseBody(response, name, generation, handheld);
@@ -106,7 +107,7 @@ public class SystemTestRestTemplateTests {
 
     @Test
     void getOneSystem_SystemMissing_NotFoundReturned() {
-        final ResponseEntity<Map> response = restTemplate.getForEntity("/systems/-1", Map.class);
+        final ResponseEntity<Map> response = restTemplate.getForEntity("/v1/systems/-1", Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -137,7 +138,7 @@ public class SystemTestRestTemplateTests {
         requestBody.put("filters", List.of(filter));
         final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/search", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/function/search", request, Map.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         validateSystemResponseBody(response, List.of(responseDto1, responseDto2));
@@ -150,7 +151,7 @@ public class SystemTestRestTemplateTests {
         requestBody.put("filters", List.of(filter));
         final HttpEntity<Map<String, List<Filter>>> request = new HttpEntity<>(requestBody);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/search", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/function/search", request, Map.class);
         final List<Map<String, Object>> returnedSystems = (List<Map<String, Object>>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -171,20 +172,21 @@ public class SystemTestRestTemplateTests {
         final int newGeneration = 6;
         final boolean newHandheld = false;
         final SystemResponseDto expectedDto = new SystemResponseDto(
-                responseDto.type(),
+                responseDto.key(),
                 responseDto.id(),
                 newName,
                 newGeneration,
                 newHandheld,
                 responseDto.createdAt(),
                 responseDto.updatedAt(),
-                responseDto.deletedAt()
+                responseDto.deletedAt(),
+                new ArrayList<>()
         );
 
-        final SystemRequestDto requestDto = new SystemRequestDto(newName, newGeneration, newHandheld);
+        final SystemRequestDto requestDto = new SystemRequestDto(newName, newGeneration, newHandheld, new ArrayList<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/" + responseDto.id() + "/testRestTemplate", HttpMethod.PUT, request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/v1/systems/" + responseDto.id() + "/testRestTemplate", HttpMethod.PUT, request, Map.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         validateSystemResponseBody(response, expectedDto);
@@ -192,10 +194,10 @@ public class SystemTestRestTemplateTests {
 
     @Test
     void updateExistingSystem_InvalidId_ReturnNotFound() {
-        final SystemRequestDto requestDto = new SystemRequestDto("ValidButMissing", 3, false);
+        final SystemRequestDto requestDto = new SystemRequestDto("ValidButMissing", 3, false, new ArrayList<>());
         final HttpEntity<SystemRequestDto> request = new HttpEntity<>(requestDto);
 
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/-1/testRestTemplate", HttpMethod.PUT, request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/v1/systems/-1/testRestTemplate", HttpMethod.PUT, request, Map.class);
         final Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
         final List<String> errors = (List<String>) response.getBody().get("errors");
 
@@ -212,7 +214,7 @@ public class SystemTestRestTemplateTests {
         final ResponseEntity<Map> existingResult = this.postSystem();
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/" + responseDto.id(), HttpMethod.DELETE, null, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/v1/systems/" + responseDto.id(), HttpMethod.DELETE, null, Map.class);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         //Limitation: I may be doing this wrong, but I haven't been able to get a DELETE call to return a response body.
@@ -221,7 +223,7 @@ public class SystemTestRestTemplateTests {
 
     @Test
     void deleteExistingSystem_InvalidId_ReturnNotFound() {
-        final ResponseEntity<Map> response = restTemplate.exchange("/systems/-1", HttpMethod.DELETE, null, Map.class);
+        final ResponseEntity<Map> response = restTemplate.exchange("/v1/systems/-1", HttpMethod.DELETE, null, Map.class);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         //Limitation: I may be doing this wrong, but I haven't been able to get a DELETE call to return a response body.
@@ -238,7 +240,8 @@ public class SystemTestRestTemplateTests {
                 (boolean) data.get("handheld"),
                 (Timestamp) data.get("created_at"),
                 (Timestamp) data.get("updated_at"),
-                (Timestamp) data.get("deleted_at")
+                (Timestamp) data.get("deleted_at"),
+                new ArrayList<>()
         );
     }
 
@@ -249,7 +252,7 @@ public class SystemTestRestTemplateTests {
 
         assertAll(
                 "The SystemResponseBody was formatted incorrectly",
-                () -> assertEquals("system", data.get("type")),
+                () -> assertEquals("system", data.get("key")),
                 () -> assertNotNull(data.get("id")),
                 () -> assertEquals(expectedName, data.get("name")),
                 () -> assertEquals(expectedGeneration, data.get("generation")),
@@ -264,7 +267,7 @@ public class SystemTestRestTemplateTests {
 
         assertAll(
                 "The SystemResponseBody was formatted incorrectly",
-                () -> assertEquals(responseDto.type(), data.get("type")),
+                () -> assertEquals(responseDto.key(), data.get("type")),
                 () -> assertEquals(responseDto.id(), (int) data.get("id")),
                 () -> assertEquals(responseDto.name(), data.get("name")),
                 () -> assertEquals(responseDto.generation(), data.get("generation")),
@@ -284,7 +287,7 @@ public class SystemTestRestTemplateTests {
             Map<String, Object> returnedSystem = returnedSystems.get(i);
             assertAll(
                     "The response body is not formatted correctly",
-                    () -> assertEquals("system", returnedSystem.get("type")),
+                    () -> assertEquals("system", returnedSystem.get("key")),
                     () -> assertEquals(expectedSystem.id(), (int) returnedSystem.get("id")),
                     () -> assertEquals(expectedSystem.name(), returnedSystem.get("name")),
                     () -> assertEquals(expectedSystem.generation(), (int) returnedSystem.get("generation")),
@@ -307,11 +310,11 @@ public class SystemTestRestTemplateTests {
     }
 
     private ResponseEntity<Map> postCustomSystem(String name, int generation, boolean handheld) {
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld);
+        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System system = new System().updateFromRequestDto(requestDto);
         final HttpEntity<System> request = new HttpEntity<>(system);
 
-        final ResponseEntity<Map> response = restTemplate.postForEntity("/systems/testRestTemplate", request, Map.class);
+        final ResponseEntity<Map> response = restTemplate.postForEntity("/v1/systems/testRestTemplate", request, Map.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         return response;
     }

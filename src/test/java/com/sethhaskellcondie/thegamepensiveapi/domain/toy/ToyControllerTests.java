@@ -52,10 +52,10 @@ public class ToyControllerTests {
 
     @Test
     void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
-        final Toy toy = new Toy(1, "Donkey Kong", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy toy = new Toy(1, "Donkey Kong", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         when(service.getById(1)).thenReturn(toy);
 
-        final ResultActions result = mockMvc.perform(get("/toys/1"));
+        final ResultActions result = mockMvc.perform(get("/v1/toys/1"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -68,7 +68,7 @@ public class ToyControllerTests {
     void getOneToy_ToyMissing_NotFoundReturned() throws Exception {
         when(service.getById(999)).thenThrow(new ExceptionResourceNotFound("Error: Resource Not Found"));
 
-        final ResultActions result = mockMvc.perform(get("/toys/999"));
+        final ResultActions result = mockMvc.perform(get("/v1/toys/999"));
 
         result.andExpectAll(
                 status().isNotFound(),
@@ -80,14 +80,14 @@ public class ToyControllerTests {
     @Test
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
         final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
-        final Toy toy1 = new Toy(1, "Mega Man", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
-        final Toy toy2 = new Toy(2, "Samus", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy toy1 = new Toy(1, "Mega Man", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
+        final Toy toy2 = new Toy(2, "Samus", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final List<Toy> toys = List.of(toy1, toy2);
         when(service.getWithFilters(List.of(filter))).thenReturn(toys);
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/toys/search")
+                post("/v1/toys/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -106,7 +106,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidFilterPayload(filter);
         final ResultActions result = mockMvc.perform(
-                post("/toys/search")
+                post("/v1/toys/function/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -125,13 +125,13 @@ public class ToyControllerTests {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
 
-        final Toy expectedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy expectedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
 
         when(service.createNew(any())).thenReturn(expectedToy);
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
         final ResultActions result = mockMvc.perform(
-                post("/toys")
+                post("/v1/toys")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -147,7 +147,7 @@ public class ToyControllerTests {
         when(service.createNew(any())).thenThrow(new ExceptionMalformedEntity(List.of(new Exception("Error 1"), new Exception("Error 2"))));
 
         final ResultActions result = mockMvc.perform(
-                post("/toys")
+                post("/v1/toys")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -165,15 +165,15 @@ public class ToyControllerTests {
         final String expectedName = "Baloo";
         final String expectedSet = "Disney Infinity";
 
-        final Toy existingToy = new Toy(expectedId, "Old Name", "Old Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
-        final Toy updatedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null);
+        final Toy existingToy = new Toy(expectedId, "Old Name", "Old Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
+        final Toy updatedToy = new Toy(expectedId, expectedName, expectedSet, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
 
         when(service.getById(expectedId)).thenReturn(existingToy);
         when(service.updateExisting(updatedToy)).thenReturn(updatedToy);
 
         final String jsonContent = generateValidCreateUpdatePayload(expectedName, expectedSet);
         final ResultActions result = mockMvc.perform(
-                put("/toys/" + expectedId)
+                put("/v1/toys/" + expectedId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -188,7 +188,7 @@ public class ToyControllerTests {
 
         final String jsonContent = generateValidCreateUpdatePayload("invalidId", "");
         final ResultActions result = mockMvc.perform(
-                put("/toys/79")
+                put("/v1/toys/79")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -202,10 +202,10 @@ public class ToyControllerTests {
 
     @Test
     void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
-        when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null));
+        when(service.getById(27)).thenReturn(new Toy(27, "MarkedForDeletion", "Set", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>()));
 
         final ResultActions result = mockMvc.perform(
-                delete("/toys/27")
+                delete("/v1/toys/27")
         );
 
         result.andExpectAll(
@@ -220,7 +220,7 @@ public class ToyControllerTests {
         doThrow(new ExceptionResourceNotFound("Error: Resource Not Found")).when(service).deleteById(27);
 
         final ResultActions result = mockMvc.perform(
-                delete("/toys/27")
+                delete("/v1/toys/27")
         );
 
         result.andExpectAll(
@@ -255,12 +255,12 @@ public class ToyControllerTests {
                   ]
                 }
                 """;
-        return String.format(json, filter.getResource(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
     }
 
     private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.type").value("toy"),
+                jsonPath("$.data.key").value("toy"),
                 jsonPath("$.data.id").value(expectedToy.getId()),
                 jsonPath("$.data.name").value(expectedToy.getName()),
                 jsonPath("$.data.set").value(expectedToy.getSet()),
@@ -287,7 +287,7 @@ public class ToyControllerTests {
             ToyResponseDto returnedToy = returnedToys.get(i);
             assertAll(
                     "The response body for Toys is not formatted correctly",
-                    () -> assertEquals("toy", returnedToy.type()),
+                    () -> assertEquals("toy", returnedToy.key()),
                     () -> assertEquals(expectedToy.getId(), returnedToy.id()),
                     () -> assertEquals(expectedToy.getName(), returnedToy.name()),
                     () -> assertEquals(expectedToy.getSet(), returnedToy.set())

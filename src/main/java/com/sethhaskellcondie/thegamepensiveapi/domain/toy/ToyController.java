@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +22,7 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValid
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 @RestController
-@RequestMapping("toys")
+@RequestMapping("v1/toys")
 public class ToyController {
     private final ToyGateway gateway;
 
@@ -38,7 +39,7 @@ public class ToyController {
     }
 
     @ResponseBody
-    @PostMapping("/search")
+    @PostMapping("/function/search")
     public Map<String, List<ToyResponseDto>> getAllToys(@RequestBody Map<String, List<Filter>> requestBody) {
         final List<ToyResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<ToyResponseDto>> body = new FormattedResponseBody<>(data);
@@ -49,7 +50,7 @@ public class ToyController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, ToyResponseDto> createNewToy(@RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionFailedDbValidation {
-        final ToyResponseDto responseDto = gateway.createNew(requestBody.get("toy"));
+        final ToyResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.TOY_KEY));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
@@ -57,7 +58,7 @@ public class ToyController {
     @ResponseBody
     @PutMapping("/{id}")
     public Map<String, ToyResponseDto> updateExistingToy(@PathVariable int id, @RequestBody Map<String, ToyRequestDto> requestBody) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
-        final ToyResponseDto responseDto = gateway.updateExisting(id, requestBody.get("toy"));
+        final ToyResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.TOY_KEY));
         final FormattedResponseBody<ToyResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

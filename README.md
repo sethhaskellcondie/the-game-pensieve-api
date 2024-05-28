@@ -2,6 +2,12 @@
 A Pensive in the Harry Potter series is a basin where wizards can store thoughts and memories outside themselves.
 This project is like a pensive but just for information on games in a collection.
 
+## API Design
+This api is a combination of REST and RPC endpoint design. All the CRUD endpoints are implemented with a rest design.
+The RPC endpoints all contain `/function/` in the path the most common is the Get All endpoint 
+usually in a REST API GetAll() is `GET` `/{resource}` but in this system call the RPC endpoint `POST` `/{resource}/function/search`
+passing in an array of filter objects for that resource, if no filters are passed in then all resources are returned.
+
 ## Tech Stack
 Maven: Package Manager <br>
 Java Spring Boot: Framework for the api <br>
