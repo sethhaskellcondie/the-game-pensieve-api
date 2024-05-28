@@ -24,7 +24,7 @@ public class CustomFieldValueRepository {
     private final JdbcTemplate jdbcTemplate;
     private final CustomFieldRepository customFieldRepository;
     private final Logger logger = LoggerFactory.getLogger(CustomFieldRepository.class);
-    private final RowMapper<CustomFieldValueDao> rowMapper = (resultSet, rowNumber) ->
+    private final RowMapper<CustomFieldValueDao> customFieldValueDaoRowMapper = (resultSet, rowNumber) ->
             new CustomFieldValueDao(
                     resultSet.getInt("custom_field_id"),
                     resultSet.getInt("entity_id"),
@@ -32,6 +32,17 @@ public class CustomFieldValueRepository {
                     resultSet.getString("value_text"),
                     resultSet.getInt("value_number"),
                     resultSet.getBoolean("deleted")
+            );
+    private final RowMapper<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaoRowMapper = (resultSet, rowNumber) ->
+            new CustomFieldValueJoinCustomFieldDao(
+                    resultSet.getInt("custom_field_id"),
+                    resultSet.getInt("entity_id"),
+                    resultSet.getString("entity_key"),
+                    resultSet.getString("value_text"),
+                    resultSet.getInt("value_number"),
+                    resultSet.getBoolean("deleted"),
+                    resultSet.getString("name"),
+                    resultSet.getString("type")
             );
 
     public CustomFieldValueRepository(JdbcTemplate jdbcTemplate) {
@@ -45,6 +56,14 @@ public class CustomFieldValueRepository {
             savedValues.add(upsertValue(value, entityId, entityKey));
         }
         return savedValues;
+    }
+
+    public List<CustomFieldValue> getCustomFieldsByEntityIdAndEntityKey(int entityId, String entityKey) {
+        final String sql = "SELECT * FROM custom_field_values " +
+                "JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id " +
+                "WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ?";
+        List<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, entityId, entityKey);
+        return customFieldValueJoinCustomFieldDaos.stream().map(CustomFieldValueJoinCustomFieldDao::convertToValue).toList();
     }
 
     public void deleteValues(List<CustomFieldValue> values) {
@@ -92,7 +111,7 @@ public class CustomFieldValueRepository {
         CustomField customField;
         if (value.getCustomFieldId() <= 0) {
             try {
-                customField = customFieldRepository.insertCustomField(new CustomField(value.getCustomFieldId(), value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
+                customField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
             } catch (ExceptionFailedDbValidation exception) {
                 throw new ExceptionCustomFieldValue("Cannot create new custom field needed to insert a new value: " + exception.getMessage());
             }
@@ -127,7 +146,7 @@ public class CustomFieldValueRepository {
                     sql,
                     new Object[]{customFieldId, entityId},
                     new int[]{Types.BIGINT, Types.BIGINT},
-                    rowMapper
+                    customFieldValueDaoRowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionCustomFieldValue("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId +
@@ -169,5 +188,15 @@ record CustomFieldValueDao(int customFieldId, int entityId, String entityKey, St
             return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueText, this.deleted);
         }
         return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueNumber.toString(), this.deleted);
+    }
+}
+
+record CustomFieldValueJoinCustomFieldDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber, boolean deleted, String customFieldName, String customFieldType) {
+
+    CustomFieldValue convertToValue() {
+        if (Objects.equals(customFieldType, CustomField.TYPE_TEXT) || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
+            return new CustomFieldValue(customFieldId, customFieldName, customFieldType, valueText, deleted);
+        }
+        return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, valueNumber.toString(), deleted);
     }
 }

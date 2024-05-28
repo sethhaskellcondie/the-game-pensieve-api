@@ -10,6 +10,9 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -121,6 +124,37 @@ public class CustomFieldValueRepositoryTests {
                 () -> assertEquals(updatedCustomField.type(), overwrittenValue.getCustomFieldType()),
                 () -> assertEquals(newValueText, overwrittenValue.getValue()),
                 () -> assertFalse(overwrittenValue.isDeleted())
+        );
+    }
+
+    @Test
+    public void getCustomFieldsByEntityId_CustomFieldsExist_ListReturned() {
+        CustomFieldValue releaseYearCustomField = new CustomFieldValue(0, "Release Year", CustomField.TYPE_NUMBER, "1991", false);
+        CustomFieldValue publisherCustomField = new CustomFieldValue(0, "Publisher", CustomField.TYPE_TEXT, "Nintendo", false);
+        CustomFieldValue ownedCustomField = new CustomFieldValue(0, "Owned", CustomField.TYPE_BOOLEAN, "true", false);
+        List<CustomFieldValue> customFields = new ArrayList<>();
+        customFields.add(releaseYearCustomField);
+        customFields.add(publisherCustomField);
+        customFields.add(ownedCustomField);
+        repository.upsertValues(customFields, 1, "system");
+
+        List<CustomFieldValue> returnedCustomFields = repository.getCustomFieldsByEntityIdAndEntityKey(1, "system");
+
+        assertEquals(3, returnedCustomFields.size());
+        //The order is not required, but we are testing the order here
+        validateReturnedCustomFields(releaseYearCustomField, returnedCustomFields.get(0));
+        validateReturnedCustomFields(publisherCustomField, returnedCustomFields.get(1));
+        validateReturnedCustomFields(ownedCustomField, returnedCustomFields.get(2));
+    }
+
+    private void validateReturnedCustomFields(CustomFieldValue expected, CustomFieldValue actual) {
+        assertAll(
+                "The returned custom field value were malformed.",
+                () -> assertEquals(expected.getCustomFieldId(), actual.getCustomFieldId()),
+                () -> assertEquals(expected.getCustomFieldName(), actual.getCustomFieldName()),
+                () -> assertEquals(expected.getCustomFieldType(), actual.getCustomFieldType()),
+                () -> assertEquals(expected.getValue(), actual.getValue()),
+                () -> assertEquals(expected.isDeleted(), actual.isDeleted())
         );
     }
 }
