@@ -40,7 +40,7 @@ public class CustomFieldValueRepositoryTests {
         final int customFieldId = 0;
         final String customFieldName = "Release Date";
         final String customFieldValue = "1991";
-        final CustomFieldValue newValue = new CustomFieldValue(customFieldId, customFieldName, CustomField.TYPE_NUMBER, customFieldValue, false);
+        final CustomFieldValue newValue = new CustomFieldValue(customFieldId, customFieldName, CustomField.TYPE_NUMBER, customFieldValue);
 
         final CustomFieldValue returnedValue = repository.upsertValue(newValue, 1, "system");
 
@@ -56,15 +56,14 @@ public class CustomFieldValueRepositoryTests {
                 () -> assertNotEquals(customFieldId, returnedValue.getCustomFieldId()),
                 () -> assertEquals(customFieldName, returnedValue.getCustomFieldName()),
                 () -> assertEquals(CustomField.TYPE_NUMBER, returnedValue.getCustomFieldType()),
-                () -> assertEquals(customFieldValue, returnedValue.getValue()),
-                () -> assertFalse(returnedValue.isDeleted())
+                () -> assertEquals(customFieldValue, returnedValue.getValue())
         );
     }
 
 
     @Test
     public void upsertValue_NewInvalidValue_ExceptionThrown() {
-        final CustomFieldValue newValue = new CustomFieldValue(0, "customFieldName", "badCustomFieldType", "customFieldValue", false);
+        final CustomFieldValue newValue = new CustomFieldValue(0, "customFieldName", "badCustomFieldType", "customFieldValue");
 
         assertThrows(ExceptionCustomFieldValue.class, () -> repository.upsertValue(newValue, 1, "badEntityKey"));
     }
@@ -75,7 +74,7 @@ public class CustomFieldValueRepositoryTests {
         final String valueText = "valueText";
         final CustomFieldRequestDto customFieldRequestDto = new CustomFieldRequestDto("OldCustomFieldName", "text", "system");
         final CustomField customField = customFieldRepository.insertCustomField(customFieldRequestDto);
-        final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText, false);
+        final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText);
 
         final CustomFieldValue insertedValue = repository.upsertValue(value, 1, "system");
 
@@ -92,8 +91,7 @@ public class CustomFieldValueRepositoryTests {
                 () -> assertEquals(updatedCustomField.id(), insertedValue.getCustomFieldId()),
                 () -> assertEquals(updatedCustomField.name(), insertedValue.getCustomFieldName()),
                 () -> assertEquals(updatedCustomField.type(), insertedValue.getCustomFieldType()),
-                () -> assertEquals(valueText, insertedValue.getValue()),
-                () -> assertFalse(insertedValue.isDeleted())
+                () -> assertEquals(valueText, insertedValue.getValue())
         );
     }
 
@@ -103,10 +101,10 @@ public class CustomFieldValueRepositoryTests {
         final String valueText = "valueText";
         final CustomFieldRequestDto customFieldRequestDto = new CustomFieldRequestDto("OldCustomFieldName", "text", "system");
         final CustomField customField = customFieldRepository.insertCustomField(customFieldRequestDto);
-        final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText, false);
+        final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText);
         final CustomFieldValue insertedValue = repository.upsertValue(value, 1, "system");
         final String newValueText = "NewValueText";
-        final CustomFieldValue valueToOverwrite = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), newValueText, false);
+        final CustomFieldValue valueToOverwrite = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), newValueText);
         final CustomFieldValue overwrittenValue = repository.upsertValue(valueToOverwrite, 1, "system");
 
         CustomField updatedCustomField = customFieldRepository.getById(customField.id());
@@ -122,16 +120,15 @@ public class CustomFieldValueRepositoryTests {
                 () -> assertEquals(updatedCustomField.id(), overwrittenValue.getCustomFieldId()),
                 () -> assertEquals(updatedCustomField.name(), overwrittenValue.getCustomFieldName()),
                 () -> assertEquals(updatedCustomField.type(), overwrittenValue.getCustomFieldType()),
-                () -> assertEquals(newValueText, overwrittenValue.getValue()),
-                () -> assertFalse(overwrittenValue.isDeleted())
+                () -> assertEquals(newValueText, overwrittenValue.getValue())
         );
     }
 
     @Test
     public void getCustomFieldsByEntityId_CustomFieldsExist_ListReturned() {
-        CustomFieldValue releaseYearCustomField = new CustomFieldValue(0, "Release Year", CustomField.TYPE_NUMBER, "1991", false);
-        CustomFieldValue publisherCustomField = new CustomFieldValue(0, "Publisher", CustomField.TYPE_TEXT, "Nintendo", false);
-        CustomFieldValue ownedCustomField = new CustomFieldValue(0, "Owned", CustomField.TYPE_BOOLEAN, "true", false);
+        CustomFieldValue releaseYearCustomField = new CustomFieldValue(0, "Release Year", CustomField.TYPE_NUMBER, "1991");
+        CustomFieldValue publisherCustomField = new CustomFieldValue(0, "Publisher", CustomField.TYPE_TEXT, "Nintendo");
+        CustomFieldValue ownedCustomField = new CustomFieldValue(0, "Owned", CustomField.TYPE_BOOLEAN, "true");
         List<CustomFieldValue> customFields = new ArrayList<>();
         customFields.add(releaseYearCustomField);
         customFields.add(publisherCustomField);
@@ -153,8 +150,7 @@ public class CustomFieldValueRepositoryTests {
                 () -> assertEquals(expected.getCustomFieldId(), actual.getCustomFieldId()),
                 () -> assertEquals(expected.getCustomFieldName(), actual.getCustomFieldName()),
                 () -> assertEquals(expected.getCustomFieldType(), actual.getCustomFieldType()),
-                () -> assertEquals(expected.getValue(), actual.getValue()),
-                () -> assertEquals(expected.isDeleted(), actual.isDeleted())
+                () -> assertEquals(expected.getValue(), actual.getValue())
         );
     }
 }

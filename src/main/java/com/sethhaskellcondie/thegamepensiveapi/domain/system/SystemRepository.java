@@ -170,7 +170,6 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", System.class.getSimpleName(), id);
         }
-        //TODO delete the customFieldValues
     }
 
     @Override

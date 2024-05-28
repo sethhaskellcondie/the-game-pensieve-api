@@ -30,8 +30,7 @@ public class CustomFieldValueRepository {
                     resultSet.getInt("entity_id"),
                     resultSet.getString("entity_key"),
                     resultSet.getString("value_text"),
-                    resultSet.getInt("value_number"),
-                    resultSet.getBoolean("deleted")
+                    resultSet.getInt("value_number")
             );
     private final RowMapper<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaoRowMapper = (resultSet, rowNumber) ->
             new CustomFieldValueJoinCustomFieldDao(
@@ -64,10 +63,6 @@ public class CustomFieldValueRepository {
                 "WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ?";
         List<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, entityId, entityKey);
         return customFieldValueJoinCustomFieldDaos.stream().map(CustomFieldValueJoinCustomFieldDao::convertToValue).toList();
-    }
-
-    public void deleteValues(List<CustomFieldValue> values) {
-        //TODO finish this, it should be called by the delete function of an entity repository
     }
 
     public CustomFieldValue upsertValue(CustomFieldValue value, int entityId, String entityKey) {
@@ -158,18 +153,18 @@ public class CustomFieldValueRepository {
     private CustomFieldValueDao convertToDao(CustomFieldValue customFieldValue, int entityId, String entityKey) {
         switch (customFieldValue.getCustomFieldType()) {
             case CustomField.TYPE_TEXT -> {
-                return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null, customFieldValue.isDeleted());
+                return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null);
             }
             case CustomField.TYPE_NUMBER -> {
                 try {
-                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, null, Integer.parseInt(customFieldValue.getValue()), customFieldValue.isDeleted());
+                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, null, Integer.parseInt(customFieldValue.getValue()));
                 } catch (NumberFormatException exception) {
                     throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is number the value must be a valid Integer.")));
                 }
             }
             case CustomField.TYPE_BOOLEAN -> {
                 if (Objects.equals(customFieldValue.getValue(), "true") || Objects.equals(customFieldValue.getValue(), "false")) {
-                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null, customFieldValue.isDeleted());
+                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null);
                 }
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
             }
@@ -181,13 +176,13 @@ public class CustomFieldValueRepository {
     }
 }
 
-record CustomFieldValueDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber, boolean deleted) {
+record CustomFieldValueDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber) {
 
     CustomFieldValue convertToValue(String customFieldName, String customFieldType) {
         if (Objects.equals(customFieldType, CustomField.TYPE_TEXT) || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
-            return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueText, this.deleted);
+            return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueText);
         }
-        return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueNumber.toString(), this.deleted);
+        return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueNumber.toString());
     }
 }
 
@@ -195,8 +190,8 @@ record CustomFieldValueJoinCustomFieldDao(int customFieldId, int entityId, Strin
 
     CustomFieldValue convertToValue() {
         if (Objects.equals(customFieldType, CustomField.TYPE_TEXT) || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
-            return new CustomFieldValue(customFieldId, customFieldName, customFieldType, valueText, deleted);
+            return new CustomFieldValue(customFieldId, customFieldName, customFieldType, valueText);
         }
-        return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, valueNumber.toString(), deleted);
+        return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, valueNumber.toString());
     }
 }

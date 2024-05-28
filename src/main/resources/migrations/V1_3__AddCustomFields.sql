@@ -11,8 +11,7 @@ CREATE TABLE IF NOT EXISTS custom_field_values (
     entity_id INTEGER NOT NULL, -- This will be a foreign key enforced by the Repository
     entity_key VARCHAR NOT NULL,
     value_text VARCHAR,
-    value_number BIGINT,
-    deleted BOOLEAN default false
+    value_number BIGINT
 );
 
 -- Undo

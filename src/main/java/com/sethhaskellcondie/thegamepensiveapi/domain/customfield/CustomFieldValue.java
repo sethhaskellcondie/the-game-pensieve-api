@@ -15,14 +15,12 @@ public class CustomFieldValue {
     private String customFieldName;
     private final String customFieldType;
     private final String value;
-    private final boolean deleted;
 
-    public CustomFieldValue(int customFieldId, String customFieldName, String customFieldType, String value, boolean deleted) {
+    public CustomFieldValue(int customFieldId, String customFieldName, String customFieldType, String value) {
         this.customFieldId = customFieldId;
         this.customFieldName = customFieldName;
         this.customFieldType = customFieldType;
         this.value = value;
-        this.deleted = deleted;
     }
 
     public int getCustomFieldId() {
@@ -44,10 +42,6 @@ public class CustomFieldValue {
 
     public String getValue() {
         return value;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
     }
 }
 
