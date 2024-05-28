@@ -60,7 +60,7 @@ public class CustomFieldValueRepository {
     public List<CustomFieldValue> getCustomFieldsByEntityIdAndEntityKey(int entityId, String entityKey) {
         final String sql = "SELECT * FROM custom_field_values " +
                 "JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id " +
-                "WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ?";
+                "WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ? AND custom_fields.deleted = false";
         List<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, entityId, entityKey);
         return customFieldValueJoinCustomFieldDaos.stream().map(CustomFieldValueJoinCustomFieldDao::convertToValue).toList();
     }
@@ -75,7 +75,7 @@ public class CustomFieldValueRepository {
     }
 
     private CustomFieldValue insertValue(CustomFieldValue value, int entityId, String entityKey) {
-        CustomField upsertedCustomField = UpsertCustomField(value, entityKey);
+        CustomField upsertedCustomField = upsertCustomField(value, entityKey);
         value.setCustomFieldId(upsertedCustomField.id());
         CustomFieldValueDao valueDao = convertToDao(value, entityId, entityKey);
         final String sql = """
@@ -87,7 +87,7 @@ public class CustomFieldValueRepository {
     }
 
     private CustomFieldValue updateValue(CustomFieldValue value, int entityId, String entityKey) {
-        CustomField upsertedCustomField = UpsertCustomField(value, entityKey);
+        CustomField upsertedCustomField = upsertCustomField(value, entityKey);
         value.setCustomFieldId(upsertedCustomField.id());
         CustomFieldValueDao valueDao = convertToDao(value, entityId, entityKey);
         final String sql = """
@@ -102,7 +102,7 @@ public class CustomFieldValueRepository {
         return value;
     }
 
-    private CustomField UpsertCustomField(CustomFieldValue value, String entityKey) {
+    private CustomField upsertCustomField(CustomFieldValue value, String entityKey) {
         CustomField customField;
         if (value.getCustomFieldId() <= 0) {
             try {

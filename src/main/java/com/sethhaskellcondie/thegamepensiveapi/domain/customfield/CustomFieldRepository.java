@@ -127,16 +127,6 @@ public class CustomFieldRepository {
         }
     }
 
-    public void hardDeleteById(int id) throws ExceptionResourceNotFound {
-        final String sql = """
-                			DELETE FROM custom_fields WHERE id = ?;
-                """;
-        int rowsUpdated = jdbcTemplate.update(sql, id);
-        if (rowsUpdated < 1) {
-            throw new ExceptionResourceNotFound("Hard delete failed", "custom_fields", id);
-        }
-    }
-
     private void customFieldDbValidation(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
