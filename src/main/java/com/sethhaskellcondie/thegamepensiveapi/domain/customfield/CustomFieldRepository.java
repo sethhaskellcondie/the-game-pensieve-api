@@ -18,7 +18,6 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class CustomFieldRepository {
@@ -97,16 +96,6 @@ public class CustomFieldRepository {
     public List<CustomField> getAllCustomFields() {
         final String sql = "SELECT * FROM custom_fields";
         return jdbcTemplate.query(sql, rowMapper);
-    }
-
-    public Optional<Integer> getValueCountOfCustomFieldById(int customFieldId) {
-        final String sql = "SELECT count(*) FROM custom_field_values WHERE custom_field_id = ?";
-        return Optional.ofNullable(jdbcTemplate.queryForObject(
-                sql,
-                new Object[]{customFieldId},
-                new int[]{Types.BIGINT},
-                Integer.class
-        ));
     }
 
     public CustomField updateName(int id, String newName) throws ExceptionResourceNotFound {

@@ -35,13 +35,14 @@ public class CustomFieldValueRepositoryTests {
     }
 
     @Test
-    public void upsertValue_NewCustomFieldAndValue_NewCustomFieldAndValueCreated() {
+    public void upsertValues_NewCustomFieldAndValue_NewCustomFieldAndValueCreated() {
         final int customFieldId = 0;
         final String customFieldName = "Release Date";
         final String customFieldValue = "1991";
         final CustomFieldValue newValue = new CustomFieldValue(customFieldId, customFieldName, CustomField.TYPE_NUMBER, customFieldValue);
 
-        final CustomFieldValue returnedValue = repository.upsertValue(newValue, 1, "system");
+        final List<CustomFieldValue> returnedValues = repository.upsertValues(List.of(newValue), 1, "system");
+        final CustomFieldValue returnedValue = returnedValues.get(0);
 
         CustomField newCustomField = null;
         try {
@@ -61,21 +62,22 @@ public class CustomFieldValueRepositoryTests {
 
 
     @Test
-    public void upsertValue_NewInvalidValue_ExceptionThrown() {
+    public void upsertValues_NewInvalidValue_ExceptionThrown() {
         final CustomFieldValue newValue = new CustomFieldValue(0, "customFieldName", "badCustomFieldType", "customFieldValue");
 
-        assertThrows(ExceptionCustomFieldValue.class, () -> repository.upsertValue(newValue, 1, "badEntityKey"));
+        assertThrows(ExceptionCustomFieldValue.class, () -> repository.upsertValues(List.of(newValue), 1, "badEntityKey"));
     }
 
     @Test
-    public void upsertValue_ExistingCustomFieldNewValue_CustomFieldUpdatedNewValueCreated() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+    public void upsertValues_ExistingCustomFieldNewValue_CustomFieldUpdatedNewValueCreated() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
         final String newCustomFieldName = "NewCustomFieldName";
         final String valueText = "valueText";
         final CustomFieldRequestDto customFieldRequestDto = new CustomFieldRequestDto("OldCustomFieldName", "text", "system");
         final CustomField customField = customFieldRepository.insertCustomField(customFieldRequestDto);
         final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText);
 
-        final CustomFieldValue insertedValue = repository.upsertValue(value, 1, "system");
+        final List<CustomFieldValue> insertedValues = repository.upsertValues(List.of(value), 1, "system");
+        final CustomFieldValue insertedValue = insertedValues.get(0);
 
         CustomField updatedCustomField = customFieldRepository.getById(customField.id());
         assertAll(
@@ -95,16 +97,17 @@ public class CustomFieldValueRepositoryTests {
     }
 
     @Test
-    public void upsertValue_ExistingCustomFieldAndExistingValue_UpdateCustomFieldAndValue() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+    public void upsertValues_ExistingCustomFieldAndExistingValue_UpdateCustomFieldAndValue() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
         final String newCustomFieldName = "NewCustomFieldName";
         final String valueText = "valueText";
         final CustomFieldRequestDto customFieldRequestDto = new CustomFieldRequestDto("OldCustomFieldName", "text", "system");
         final CustomField customField = customFieldRepository.insertCustomField(customFieldRequestDto);
         final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText);
-        final CustomFieldValue insertedValue = repository.upsertValue(value, 1, "system");
+        repository.upsertValues(List.of(value), 1, "system");
         final String newValueText = "NewValueText";
         final CustomFieldValue valueToOverwrite = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), newValueText);
-        final CustomFieldValue overwrittenValue = repository.upsertValue(valueToOverwrite, 1, "system");
+        final List<CustomFieldValue> overwrittenValues = repository.upsertValues(List.of(valueToOverwrite), 1, "system");
+        final CustomFieldValue overwrittenValue = overwrittenValues.get(0);
 
         CustomField updatedCustomField = customFieldRepository.getById(customField.id());
         assertAll(

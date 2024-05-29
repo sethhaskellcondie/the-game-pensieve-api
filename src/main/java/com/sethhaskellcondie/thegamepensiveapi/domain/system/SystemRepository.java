@@ -41,7 +41,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     resultSet.getTimestamp("created_at"),
                     resultSet.getTimestamp("updated_at"),
                     resultSet.getTimestamp("deleted_at"),
-                    new ArrayList<>() //TODO update this
+                    new ArrayList<>()
             );
 
     public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldValueRepository customFieldValueRepository) {
@@ -57,11 +57,6 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public System insert(System system) throws ExceptionFailedDbValidation {
-        // ---to change this into an upsert
-        // if (requestDto.isPersisted()) {
-        // 		return update(requestDto);
-        // }
-
         systemDbValidation(system);
 
         final String sql = """
@@ -124,17 +119,12 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
-        //TODO figure out how to attach the customFields to the result
+        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
         return system;
     }
 
     @Override
     public System update(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
-        // ---to change this into an upsert
-        // if (!system.isPersisted()) {
-        // 		return insert(system);
-        // }
-
         systemDbValidation(system);
         final String sql = """
                 			UPDATE systems SET name = ?, generation = ?, handheld = ?, updated_at = ? WHERE id = ?;
@@ -186,7 +176,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
-        //TODO get the custom field values?
+        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
         return system;
     }
 

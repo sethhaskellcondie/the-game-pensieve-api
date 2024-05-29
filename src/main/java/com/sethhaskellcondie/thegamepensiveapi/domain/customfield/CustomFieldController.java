@@ -49,14 +49,6 @@ public class CustomFieldController {
     }
 
     @ResponseBody
-    @GetMapping("/function/count/{id}")
-    public Map<String, Integer> getCountOfValuesInUse(@PathVariable int id) {
-        final Optional<Integer> count = repository.getValueCountOfCustomFieldById(id);
-        final FormattedResponseBody<Integer> body = new FormattedResponseBody<>(count.get());
-        return body.formatData();
-    }
-
-    @ResponseBody
     @PatchMapping("/{id}")
     public Map<String, CustomField> patchName(@PathVariable int id, @RequestBody Map<String, String> requestBody) throws ExceptionResourceNotFound {
         final String newName = requestBody.get("name");

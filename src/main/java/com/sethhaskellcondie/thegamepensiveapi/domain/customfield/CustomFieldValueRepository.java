@@ -49,14 +49,6 @@ public class CustomFieldValueRepository {
         this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
     }
 
-    public List<CustomFieldValue> upsertValues(List<CustomFieldValue> values, int entityId, String entityKey) {
-        List<CustomFieldValue> savedValues = new ArrayList<>();
-        for (CustomFieldValue value: values) {
-            savedValues.add(upsertValue(value, entityId, entityKey));
-        }
-        return savedValues;
-    }
-
     public List<CustomFieldValue> getCustomFieldsByEntityIdAndEntityKey(int entityId, String entityKey) {
         final String sql = "SELECT * FROM custom_field_values " +
                 "JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id " +
@@ -65,75 +57,71 @@ public class CustomFieldValueRepository {
         return customFieldValueJoinCustomFieldDaos.stream().map(CustomFieldValueJoinCustomFieldDao::convertToValue).toList();
     }
 
-    public CustomFieldValue upsertValue(CustomFieldValue value, int entityId, String entityKey) {
-        if (value.getCustomFieldId() > 0) {
-            value = updateValue(value, entityId, entityKey);
-        } else {
-            value = insertValue(value, entityId, entityKey);
+    public List<CustomFieldValue> upsertValues(List<CustomFieldValue> values, int entityId, String entityKey) {
+        List<CustomFieldValue> savedValues = new ArrayList<>();
+        for (CustomFieldValue value: values) {
+            savedValues.add(updateValue(value, entityId, entityKey));
         }
+        return savedValues;
+    }
+
+    private CustomFieldValue updateValue(CustomFieldValue value, int entityId, String entityKey) {
+        CustomField relatedCustomField = insertOrUpdateNameOfCustomField(value, entityKey);
+        value.setCustomFieldId(relatedCustomField.id());
+        CustomFieldValueDao valueDao = convertToDao(value, entityId, entityKey);
+        if (null == getDaoByCustomFieldIdAndEntityId(value.getCustomFieldId(), entityId, false)) {
+            return insertDao(valueDao).convertToValue(relatedCustomField.name(), relatedCustomField.type());
+        }
+
+        final String sql = """
+                			UPDATE custom_field_values SET value_text = ?, value_number = ?;
+                """;
+        jdbcTemplate.update(sql, valueDao.valueText(), valueDao.valueNumber());
         return value;
     }
 
-    private CustomFieldValue insertValue(CustomFieldValue value, int entityId, String entityKey) {
-        CustomField upsertedCustomField = upsertCustomField(value, entityKey);
-        value.setCustomFieldId(upsertedCustomField.id());
-        CustomFieldValueDao valueDao = convertToDao(value, entityId, entityKey);
+    private CustomFieldValueDao insertDao(CustomFieldValueDao valueDao) {
         final String sql = """
                 			INSERT INTO custom_field_values(custom_field_id, entity_id, entity_key, value_text, value_number) VALUES (?, ?, ?, ?, ?);
                 """;
         jdbcTemplate.update(sql, valueDao.customFieldId(), valueDao.entityId(), valueDao.entityKey(), valueDao.valueText(), valueDao.valueNumber());
 
-        return getByCustomFieldValueByCustomFieldIdAndEntityId(valueDao.customFieldId(), valueDao.entityId()).convertToValue(value.getCustomFieldName(), value.getCustomFieldType());
+        return getDaoByCustomFieldIdAndEntityId(valueDao.customFieldId(), valueDao.entityId(), true);
     }
 
-    private CustomFieldValue updateValue(CustomFieldValue value, int entityId, String entityKey) {
-        CustomField upsertedCustomField = upsertCustomField(value, entityKey);
-        value.setCustomFieldId(upsertedCustomField.id());
-        CustomFieldValueDao valueDao = convertToDao(value, entityId, entityKey);
-        final String sql = """
-                			UPDATE custom_field_values SET value_text = ?, value_number = ?;
-                """;
-        jdbcTemplate.update(sql, valueDao.valueText(), valueDao.valueNumber());
-
-        //TODO clean up the upsert
-        //take the id from the value and get it from the database (even if it is deleted)
-        //if a value is retrieved then run an update query in the database
-        //else call insertValue with this value
-        return value;
-    }
-
-    private CustomField upsertCustomField(CustomFieldValue value, String entityKey) {
-        CustomField customField;
+    //it's not an upsert because we are not updating then inserting instead we are inserting or fetching, and we want to error on the fetch.
+    private CustomField insertOrUpdateNameOfCustomField(CustomFieldValue value, String entityKey) {
         if (value.getCustomFieldId() <= 0) {
             try {
-                customField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
+                return customFieldRepository.insertCustomField(new CustomFieldRequestDto(value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
             } catch (ExceptionFailedDbValidation exception) {
                 throw new ExceptionCustomFieldValue("Cannot create new custom field needed to insert a new value: " + exception.getMessage());
             }
-        } else {
+        }
+
+        CustomField customField;
+        try {
+            customField = customFieldRepository.getById(value.getCustomFieldId());
+        } catch (ExceptionResourceNotFound e) {
+            throw new ExceptionCustomFieldValue("Invalid CustomFieldId: " + value.getCustomFieldId() + " on provided CustomFieldValue with entityKey: " + entityKey);
+        }
+        if (!Objects.equals(customField.type(), value.getCustomFieldType())) {
+            throw new ExceptionCustomFieldValue("Custom field retrieved from the database with provided id: " + value.getCustomFieldId() + " has type: " + customField.type() +
+                    " provided type on custom field value did not match. Value custom field type: " + value.getCustomFieldType() + ".");
+        }
+        if (!Objects.equals(customField.name(), value.getCustomFieldName())) {
             try {
-                customField = customFieldRepository.getById(value.getCustomFieldId());
-            } catch (ExceptionResourceNotFound e) {
-                throw new ExceptionCustomFieldValue("Invalid CustomFieldId: " + value.getCustomFieldId() + " on provided value with entityKey: " + entityKey);
-            }
-            if (!Objects.equals(customField.type(), value.getCustomFieldType())) {
-                throw new ExceptionCustomFieldValue("Custom field retrieved from the database with provided id: " + value.getCustomFieldId() + " has type: " + customField.type() +
-                        " provided type on custom field value did not match. Value custom field type: " + value.getCustomFieldType() + ".");
-            }
-            if (!Objects.equals(customField.name(), value.getCustomFieldName())) {
-                try {
-                    customField = customFieldRepository.updateName(customField.id(), value.getCustomFieldName());
-                } catch (ExceptionResourceNotFound exception) {
-                    //We should never hit this code because we just did a get by id.
-                    logger.error(ErrorLogs.InsertThenRetrieveError("Custom Field", customField.id()));
-                    throw new ExceptionInternalCatastrophe("Custom Field", customField.id());
-                }
+                customField = customFieldRepository.updateName(customField.id(), value.getCustomFieldName());
+            } catch (ExceptionResourceNotFound exception) {
+                //We should never hit this code because we just did a get by id.
+                logger.error(ErrorLogs.InsertThenRetrieveError("Custom Field", customField.id()));
+                throw new ExceptionInternalCatastrophe("Custom Field", customField.id());
             }
         }
         return customField;
     }
 
-    private CustomFieldValueDao getByCustomFieldValueByCustomFieldIdAndEntityId(int customFieldId, int entityId) {
+    private CustomFieldValueDao getDaoByCustomFieldIdAndEntityId(int customFieldId, int entityId, boolean justInserted) {
         final String sql = "SELECT * FROM custom_field_values WHERE custom_field_id = ? AND entity_id = ? ;";
         CustomFieldValueDao valueDao = null;
         try {
@@ -144,8 +132,10 @@ public class CustomFieldValueRepository {
                     customFieldValueDaoRowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionCustomFieldValue("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId +
-                    "AND entity_id: " + entityId + ".");
+            if (justInserted) {
+                throw new ExceptionCustomFieldValue("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId +
+                        "AND entity_id: " + entityId + ".");
+            }
         }
         return valueDao;
     }
