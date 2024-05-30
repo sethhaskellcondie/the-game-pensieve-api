@@ -59,17 +59,16 @@ public class SystemTests {
         final String expectedName = "NES 2";
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
-        final List<CustomFieldValue> customFieldValues = List.of(
+        final List<CustomFieldValue> expectedCustomFieldValues = List.of(
                 new CustomFieldValue(0, "Release Date", "number", "1992"),
                 new CustomFieldValue(0, "Publisher", "text", "Nintendo"),
                 new CustomFieldValue(0, "Owned", "boolean", "true")
         );
 
-        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld, customFieldValues);
+        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
         result.andExpect(status().isCreated());
-        //TODO update the assert to include custom fields
-        validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld);
+        validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
     }
 
     @Test
@@ -281,15 +280,16 @@ public class SystemTests {
         return body.get("data");
     }
 
-    private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld) throws Exception {
+    private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.key").value("system"),
+                jsonPath("$.data.key").value(Keychain.SYSTEM_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.generation").value(expectedGeneration),
                 jsonPath("$.data.handheld").value(expectedHandheld),
                 jsonPath("$.errors").isEmpty()
         );
+        factory.validateCustomFieldValues(result, customFieldValues);
     }
 
     private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto) throws Exception {

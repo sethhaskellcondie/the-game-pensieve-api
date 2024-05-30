@@ -5,7 +5,6 @@ import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValid
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("v1/custom_fields")
@@ -63,13 +61,5 @@ public class CustomFieldController {
         repository.deleteById(id);
         FormattedResponseBody<String> body = new FormattedResponseBody<>("");
         return body.formatData();
-    }
-
-    @ExceptionHandler({NoSuchElementException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ResponseBody
-    public Map<String, List<String>> handleException(NoSuchElementException exception) {
-        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Problem getting count from the database."));
-        return body.formatError();
     }
 }

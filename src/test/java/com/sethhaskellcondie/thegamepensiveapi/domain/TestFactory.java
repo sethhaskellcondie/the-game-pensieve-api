@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class TestFactory {
@@ -23,6 +24,29 @@ public class TestFactory {
 
     private String randomString(int length) {
         return RandomStringUtils.random(length, true, true);
+    }
+
+    public void validateCustomFieldValues(ResultActions result, List<CustomFieldValue> expectedValues) throws Exception {
+        result.andExpect(jsonPath("$.data.customFields").isArray());
+
+        for (int i = 0; i < expectedValues.size(); i++) {
+            CustomFieldValue expectedValue = expectedValues.get(i);
+            if (expectedValue.getCustomFieldId() == 0) {
+                result.andExpectAll(
+                        jsonPath("$.data.customFields[" + i + "].customFieldId").isNotEmpty(),
+                        jsonPath("$.data.customFields[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
+                        jsonPath("$.data.customFields[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
+                        jsonPath("$.data.customFields[" + i + "].value").value(expectedValue.getValue())
+                );
+            } else {
+                result.andExpectAll(
+                        jsonPath("$.data.customFields[" + i + "].customFieldId").value(expectedValue.getCustomFieldId()),
+                        jsonPath("$.data.customFields[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
+                        jsonPath("$.data.customFields[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
+                        jsonPath("$.data.customFields[" + i + "].value").value(expectedValue.getValue())
+                );
+            }
+        }
     }
 
     public String formatFiltersPayload(Filter filter) {
