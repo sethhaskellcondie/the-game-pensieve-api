@@ -52,7 +52,7 @@ public class ToyTests {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
 
-        ResultActions result = factory.postCustomToy(expectedName, expectedSet);
+        ResultActions result = factory.postCustomToy(expectedName, expectedSet, null);
 
         result.andExpect(status().isCreated());
         validateToyResponseBody(result, expectedName, expectedSet);
@@ -60,7 +60,7 @@ public class ToyTests {
 
     @Test
     void postNewToy_NameBlank_ReturnBadRequest() throws Exception {
-        final String jsonContent = factory.formatToyPayload("", "set");
+        final String jsonContent = factory.formatToyPayload("", "set", null);
 
         final ResultActions result = mockMvc.perform(
                 post(baseUrl)
@@ -79,7 +79,7 @@ public class ToyTests {
     void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
         final String name = "Mario";
         final String set = "Amiibo";
-        ResultActions postResult = factory.postCustomToy(name, set);
+        ResultActions postResult = factory.postCustomToy(name, set, null);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
@@ -106,12 +106,12 @@ public class ToyTests {
     void getAllToys_StartsWithFilter_TwoToysReturnedInArray() throws Exception {
         final String name1 = "Something MegaMan";
         final String set1 = "Amiibo";
-        ResultActions result1 = factory.postCustomToy(name1, set1);
+        ResultActions result1 = factory.postCustomToy(name1, set1, null);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
         final String name2 = "Something Goofy";
         final String set2 = "Disney Infinity";
-        ResultActions result2 = factory.postCustomToy(name2, set2);
+        ResultActions result2 = factory.postCustomToy(name2, set2, null);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
         final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "Something ");
@@ -150,13 +150,13 @@ public class ToyTests {
     void putExistingToy_ValidUpdate_ReturnOk() throws Exception {
         final String name = "Donald Duck";
         final String set = "Disney Infinity";
-        ResultActions postResult = factory.postCustomToy(name, set);
+        ResultActions postResult = factory.postCustomToy(name, set, null);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final String newName = "Pit";
         final String newSet = "Amiibo";
 
-        final String jsonContent = factory.formatToyPayload(newName, newSet);
+        final String jsonContent = factory.formatToyPayload(newName, newSet, null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrlSlash + expectedDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -170,7 +170,7 @@ public class ToyTests {
     @Test
     void updateExistingToy_InvalidId_ReturnNotFound() throws Exception {
 
-        final String jsonContent = factory.formatToyPayload("invalidId", "");
+        final String jsonContent = factory.formatToyPayload("invalidId", "", null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)

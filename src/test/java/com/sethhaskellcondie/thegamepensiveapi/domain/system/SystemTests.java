@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,16 +59,22 @@ public class SystemTests {
         final String expectedName = "NES 2";
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
+        final List<CustomFieldValue> customFieldValues = List.of(
+                new CustomFieldValue(0, "Release Date", "number", "1992"),
+                new CustomFieldValue(0, "Publisher", "text", "Nintendo"),
+                new CustomFieldValue(0, "Owned", "boolean", "true")
+        );
 
-        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld);
+        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld, customFieldValues);
 
         result.andExpect(status().isCreated());
+        //TODO update the assert to include custom fields
         validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld);
     }
 
     @Test
     void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
-        final String jsonContent = factory.formatSystemPayload("", -1, null);
+        final String jsonContent = factory.formatSystemPayload("", -1, null, null);
 
         final ResultActions result = mockMvc.perform(
                 post(baseUrl)
@@ -88,8 +95,8 @@ public class SystemTests {
         final int generation = 3;
         final boolean handheld = true;
 
-        factory.postCustomSystem(duplicateName, generation, handheld);
-        final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld);
+        factory.postCustomSystem(duplicateName, generation, handheld, null);
+        final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld, null);
         final ResultActions result = mockMvc.perform(
                 post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +115,7 @@ public class SystemTests {
         final String name = "Genesis 2";
         final int generation = 4;
         final boolean handheld = true;
-        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
+        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld, null);
         final SystemResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get(baseUrl + "/" + expectedDto.id()));
@@ -136,13 +143,13 @@ public class SystemTests {
         final String name1 = "Mega Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
-        final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1);
+        final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1, null);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
         final String name2 = "Mega Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
-        final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2);
+        final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2, null);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
@@ -187,7 +194,7 @@ public class SystemTests {
         final int newGeneration = 6;
         final boolean newBoolean = false;
 
-        final String jsonContent = factory.formatSystemPayload(newName, newGeneration, newBoolean);
+        final String jsonContent = factory.formatSystemPayload(newName, newGeneration, newBoolean, null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/" + responseDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -200,7 +207,7 @@ public class SystemTests {
 
     @Test
     void updateExistingSystem_InvalidId_ReturnNotFound() throws Exception {
-        final String jsonContent = factory.formatSystemPayload("ValidButMissing", 3, false);
+        final String jsonContent = factory.formatSystemPayload("ValidButMissing", 3, false, null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -252,6 +259,7 @@ public class SystemTests {
 
     void postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned() {
         //TODO finish this
+        //Start with some manual testing make sure everything looks good before refactoring the SystemTests.
     }
 
     void postSystemWithCustomFields_ExistingCustomFieldsNewValues_SystemAndValuesCreatedAndReturned() {
