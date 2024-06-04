@@ -44,9 +44,9 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     new ArrayList<>()
             );
 
-    public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldValueRepository customFieldValueRepository) {
+    public SystemRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.customFieldValueRepository = customFieldValueRepository;
+        this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
     }
 
     @Override

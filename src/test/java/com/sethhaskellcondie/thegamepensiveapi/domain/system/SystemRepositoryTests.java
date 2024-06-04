@@ -24,8 +24,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     @Override
     protected void setupRepositoryAndEntityName() {
         entityName = System.class.getSimpleName();
-        CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
-        repository = new SystemRepository(jdbcTemplate, customFieldValueRepository);
+        repository = new SystemRepository(jdbcTemplate);
     }
 
     @Override

@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 @ActiveProfiles("test-container")
 public class CustomFieldValueRepositoryTests {
 
+    //TODO refactor this to be tested through an EntityRepository instead of calling the repository directly
+
     @Autowired
     protected JdbcTemplate jdbcTemplate;
     protected CustomFieldValueRepository repository;

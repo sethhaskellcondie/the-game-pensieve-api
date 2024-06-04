@@ -47,6 +47,8 @@ public class ToyTests {
         factory = new TestFactory(mockMvc);
     }
 
+    //TODO refactor this to match the functionality with the SystemTests (custom fields, filters on custom fields, etc.)
+
     @Test
     void postToy_ValidPayload_ToyCreatedAndReturned() throws Exception {
         final String expectedName = "Sora";

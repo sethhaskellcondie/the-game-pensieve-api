@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 /**
@@ -12,11 +14,17 @@ import java.util.List;
  */
 public class CustomFieldValue {
     private int customFieldId;
-    private String customFieldName;
+    private final String customFieldName;
     private final String customFieldType;
     private final String value;
 
-    public CustomFieldValue(int customFieldId, String customFieldName, String customFieldType, String value) {
+    //The JsonProperty annotations are here to help Jackson serialize objects
+    public CustomFieldValue(
+            @JsonProperty("customFieldId") int customFieldId,
+            @JsonProperty("customFieldName") String customFieldName,
+            @JsonProperty("customFieldType") String customFieldType,
+            @JsonProperty("value") String value
+    ) {
         this.customFieldId = customFieldId;
         this.customFieldName = customFieldName;
         this.customFieldType = customFieldType;
@@ -42,18 +50,5 @@ public class CustomFieldValue {
 
     public String getValue() {
         return value;
-    }
-}
-
-record CustomFieldRequestDto(String name, String type, String entityKey) { }
-
-record CustomField(int id, String name, String type, String entityKey) {
-
-    public static final String TYPE_TEXT = "text";
-    public static final String TYPE_NUMBER = "number";
-    public static final String TYPE_BOOLEAN = "boolean";
-
-    public static List<String> getAllCustomFieldTypes() {
-        return List.of(TYPE_TEXT, TYPE_NUMBER, TYPE_BOOLEAN);
     }
 }

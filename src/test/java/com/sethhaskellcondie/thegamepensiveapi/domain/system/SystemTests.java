@@ -114,7 +114,8 @@ public class SystemTests {
         final String name = "Genesis 2";
         final int generation = 4;
         final boolean handheld = true;
-        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld, null);
+        final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "name of custom field", "text", "value for custom field"));
+        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld, customFieldValues);
         final SystemResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get(baseUrl + "/" + expectedDto.id()));
@@ -123,7 +124,7 @@ public class SystemTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateSystemResponseBody(result, expectedDto);
+        validateSystemResponseBody(result, expectedDto, customFieldValues);
     }
 
     @Test
@@ -139,17 +140,30 @@ public class SystemTests {
 
     @Test
     void getWithFilters_StartsWithFilter_TwoSystemsReturnedInArray() throws Exception {
+        final String customFieldName = "Custom";
+        final String customFieldType = "text";
+        final String customFieldKey = "system";
+        final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
+
         final String name1 = "Mega Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
-        final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1, null);
+        final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "value1"));
+        final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1, customFieldValues1);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
         final String name2 = "Mega Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
-        final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2, null);
+        final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "value2"));
+        final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2, customFieldValues2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
+
+        final String name3 = "Regular Sony Playstation (not returned)";
+        final int generation3 = 4;
+        final boolean handheld3 = false;
+        final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "value3"));
+        factory.postCustomSystem(name3, generation3, handheld3, customFieldValues3);
 
         final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
         final String jsonContent = factory.formatFiltersPayload(filter);
@@ -186,6 +200,7 @@ public class SystemTests {
 
     @Test
     void updateExistingSystem_ValidUpdate_ReturnOk() throws Exception {
+        //TODO update this so that the custom field value is updated with the system update
         final ResultActions existingResult = factory.postSystem();
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
@@ -201,7 +216,7 @@ public class SystemTests {
         );
 
         result.andExpect(status().isOk());
-        validateSystemResponseBody(result, resultToResponseDto(result));
+        validateSystemResponseBody(result, resultToResponseDto(result), List.of());
     }
 
     @Test
@@ -249,7 +264,6 @@ public class SystemTests {
         );
     }
 
-    @Test
     void testCustomFields() {
         postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned();
         putSystemWithCustomFields_UpdateCustomFieldNameExistingValue_SystemCustomFieldAndValueUpdated();
@@ -258,7 +272,7 @@ public class SystemTests {
 
     void postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned() {
         //TODO finish this
-        //Start with some manual testing make sure everything looks good before refactoring the SystemTests.
+        //Only test something this specific once, if all of this logic is refactored into an EntityRepository then we won't need it for Toy or other entities.
     }
 
     void postSystemWithCustomFields_ExistingCustomFieldsNewValues_SystemAndValuesCreatedAndReturned() {
@@ -292,7 +306,7 @@ public class SystemTests {
         factory.validateCustomFieldValues(result, customFieldValues);
     }
 
-    private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto) throws Exception {
+    private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").value(responseDto.id()),
@@ -301,9 +315,11 @@ public class SystemTests {
                 jsonPath("$.data.handheld").value(responseDto.handheld()),
                 jsonPath("$.errors").isEmpty()
         );
+        factory.validateCustomFieldValues(result, customFieldValues);
     }
 
     private void validateSystemResponseBody(ResultActions result, List<SystemResponseDto> expectedSystems) throws Exception {
+        //TODO update this to also test the returned custom field values
         result.andExpectAll(
                 jsonPath("$.data").exists(),
                 jsonPath("$.errors").isEmpty()

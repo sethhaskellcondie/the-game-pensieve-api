@@ -35,8 +35,7 @@ public class SystemRepositoryWithoutInheritanceTests {
 
     @BeforeEach
     void setUp() {
-        CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
-        repository = new SystemRepository(jdbcTemplate, customFieldValueRepository);
+        repository = new SystemRepository(jdbcTemplate);
     }
 
     @Test

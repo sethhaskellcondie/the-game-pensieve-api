@@ -1,14 +1,19 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -27,23 +32,23 @@ public class TestFactory {
     }
 
     public void validateCustomFieldValues(ResultActions result, List<CustomFieldValue> expectedValues) throws Exception {
-        result.andExpect(jsonPath("$.data.customFields").isArray());
+        result.andExpect(jsonPath("$.data.customFieldValues").isArray());
 
         for (int i = 0; i < expectedValues.size(); i++) {
             CustomFieldValue expectedValue = expectedValues.get(i);
             if (expectedValue.getCustomFieldId() == 0) {
                 result.andExpectAll(
-                        jsonPath("$.data.customFields[" + i + "].customFieldId").isNotEmpty(),
-                        jsonPath("$.data.customFields[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
-                        jsonPath("$.data.customFields[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
-                        jsonPath("$.data.customFields[" + i + "].value").value(expectedValue.getValue())
+                        jsonPath("$.data.customFieldValues[" + i + "].customFieldId").isNotEmpty(),
+                        jsonPath("$.data.customFieldValues[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
+                        jsonPath("$.data.customFieldValues[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
+                        jsonPath("$.data.customFieldValues[" + i + "].value").value(expectedValue.getValue())
                 );
             } else {
                 result.andExpectAll(
-                        jsonPath("$.data.customFields[" + i + "].customFieldId").value(expectedValue.getCustomFieldId()),
-                        jsonPath("$.data.customFields[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
-                        jsonPath("$.data.customFields[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
-                        jsonPath("$.data.customFields[" + i + "].value").value(expectedValue.getValue())
+                        jsonPath("$.data.customFieldValues[" + i + "].customFieldId").value(expectedValue.getCustomFieldId()),
+                        jsonPath("$.data.customFieldValues[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
+                        jsonPath("$.data.customFieldValues[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
+                        jsonPath("$.data.customFieldValues[" + i + "].value").value(expectedValue.getValue())
                 );
             }
         }
@@ -63,6 +68,14 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
+    }
+
+    public int postCustomFieldReturnId(String name, String type, String entityKey) throws Exception {
+        ResultActions result = postCustomCustomField(name, type, entityKey);
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, CustomField> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data").id();
     }
 
     public ResultActions postCustomField() throws Exception {
