@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
@@ -117,7 +118,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
+            throw new ExceptionResourceNotFound(Keychain.SYSTEM_KEY, id);
         }
         system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
         return system;

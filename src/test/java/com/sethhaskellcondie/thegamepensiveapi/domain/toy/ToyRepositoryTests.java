@@ -20,8 +20,7 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
     @Override
     protected void setupRepositoryAndEntityName() {
         entityName = Toy.class.getSimpleName();
-        CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
-        repository = new ToyRepository(jdbcTemplate, customFieldValueRepository);
+        repository = new ToyRepository(jdbcTemplate);
     }
 
     @Override
