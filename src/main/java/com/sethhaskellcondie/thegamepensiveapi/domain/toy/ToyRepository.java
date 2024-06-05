@@ -1,19 +1,15 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -23,10 +19,13 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRepository;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyResponseDto> {
@@ -96,8 +95,12 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);
-        //TODO figure out how to attach the customFields to the results?
-        return jdbcTemplate.query(sql, rowMapper, operands.toArray());
+        //Consider: updating the query and rowmapper to somehow include the custom fields in the initial results intead of looping through them to get the custom fields
+        List<Toy> toys = jdbcTemplate.query(sql, rowMapper, operands.toArray());
+        for (Toy toy: toys) {
+            toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
+        }
+        return toys;
     }
 
     @Override

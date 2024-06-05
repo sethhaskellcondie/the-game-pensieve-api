@@ -2,8 +2,6 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
-
 /**
  * CustomFieldValues belong to Entities
  * There are two additional fields saved into the database the
