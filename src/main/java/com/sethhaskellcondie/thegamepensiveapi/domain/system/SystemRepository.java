@@ -102,7 +102,6 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);
-        //Consider: updating the query and rowmapper to somehow include the custom fields in the initial results intead of looping through them to get the custom fields
         List<System> systems = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (System system: systems) {
             system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));

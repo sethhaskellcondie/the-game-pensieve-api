@@ -95,7 +95,6 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
         final String sql = baseQuery + String.join(" ", whereStatements);
-        //Consider: updating the query and rowmapper to somehow include the custom fields in the initial results intead of looping through them to get the custom fields
         List<Toy> toys = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (Toy toy: toys) {
             toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
