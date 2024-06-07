@@ -24,7 +24,7 @@ public class Filter {
     public static final String ALL_FIELDS = "all_fields";
     public static final String PAGINATION_FIELDS = "pagination_fields";
 
-    public static final String FIELD_TYPE_STRING = "string";
+    public static final String FIELD_TYPE_TEXT = "text";
     public static final String FIELD_TYPE_NUMBER = "number";
     public static final String FIELD_TYPE_BOOLEAN = "boolean";
     public static final String FIELD_TYPE_TIME = "time";
@@ -103,7 +103,7 @@ public class Filter {
             return filters;
         }
         switch (fieldType) {
-            case FIELD_TYPE_STRING -> {
+            case FIELD_TYPE_TEXT -> {
                 filters.add(OPERATOR_EQUALS);
                 filters.add(OPERATOR_NOT_EQUALS);
                 filters.add(OPERATOR_CONTAINS);

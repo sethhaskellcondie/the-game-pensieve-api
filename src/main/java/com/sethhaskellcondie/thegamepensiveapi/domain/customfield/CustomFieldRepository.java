@@ -35,8 +35,7 @@ public class CustomFieldRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    //This function only exists to seed data from the heartbeat controller TODO update how we seed data and remove this method
-    @Deprecated
+
     public CustomField insertCustomField(String name, String type, String key) throws ExceptionFailedDbValidation {
         return insertCustomField(new CustomFieldRequestDto(name, type, key));
     }
@@ -102,6 +101,11 @@ public class CustomFieldRepository {
     public List<CustomField> getAllCustomFields() {
         final String sql = "SELECT * FROM custom_fields";
         return jdbcTemplate.query(sql, rowMapper);
+    }
+
+    public List<CustomField> getAllByKey(String entityKey) {
+        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? ;";
+        return jdbcTemplate.query(sql, rowMapper, entityKey);
     }
 
     public CustomField updateName(int id, String newName) throws ExceptionResourceNotFound {

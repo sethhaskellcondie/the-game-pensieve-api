@@ -14,7 +14,7 @@ public class FilterGateway {
     public FilterResponseDto getFiltersByKey(String key) {
         return new FilterResponseDto(
                 key + "_filters",
-                FilterEntity.getFilterFieldsByKey(key),
+                service.getFilterFieldsByKey(key),
                 service.getFiltersByKey(key)
         );
     }
