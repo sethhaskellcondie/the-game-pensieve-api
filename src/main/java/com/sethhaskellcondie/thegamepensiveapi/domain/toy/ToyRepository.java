@@ -31,7 +31,20 @@ import java.util.List;
 public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyResponseDto> {
     private final JdbcTemplate jdbcTemplate;
     private final CustomFieldValueRepository customFieldValueRepository;
-    private final String baseQuery = "SELECT * FROM toys WHERE deleted_at IS NULL";
+    private final String baseQuery = """
+        SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
+            FROM toys WHERE toys.deleted_at IS NULL
+        """;
+    private final String baseQueryWithCustomFields = """
+        SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at,
+               values.custom_field_id, values.entity_key, values.value_text, values.value_number,
+               fields.name as custom_field_name, fields.type as custom_field_type
+            FROM toys
+            JOIN custom_field_values as values ON toys.id = values.entity_id
+            JOIN custom_fields as fields ON values.custom_field_id = fields.id
+            WHERE toys.deleted_at IS NULL
+            AND values.entity_key = 'toy'
+        """;
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<Toy> rowMapper =
             (resultSet, i) ->
@@ -94,6 +107,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         filters = Filter.validateAndOrderFilters(filters);
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
+        //TODO if we are filtering on custom fields then use the baseQueryWithCustomFields
         final String sql = baseQuery + String.join(" ", whereStatements);
         List<Toy> toys = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (Toy toy: toys) {
@@ -104,7 +118,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
 
     @Override
     public Toy getById(int id) throws ExceptionResourceNotFound {
-        final String sql = baseQuery + " AND id = ? ;";
+        final String sql = baseQuery + " AND toys.id = ? ;";
         Toy toy = null;
         try {
             toy = jdbcTemplate.queryForObject(

@@ -54,7 +54,7 @@ public class ToyTests {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
 
-        ResultActions result = factory.postCustomToy(expectedName, expectedSet, null);
+        ResultActions result = factory.postCustomToy(expectedName, expectedSet, new ArrayList<>());
 
         result.andExpect(status().isCreated());
         validateToyResponseBody(result, expectedName, expectedSet);

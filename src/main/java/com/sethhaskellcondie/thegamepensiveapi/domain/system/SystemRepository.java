@@ -31,7 +31,23 @@ import java.util.List;
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
     private final JdbcTemplate jdbcTemplate;
     private final CustomFieldValueRepository customFieldValueRepository;
-    private final String baseQuery = "SELECT * FROM systems WHERE deleted_at IS NULL";
+    private final String baseQuery = """
+            SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at 
+            FROM systems WHERE deleted_at IS NULL
+            """;
+    //in general the first row are the columns for the entity
+    //the second and third row are the columns for the custom field values and the custom fields they should always be the same
+    //then the remainder of the query is the same but fill in the property entity (systems)
+    private final String baseQueryWithCustomFields = """
+        SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at,
+               values.custom_field_id, values.entity_key, values.value_text, values.value_number,
+               fields.name as custom_field_name, fields.type as custom_field_type
+            FROM systems
+            JOIN custom_field_values as values ON systems.id = values.entity_id
+            JOIN custom_fields as fields ON values.custom_field_id = fields.id
+            WHERE systems.deleted_at IS NULL
+            AND values.entity_key = 'system'
+        """;
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<System> rowMapper = (resultSet, rowNumber) ->
             new System(

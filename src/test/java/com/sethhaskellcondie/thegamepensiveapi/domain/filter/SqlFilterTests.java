@@ -159,7 +159,7 @@ public class SqlFilterTests {
 
     @Test
     void formatWhereStatementsAndFormatOperands_StringFilters_ValidSql() {
-        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND name = ? AND name <> ? AND name LIKE ? AND name LIKE ? AND name LIKE ?";
+        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND systems.name = ? AND systems.name <> ? AND systems.name LIKE ? AND systems.name LIKE ? AND systems.name LIKE ?";
         final List<Object> expectedOperands = List.of(
                 "SuperMegaForceWin",
                 "NotMe",
@@ -188,7 +188,8 @@ public class SqlFilterTests {
 
     @Test
     void formatWhereStatementsAndFormatOperands_NumberFilters_ValidSql() {
-        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND generation = ? AND generation <> ? AND generation > ? AND generation >= ? AND generation < ? AND generation <= ?";
+        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND systems.generation = ? AND systems.generation <> ? AND systems.generation > ? AND systems.generation >= ? " +
+                "AND systems.generation < ? AND systems.generation <= ?";
         final List<Object> expectedOperands = List.of(3, 4, 5, 6, 7, 8);
         final List<Filter> filters = List.of(
                 new Filter("system", "generation", Filter.OPERATOR_EQUALS, "3"),
@@ -214,7 +215,7 @@ public class SqlFilterTests {
     void formatWhereStatementsAndFormatOperands_BooleanFilters_ValidSql() {
         //This SQL wouldn't return any results, because we are testing the same field with true and false
         //perhaps I will update this when another resource has two different boolean fields
-        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND handheld = ? AND handheld = ?";
+        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 AND systems.handheld = ? AND systems.handheld = ?";
         final List<Object> expectedOperands = List.of(true, false);
         final List<Filter> filters = List.of(
                 new Filter("system", "handheld", Filter.OPERATOR_EQUALS, "true"),
@@ -234,7 +235,7 @@ public class SqlFilterTests {
 
     @Test
     void formatWhereStatementsAndFormatOperands_PaginationFilters_ValidSql() {
-        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 ORDER BY generation ASC LIMIT ? OFFSET ?";
+        final String expectedSql = "SELECT * FROM systems WHERE 1 = 1 ORDER BY systems.generation ASC LIMIT ? OFFSET ?";
         final List<Object> expectedOperands = List.of(5, 1);
         final List<Filter> filters = List.of(
                 new Filter("system", "generation", Filter.OPERATOR_ORDER_BY, "asc"),
@@ -256,7 +257,8 @@ public class SqlFilterTests {
     @Test
     void formatWhereStatementsAndFormatOperands_TimeFilters_ValidSql() {
         final String expectedSql =
-                "SELECT * FROM systems WHERE 1 = 1 AND created_at >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') AND updated_at <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') ORDER BY generation DESC";
+                "SELECT * FROM systems WHERE 1 = 1 AND systems.created_at >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') AND systems.updated_at <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss') " +
+                        "ORDER BY systems.generation DESC";
         final List<Object> expectedOperands = List.of("2024-05-06 00:00:00", "2024-05-04 00:00:00");
         final List<Filter> filters = List.of(
                 new Filter("system", "created_at", Filter.OPERATOR_SINCE, "2024-05-06 00:00:00"),

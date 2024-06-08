@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 
@@ -269,42 +270,43 @@ public class Filter {
 
     public static List<String> formatWhereStatements(List<Filter> filters) {
         List<String> whereStatements = new ArrayList<>();
+        String tableAlias = Keychain.getTableAliasByKey(filters.get(0).getKey());
         for (Filter filter : filters) {
             switch (filter.getOperator()) {
                 case OPERATOR_EQUALS -> {
-                    whereStatements.add(" AND " + filter.getField() + " = ?");
+                    whereStatements.add(" AND "  + tableAlias + "." + filter.getField() + " = ?");
                 }
                 case OPERATOR_NOT_EQUALS -> {
-                    whereStatements.add(" AND " + filter.getField() + " <> ?");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " <> ?");
                 }
                 case OPERATOR_CONTAINS,
                         OPERATOR_STARTS_WITH,
                         OPERATOR_ENDS_WITH -> {
-                    whereStatements.add(" AND " + filter.getField() + " LIKE ?");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " LIKE ?");
                 }
                 case OPERATOR_GREATER_THAN -> {
-                    whereStatements.add(" AND " + filter.getField() + " > ?");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " > ?");
                 }
                 case OPERATOR_LESS_THAN -> {
-                    whereStatements.add(" AND " + filter.getField() + " < ?");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " < ?");
                 }
                 case OPERATOR_GREATER_THAN_EQUAL_TO -> {
-                    whereStatements.add(" AND " + filter.getField() + " >= ?");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " >= ?");
                 }
                 case OPERATOR_LESS_THAN_EQUAL_TO -> {
-                    whereStatements.add(" AND " + filter.getField() + " <= ?");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " <= ?");
                 }
                 case OPERATOR_ORDER_BY -> {
-                    whereStatements.add(" ORDER BY " + filter.getField() + " ASC");
+                    whereStatements.add(" ORDER BY "  + tableAlias + "."  + filter.getField() + " ASC");
                 }
                 case OPERATOR_ORDER_BY_DESC -> {
-                    whereStatements.add(" ORDER BY " + filter.getField() + " DESC");
+                    whereStatements.add(" ORDER BY "  + tableAlias + "."  + filter.getField() + " DESC");
                 }
                 case OPERATOR_SINCE -> {
-                    whereStatements.add(" AND " + filter.getField() + " >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
                 }
                 case OPERATOR_BEFORE -> {
-                    whereStatements.add(" AND " + filter.getField() + " <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
+                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
                 }
                 case OPERATOR_LIMIT -> {
                     whereStatements.add(" LIMIT ?");
