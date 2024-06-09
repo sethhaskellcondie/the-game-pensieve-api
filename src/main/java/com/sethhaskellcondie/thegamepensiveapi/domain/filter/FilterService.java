@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRep
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,17 +38,37 @@ public class FilterService {
     }
 
     public List<Filter> convertFilterRequestDtosToFilters(List<FilterRequestDto> filterRequestDtos) {
+        if (null == filterRequestDtos || filterRequestDtos.isEmpty()) {
+            return new ArrayList<>();
+        }
         String key = filterRequestDtos.get(0).key();
-        List<String> customFieldNames = customFieldRepository.getAllByKey(key).stream().map(CustomField::name).toList();
+        List<CustomField> customFields = customFieldRepository.getAllByKey(key);
+        Map<String, String> customFieldNameToType = new HashMap<>();
+        for (CustomField customField : customFields) {
+            customFieldNameToType.put(customField.name(), customField.type());
+        }
+        Map<String, String> filterFields = FilterEntity.getFilterFieldsByKey(key);
         List<Filter> filters = new ArrayList<>();
         for (FilterRequestDto filterRequestDto : filterRequestDtos) {
-            filters.add(new Filter(
-                    filterRequestDto.key(),
-                    filterRequestDto.field(),
-                    filterRequestDto.operator(),
-                    filterRequestDto.operand(),
-                    customFieldNames.contains(filterRequestDto.field())
-            ));
+            if (customFieldNameToType.containsKey(filterRequestDto.field())) {
+                filters.add(new Filter(
+                        filterRequestDto.key(),
+                        customFieldNameToType.get(filterRequestDto.field()),
+                        filterRequestDto.field(),
+                        filterRequestDto.operator(),
+                        filterRequestDto.operand(),
+                        true)
+                );
+            } else {
+                filters.add(new Filter(
+                        filterRequestDto.key(),
+                        filterFields.get(filterRequestDto.field()),
+                        filterRequestDto.field(),
+                        filterRequestDto.operator(),
+                        filterRequestDto.operand(),
+                        false)
+                );
+            }
         }
         return filters;
     }

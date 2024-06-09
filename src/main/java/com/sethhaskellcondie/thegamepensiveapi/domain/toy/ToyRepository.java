@@ -107,8 +107,10 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         filters = Filter.validateAndOrderFilters(filters);
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
-        //TODO if we are filtering on custom fields then use the baseQueryWithCustomFields
-        final String sql = baseQuery + String.join(" ", whereStatements);
+        String sql = baseQuery + String.join(" ", whereStatements);
+        if (filters.stream().anyMatch(Filter::isCustom)) {
+            sql = baseQueryWithCustomFields + String.join(" ", whereStatements);
+        }
         List<Toy> toys = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (Toy toy: toys) {
             toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));

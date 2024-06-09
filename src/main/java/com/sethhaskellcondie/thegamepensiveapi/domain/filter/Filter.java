@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
 
@@ -49,13 +50,16 @@ public class Filter {
     public static final String OPERATOR_OFFSET = "offset";
 
     private final String key;
+    private final String type;
     private final String field;
     private final String operator;
     private final String operand;
     private final boolean custom;
 
-    public Filter(String key, String field, String operator, String operand, boolean isCustom) {
+    //TODO add type
+    public Filter(String key, String type, String field, String operator, String operand, boolean isCustom) {
         this.key = key;
+        this.type = type;
         this.field = field;
         this.operator = operator;
         this.operand = operand;
@@ -64,6 +68,10 @@ public class Filter {
 
     public String getKey() {
         return key;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public String getField() {
@@ -153,18 +161,25 @@ public class Filter {
         return filters;
     }
 
+    //TODO fix checkstyle error
     public static List<Filter> validateAndOrderFilters(List<Filter> filters) {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
             Map<String, String> fields = FilterEntity.getFilterFieldsByKey(filter.getKey());
-            if (!fields.containsKey(filter.getField())) {
-                exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
-            }
-            String fieldType = fields.get(filter.getField());
-            List<String> operators = getFilterOperators(fieldType, true);
-            if (!operators.contains(filter.getOperator())) {
-                exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator() + ".");
+            if (!filter.isCustom()) {
+                if (!fields.containsKey(filter.getField())) {
+                    exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
+                }
+                String fieldType = fields.get(filter.getField());
+                List<String> operators = getFilterOperators(fieldType, true);
+                if (!Objects.equals(filter.getType(), fieldType)) {
+                    exceptionInvalidFilter.addException("Internal Error: Malformed Filter the filter field type '" + filter.getType()
+                            + "' did not match the computed field type '" + fieldType + "'");
+                }
+                if (!operators.contains(filter.getOperator())) {
+                    exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator() + ".");
+                }
             }
             for (String blacklistedWord : getBlacklistedWords()) {
                 if (filter.getOperand().contains(blacklistedWord)) {
@@ -274,51 +289,66 @@ public class Filter {
         return whereFilters.stream().filter(Objects::nonNull).toList();
     }
 
+    //TODO fix checkstyle error
     public static List<String> formatWhereStatements(List<Filter> filters) {
         List<String> whereStatements = new ArrayList<>();
-        String tableAlias = Keychain.getTableAliasByKey(filters.get(0).getKey());
         for (Filter filter : filters) {
-            switch (filter.getOperator()) {
-                case OPERATOR_EQUALS -> {
-                    whereStatements.add(" AND "  + tableAlias + "." + filter.getField() + " = ?");
+            if (filter.isCustom()) {
+                //TODO update this to work with the operator
+                switch (filter.getType()) {
+                    case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
+                        whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                        whereStatements.add(" AND values.value.text = ?");
+                    }
+                    case CustomField.TYPE_NUMBER -> {
+                        whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                        whereStatements.add(" AND values.value_number = ?");
+                    }
                 }
-                case OPERATOR_NOT_EQUALS -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " <> ?");
-                }
-                case OPERATOR_CONTAINS,
-                        OPERATOR_STARTS_WITH,
-                        OPERATOR_ENDS_WITH -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " LIKE ?");
-                }
-                case OPERATOR_GREATER_THAN -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " > ?");
-                }
-                case OPERATOR_LESS_THAN -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " < ?");
-                }
-                case OPERATOR_GREATER_THAN_EQUAL_TO -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " >= ?");
-                }
-                case OPERATOR_LESS_THAN_EQUAL_TO -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " <= ?");
-                }
-                case OPERATOR_ORDER_BY -> {
-                    whereStatements.add(" ORDER BY "  + tableAlias + "."  + filter.getField() + " ASC");
-                }
-                case OPERATOR_ORDER_BY_DESC -> {
-                    whereStatements.add(" ORDER BY "  + tableAlias + "."  + filter.getField() + " DESC");
-                }
-                case OPERATOR_SINCE -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
-                }
-                case OPERATOR_BEFORE -> {
-                    whereStatements.add(" AND "  + tableAlias + "."  + filter.getField() + " <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
-                }
-                case OPERATOR_LIMIT -> {
-                    whereStatements.add(" LIMIT ?");
-                }
-                case OPERATOR_OFFSET -> {
-                    whereStatements.add(" OFFSET ?");
+            } else {
+                String tableAlias = Keychain.getTableAliasByKey(filters.get(0).getKey());
+                switch (filter.getOperator()) {
+                    case OPERATOR_EQUALS -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " = ?");
+                    }
+                    case OPERATOR_NOT_EQUALS -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <> ?");
+                    }
+                    case OPERATOR_CONTAINS,
+                            OPERATOR_STARTS_WITH,
+                            OPERATOR_ENDS_WITH -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " LIKE ?");
+                    }
+                    case OPERATOR_GREATER_THAN -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " > ?");
+                    }
+                    case OPERATOR_LESS_THAN -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " < ?");
+                    }
+                    case OPERATOR_GREATER_THAN_EQUAL_TO -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " >= ?");
+                    }
+                    case OPERATOR_LESS_THAN_EQUAL_TO -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <= ?");
+                    }
+                    case OPERATOR_ORDER_BY -> {
+                        whereStatements.add(" ORDER BY " + tableAlias + "." + filter.getField() + " ASC");
+                    }
+                    case OPERATOR_ORDER_BY_DESC -> {
+                        whereStatements.add(" ORDER BY " + tableAlias + "." + filter.getField() + " DESC");
+                    }
+                    case OPERATOR_SINCE -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
+                    }
+                    case OPERATOR_BEFORE -> {
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
+                    }
+                    case OPERATOR_LIMIT -> {
+                        whereStatements.add(" LIMIT ?");
+                    }
+                    case OPERATOR_OFFSET -> {
+                        whereStatements.add(" OFFSET ?");
+                    }
                 }
             }
         }
@@ -352,9 +382,7 @@ public class Filter {
     }
 
     private static Object castOperand(Filter filter) {
-        Map<String, String> fields = FilterEntity.getFilterFieldsByKey(filter.key);
-
-        switch (fields.get(filter.field)) {
+        switch (filter.getType()) {
             case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> {
                 try {
                     return parseInt(filter.operand);

@@ -117,7 +117,10 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         filters = Filter.validateAndOrderFilters(filters);
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
-        final String sql = baseQuery + String.join(" ", whereStatements);
+        String sql = baseQuery + String.join(" ", whereStatements);
+        if (filters.stream().anyMatch(Filter::isCustom)) {
+            sql = baseQueryWithCustomFields + String.join(" ", whereStatements);
+        }
         List<System> systems = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (System system: systems) {
             system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
@@ -203,7 +206,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
     private void systemDbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
-        Filter nameFilter = new Filter("system", "name", "equals", system.getName(), false);
+        Filter nameFilter = new Filter("system", Filter.FIELD_TYPE_TEXT, "name", "equals", system.getName(), false);
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {
             throw new ExceptionFailedDbValidation("System insert/update failed, duplicate name found.");
