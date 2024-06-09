@@ -34,7 +34,7 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
     @Test
     public void getWithFilters_Passthrough_CallRepository() {
         final List<FilterRequestDto> filterRequestDtos = List.of(new FilterRequestDto("resource", "field", "operator", "operand"));
-        final List<Filter> filters = List.of(new Filter("resource", "field", "operator", "operand", false));
+        final List<Filter> filters = List.of(new Filter("resource", "type", "field", "operator", "operand", false));
         when(filterService.convertFilterRequestDtosToFilters(filterRequestDtos)).thenReturn(filters);
 
         service.getWithFilters(filterRequestDtos);

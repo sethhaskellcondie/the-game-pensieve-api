@@ -165,7 +165,7 @@ public class SystemTests {
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "value3"));
         factory.postCustomSystem(name3, generation3, handheld3, customFieldValues3);
 
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ", false);
+        final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "Mega ", false);
         final String jsonContent = factory.formatFiltersPayload(filter);
 
         final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
@@ -182,7 +182,7 @@ public class SystemTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults", false);
+        final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "noResults", false);
         final String jsonContent = factory.formatFiltersPayload(filter);
 
         final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
