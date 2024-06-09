@@ -32,7 +32,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     private final JdbcTemplate jdbcTemplate;
     private final CustomFieldValueRepository customFieldValueRepository;
     private final String baseQuery = """
-            SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at 
+            SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at
             FROM systems WHERE deleted_at IS NULL
             """;
     //in general the first row are the columns for the entity
@@ -203,7 +203,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
     private void systemDbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
-        Filter nameFilter = new Filter("system", "name", "equals", system.getName());
+        Filter nameFilter = new Filter("system", "name", "equals", system.getName(), false);
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {
             throw new ExceptionFailedDbValidation("System insert/update failed, duplicate name found.");

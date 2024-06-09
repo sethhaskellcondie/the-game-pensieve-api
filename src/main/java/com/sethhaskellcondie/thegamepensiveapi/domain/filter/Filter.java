@@ -52,12 +52,14 @@ public class Filter {
     private final String field;
     private final String operator;
     private final String operand;
+    private final boolean custom;
 
-    public Filter(String key, String field, String operator, String operand) {
+    public Filter(String key, String field, String operator, String operand, boolean isCustom) {
         this.key = key;
         this.field = field;
         this.operator = operator;
         this.operand = operand;
+        this.custom = isCustom;
     }
 
     public String getKey() {
@@ -74,6 +76,10 @@ public class Filter {
 
     public String getOperand() {
         return operand;
+    }
+
+    public boolean isCustom() {
+        return custom;
     }
 
     /**

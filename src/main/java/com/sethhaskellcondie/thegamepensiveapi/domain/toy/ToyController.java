@@ -1,11 +1,10 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
-import java.util.List;
-import java.util.Map;
-
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +17,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("v1/toys")
@@ -40,7 +39,7 @@ public class ToyController {
 
     @ResponseBody
     @PostMapping("/function/search")
-    public Map<String, List<ToyResponseDto>> getAllToys(@RequestBody Map<String, List<Filter>> requestBody) {
+    public Map<String, List<ToyResponseDto>> getAllToys(@RequestBody Map<String, List<FilterRequestDto>> requestBody) {
         final List<ToyResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<ToyResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();

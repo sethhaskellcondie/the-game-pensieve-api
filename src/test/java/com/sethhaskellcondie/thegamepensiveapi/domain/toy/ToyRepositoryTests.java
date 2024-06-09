@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+
 public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto, ToyResponseDto> {
 
     @Autowired
@@ -29,7 +30,7 @@ public class ToyRepositoryTests extends EntityRepositoryTests<Toy, ToyRequestDto
 
     @Override
     protected Filter startsWithFilter() {
-        return new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
+        return new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, startsWith, false);
     }
 
     @Override

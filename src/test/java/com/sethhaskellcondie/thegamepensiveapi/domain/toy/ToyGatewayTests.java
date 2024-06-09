@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayTests;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 
 import static org.mockito.Mockito.mock;
 
@@ -21,7 +22,7 @@ public class ToyGatewayTests extends EntityGatewayTests<Toy, ToyRequestDto, ToyR
     }
 
     @Override
-    protected Filter startsWithFilter() {
-        return new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
+    protected FilterRequestDto startsWithFilter() {
+        return new FilterRequestDto("toy", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
     }
 }

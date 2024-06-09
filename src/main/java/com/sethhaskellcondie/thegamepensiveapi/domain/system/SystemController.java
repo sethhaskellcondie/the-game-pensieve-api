@@ -2,7 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
@@ -61,7 +61,7 @@ public class SystemController {
      */
     @ResponseBody
     @PostMapping("/function/search")
-    public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody Map<String, List<Filter>> requestBody) {
+    public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody Map<String, List<FilterRequestDto>> requestBody) {
         final List<SystemResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();

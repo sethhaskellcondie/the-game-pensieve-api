@@ -1,6 +1,8 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,11 +13,13 @@ import java.util.List;
 import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
     protected EntityService<T, RequestDto, ResponseDto> service;
     protected EntityRepository<T, RequestDto, ResponseDto> repository;
+    protected FilterService filterService;
     protected EntityFactory<T, RequestDto, ResponseDto> factory;
 
     protected abstract void setupServiceMockRepository();
@@ -29,9 +33,11 @@ public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDt
 
     @Test
     public void getWithFilters_Passthrough_CallRepository() {
-        final List<Filter> filters = List.of(new Filter("resource", "field", "operator", "operand"));
+        final List<FilterRequestDto> filterRequestDtos = List.of(new FilterRequestDto("resource", "field", "operator", "operand"));
+        final List<Filter> filters = List.of(new Filter("resource", "field", "operator", "operand", false));
+        when(filterService.convertFilterRequestDtosToFilters(filterRequestDtos)).thenReturn(filters);
 
-        service.getWithFilters(filters);
+        service.getWithFilters(filterRequestDtos);
 
         verify(repository, times(1)).getWithFilters(filters);
     }

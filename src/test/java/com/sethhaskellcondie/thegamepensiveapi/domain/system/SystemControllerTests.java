@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -88,7 +89,7 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_TwoSystemPresent_TwoSystemsReturnedInArray() throws Exception {
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
+        final FilterRequestDto filter = new FilterRequestDto("system", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
         final System system1 = new System(1, "test", 10, false, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final System system2 = new System(2, "test again", 20, true, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final List<System> systems = List.of(system1, system2);
@@ -110,7 +111,7 @@ public class SystemControllerTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
+        final FilterRequestDto filter = new FilterRequestDto("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
         final String jsonContent = generateValidFilterPayload(filter);
@@ -275,7 +276,7 @@ public class SystemControllerTests {
         return String.format(json, name, generation, handheld);
     }
 
-    private String generateValidFilterPayload(Filter filter) {
+    private String generateValidFilterPayload(FilterRequestDto filter) {
         final String json = """
                 {
                   "filters": [
@@ -288,7 +289,7 @@ public class SystemControllerTests {
                   ]
                 }
                 """;
-        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.key(), filter.field(), filter.operator(), filter.operand());
     }
 
     private void validateSystemResponseBody(ResultActions result, System expectedSystem) throws Exception {
