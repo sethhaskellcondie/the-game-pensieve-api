@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,16 +59,21 @@ public class SystemTests {
         final String expectedName = "NES 2";
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
+        final List<CustomFieldValue> expectedCustomFieldValues = List.of(
+                new CustomFieldValue(0, "Release Date", "number", "1992"),
+                new CustomFieldValue(0, "Publisher", "text", "Nintendo"),
+                new CustomFieldValue(0, "Owned", "boolean", "true")
+        );
 
-        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld);
+        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
         result.andExpect(status().isCreated());
-        validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld);
+        validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
     }
 
     @Test
     void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
-        final String jsonContent = factory.formatSystemPayload("", -1, null);
+        final String jsonContent = factory.formatSystemPayload("", -1, null, null);
 
         final ResultActions result = mockMvc.perform(
                 post(baseUrl)
@@ -88,8 +94,8 @@ public class SystemTests {
         final int generation = 3;
         final boolean handheld = true;
 
-        factory.postCustomSystem(duplicateName, generation, handheld);
-        final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld);
+        factory.postCustomSystem(duplicateName, generation, handheld, null);
+        final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld, null);
         final ResultActions result = mockMvc.perform(
                 post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +114,8 @@ public class SystemTests {
         final String name = "Genesis 2";
         final int generation = 4;
         final boolean handheld = true;
-        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld);
+        final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "name of custom field", "text", "value for custom field"));
+        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld, customFieldValues);
         final SystemResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get(baseUrl + "/" + expectedDto.id()));
@@ -117,7 +124,7 @@ public class SystemTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateSystemResponseBody(result, expectedDto);
+        validateSystemResponseBody(result, expectedDto, customFieldValues);
     }
 
     @Test
@@ -133,19 +140,32 @@ public class SystemTests {
 
     @Test
     void getWithFilters_StartsWithFilter_TwoSystemsReturnedInArray() throws Exception {
+        final String customFieldName = "Custom";
+        final String customFieldType = "text";
+        final String customFieldKey = "system";
+        final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
+
         final String name1 = "Mega Super Nintendo";
         final int generation1 = 4;
         final boolean handheld1 = false;
-        final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1);
+        final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "value1"));
+        final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1, customFieldValues1);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
         final String name2 = "Mega Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
-        final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2);
+        final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "value2"));
+        final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2, customFieldValues2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Mega ");
+        final String name3 = "Regular Sony Playstation (not returned)";
+        final int generation3 = 4;
+        final boolean handheld3 = false;
+        final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "value3"));
+        factory.postCustomSystem(name3, generation3, handheld3, customFieldValues3);
+
+        final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "Mega ", false);
         final String jsonContent = factory.formatFiltersPayload(filter);
 
         final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
@@ -162,7 +182,7 @@ public class SystemTests {
 
     @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
+        final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "noResults", false);
         final String jsonContent = factory.formatFiltersPayload(filter);
 
         final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
@@ -180,6 +200,7 @@ public class SystemTests {
 
     @Test
     void updateExistingSystem_ValidUpdate_ReturnOk() throws Exception {
+        //TODO update this so that the custom field value is updated with the system update
         final ResultActions existingResult = factory.postSystem();
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
@@ -187,7 +208,7 @@ public class SystemTests {
         final int newGeneration = 6;
         final boolean newBoolean = false;
 
-        final String jsonContent = factory.formatSystemPayload(newName, newGeneration, newBoolean);
+        final String jsonContent = factory.formatSystemPayload(newName, newGeneration, newBoolean, null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/" + responseDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -195,12 +216,12 @@ public class SystemTests {
         );
 
         result.andExpect(status().isOk());
-        validateSystemResponseBody(result, resultToResponseDto(result));
+        validateSystemResponseBody(result, resultToResponseDto(result), List.of());
     }
 
     @Test
     void updateExistingSystem_InvalidId_ReturnNotFound() throws Exception {
-        final String jsonContent = factory.formatSystemPayload("ValidButMissing", 3, false);
+        final String jsonContent = factory.formatSystemPayload("ValidButMissing", 3, false, null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -243,7 +264,6 @@ public class SystemTests {
         );
     }
 
-    @Test
     void testCustomFields() {
         postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned();
         putSystemWithCustomFields_UpdateCustomFieldNameExistingValue_SystemCustomFieldAndValueUpdated();
@@ -252,6 +272,7 @@ public class SystemTests {
 
     void postSystemWithCustomFields_NewCustomFieldsAndValues_SystemCustomFieldsAndValuesCreatedAndReturned() {
         //TODO finish this
+        //Only test something this specific once, if all of this logic is refactored into an EntityRepository then we won't need it for Toy or other entities.
     }
 
     void postSystemWithCustomFields_ExistingCustomFieldsNewValues_SystemAndValuesCreatedAndReturned() {
@@ -273,18 +294,19 @@ public class SystemTests {
         return body.get("data");
     }
 
-    private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld) throws Exception {
+    private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
-                jsonPath("$.data.key").value("system"),
+                jsonPath("$.data.key").value(Keychain.SYSTEM_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.generation").value(expectedGeneration),
                 jsonPath("$.data.handheld").value(expectedHandheld),
                 jsonPath("$.errors").isEmpty()
         );
+        factory.validateCustomFieldValues(result, customFieldValues);
     }
 
-    private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto) throws Exception {
+    private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value("system"),
                 jsonPath("$.data.id").value(responseDto.id()),
@@ -293,9 +315,11 @@ public class SystemTests {
                 jsonPath("$.data.handheld").value(responseDto.handheld()),
                 jsonPath("$.errors").isEmpty()
         );
+        factory.validateCustomFieldValues(result, customFieldValues);
     }
 
     private void validateSystemResponseBody(ResultActions result, List<SystemResponseDto> expectedSystems) throws Exception {
+        //TODO update this to also test the returned custom field values
         result.andExpectAll(
                 jsonPath("$.data").exists(),
                 jsonPath("$.errors").isEmpty()

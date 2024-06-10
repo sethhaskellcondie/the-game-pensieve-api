@@ -109,16 +109,6 @@ public class CustomFieldTests {
     }
 
     @Test
-    void getCustomFieldsValuesCount_ZeroResults_ReturnZero() {
-        //TODO finish this after values have been implemented
-    }
-
-    @Test
-    void getCustomFieldsValuesCount_TwoResults_ReturnTwo() {
-        //TODO finish this after values have been implemented
-    }
-
-    @Test
     void patchCustomFieldName_HappyPath_CustomFieldReturned() throws Exception {
         final CustomField existingCustomField = resultToResponseDto(factory.postCustomField());
         final String newName = "patched name!";

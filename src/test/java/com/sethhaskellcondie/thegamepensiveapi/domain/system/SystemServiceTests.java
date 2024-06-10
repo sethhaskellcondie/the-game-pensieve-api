@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityServiceTests;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 
 import static org.mockito.Mockito.mock;
 
@@ -9,7 +10,8 @@ public class SystemServiceTests extends EntityServiceTests<System, SystemRequest
     @Override
     protected void setupServiceMockRepository() {
         repository = mock(EntityRepository.class);
-        service = new SystemService(repository);
+        filterService = mock(FilterService.class);
+        service = new SystemService(repository, filterService);
     }
 
     @Override

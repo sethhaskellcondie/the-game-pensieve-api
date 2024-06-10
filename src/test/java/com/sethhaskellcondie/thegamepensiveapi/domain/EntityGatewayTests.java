@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -27,7 +28,7 @@ public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDt
 
     protected abstract void setupGatewayMockService();
     protected abstract void setupFactory();
-    protected abstract Filter startsWithFilter();
+    protected abstract FilterRequestDto startsWithFilter();
 
     @BeforeEach
     public void testPrep() {
@@ -39,7 +40,7 @@ public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDt
     public void getWithFilters_TwoFound_ReturnDtoList() {
         final T entity1 = factory.generateEntity(STARTS_WITH_VALID_PERSISTED);
         final T entity2 = factory.generateEntity(ANOTHER_STARTS_WITH_VALID_PERSISTED);
-        final List<Filter> filters = List.of(startsWithFilter());
+        final List<FilterRequestDto> filters = List.of(startsWithFilter());
 
         when(service.getWithFilters(filters)).thenReturn(List.of(entity1, entity2));
         final List<ResponseDto> expected = List.of(entity1.convertToResponseDto(), entity2.convertToResponseDto());

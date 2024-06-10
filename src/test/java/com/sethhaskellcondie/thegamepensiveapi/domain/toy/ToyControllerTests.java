@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,7 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_TwoToysPresent_TwoToysReturnedInArray() throws Exception {
-        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
+        final FilterRequestDto filter = new FilterRequestDto("toy", "name", Filter.OPERATOR_STARTS_WITH, "startsWith");
         final Toy toy1 = new Toy(1, "Mega Man", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final Toy toy2 = new Toy(2, "Samus", "Amiibo", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), null, new ArrayList<>());
         final List<Toy> toys = List.of(toy1, toy2);
@@ -101,7 +102,7 @@ public class ToyControllerTests {
 
     @Test
     void getAllToys_NoToysPresent_EmptyArrayReturned() throws Exception {
-        final Filter filter = new Filter("toy", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
+        final FilterRequestDto filter = new FilterRequestDto("toy", "name", Filter.OPERATOR_STARTS_WITH, "noResults");
         when(service.getWithFilters(List.of(filter))).thenReturn(List.of());
 
         final String jsonContent = generateValidFilterPayload(filter);
@@ -242,7 +243,7 @@ public class ToyControllerTests {
         return String.format(json, name, set);
     }
 
-    private String generateValidFilterPayload(Filter filter) {
+    private String generateValidFilterPayload(FilterRequestDto filter) {
         final String json = """
                 {
                   "filters": [
@@ -255,7 +256,7 @@ public class ToyControllerTests {
                   ]
                 }
                 """;
-        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, filter.key(), filter.field(), filter.operator(), filter.operand());
     }
 
     private void validateToyResponseBody(ResultActions result, Toy expectedToy) throws Exception {

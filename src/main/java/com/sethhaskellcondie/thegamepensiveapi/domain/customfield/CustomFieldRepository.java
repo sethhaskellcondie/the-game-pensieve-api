@@ -1,6 +1,8 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
@@ -18,7 +20,6 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class CustomFieldRepository {
@@ -34,6 +35,11 @@ public class CustomFieldRepository {
 
     public CustomFieldRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+
+    public CustomField insertCustomField(String name, String type, String key) throws ExceptionFailedDbValidation {
+        return insertCustomField(new CustomFieldRequestDto(name, type, key));
     }
 
     public CustomField insertCustomField(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
@@ -99,14 +105,9 @@ public class CustomFieldRepository {
         return jdbcTemplate.query(sql, rowMapper);
     }
 
-    public Optional<Integer> getValueCountOfCustomFieldById(int customFieldId) {
-        final String sql = "SELECT count(*) FROM custom_field_values WHERE custom_field_id = ?";
-        return Optional.ofNullable(jdbcTemplate.queryForObject(
-                sql,
-                new Object[]{customFieldId},
-                new int[]{Types.BIGINT},
-                Integer.class
-        ));
+    public List<CustomField> getAllByKey(String entityKey) {
+        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? ;";
+        return jdbcTemplate.query(sql, rowMapper, entityKey);
     }
 
     public CustomField updateName(int id, String newName) throws ExceptionResourceNotFound {

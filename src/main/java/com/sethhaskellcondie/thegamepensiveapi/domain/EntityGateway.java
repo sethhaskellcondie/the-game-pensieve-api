@@ -1,6 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -23,7 +23,7 @@ import java.util.List;
  */
 public interface EntityGateway<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
-    List<ResponseDto> getWithFilters(List<Filter> filters);
+    List<ResponseDto> getWithFilters(List<FilterRequestDto> filters);
 
     ResponseDto getById(int id) throws ExceptionResourceNotFound;
 

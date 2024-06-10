@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.junit.jupiter.api.Test;
@@ -24,8 +23,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     @Override
     protected void setupRepositoryAndEntityName() {
         entityName = System.class.getSimpleName();
-        CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
-        repository = new SystemRepository(jdbcTemplate, customFieldValueRepository);
+        repository = new SystemRepository(jdbcTemplate);
     }
 
     @Override
@@ -35,7 +33,7 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
 
     @Override
     protected Filter startsWithFilter() {
-        return new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, startsWith);
+        return new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, startsWith, false);
     }
 
     @Override

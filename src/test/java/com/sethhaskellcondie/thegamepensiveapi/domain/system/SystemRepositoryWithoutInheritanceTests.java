@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
@@ -35,8 +34,7 @@ public class SystemRepositoryWithoutInheritanceTests {
 
     @BeforeEach
     void setUp() {
-        CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
-        repository = new SystemRepository(jdbcTemplate, customFieldValueRepository);
+        repository = new SystemRepository(jdbcTemplate);
     }
 
     @Test
@@ -93,7 +91,7 @@ public class SystemRepositoryWithoutInheritanceTests {
         final SystemRequestDto requestDto2 = new SystemRequestDto(name2, generation2, handheld2, new ArrayList<>());
         final System expected2 = repository.insert(requestDto2);
 
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "Epic ");
+        final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "Epic ", false);
         List<System> actual = repository.getWithFilters(List.of(filter));
 
         assertEquals(2, actual.size());
@@ -104,7 +102,7 @@ public class SystemRepositoryWithoutInheritanceTests {
     @Test
     void getWithFilters_NoFilters_ReturnEmptyList() throws ExceptionInvalidFilter {
 
-        final Filter filter = new Filter("system", "name", Filter.OPERATOR_STARTS_WITH, "NoResults");
+        final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "NoResults", false);
         List<System> actual = repository.getWithFilters(List.of(filter));
 
         assertEquals(0, actual.size());

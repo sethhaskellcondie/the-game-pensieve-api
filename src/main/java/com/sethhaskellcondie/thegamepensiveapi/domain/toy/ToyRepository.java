@@ -1,18 +1,15 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -22,16 +19,32 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRepository;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyResponseDto> {
     private final JdbcTemplate jdbcTemplate;
-    private final CustomFieldValueRepository customFieldValueRespository;
-    private final String baseQuery = "SELECT * FROM toys WHERE deleted_at IS NULL";
+    private final CustomFieldValueRepository customFieldValueRepository;
+    private final String baseQuery = """
+        SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
+            FROM toys WHERE toys.deleted_at IS NULL
+        """;
+    private final String baseQueryWithCustomFields = """
+        SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at,
+               values.custom_field_id, values.entity_key, values.value_text, values.value_number,
+               fields.name as custom_field_name, fields.type as custom_field_type
+            FROM toys
+            JOIN custom_field_values as values ON toys.id = values.entity_id
+            JOIN custom_fields as fields ON values.custom_field_id = fields.id
+            WHERE toys.deleted_at IS NULL
+            AND values.entity_key = 'toy'
+        """;
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<Toy> rowMapper =
             (resultSet, i) ->
@@ -42,12 +55,12 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                             resultSet.getTimestamp("created_at"),
                             resultSet.getTimestamp("updated_at"),
                             resultSet.getTimestamp("deleted_at"),
-                            new ArrayList<>() //TODO update this
+                            new ArrayList<>()
                     );
 
-    public ToyRepository(JdbcTemplate jdbcTemplate, CustomFieldValueRepository customFieldValueRespository) {
+    public ToyRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.customFieldValueRespository = customFieldValueRespository;
+        this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
     }
 
     @Override
@@ -85,7 +98,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), generatedId);
         }
 
-        savedToy.setCustomFieldValues(customFieldValueRespository.upsertValues(toy.getCustomFieldValues(), savedToy.getId(), savedToy.getKey()));
+        savedToy.setCustomFieldValues(customFieldValueRepository.upsertValues(toy.getCustomFieldValues(), savedToy.getId(), savedToy.getKey()));
         return savedToy;
     }
 
@@ -94,14 +107,20 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         filters = Filter.validateAndOrderFilters(filters);
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
-        final String sql = baseQuery + String.join(" ", whereStatements);
-        //TODO figure out how to attach the customFields to the results?
-        return jdbcTemplate.query(sql, rowMapper, operands.toArray());
+        String sql = baseQuery + String.join(" ", whereStatements);
+        if (filters.stream().anyMatch(Filter::isCustom)) {
+            sql = baseQueryWithCustomFields + String.join(" ", whereStatements);
+        }
+        List<Toy> toys = jdbcTemplate.query(sql, rowMapper, operands.toArray());
+        for (Toy toy: toys) {
+            toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
+        }
+        return toys;
     }
 
     @Override
     public Toy getById(int id) throws ExceptionResourceNotFound {
-        final String sql = baseQuery + " AND id = ? ;";
+        final String sql = baseQuery + " AND toys.id = ? ;";
         Toy toy = null;
         try {
             toy = jdbcTemplate.queryForObject(
@@ -111,9 +130,9 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
+            throw new ExceptionResourceNotFound(Keychain.TOY_KEY, id);
         }
-        //TODO figure out how to attach the customFields to the result
+        toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
         return toy;
     }
 
@@ -139,7 +158,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
             logger.error(ErrorLogs.UpdateThenRetrieveError(toy.getClass().getSimpleName(), toy.getId()));
             throw new ExceptionInternalCatastrophe(toy.getClass().getSimpleName(), toy.getId());
         }
-        updatedToy.setCustomFieldValues(customFieldValueRespository.upsertValues(toy.getCustomFieldValues(), updatedToy.getId(), updatedToy.getKey()));
+        updatedToy.setCustomFieldValues(customFieldValueRepository.upsertValues(toy.getCustomFieldValues(), updatedToy.getId(), updatedToy.getKey()));
         return updatedToy;
     }
 
@@ -152,7 +171,6 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", Toy.class.getSimpleName(), id);
         }
-        //TODO delete the customFieldValues
     }
 
     @Override
@@ -169,7 +187,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
         }
-        //TODO get the custom field values?
+        toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
         return toy;
     }
 

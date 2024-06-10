@@ -23,4 +23,20 @@ public class Keychain {
                 TOY_KEY
         );
     }
+
+    //This is used to construct the filter objects into SQL, this function should return the table alias used in the base query of that entities repository
+    //The table alias for custom fields is always 'fields' and for custom field values is always 'values'
+    public static String getTableAliasByKey(String key) {
+        switch (key) {
+            case SYSTEM_KEY -> {
+                return "systems";
+            }
+            case TOY_KEY -> {
+                return "toys";
+            }
+            default -> {
+                throw new RuntimeException("Keychain.getTableNameByKey() called with unknown key:" + key + " available keys are: " + String.join(", ", getAllKeys()));
+            }
+        }
+    }
 }

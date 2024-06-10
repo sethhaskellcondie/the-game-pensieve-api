@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
@@ -30,7 +31,23 @@ import java.util.List;
 public class SystemRepository implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
     private final JdbcTemplate jdbcTemplate;
     private final CustomFieldValueRepository customFieldValueRepository;
-    private final String baseQuery = "SELECT * FROM systems WHERE deleted_at IS NULL";
+    private final String baseQuery = """
+            SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at
+            FROM systems WHERE deleted_at IS NULL
+            """;
+    //in general the first row are the columns for the entity
+    //the second and third row are the columns for the custom field values and the custom fields they should always be the same
+    //then the remainder of the query is the same but fill in the property entity (systems)
+    private final String baseQueryWithCustomFields = """
+        SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at,
+               values.custom_field_id, values.entity_key, values.value_text, values.value_number,
+               fields.name as custom_field_name, fields.type as custom_field_type
+            FROM systems
+            JOIN custom_field_values as values ON systems.id = values.entity_id
+            JOIN custom_fields as fields ON values.custom_field_id = fields.id
+            WHERE systems.deleted_at IS NULL
+            AND values.entity_key = 'system'
+        """;
     private final Logger logger = LoggerFactory.getLogger(SystemRepository.class);
     private final RowMapper<System> rowMapper = (resultSet, rowNumber) ->
             new System(
@@ -41,12 +58,12 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     resultSet.getTimestamp("created_at"),
                     resultSet.getTimestamp("updated_at"),
                     resultSet.getTimestamp("deleted_at"),
-                    new ArrayList<>() //TODO update this
+                    new ArrayList<>()
             );
 
-    public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldValueRepository customFieldValueRepository) {
+    public SystemRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.customFieldValueRepository = customFieldValueRepository;
+        this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
     }
 
     @Override
@@ -57,11 +74,6 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public System insert(System system) throws ExceptionFailedDbValidation {
-        // ---to change this into an upsert
-        // if (requestDto.isPersisted()) {
-        // 		return update(requestDto);
-        // }
-
         systemDbValidation(system);
 
         final String sql = """
@@ -105,9 +117,15 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         filters = Filter.validateAndOrderFilters(filters);
         final List<String> whereStatements = Filter.formatWhereStatements(filters);
         final List<Object> operands = Filter.formatOperands(filters);
-        final String sql = baseQuery + String.join(" ", whereStatements);
-        //TODO figure out how to attach the customFields to the results?
-        return jdbcTemplate.query(sql, rowMapper, operands.toArray());
+        String sql = baseQuery + String.join(" ", whereStatements);
+        if (filters.stream().anyMatch(Filter::isCustom)) {
+            sql = baseQueryWithCustomFields + String.join(" ", whereStatements);
+        }
+        List<System> systems = jdbcTemplate.query(sql, rowMapper, operands.toArray());
+        for (System system: systems) {
+            system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
+        }
+        return systems;
     }
 
     @Override
@@ -122,19 +140,14 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
+            throw new ExceptionResourceNotFound(Keychain.SYSTEM_KEY, id);
         }
-        //TODO figure out how to attach the customFields to the result
+        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
         return system;
     }
 
     @Override
     public System update(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
-        // ---to change this into an upsert
-        // if (!system.isPersisted()) {
-        // 		return insert(system);
-        // }
-
         systemDbValidation(system);
         final String sql = """
                 			UPDATE systems SET name = ?, generation = ?, handheld = ?, updated_at = ? WHERE id = ?;
@@ -186,14 +199,14 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
-        //TODO get the custom field values?
+        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
         return system;
     }
 
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
     private void systemDbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
-        Filter nameFilter = new Filter("system", "name", "equals", system.getName());
+        Filter nameFilter = new Filter("system", Filter.FIELD_TYPE_TEXT, "name", "equals", system.getName(), false);
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {
             throw new ExceptionFailedDbValidation("System insert/update failed, duplicate name found.");

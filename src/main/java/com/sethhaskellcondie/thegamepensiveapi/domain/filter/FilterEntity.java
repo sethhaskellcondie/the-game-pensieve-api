@@ -12,13 +12,13 @@ public class FilterEntity {
         Map<String, String> fields = new LinkedHashMap<>();
         switch (key) {
             case Keychain.SYSTEM_KEY -> {
-                fields.put("name", Filter.FIELD_TYPE_STRING);
+                fields.put("name", Filter.FIELD_TYPE_TEXT);
                 fields.put("generation", Filter.FIELD_TYPE_NUMBER);
                 fields.put("handheld", Filter.FIELD_TYPE_BOOLEAN);
             }
             case Keychain.TOY_KEY -> {
-                fields.put("name", Filter.FIELD_TYPE_STRING);
-                fields.put("set", Filter.FIELD_TYPE_STRING);
+                fields.put("name", Filter.FIELD_TYPE_TEXT);
+                fields.put("set", Filter.FIELD_TYPE_TEXT);
             }
             default -> {
                 return new LinkedHashMap<>();

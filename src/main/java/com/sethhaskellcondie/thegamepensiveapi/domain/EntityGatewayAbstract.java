@@ -1,6 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
@@ -14,7 +14,7 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
     }
 
     @Override
-    public List<ResponseDto> getWithFilters(List<Filter> filters) {
+    public List<ResponseDto> getWithFilters(List<FilterRequestDto> filters) {
         List<T> t = service.getWithFilters(filters);
         return t.stream().map(Entity::convertToResponseDto).toList();
     }
