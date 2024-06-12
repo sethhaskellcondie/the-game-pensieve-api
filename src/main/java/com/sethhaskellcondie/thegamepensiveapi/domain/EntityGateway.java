@@ -1,9 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 import java.util.List;
 
@@ -18,18 +15,16 @@ import java.util.List;
  * <p>
  * Each entity is designed so that the CRUD functions only need to be implemented in the Entity and the Repository,
  * then exposed through the controller, the rest works automagically.
- * <p>
- * If permission checks existed in this system they would be right before or after the gateway.
  */
 public interface EntityGateway<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
     List<ResponseDto> getWithFilters(List<FilterRequestDto> filters);
 
-    ResponseDto getById(int id) throws ExceptionResourceNotFound;
+    ResponseDto getById(int id);
 
-    ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
+    ResponseDto createNew(RequestDto requestDto);
 
-    ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionInputValidation, ExceptionFailedDbValidation, ExceptionResourceNotFound;
+    ResponseDto updateExisting(int id, RequestDto requestDto);
 
-    void deleteById(int id) throws ExceptionResourceNotFound;
+    void deleteById(int id);
 }

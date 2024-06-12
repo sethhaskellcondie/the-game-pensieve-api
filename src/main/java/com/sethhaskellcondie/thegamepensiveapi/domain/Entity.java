@@ -68,8 +68,7 @@ public abstract class Entity<RequestDto, ResponseDto> {
     }
 
     /**
-     * New Entity objects are created in that Entities' repository, after creation all entities need
-     * to be able to take the data from the request and apply that to the Entity then return it.
+     * This function will take an entity and then update it with all the attributes of the requestDto.
      * Throws an ExceptionInputValidation if the object is invalid after the requestDto has been applied.
      */
     protected abstract Entity<RequestDto, ResponseDto> updateFromRequestDto(RequestDto requestDto);

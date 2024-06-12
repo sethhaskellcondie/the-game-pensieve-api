@@ -1,8 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,17 +17,19 @@ import java.util.List;
  */
 @Repository
 public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
-    T insert(RequestDto requestDto) throws ExceptionFailedDbValidation;
+    T insert(RequestDto requestDto);
 
-    T insert(T t) throws ExceptionFailedDbValidation;
+    T insert(T t);
 
     List<T> getWithFilters(List<Filter> filters);
 
-    T getById(int id) throws ExceptionResourceNotFound;
+    T getById(int id);
 
-    T update(T t) throws ExceptionFailedDbValidation;
+    T update(T t);
 
-    void deleteById(int id) throws ExceptionResourceNotFound;
+    void deleteById(int id);
 
-    T getDeletedById(int id) throws ExceptionResourceNotFound;
+    T getDeletedById(int id);
+
+    private void dbValidation() { }
 }

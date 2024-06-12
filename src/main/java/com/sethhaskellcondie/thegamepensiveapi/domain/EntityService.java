@@ -1,15 +1,13 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 import java.util.List;
 
 /**
  * A Service is the bridge between the entity behavior, gateways, and repositories.
  * <p>
- * Gateways will always connect to repositories through services, the service will hold a reference
+ * Gateways will always connect to services, the service will hold a reference
  * to the entity repository along with any other related repositories needed for that entity.
  * For basic CRUD functions the service is a pass-through so everything is automated with generics.
  * <p>
@@ -19,11 +17,11 @@ import java.util.List;
 public interface EntityService<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
     List<T> getWithFilters(List<FilterRequestDto> filters);
 
-    T getById(int id) throws ExceptionResourceNotFound;
+    T getById(int id);
 
-    T createNew(RequestDto requestDto) throws ExceptionFailedDbValidation;
+    T createNew(RequestDto requestDto);
 
-    T updateExisting(T t) throws ExceptionFailedDbValidation;
+    T updateExisting(T t);
 
-    void deleteById(int id) throws ExceptionResourceNotFound;
+    void deleteById(int id);
 }

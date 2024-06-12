@@ -52,4 +52,12 @@ public class ApiControllerAdvice {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
         return body.formatError();
     }
+
+    @ExceptionHandler(value = {RuntimeException.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Map<String, List<String>> handleExceptionInvalidFilter(RuntimeException e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
+        return body.formatError();
+    }
 }
