@@ -41,12 +41,15 @@ public class FilterService {
         if (null == filterRequestDtos || filterRequestDtos.isEmpty()) {
             return new ArrayList<>();
         }
+
         String key = filterRequestDtos.get(0).key();
         List<CustomField> customFields = customFieldRepository.getAllByKey(key);
+
         Map<String, String> customFieldNameToType = new HashMap<>();
         for (CustomField customField : customFields) {
             customFieldNameToType.put(customField.name(), customField.type());
         }
+
         Map<String, String> filterFields = FilterEntity.getFilterFieldsByKey(key);
         List<Filter> filters = new ArrayList<>();
         for (FilterRequestDto filterRequestDto : filterRequestDtos) {

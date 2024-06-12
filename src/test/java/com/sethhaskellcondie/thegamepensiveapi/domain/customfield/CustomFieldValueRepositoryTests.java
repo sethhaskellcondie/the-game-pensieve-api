@@ -139,7 +139,7 @@ public class CustomFieldValueRepositoryTests {
         customFields.add(ownedCustomField);
         repository.upsertValues(customFields, 1, "system");
 
-        List<CustomFieldValue> returnedCustomFields = repository.getCustomFieldsByEntityIdAndEntityKey(1, "system");
+        List<CustomFieldValue> returnedCustomFields = repository.getCustomFieldValuesByEntityIdAndEntityKey(1, "system");
 
         assertEquals(3, returnedCustomFields.size());
         //The order is not required, but we are testing the order here

@@ -44,16 +44,18 @@ public class CustomFieldValueRepository {
                     resultSet.getString("type")
             );
 
-    //This repository should only be accessed through EntityRepositories
+    //This repository should only be accessed through EntityRepositories (and tests)
     public CustomFieldValueRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
     }
 
-    public List<CustomFieldValue> getCustomFieldsByEntityIdAndEntityKey(int entityId, String entityKey) {
-        final String sql = "SELECT * FROM custom_field_values " +
-                "JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id " +
-                "WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ? AND custom_fields.deleted = false";
+    public List<CustomFieldValue> getCustomFieldValuesByEntityIdAndEntityKey(int entityId, String entityKey) {
+        final String sql = """
+                    SELECT * FROM custom_field_values
+                        JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id
+                        WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ? AND custom_fields.deleted = false;
+                """;
         List<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, entityId, entityKey);
         return customFieldValueJoinCustomFieldDaos.stream().map(CustomFieldValueJoinCustomFieldDao::convertToValue).toList();
     }

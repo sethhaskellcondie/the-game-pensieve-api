@@ -113,7 +113,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         }
         List<Toy> toys = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (Toy toy: toys) {
-            toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
+            toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
         }
         return toys;
     }
@@ -132,7 +132,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(Keychain.TOY_KEY, id);
         }
-        toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
+        toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
         return toy;
     }
 
@@ -187,7 +187,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(Toy.class.getSimpleName(), id);
         }
-        toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
+        toy.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(toy.getId(), toy.getKey()));
         return toy;
     }
 

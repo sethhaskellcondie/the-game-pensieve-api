@@ -56,7 +56,6 @@ public class Filter {
     private final String operand;
     private final boolean custom;
 
-    //TODO add type
     public Filter(String key, String type, String field, String operator, String operand, boolean isCustom) {
         this.key = key;
         this.type = type;
@@ -294,7 +293,6 @@ public class Filter {
         List<String> whereStatements = new ArrayList<>();
         for (Filter filter : filters) {
             if (filter.isCustom()) {
-                //TODO update this to work with the operator
                 switch (filter.getType()) {
                     case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
                         whereStatements.add(" AND fields.name = '" + filter.getField() + "'");

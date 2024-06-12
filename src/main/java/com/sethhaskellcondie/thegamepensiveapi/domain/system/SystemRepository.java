@@ -123,7 +123,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         }
         List<System> systems = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (System system: systems) {
-            system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
+            system.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(system.getId(), system.getKey()));
         }
         return systems;
     }
@@ -142,7 +142,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(Keychain.SYSTEM_KEY, id);
         }
-        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
+        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(system.getId(), system.getKey()));
         return system;
     }
 
@@ -199,7 +199,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(System.class.getSimpleName(), id);
         }
-        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldsByEntityIdAndEntityKey(system.getId(), system.getKey()));
+        system.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(system.getId(), system.getKey()));
         return system;
     }
 

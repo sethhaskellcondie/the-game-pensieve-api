@@ -36,11 +36,11 @@ public class CustomFieldRepository {
     }
 
 
-    public CustomField insertCustomField(String name, String type, String key) throws ExceptionFailedDbValidation {
+    public CustomField insertCustomField(String name, String type, String key) {
         return insertCustomField(new CustomFieldRequestDto(name, type, key));
     }
 
-    public CustomField insertCustomField(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
+    public CustomField insertCustomField(CustomFieldRequestDto customField) {
         customFieldDbValidation(customField);
         final String sql = """
                 			INSERT INTO custom_fields(name, type, entity_key) VALUES (?, ?, ?);
@@ -108,7 +108,7 @@ public class CustomFieldRepository {
         return jdbcTemplate.query(sql, rowMapper, entityKey);
     }
 
-    public CustomField updateName(int id, String newName) throws ExceptionResourceNotFound {
+    public CustomField updateName(int id, String newName) {
         final String sql = """
                 			UPDATE custom_fields SET name = ? WHERE id = ?;
                 """;
@@ -116,7 +116,7 @@ public class CustomFieldRepository {
         return getById(id);
     }
 
-    public void deleteById(int id) throws ExceptionResourceNotFound {
+    public void deleteById(int id) {
         final String sql = """
                 			UPDATE custom_fields SET deleted = true WHERE id = ?;
                 """;
@@ -126,7 +126,7 @@ public class CustomFieldRepository {
         }
     }
 
-    private void customFieldDbValidation(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
+    private void customFieldDbValidation(CustomFieldRequestDto customField) {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
             exception.addException("Custom Field Type: " + customField.type() + " is not a valid type. " +

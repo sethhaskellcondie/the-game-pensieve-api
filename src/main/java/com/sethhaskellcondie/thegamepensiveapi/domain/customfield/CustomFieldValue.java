@@ -3,7 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * CustomFieldValues belong to Entities
+ * CustomFieldValues are NOT entities they BELONG to entities
  * There are two additional fields saved into the database the
  * entity_id, and the entity_key they come from the Entity that
  * this CustomFieldValue belongs to.
