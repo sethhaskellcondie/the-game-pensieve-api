@@ -10,7 +10,7 @@ import java.util.List;
  * in the domain. All Entities have the same basic CRUD functionality. the default implementation is found
  * in these abstract Entity classes (EntityGateway, EntityService, and EntityRepository) overwritten as needed.
  * <p>
- * A gateway has two responsibilities interfacing with services and converting the response from the service
+ * A gateway has two responsibilities: interfacing with services, and converting the response from the service
  * into a responseDto to keep the Entity access encapsulated.
  * <p>
  * Each entity is designed so that the CRUD functions only need to be implemented in the Entity and the Repository,

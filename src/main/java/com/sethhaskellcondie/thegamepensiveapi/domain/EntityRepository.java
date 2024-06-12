@@ -30,6 +30,4 @@ public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, Req
     void deleteById(int id);
 
     T getDeletedById(int id);
-
-    private void dbValidation() { }
 }

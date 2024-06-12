@@ -13,6 +13,25 @@ import java.util.Map;
 @ControllerAdvice
 public class ApiControllerAdvice {
 
+    //----Handle General Errors----
+    @ExceptionHandler(value = {Exception.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Map<String, List<String>> handleGeneralException(Exception e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Something went wrong. Generic Exception Caught.", e.getMessage()));
+        return body.formatError();
+    }
+
+
+    @ExceptionHandler(value = {RuntimeException.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Map<String, List<String>> handleRuntimeException(RuntimeException e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Something went wrong. Generic RuntimeException Caught.", e.getMessage()));
+        return body.formatError();
+    }
+
+    //----Handle System Specific Errors----
     @ExceptionHandler(value = {ExceptionFailedDbValidation.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
@@ -50,14 +69,6 @@ public class ApiControllerAdvice {
     @ResponseBody
     public Map<String, List<String>> handleExceptionInvalidFilter(ExceptionInvalidFilter e) {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
-        return body.formatError();
-    }
-
-    @ExceptionHandler(value = {RuntimeException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ResponseBody
-    public Map<String, List<String>> handleExceptionInvalidFilter(RuntimeException e) {
-        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
 }

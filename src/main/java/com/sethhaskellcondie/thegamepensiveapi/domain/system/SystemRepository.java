@@ -74,7 +74,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public System insert(System system) throws ExceptionFailedDbValidation {
-        systemDbValidation(system);
+        dbValidation(system);
 
         final String sql = """
                 			INSERT INTO systems(name, generation, handheld, created_at, updated_at) VALUES (?, ?, ?, ?, ?);
@@ -148,7 +148,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     @Override
     public System update(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
-        systemDbValidation(system);
+        dbValidation(system);
         final String sql = """
                 			UPDATE systems SET name = ?, generation = ?, handheld = ?, updated_at = ? WHERE id = ?;
                 """;
@@ -205,7 +205,7 @@ public class SystemRepository implements EntityRepository<System, SystemRequestD
 
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
-    private void systemDbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
+    private void dbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         Filter nameFilter = new Filter("system", Filter.FIELD_TYPE_TEXT, "name", "equals", system.getName(), false);
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {

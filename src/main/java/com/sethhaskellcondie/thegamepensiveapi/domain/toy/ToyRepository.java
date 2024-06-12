@@ -71,7 +71,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
 
     @Override
     public Toy insert(Toy toy) throws ExceptionFailedDbValidation {
-        toyDbValidation(toy);
+        dbValidation(toy);
         final String sql = """
                 			INSERT INTO toys(name, set, created_at, updated_at) VALUES (?, ?, ?, ?);
                 """;
@@ -138,7 +138,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
 
     @Override
     public Toy update(Toy toy) throws ExceptionFailedDbValidation {
-        toyDbValidation(toy);
+        dbValidation(toy);
         String sql = """
                 			UPDATE toys SET name = ?, set = ?, updated_at = ? WHERE id = ?;
                 """;
@@ -191,7 +191,7 @@ public class ToyRepository implements EntityRepository<Toy, ToyRequestDto, ToyRe
         return toy;
     }
 
-    private void toyDbValidation(Toy toy) throws ExceptionFailedDbValidation {
+    private void dbValidation(Toy toy) throws ExceptionFailedDbValidation {
         //no validation needed for Toy table
     }
 }
