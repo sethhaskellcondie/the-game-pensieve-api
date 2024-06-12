@@ -161,7 +161,7 @@ public class Filter {
         return filters;
     }
 
-    //TODO fix checkstyle error
+    // TODO fix checkstyle error
     public static List<Filter> validateAndOrderFilters(List<Filter> filters) {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
@@ -289,7 +289,7 @@ public class Filter {
         return whereFilters.stream().filter(Objects::nonNull).toList();
     }
 
-    //TODO fix checkstyle error
+    // TODO fix checkstyle error
     public static List<String> formatWhereStatements(List<Filter> filters) {
         List<String> whereStatements = new ArrayList<>();
         for (Filter filter : filters) {

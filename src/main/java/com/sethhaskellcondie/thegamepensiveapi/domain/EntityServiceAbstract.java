@@ -6,7 +6,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class EntityServiceAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
