@@ -14,6 +14,11 @@ import org.springframework.jdbc.core.RowMapper;
 import java.sql.Types;
 import java.util.List;
 
+/**
+ * The goal of creating an abstract of the repository is to encapsulate the access of the customFieldValueRepository
+ * That should be as automatic as possible, when adding new entities developers should be aware of it but not have to
+ * implement it every time. This will also make the exceptions and logging uniform across all EntityRepositories.
+ */
 public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityRepository<T, RequestDto, ResponseDto> {
 
     protected final JdbcTemplate jdbcTemplate;
@@ -43,6 +48,8 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     protected abstract String getEntityKey();
     protected abstract RowMapper<T> getRowMapper();
 
+    //This method will be commonly used to validate objects before they are inserted or updated,
+    //performing any validation that is not enforced by the database schema
     protected abstract void dbValidation(T entity);
     protected abstract Integer insertImplementation(T entity);
     protected abstract void updateImplementation(T entity);
