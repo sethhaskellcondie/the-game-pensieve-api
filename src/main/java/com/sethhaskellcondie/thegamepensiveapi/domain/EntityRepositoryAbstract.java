@@ -16,7 +16,7 @@ import java.util.List;
 
 public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityRepository<T, RequestDto, ResponseDto> {
 
-    private final JdbcTemplate jdbcTemplate;
+    protected final JdbcTemplate jdbcTemplate;
     private final CustomFieldValueRepository customFieldValueRepository;
     private final String baseQuery;
     private final String baseQueryJoinCustomFieldValues;
@@ -36,15 +36,16 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         this.rowMapper = this.getRowMapper();
     }
 
-    abstract String getBaseQuery();
-    abstract String getBaseQueryJoinCustomFieldValues();
-    abstract String getBaseQueryWhereDeletedAtIsNotNull();
-    abstract String getEntityKey();
-    abstract RowMapper<T> getRowMapper();
+    //DO NOT end the base queries with a ';' they will be appended
+    protected abstract String getBaseQuery();
+    protected abstract String getBaseQueryJoinCustomFieldValues();
+    protected abstract String getBaseQueryWhereDeletedAtIsNotNull();
+    protected abstract String getEntityKey();
+    protected abstract RowMapper<T> getRowMapper();
 
-    abstract void dbValidation(T entity);
-    abstract Integer insertImplementation(T entity);
-    abstract void updateImplementation(T entity);
+    protected abstract void dbValidation(T entity);
+    protected abstract Integer insertImplementation(T entity);
+    protected abstract void updateImplementation(T entity);
 
     //public T insert (RequestDto requestDto) will need to implemented manually in each repository
 
