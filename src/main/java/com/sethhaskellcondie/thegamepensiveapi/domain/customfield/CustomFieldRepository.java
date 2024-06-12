@@ -66,7 +66,7 @@ public class CustomFieldRepository {
         }
     }
 
-    public CustomField getById(int id) throws ExceptionResourceNotFound {
+    public CustomField getById(int id) {
         final String sql = "SELECT * FROM custom_fields WHERE id = ? AND deleted = false";
         CustomField customField;
         try {
@@ -82,8 +82,8 @@ public class CustomFieldRepository {
         return customField;
     }
 
-    public CustomField getByIdIncludeDeleted(int id) throws ExceptionResourceNotFound {
-        final String sql = "SELECT * FROM custom_fields WHERE id = ?";
+    public CustomField getDeletedById(int id) {
+        final String sql = "SELECT * FROM custom_fields WHERE id = ? AND deleted = true";
         CustomField customField;
         try {
             customField = jdbcTemplate.queryForObject(

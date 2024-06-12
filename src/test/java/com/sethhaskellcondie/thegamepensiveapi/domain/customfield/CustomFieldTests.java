@@ -29,7 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -90,7 +89,6 @@ public class CustomFieldTests {
 
         final ResultActions result = mockMvc.perform(get(baseUrl));
 
-        result.andDo(print());
         result.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
@@ -112,6 +110,7 @@ public class CustomFieldTests {
     void patchCustomFieldName_HappyPath_CustomFieldReturned() throws Exception {
         final CustomField existingCustomField = resultToResponseDto(factory.postCustomField());
         final String newName = "patched name!";
+        final CustomField expectedCustomField = new CustomField(existingCustomField.id(), newName, existingCustomField.type(), existingCustomField.entityKey());
 
         final String json = """
                 {
@@ -126,14 +125,14 @@ public class CustomFieldTests {
         );
 
         result.andExpect(status().isOk());
-        validateCustomFieldResponseBody(result, resultToResponseDto(result));
+        validateCustomFieldResponseBody(result, expectedCustomField);
     }
 
     @Test
     void patchCustomFieldName_InvalidId_ReturnError() throws Exception {
         final String json = """
                 {
-                    "name": "validButMissingName"
+                    "name": "validName"
                 }
                 """;
         final ResultActions result = mockMvc.perform(
@@ -162,7 +161,7 @@ public class CustomFieldTests {
         );
 
         assertThrows(ExceptionResourceNotFound.class, () -> repository.getById(existingCustomField.id()));
-        CustomField deletedCustomField = repository.getByIdIncludeDeleted(existingCustomField.id());
+        CustomField deletedCustomField = repository.getDeletedById(existingCustomField.id());
         assertEquals(existingCustomField, deletedCustomField);
     }
 
