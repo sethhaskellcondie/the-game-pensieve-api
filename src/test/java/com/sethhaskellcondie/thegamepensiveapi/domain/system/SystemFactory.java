@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 
+@Deprecated
 public class SystemFactory implements EntityFactory<System, SystemRequestDto, SystemResponseDto> {
 
     private final String startsWith;

@@ -37,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Deprecated
 //WebMvcTest is a "slice test" used for testing controllers with a mock servlet for http requests
 @WebMvcTest(SystemController.class)
 public class SystemControllerTests {

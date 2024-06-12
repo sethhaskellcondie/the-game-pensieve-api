@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * <p>
  * JdbcTest would be the closest fit for this project, but I don't want to use an in memory database instead I decided to go with @Testcontainers
  */
+@Deprecated
 @JdbcTest
 @ActiveProfiles("test-container")
 public abstract class EntityRepositoryTests<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {

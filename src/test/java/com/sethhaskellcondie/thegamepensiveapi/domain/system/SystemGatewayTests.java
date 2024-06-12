@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 
 import static org.mockito.Mockito.mock;
 
+@Deprecated
 public class SystemGatewayTests extends EntityGatewayTests<System, SystemRequestDto, SystemResponseDto> {
 
     private String startsWith = "SuperConsole";

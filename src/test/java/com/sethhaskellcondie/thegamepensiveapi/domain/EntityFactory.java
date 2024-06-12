@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+@Deprecated
 public interface EntityFactory<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
     enum Generate {

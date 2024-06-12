@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 
 import static org.mockito.Mockito.mock;
 
+@Deprecated
 public class SystemServiceTests extends EntityServiceTests<System, SystemRequestDto, SystemResponseDto> {
     @Override
     protected void setupServiceMockRepository() {

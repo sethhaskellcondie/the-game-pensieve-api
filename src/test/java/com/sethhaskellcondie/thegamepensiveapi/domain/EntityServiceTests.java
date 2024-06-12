@@ -15,6 +15,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Deprecated
 public abstract class EntityServiceTests<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 
     protected EntityService<T, RequestDto, ResponseDto> service;

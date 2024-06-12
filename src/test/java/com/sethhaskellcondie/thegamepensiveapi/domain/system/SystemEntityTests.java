@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * <p>
  * This is also where Entity validation will be tested.
  */
+@Deprecated
 public class SystemEntityTests {
 
     @Test

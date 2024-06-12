@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 
+@Deprecated
 public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponseDto> {
 
     private final String startsWith;
