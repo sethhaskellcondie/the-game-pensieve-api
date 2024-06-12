@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-// @RestController tells spring that this class is a controller and may contain methods used to handle incoming requests
 @RestController
 public class HeartbeatController {
 
@@ -27,15 +26,11 @@ public class HeartbeatController {
         this.customFieldRepository = customFieldRepository;
     }
 
-    // @GetMapping is a composed annotation it acts as a shortcut for @RequestMapping(method = RequestMethod.GET)
-    // This takes a route as a parameter and when a request is routed here this method is called.
-    // example request is to localhost:8080/heartbeat
     @GetMapping("/v1/heartbeat")
     public String heartbeat() {
         return "thump thump";
     }
 
-    //This endpoint will only see the systems in my collection
     @Deprecated
     @PostMapping("/v1/seedMyCollection")
     public String seedMyCollectionData() throws ExceptionFailedDbValidation {
@@ -100,7 +95,6 @@ public class HeartbeatController {
         systemGateway.createNew("Wii", 7, false, wiiValues);
 
         // ----- seed toys -----
-
         List<CustomFieldValue> superMarioValues = List.of(setSuperMario, ranking2, brokenTrue);
         toyGateway.createNew("Super Mario", "Amiibo", superMarioValues);
         List<CustomFieldValue> superMarioValues2 = List.of(setSmashBros, ranking3, brokenFalse);
