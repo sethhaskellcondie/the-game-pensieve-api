@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 @ActiveProfiles("test-container")
 public class SqlFilterTests {
 
+    //TODO refactor this
+
     @Test
     void validateAndOrderFilters_TwoFiltersSixErrors_ThrowExceptionWithSixMessages() {
         final List<Filter> filters = List.of(

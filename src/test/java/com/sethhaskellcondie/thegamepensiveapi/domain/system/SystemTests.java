@@ -53,6 +53,8 @@ public class SystemTests {
         factory = new TestFactory(mockMvc);
     }
 
+    //TODO refactor this
+
     @Test
     void postSystem_ValidPayload_SystemCreatedAndReturned() throws Exception {
         final String expectedName = "NES 2";
