@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.Toy;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRepository;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionCustomFieldValue;
@@ -12,7 +13,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -34,13 +34,11 @@ public class CustomFieldValueRepositoryTests {
 
     //since the CustomFieldValueRepository is only accessed through an EntityRepository we will run the tests through the ToyRepository
     protected ToyRepository toyRepository;
-    protected CustomFieldValueRepository customFieldValueRepository;
     protected CustomFieldRepository customFieldRepository;
 
     @BeforeEach
     public void setUp() {
         toyRepository = new ToyRepository(jdbcTemplate);
-        customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
         customFieldRepository = new CustomFieldRepository(jdbcTemplate);
     }
 
@@ -105,6 +103,44 @@ public class CustomFieldValueRepositoryTests {
                 () -> assertEquals(textTypeCustomFieldName, returnedTextValue.getCustomFieldName()),
                 () -> assertEquals(CustomField.TYPE_TEXT, returnedTextValue.getCustomFieldType()),
                 () -> assertEquals(textTypeCustomFieldTextValue, returnedTextValue.getValue())
+        );
+
+        //use the setup for this test on another test
+        getCustomFieldValuesByEntityIdAndEntityKey_UsingGetWithFilters_CustomFieldValuesReturned(insertedToy, insertedToy.getCustomFieldValues());
+    }
+
+    public void getCustomFieldValuesByEntityIdAndEntityKey_UsingGetWithFilters_CustomFieldValuesReturned(Toy toyWithCustomFields, List<CustomFieldValue> expectedCustomFieldValues) {
+        Filter nameEqualsFilter = new Filter(toyWithCustomFields.getKey(), Filter.FIELD_TYPE_TEXT, "name", Filter.OPERATOR_EQUALS, toyWithCustomFields.getName(), false);
+        List<Toy> retrievedToys = toyRepository.getWithFilters(List.of(nameEqualsFilter));
+
+        assertEquals(1, retrievedToys.size(), "Unexpected number of results after performing a getWithFilters()");
+        Toy retrievedToy = retrievedToys.get(0);
+
+        assertEquals(3, expectedCustomFieldValues.size(), "Unexpected number of expected customFieldValues before performing getWithFilters() test.");
+        final CustomFieldValue expectedNumberValue = expectedCustomFieldValues.get(0);
+        final CustomFieldValue expectedBooleanValue = expectedCustomFieldValues.get(1);
+        final CustomFieldValue expectedTextValue = expectedCustomFieldValues.get(2);
+        //The custom fields should be returned in the same order they were saved
+        final CustomFieldValue returnedNumberValue = retrievedToy.getCustomFieldValues().get(0);
+        final CustomFieldValue returnedBooleanValue = retrievedToy.getCustomFieldValues().get(1);
+        final CustomFieldValue returnedTextValue = retrievedToy.getCustomFieldValues().get(2);
+
+        assertAll(
+                "CustomFieldValues retrieved on an entity using getWithFilters() did not matched the expected result",
+                () -> assertEquals(expectedNumberValue.getCustomFieldId(), returnedNumberValue.getCustomFieldId()),
+                () -> assertEquals(expectedNumberValue.getCustomFieldName(), returnedNumberValue.getCustomFieldName()),
+                () -> assertEquals(expectedNumberValue.getCustomFieldType(), returnedNumberValue.getCustomFieldType()),
+                () -> assertEquals(expectedNumberValue.getValue(), returnedNumberValue.getValue()),
+
+                () -> assertEquals(expectedBooleanValue.getCustomFieldId(), returnedBooleanValue.getCustomFieldId()),
+                () -> assertEquals(expectedBooleanValue.getCustomFieldName(), returnedBooleanValue.getCustomFieldName()),
+                () -> assertEquals(expectedBooleanValue.getCustomFieldType(), returnedBooleanValue.getCustomFieldType()),
+                () -> assertEquals(expectedBooleanValue.getValue(), returnedBooleanValue.getValue()),
+
+                () -> assertEquals(expectedTextValue.getCustomFieldId(), returnedTextValue.getCustomFieldId()),
+                () -> assertEquals(expectedTextValue.getCustomFieldName(), returnedTextValue.getCustomFieldName()),
+                () -> assertEquals(expectedTextValue.getCustomFieldType(), returnedTextValue.getCustomFieldType()),
+                () -> assertEquals(expectedTextValue.getValue(), returnedTextValue.getValue())
         );
     }
 
@@ -175,8 +211,10 @@ public class CustomFieldValueRepositoryTests {
                 () -> assertEquals(customFieldValueText, returnedCustomFieldValue.getValue())
         );
 
-        //use the setup from this test on the next test
+        //use the setup for this test on other tests
         upsertValuesOnUpdate_ExistingCustomFieldAndExistingValue_UpdateCustomFieldAndValue(insertedToy, retrievedUpdatedCustomField, returnedCustomFieldValue);
+        getCustomFieldValuesByEntityIdAndEntityKey_UsingGetById_CustomFieldValuesReturned(insertedToy, insertedToy.getCustomFieldValues());
+        getCustomFieldValuesByEntityIdAndEntityKey_UsingGetDeletedById_CustomFieldValuesReturned(insertedToy, insertedToy.getCustomFieldValues());
     }
 
     public void upsertValuesOnUpdate_ExistingCustomFieldAndExistingValue_UpdateCustomFieldAndValue(Toy existingToy, CustomField existingCustomField, CustomFieldValue existingCustomFieldValue) {
@@ -185,21 +223,21 @@ public class CustomFieldValueRepositoryTests {
         final CustomFieldValue updatedCustomFieldValue = new CustomFieldValue(existingCustomField.id(), updatedCustomFieldName, existingCustomField.type(), updatedCustomFieldValueText);
         existingToy.setCustomFieldValues(List.of(updatedCustomFieldValue));
 
-        toyRepository.update(existingToy);
+        final Toy updatedToy = toyRepository.update(existingToy);
 
         final CustomField retrievedCustomField = customFieldRepository.getById(existingCustomField.id());
-        final List<CustomFieldValue> retrievedCustomFieldValues = customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(existingToy.getId(), existingToy.getKey());
-        assertEquals(1, retrievedCustomFieldValues.size(), "More or less than 1 CustomFieldValue was retrieved from the database on after an entity insert with 1 CustomFieldValue.");
+        final List<CustomFieldValue> retrievedCustomFieldValues = updatedToy.getCustomFieldValues();
+        assertEquals(1, retrievedCustomFieldValues.size(), "More or less than 1 CustomFieldValue was returned on an entity after an entity update with 1 CustomFieldValue.");
         final CustomFieldValue retrievedCustomFieldValue = retrievedCustomFieldValues.get(0);
 
         assertAll(
-                "The previously existing CustomField was not updated properly on entity update.",
+                "The previously existing CustomField was not updated properly after an entity update.",
                 () -> assertEquals(updatedCustomFieldName, retrievedCustomField.name()),
                 () -> assertEquals(existingCustomField.entityKey(), retrievedCustomField.entityKey()),
                 () -> assertEquals(existingCustomField.type(), retrievedCustomField.type())
         );
         assertAll(
-                "The previously existing CustomFieldValue was not updated properly on entity update.",
+                "The previously existing CustomFieldValue was not updated properly after an entity update.",
                 () -> assertEquals(existingCustomFieldValue.getCustomFieldId(), retrievedCustomFieldValue.getCustomFieldId()),
                 () -> assertEquals(updatedCustomFieldName, retrievedCustomFieldValue.getCustomFieldName()),
                 () -> assertEquals(existingCustomFieldValue.getCustomFieldType(), retrievedCustomFieldValue.getCustomFieldType()),
@@ -207,36 +245,36 @@ public class CustomFieldValueRepositoryTests {
         );
     }
 
-    //getCustomFieldsByEntityId_NoFieldsPresent_EmptyListReturned()
-    @Test
-    public void getCustomFieldsByEntityId_CustomFieldsExist_ListReturned() {
-        //TODO update this
-        CustomFieldValue releaseYearCustomField = new CustomFieldValue(0, "Release Year", CustomField.TYPE_NUMBER, "1991");
-        CustomFieldValue publisherCustomField = new CustomFieldValue(0, "Publisher", CustomField.TYPE_TEXT, "Nintendo");
-        CustomFieldValue ownedCustomField = new CustomFieldValue(0, "Owned", CustomField.TYPE_BOOLEAN, "true");
-        List<CustomFieldValue> customFields = new ArrayList<>();
-        customFields.add(releaseYearCustomField);
-        customFields.add(publisherCustomField);
-        customFields.add(ownedCustomField);
-        customFieldValueRepository.upsertValues(customFields, 1, "system");
+    public void getCustomFieldValuesByEntityIdAndEntityKey_UsingGetById_CustomFieldValuesReturned(Toy toyWithCustomFieldValues, List<CustomFieldValue> expectedCustomFieldValues) {
+        Toy retrievedToy = toyRepository.getById(toyWithCustomFieldValues.getId());
 
-        List<CustomFieldValue> returnedCustomFields = customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(1, "system");
+        assertEquals(1, expectedCustomFieldValues.size(), "Unexpected number of expected customFieldValues before performing getById() test.");
+        final CustomFieldValue expectedCustomFieldValue = expectedCustomFieldValues.get(0);
+        final CustomFieldValue returnedCustomFieldValue = retrievedToy.getCustomFieldValues().get(0);
 
-        assertEquals(3, returnedCustomFields.size());
-        //The order is not required, but we are testing the order here
-        validateReturnedCustomFields(releaseYearCustomField, returnedCustomFields.get(0));
-        validateReturnedCustomFields(publisherCustomField, returnedCustomFields.get(1));
-        validateReturnedCustomFields(ownedCustomField, returnedCustomFields.get(2));
+        assertAll(
+                "CustomFieldValues retrieved on an entity using getWithFilters() did not matched the expected result",
+                () -> assertEquals(expectedCustomFieldValue.getCustomFieldId(), returnedCustomFieldValue.getCustomFieldId()),
+                () -> assertEquals(expectedCustomFieldValue.getCustomFieldName(), returnedCustomFieldValue.getCustomFieldName()),
+                () -> assertEquals(expectedCustomFieldValue.getCustomFieldType(), returnedCustomFieldValue.getCustomFieldType()),
+                () -> assertEquals(expectedCustomFieldValue.getValue(), returnedCustomFieldValue.getValue())
+        );
     }
 
-    private void validateReturnedCustomFields(CustomFieldValue expected, CustomFieldValue actual) {
-        //TODO update this
+    public void getCustomFieldValuesByEntityIdAndEntityKey_UsingGetDeletedById_CustomFieldValuesReturned(Toy toyToBeDeleted, List<CustomFieldValue> expectedCustomFieldValues) {
+        toyRepository.deleteById(toyToBeDeleted.getId());
+        Toy deletedToy = toyRepository.getDeletedById(toyToBeDeleted.getId());
+
+        assertEquals(1, expectedCustomFieldValues.size(), "Unexpected number of expected customFieldValues before performing getDeletedById() test.");
+        final CustomFieldValue expectedCustomFieldValue = expectedCustomFieldValues.get(0);
+        final CustomFieldValue returnedCustomFieldValue = deletedToy.getCustomFieldValues().get(0);
+
         assertAll(
-                "The returned custom field value were malformed.",
-                () -> assertEquals(expected.getCustomFieldId(), actual.getCustomFieldId()),
-                () -> assertEquals(expected.getCustomFieldName(), actual.getCustomFieldName()),
-                () -> assertEquals(expected.getCustomFieldType(), actual.getCustomFieldType()),
-                () -> assertEquals(expected.getValue(), actual.getValue())
+                "CustomFieldValues retrieved on an entity using getWithFilters() did not matched the expected result",
+                () -> assertEquals(expectedCustomFieldValue.getCustomFieldId(), returnedCustomFieldValue.getCustomFieldId()),
+                () -> assertEquals(expectedCustomFieldValue.getCustomFieldName(), returnedCustomFieldValue.getCustomFieldName()),
+                () -> assertEquals(expectedCustomFieldValue.getCustomFieldType(), returnedCustomFieldValue.getCustomFieldType()),
+                () -> assertEquals(expectedCustomFieldValue.getValue(), returnedCustomFieldValue.getValue())
         );
     }
 
