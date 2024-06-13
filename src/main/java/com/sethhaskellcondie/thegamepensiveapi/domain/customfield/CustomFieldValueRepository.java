@@ -162,6 +162,7 @@ public class CustomFieldValueRepository {
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
             }
             default -> {
+                //This is just a sanity check the type will have been matched against the found CustomField earlier in the process
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: unknown Custom Field Type provided: " + customFieldValue.getCustomFieldType() +
                         ". Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]")));
             }
