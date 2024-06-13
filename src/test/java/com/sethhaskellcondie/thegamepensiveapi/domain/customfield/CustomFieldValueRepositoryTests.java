@@ -4,9 +4,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.Toy;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRepository;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionCustomFieldValue;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ActiveProfiles("test-container")
 public class CustomFieldValueRepositoryTests {
 
-    //TODO refactor this to be tested through an EntityRepository instead of calling the custom field repository directly
-
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
@@ -50,41 +46,65 @@ public class CustomFieldValueRepositoryTests {
 
     @Test
     public void upsertValuesOnInsert_NewCustomFieldsNewValues_NewCustomFieldAndValueCreated() {
-        final int customFieldId1 = 0; //This will create a new custom field
-        final String customFieldName1 = "Release Date";
-        final String customFieldValue1 = "1991";
-        final CustomFieldValue newValue1 = new CustomFieldValue(customFieldId1, customFieldName1, CustomField.TYPE_NUMBER, customFieldValue1);
-        final int customFieldId2 = 0; //This will create a new custom field
-        final String customFieldName2 = "Release Date";
-        final String customFieldValue2 = "1991";
-        final CustomFieldValue newValue2 = new CustomFieldValue(customFieldId2, customFieldName2, CustomField.TYPE_NUMBER, customFieldValue2);
-        final Toy newToy = createNewToyWithCustomFields(List.of(newValue1, newValue2));
+        final int numberTypeCustomFieldId = 0; //Using an ID that is less than 1 will prompt the creation of a new CustomField
+        final String numberTypeCustomFieldName = "Release Date";
+        final String numberTypeCustomFieldNumberValue = "1991";
+        final CustomFieldValue numberTypeCustomFieldValue = new CustomFieldValue(numberTypeCustomFieldId, numberTypeCustomFieldName, CustomField.TYPE_NUMBER, numberTypeCustomFieldNumberValue);
+        final int booleanTypeCustomFieldId = 0;
+        final String booleanTypeCustomFieldName = "Favorite";
+        final String booleanTypeCustomFieldTextValue = "true";
+        final CustomFieldValue booleanTypeCustomField = new CustomFieldValue(booleanTypeCustomFieldId, booleanTypeCustomFieldName, CustomField.TYPE_BOOLEAN, booleanTypeCustomFieldTextValue);
+        final int textTypeCustomFieldId = 0;
+        final String textTypeCustomFieldName = "ToyStore";
+        final String textTypeCustomFieldTextValue = "ToysRUs";
+        final CustomFieldValue textTypeCustomField = new CustomFieldValue(textTypeCustomFieldId, textTypeCustomFieldName, CustomField.TYPE_TEXT, textTypeCustomFieldTextValue);
+
+        final Toy newToy = createNewToyWithCustomFields(List.of(numberTypeCustomFieldValue, booleanTypeCustomField, textTypeCustomField));
 
         final Toy insertedToy = toyRepository.insert(newToy);
 
-        final CustomFieldValue returnedCustomFieldValue1 = insertedToy.getCustomFieldValues().get(0);
-        final CustomFieldValue returnedCustomFieldValue2 = insertedToy.getCustomFieldValues().get(1);
+        assertEquals(3, insertedToy.getCustomFieldValues().size(), "The wrong number of CustomFieldValues returned on new entity insert.");
+        //The custom fields should be returned in the same order they were saved
+        final CustomFieldValue returnedNumberValue = insertedToy.getCustomFieldValues().get(0);
+        final CustomFieldValue returnedBooleanValue = insertedToy.getCustomFieldValues().get(1);
+        final CustomFieldValue returnedTextValue = insertedToy.getCustomFieldValues().get(2);
 
-        CustomField returnedCustomField1 = customFieldRepository.getById(returnedCustomFieldValue1.getCustomFieldId());
-        CustomField returnedCustomField2 = customFieldRepository.getById(returnedCustomFieldValue2.getCustomFieldId());
+        CustomField retrievedNumberField = customFieldRepository.getById(returnedNumberValue.getCustomFieldId());
+        CustomField retrievedBooleanField = customFieldRepository.getById(returnedBooleanValue.getCustomFieldId());
+        CustomField retrievedTextField = customFieldRepository.getById(returnedTextValue.getCustomFieldId());
         assertAll(
-                "Newly created CustomFields and CustomFieldValues were not created and returned as expected.",
-                () -> assertNotEquals(customFieldId1, returnedCustomField1.id()),
-                () -> assertEquals(customFieldName1, returnedCustomField1.name()),
-                () -> assertEquals(CustomField.TYPE_NUMBER, returnedCustomField1.type()),
-                () -> assertEquals(Keychain.TOY_KEY, returnedCustomField1.entityKey()),
-                () -> assertEquals(returnedCustomField1.id(), returnedCustomFieldValue1.getCustomFieldId()),
-                () -> assertEquals(customFieldName1, returnedCustomFieldValue1.getCustomFieldName()),
-                () -> assertEquals(CustomField.TYPE_NUMBER, returnedCustomFieldValue1.getCustomFieldType()),
-                () -> assertEquals(customFieldValue1, returnedCustomFieldValue1.getValue()),
-                () -> assertNotEquals(customFieldId2, returnedCustomField2.id()),
-                () -> assertEquals(customFieldName2, returnedCustomField2.name()),
-                () -> assertEquals(CustomField.TYPE_NUMBER, returnedCustomField2.type()),
-                () -> assertEquals(Keychain.TOY_KEY, returnedCustomField2.entityKey()),
-                () -> assertEquals(returnedCustomField2.id(), returnedCustomFieldValue2.getCustomFieldId()),
-                () -> assertEquals(customFieldName2, returnedCustomFieldValue2.getCustomFieldName()),
-                () -> assertEquals(CustomField.TYPE_NUMBER, returnedCustomFieldValue2.getCustomFieldType()),
-                () -> assertEquals(customFieldValue2, returnedCustomFieldValue2.getValue())
+                "Newly created CustomFields were not saved to the database correctly after a new entity insert.",
+                () -> assertNotEquals(numberTypeCustomFieldId, retrievedNumberField.id()),
+                () -> assertEquals(numberTypeCustomFieldName, retrievedNumberField.name()),
+                () -> assertEquals(CustomField.TYPE_NUMBER, retrievedNumberField.type()),
+                () -> assertEquals(insertedToy.getKey(), retrievedNumberField.entityKey()),
+
+                () -> assertNotEquals(booleanTypeCustomFieldId, retrievedBooleanField.id()),
+                () -> assertEquals(booleanTypeCustomFieldName, retrievedBooleanField.name()),
+                () -> assertEquals(CustomField.TYPE_BOOLEAN, retrievedBooleanField.type()),
+                () -> assertEquals(insertedToy.getKey(), retrievedBooleanField.entityKey()),
+
+                () -> assertNotEquals(textTypeCustomFieldId, retrievedTextField.id()),
+                () -> assertEquals(textTypeCustomFieldName, retrievedTextField.name()),
+                () -> assertEquals(CustomField.TYPE_TEXT, retrievedTextField.type()),
+                () -> assertEquals(insertedToy.getKey(), retrievedTextField.entityKey())
+        );
+        assertAll(
+                "Newly created CustomFieldValues were not returned on the entity correctly after a new entity insert.",
+                () -> assertEquals(retrievedNumberField.id(), returnedNumberValue.getCustomFieldId()),
+                () -> assertEquals(numberTypeCustomFieldName, returnedNumberValue.getCustomFieldName()),
+                () -> assertEquals(CustomField.TYPE_NUMBER, returnedNumberValue.getCustomFieldType()),
+                () -> assertEquals(numberTypeCustomFieldNumberValue, returnedNumberValue.getValue()),
+
+                () -> assertEquals(retrievedBooleanField.id(), returnedBooleanValue.getCustomFieldId()),
+                () -> assertEquals(booleanTypeCustomFieldName, returnedBooleanValue.getCustomFieldName()),
+                () -> assertEquals(CustomField.TYPE_BOOLEAN, returnedBooleanValue.getCustomFieldType()),
+                () -> assertEquals(booleanTypeCustomFieldTextValue, returnedBooleanValue.getValue()),
+
+                () -> assertEquals(retrievedTextField.id(), returnedTextValue.getCustomFieldId()),
+                () -> assertEquals(textTypeCustomFieldName, returnedTextValue.getCustomFieldName()),
+                () -> assertEquals(CustomField.TYPE_TEXT, returnedTextValue.getCustomFieldType()),
+                () -> assertEquals(textTypeCustomFieldTextValue, returnedTextValue.getValue())
         );
     }
 
@@ -127,65 +147,63 @@ public class CustomFieldValueRepositoryTests {
         assertThrows(ExceptionMalformedEntity.class, () -> toyRepository.insert(newToy));
     }
 
-
-    //upsertValues_ExistingCustomFieldNewNameNewValue_CustomFieldUpdatedValueCreated()
     @Test
-    public void upsertValues_ExistingCustomFieldNewValue_CustomFieldUpdatedNewValueCreated() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        //TODO update this
-        final String newCustomFieldName = "NewCustomFieldName";
-        final String valueText = "valueText";
-        final CustomFieldRequestDto customFieldRequestDto = new CustomFieldRequestDto("OldCustomFieldName", "text", "system");
-        final CustomField customField = customFieldRepository.insertCustomField(customFieldRequestDto);
-        final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText);
+    public void upsertValuesOnInsert_ExistingCustomFieldUpdatedNameOnNewValue_CustomFieldUpdatedValueCreated() {
+        final String updatedCustomFieldName = "UpdatedName";
+        final String customFieldValueText = "Valid Text";
+        final CustomField existingCustomField = customFieldRepository.insertCustomField("Old Custom Field Name", CustomField.TYPE_TEXT, Keychain.TOY_KEY);
+        final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), updatedCustomFieldName, CustomField.TYPE_TEXT, customFieldValueText);
+        final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
-        final List<CustomFieldValue> insertedValues = customFieldValueRepository.upsertValues(List.of(value), 1, "system");
-        final CustomFieldValue insertedValue = insertedValues.get(0);
+        final Toy insertedToy = toyRepository.insert(newToy);
 
-        CustomField updatedCustomField = customFieldRepository.getById(customField.id());
+        final CustomField retrievedUpdatedCustomField = customFieldRepository.getById(existingCustomField.id());
+        assertEquals(1, insertedToy.getCustomFieldValues().size(), "More or less than 1 CustomFieldValue was returned on an entity insert with 1 CustomFieldValue.");
+        final CustomFieldValue returnedCustomFieldValue = insertedToy.getCustomFieldValues().get(0);
+
         assertAll(
-                "The existing custom field was not updated properly.",
-                () -> assertEquals(customField.id(), updatedCustomField.id()),
-                () -> assertEquals(newCustomFieldName, updatedCustomField.name()),
-                () -> assertEquals(customField.entityKey(), updatedCustomField.entityKey()),
-                () -> assertEquals(customField.type(), updatedCustomField.type())
+                "The previously existing CustomField wasn't updated properly after a new entity insert.",
+                () -> assertEquals(updatedCustomFieldName, retrievedUpdatedCustomField.name()),
+                () -> assertEquals(CustomField.TYPE_TEXT, retrievedUpdatedCustomField.type()),
+                () -> assertEquals(insertedToy.getKey(), retrievedUpdatedCustomField.entityKey())
         );
         assertAll(
-                "The inserted custom field value was not returned properly",
-                () -> assertEquals(updatedCustomField.id(), insertedValue.getCustomFieldId()),
-                () -> assertEquals(updatedCustomField.name(), insertedValue.getCustomFieldName()),
-                () -> assertEquals(updatedCustomField.type(), insertedValue.getCustomFieldType()),
-                () -> assertEquals(valueText, insertedValue.getValue())
+                "The newly created CustomFieldValue wasn't created and returned properly after a new entity insert.",
+                () -> assertEquals(existingCustomField.id(), returnedCustomFieldValue.getCustomFieldId()),
+                () -> assertEquals(updatedCustomFieldName, returnedCustomFieldValue.getCustomFieldName()),
+                () -> assertEquals(CustomField.TYPE_TEXT, returnedCustomFieldValue.getCustomFieldType()),
+                () -> assertEquals(customFieldValueText, returnedCustomFieldValue.getValue())
         );
+
+        //use the setup from this test on the next test
+        upsertValuesOnUpdate_ExistingCustomFieldAndExistingValue_UpdateCustomFieldAndValue(insertedToy, retrievedUpdatedCustomField, returnedCustomFieldValue);
     }
 
-    @Test
-    public void upsertValues_ExistingCustomFieldAndExistingValue_UpdateCustomFieldAndValue() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        //TODO update this
-        final String newCustomFieldName = "NewCustomFieldName";
-        final String valueText = "valueText";
-        final CustomFieldRequestDto customFieldRequestDto = new CustomFieldRequestDto("OldCustomFieldName", "text", "system");
-        final CustomField customField = customFieldRepository.insertCustomField(customFieldRequestDto);
-        final CustomFieldValue value = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), valueText);
-        customFieldValueRepository.upsertValues(List.of(value), 1, "system");
-        final String newValueText = "NewValueText";
-        final CustomFieldValue valueToOverwrite = new CustomFieldValue(customField.id(), newCustomFieldName, customField.type(), newValueText);
-        final List<CustomFieldValue> overwrittenValues = customFieldValueRepository.upsertValues(List.of(valueToOverwrite), 1, "system");
-        final CustomFieldValue overwrittenValue = overwrittenValues.get(0);
+    public void upsertValuesOnUpdate_ExistingCustomFieldAndExistingValue_UpdateCustomFieldAndValue(Toy existingToy, CustomField existingCustomField, CustomFieldValue existingCustomFieldValue) {
+        final String updatedCustomFieldName = "UpdatedAgain!";
+        final String updatedCustomFieldValueText = "Still Valid Text";
+        final CustomFieldValue updatedCustomFieldValue = new CustomFieldValue(existingCustomField.id(), updatedCustomFieldName, existingCustomField.type(), updatedCustomFieldValueText);
+        existingToy.setCustomFieldValues(List.of(updatedCustomFieldValue));
 
-        CustomField updatedCustomField = customFieldRepository.getById(customField.id());
+        toyRepository.update(existingToy);
+
+        final CustomField retrievedCustomField = customFieldRepository.getById(existingCustomField.id());
+        final List<CustomFieldValue> retrievedCustomFieldValues = customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(existingToy.getId(), existingToy.getKey());
+        assertEquals(1, retrievedCustomFieldValues.size(), "More or less than 1 CustomFieldValue was retrieved from the database on after an entity insert with 1 CustomFieldValue.");
+        final CustomFieldValue retrievedCustomFieldValue = retrievedCustomFieldValues.get(0);
+
         assertAll(
-                "The existing custom field was not updated properly.",
-                () -> assertEquals(customField.id(), updatedCustomField.id()),
-                () -> assertEquals(newCustomFieldName, updatedCustomField.name()),
-                () -> assertEquals(customField.entityKey(), updatedCustomField.entityKey()),
-                () -> assertEquals(customField.type(), updatedCustomField.type())
+                "The previously existing CustomField was not updated properly on entity update.",
+                () -> assertEquals(updatedCustomFieldName, retrievedCustomField.name()),
+                () -> assertEquals(existingCustomField.entityKey(), retrievedCustomField.entityKey()),
+                () -> assertEquals(existingCustomField.type(), retrievedCustomField.type())
         );
         assertAll(
-                "The inserted custom field value was not returned properly",
-                () -> assertEquals(updatedCustomField.id(), overwrittenValue.getCustomFieldId()),
-                () -> assertEquals(updatedCustomField.name(), overwrittenValue.getCustomFieldName()),
-                () -> assertEquals(updatedCustomField.type(), overwrittenValue.getCustomFieldType()),
-                () -> assertEquals(newValueText, overwrittenValue.getValue())
+                "The previously existing CustomFieldValue was not updated properly on entity update.",
+                () -> assertEquals(existingCustomFieldValue.getCustomFieldId(), retrievedCustomFieldValue.getCustomFieldId()),
+                () -> assertEquals(updatedCustomFieldName, retrievedCustomFieldValue.getCustomFieldName()),
+                () -> assertEquals(existingCustomFieldValue.getCustomFieldType(), retrievedCustomFieldValue.getCustomFieldType()),
+                () -> assertEquals(updatedCustomFieldValueText, retrievedCustomFieldValue.getValue())
         );
     }
 

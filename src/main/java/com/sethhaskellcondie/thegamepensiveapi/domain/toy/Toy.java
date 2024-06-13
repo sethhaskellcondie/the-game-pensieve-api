@@ -49,7 +49,7 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 
     @Override
-    protected String getKey() {
+    public String getKey() {
         return Keychain.TOY_KEY;
     }
 

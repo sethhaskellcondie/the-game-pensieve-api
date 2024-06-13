@@ -84,7 +84,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
     }
 
     @Override
-    protected String getKey() {
+    public String getKey() {
         return Keychain.SYSTEM_KEY;
     }
 

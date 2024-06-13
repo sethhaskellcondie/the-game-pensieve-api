@@ -92,7 +92,7 @@ public class CustomFieldValueRepository {
         return getDaoByCustomFieldIdAndEntityId(valueDao.customFieldId(), valueDao.entityId(), true);
     }
 
-    //it's not an upsert because we are not updating then inserting instead we are inserting or fetching, and we want to error on the fetch.
+    //it's not an upsert because we are not checking if it exists first, instead we are inserting first then failing if retrieving the existing entry fails
     private CustomField insertOrUpdateNameOfCustomField(CustomFieldValue value, String entityKey) {
         if (value.getCustomFieldId() <= 0) {
             try {

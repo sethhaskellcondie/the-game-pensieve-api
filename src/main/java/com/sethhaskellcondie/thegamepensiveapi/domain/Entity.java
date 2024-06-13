@@ -84,7 +84,7 @@ public abstract class Entity<RequestDto, ResponseDto> {
      * Every Entity will have a key that is a constant form of the name of the entity.
      * This function will return the proper key from the Keychain.
      */
-    protected abstract String getKey();
+    public abstract String getKey();
 
     @Override
     public boolean equals(Object obj) {
