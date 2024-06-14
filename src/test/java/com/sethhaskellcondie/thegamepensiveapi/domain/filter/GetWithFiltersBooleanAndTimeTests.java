@@ -41,7 +41,7 @@ public class GetWithFiltersBooleanAndTimeTests {
     }
 
     @Test
-    void testBooleanFilters() {
+    void testBooleanAndTimeFilters() {
         insertSystemData("NES", 3, false);
         insertSystemData("SNES", 4, false);
         insertSystemData("Game Boy", 4, true);
@@ -51,6 +51,14 @@ public class GetWithFiltersBooleanAndTimeTests {
         testBooleanEqualsFalse(2);
         testSinceFilter(3);
         testBeforeFilter(3);
+    }
+
+    void testNoFilters(int expectedResults) {
+        final List<Filter> filters = List.of();
+
+        final List<System> results = systemRepository.getWithFilters(filters);
+
+        assertEquals(expectedResults, results.size(), "Wrong number of results returned when testing with no filters on the Boolean and Time data.");
     }
 
     void testBooleanEqualsTrue(int expectedResults) {
@@ -71,14 +79,6 @@ public class GetWithFiltersBooleanAndTimeTests {
         final List<System> results = systemRepository.getWithFilters(filters);
 
         assertEquals(expectedResults, results.size(), "Wrong number of results returned when testing boolean filter equals false.");
-    }
-
-    void testNoFilters(int expectedResults) {
-        final List<Filter> filters = List.of();
-
-        final List<System> results = systemRepository.getWithFilters(filters);
-
-        assertEquals(expectedResults, results.size(), "Wrong number of results returned when results with no filters.");
     }
 
     void testSinceFilter(int expectedResults) {

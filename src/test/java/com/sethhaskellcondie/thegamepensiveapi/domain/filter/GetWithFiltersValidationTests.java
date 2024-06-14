@@ -120,4 +120,6 @@ public class GetWithFiltersValidationTests {
 
         assertEquals(1, exception.getMessages().size(), "Unexpected errors returned when testing that an offset filter must include one limit filter.");
     }
+
+    //Validating the order of the filters is done in GetWithFiltersTextPaginationAndSortTests.java in the testOrderFilters()
 }
