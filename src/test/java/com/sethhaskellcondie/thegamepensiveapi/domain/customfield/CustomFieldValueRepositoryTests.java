@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Since the custom field values belong to entities, and they behave the same way for every entity
  * the testing strategy is going to be up close unit tests for the custom field value repository.
  * Then test the generic compatibility of entities with custom field on the entity api tests.
+ * <p>
+ * This test is testing the public functions on the CustomFieldValueRepository upsertValues() and getCustomFieldValuesByEntityIdAndEntityKey()
  */
 @JdbcTest
 @ActiveProfiles("test-container")
@@ -156,7 +158,7 @@ public class CustomFieldValueRepositoryTests {
     @Test
     public void upsertValuesOnInsert_ExistingCustomFieldTypeMismatch_ExceptionThrown() {
         final String customFieldName = "Custom!";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_TEXT, Keychain.TOY_KEY);
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_TEXT, Keychain.TOY_KEY); //TYPE_TEXT should match TYPE_BOOLEAN in the value
         final CustomFieldValue newValueTypeMismatch = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_BOOLEAN, "true");
         final Toy newToy = createNewToyWithCustomFields(List.of(newValueTypeMismatch));
 
@@ -167,7 +169,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValuesOnInsert_ExistingCustomFieldNewInvalidNumberValue_ExceptionThrown() {
         final String customFieldName = "Custom Whole Number!";
         final CustomField existingCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_NUMBER, Keychain.TOY_KEY);
-        final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_NUMBER, "InvalidNumber");
+        final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_NUMBER, "InvalidNumber"); //the value should be able to convert to an int.
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
         assertThrows(ExceptionMalformedEntity.class, () -> toyRepository.insert(newToy));
@@ -177,7 +179,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValuesOnInsert_ExistingCustomFieldNewInvalidBooleanValue_ExceptionThrown() {
         final String customFieldName = "Custom Boolean!";
         final CustomField existingCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.TOY_KEY);
-        final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_BOOLEAN, "InvalidBoolean");
+        final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_BOOLEAN, "InvalidBoolean"); //the value should be 'true' or 'false'
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
         assertThrows(ExceptionMalformedEntity.class, () -> toyRepository.insert(newToy));

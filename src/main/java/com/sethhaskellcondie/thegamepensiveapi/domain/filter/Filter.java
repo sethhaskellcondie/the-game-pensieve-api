@@ -161,7 +161,7 @@ public class Filter {
     }
 
     // TODO fix checkstyle error
-    public static List<Filter> validateAndOrderFilters(List<Filter> filters) {
+    public static List<Filter> validateAndOrderFilters(List<Filter> filters) throws ExceptionInvalidFilter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
@@ -182,7 +182,7 @@ public class Filter {
             }
             for (String blacklistedWord : getBlacklistedWords()) {
                 if (filter.getOperand().contains(blacklistedWord)) {
-                    exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in filters.");
+                    exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in any filters.");
                 }
             }
 
@@ -237,7 +237,7 @@ public class Filter {
     }
 
     // This was originally one function with validateAndOrderFilters() but it was very long and hard to read, it was split up to improve readability
-    private static List<Filter> orderFilters(List<Filter> filters, ExceptionInvalidFilter exceptionInvalidFilter) {
+    private static List<Filter> orderFilters(List<Filter> filters, ExceptionInvalidFilter exceptionInvalidFilter) throws ExceptionInvalidFilter {
         List<Filter> whereFilters = new ArrayList<>();
         Filter orderByFilter = null;
         Filter limitFilter = null;
