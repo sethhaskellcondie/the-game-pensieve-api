@@ -231,7 +231,7 @@ public class Filter {
         try {
             Timestamp.valueOf(filter.operand);
         } catch (IllegalArgumentException exception) {
-            exceptionInvalidFilter.addException("Operands for Time filters must be able to be formatted to yyyy-mm-dd hh:mm:ss format. Example: 2024-05-17 00:00:00");
+            exceptionInvalidFilter.addException("Operands for Time filters must be able to be formatted to YYYY-MM-DD HH24:MI:SS (24 hour) format. Example: 2024-05-17 00:00:00");
         }
         return exceptionInvalidFilter;
     }
@@ -336,10 +336,11 @@ public class Filter {
                         whereStatements.add(" ORDER BY " + tableAlias + "." + filter.getField() + " DESC");
                     }
                     case OPERATOR_SINCE -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " >= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
+                        // https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-to_timestamp/
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " >= TO_TIMESTAMP( ? , 'YYYY-MM-DD HH24:MI:SS')");
                     }
                     case OPERATOR_BEFORE -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <= TO_TIMESTAMP( ? , 'yyyy-mm-dd hh:mm:ss')");
+                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <= TO_TIMESTAMP( ? , 'YYYY-MM-DD HH24:MI:SS')");
                     }
                     case OPERATOR_LIMIT -> {
                         whereStatements.add(" LIMIT ?");
