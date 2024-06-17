@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
@@ -76,9 +77,9 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     @Override
     public List<T> getWithFilters(List<Filter> filters) {
-        filters = Filter.validateAndOrderFilters(filters);
-        final List<String> whereStatements = Filter.formatWhereStatements(filters);
-        final List<Object> operands = Filter.formatOperands(filters);
+        filters = FilterService.validateAndOrderFilters(filters);
+        final List<String> whereStatements = FilterService.formatWhereStatements(filters);
+        final List<Object> operands = FilterService.formatOperands(filters);
         String sql = baseQuery + String.join(" ", whereStatements);
         if (filters.stream().anyMatch(Filter::isCustom)) {
             sql = baseQueryJoinCustomFieldValues + String.join(" ", whereStatements);

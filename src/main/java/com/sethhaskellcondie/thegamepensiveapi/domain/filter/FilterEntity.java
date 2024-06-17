@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class FilterEntity {
 
-    public static Map<String, String> getFilterFieldsByKey(String key) {
+    public static Map<String, String> getNonCustomFieldFiltersByKey(String key) {
         //Using a LinkedHashMap to preserve the order of the elements as they are added to the Map.
         Map<String, String> fields = new LinkedHashMap<>();
         switch (key) {
