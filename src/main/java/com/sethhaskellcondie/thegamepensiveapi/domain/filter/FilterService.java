@@ -181,22 +181,13 @@ public class FilterService {
 
         for (Filter filter : filters) {
             Map<String, String> fields = FilterEntity.getNonCustomFieldFiltersByKey(filter.getKey());
-            if (!filter.isCustom()) {
-                if (!fields.containsKey(filter.getField())) {
-                    exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
-                }
-                String fieldType = fields.get(filter.getField());
-                List<String> operators = getFilterOperators(fieldType, true);
-                if (!Objects.equals(filter.getType(), fieldType)) {
-                    exceptionInvalidFilter.addException("Internal Error: Malformed Filter the filter field type '" + filter.getType()
-                            + "' did not match the computed field type '" + fieldType + "'");
-                }
-                if (!operators.contains(filter.getOperator())) {
-                    exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator() + ".");
-                }
-            } else {
+            if (filter.isCustom()) {
                 for (CustomField customField : customFields) {
                     fields.put(customField.name(), customField.type());
+                }
+            } else {
+                if (!fields.containsKey(filter.getField())) {
+                    exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
                 }
             }
             for (String blacklistedWord : getBlacklistedWords()) {
@@ -205,17 +196,25 @@ public class FilterService {
                 }
             }
 
-            String field = fields.get(filter.getField());
+            String fieldType = fields.get(filter.getField());
+            List<String> operators = getFilterOperators(fieldType, true);
+            if (!Objects.equals(filter.getType(), fieldType)) {
+                exceptionInvalidFilter.addException("Internal Error: Malformed Filter the filter field type '" + filter.getType()
+                        + "' did not match the computed field type '" + fieldType + "'");
+            }
+            if (!operators.contains(filter.getOperator())) {
+                exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator() + ".");
+            }
 
-            if (Objects.equals(field, FIELD_TYPE_NUMBER) || Objects.equals(field, FIELD_TYPE_PAGINATION)) {
+            if (Objects.equals(fieldType, FIELD_TYPE_NUMBER) || Objects.equals(fieldType, FIELD_TYPE_PAGINATION)) {
                 exceptionInvalidFilter = additionalNumberAndPaginationFilterValidation(filter, exceptionInvalidFilter);
             }
 
-            if (Objects.equals(field, FIELD_TYPE_BOOLEAN)) {
+            if (Objects.equals(fieldType, FIELD_TYPE_BOOLEAN)) {
                 exceptionInvalidFilter = additionalBooleanFilterValidation(filter, exceptionInvalidFilter);
             }
 
-            if (Objects.equals(field, FIELD_TYPE_TIME)) {
+            if (Objects.equals(fieldType, FIELD_TYPE_TIME)) {
                 exceptionInvalidFilter = additionalTimeValidation(filter, exceptionInvalidFilter);
             }
         }
@@ -317,7 +316,7 @@ public class FilterService {
                 switch (filter.getType()) {
                     case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
                         whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                        whereStatements.add(" AND values.value.text = ?");
+                        whereStatements.add(" AND values.value_text = ?");
                     }
                     case CustomField.TYPE_NUMBER -> {
                         whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
@@ -411,6 +410,9 @@ public class FilterService {
                 }
             }
             case FIELD_TYPE_BOOLEAN -> {
+                if (filter.isCustom()) {
+                    return filter.getOperand();
+                }
                 if (Objects.equals(filter.getOperand(), "true") || Objects.equals(filter.getOperand(), "false")) {
                     return Boolean.parseBoolean(filter.getOperand());
                 } else {

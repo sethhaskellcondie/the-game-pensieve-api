@@ -71,7 +71,7 @@ public class GetWithFiltersCustomFieldBooleanTests {
 
     void testCustomFieldBooleanTrue(int expectedResults) {
         final List<Filter> filters = List.of(
-                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_NUMBER, customFieldName, Filter.OPERATOR_EQUALS, "true", true) //wrong field type
+                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_BOOLEAN, customFieldName, Filter.OPERATOR_EQUALS, "true", true)
         );
 
         final List<System> results = systemRepository.getWithFilters(filters);
