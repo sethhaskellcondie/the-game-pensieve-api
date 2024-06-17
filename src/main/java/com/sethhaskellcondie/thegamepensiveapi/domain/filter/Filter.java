@@ -161,6 +161,7 @@ public class Filter {
     }
 
     // TODO fix checkstyle error
+    // TODO refactor this to be apart of the filterService?
     public static List<Filter> validateAndOrderFilters(List<Filter> filters) throws ExceptionInvalidFilter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
@@ -186,15 +187,17 @@ public class Filter {
                 }
             }
 
-            if (Objects.equals(fields.get(filter.field), FIELD_TYPE_NUMBER) || Objects.equals(fields.get(filter.field), FIELD_TYPE_PAGINATION)) {
+            String field = fields.get(filter.field);
+
+            if (Objects.equals(field, FIELD_TYPE_NUMBER) || Objects.equals(field, FIELD_TYPE_PAGINATION)) {
                 exceptionInvalidFilter = additionalNumberAndPaginationFilterValidation(filter, exceptionInvalidFilter);
             }
 
-            if (Objects.equals(fields.get(filter.field), FIELD_TYPE_BOOLEAN)) {
+            if (Objects.equals(field, FIELD_TYPE_BOOLEAN)) {
                 exceptionInvalidFilter = additionalBooleanFilterValidation(filter, exceptionInvalidFilter);
             }
 
-            if (Objects.equals(fields.get(filter.field), FIELD_TYPE_TIME)) {
+            if (Objects.equals(field, FIELD_TYPE_TIME)) {
                 exceptionInvalidFilter = additionalTimeValidation(filter, exceptionInvalidFilter);
             }
         }
