@@ -315,12 +315,50 @@ public class FilterService {
             if (filter.isCustom()) {
                 switch (filter.getType()) {
                     case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
-                        whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                        whereStatements.add(" AND values.value_text = ?");
+                        switch (filter.getOperator()) {
+                            case OPERATOR_EQUALS -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_text = ?");
+                            }
+                            case OPERATOR_NOT_EQUALS -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_text <> ?");
+                            }
+                            case OPERATOR_CONTAINS,
+                                    OPERATOR_STARTS_WITH,
+                                    OPERATOR_ENDS_WITH -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_text LIKE ?");
+                            }
+                        }
                     }
                     case CustomField.TYPE_NUMBER -> {
-                        whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                        whereStatements.add(" AND values.value_number = ?");
+                        switch (filter.getOperator()) {
+                            case OPERATOR_EQUALS -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_number = ?");
+                            }
+                            case OPERATOR_NOT_EQUALS -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_number <> ?");
+                            }
+                            case OPERATOR_GREATER_THAN -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_number > ?");
+                            }
+                            case OPERATOR_LESS_THAN -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_number < ?");
+                            }
+                            case OPERATOR_GREATER_THAN_EQUAL_TO -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_number >= ?");
+                            }
+                            case OPERATOR_LESS_THAN_EQUAL_TO -> {
+                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                                whereStatements.add(" AND values.value_number <= ?");
+                            }
+                        }
                     }
                 }
             } else {
