@@ -46,7 +46,7 @@ public class GetWithFiltersCustomFieldBooleanTests {
     }
 
     @Test
-    void testCustomFieldsNumberFilters() {
+    void testCustomFieldBooleanFilters() {
         final CustomField favoriteCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY);
 
         CustomFieldValue favoriteTrue = new CustomFieldValue(favoriteCustomField.id(), favoriteCustomField.name(), favoriteCustomField.type(), "true");

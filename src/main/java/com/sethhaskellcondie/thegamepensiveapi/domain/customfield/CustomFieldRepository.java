@@ -17,7 +17,10 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class CustomFieldRepository {
@@ -106,6 +109,16 @@ public class CustomFieldRepository {
     public List<CustomField> getAllByKey(String entityKey) {
         final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? ;";
         return jdbcTemplate.query(sql, rowMapper, entityKey);
+    }
+
+    public Map<String, String> getCustomFieldsAsFilterFields(String entityKey) {
+        List<CustomField> customFields = getAllByKey(entityKey);
+
+        Map<String, String> customFieldNameToType = new LinkedHashMap<>();
+        for (CustomField customField : customFields) {
+            customFieldNameToType.put(customField.name(), customField.type());
+        }
+        return customFieldNameToType;
     }
 
     public CustomField updateName(int id, String newName) {

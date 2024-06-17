@@ -59,14 +59,14 @@ public class GetWithFiltersValidationTests {
 
     @Test
     void validateAndOrderFilters_containsAllBlacklistedWords_ThrowsMultipleErrors() {
-        final String blacklistedWords = String.join(",", Filter.getBlacklistedWords());
+        final String blacklistedWords = String.join(",", FilterService.getBlacklistedWords());
         final List<Filter> filters = List.of(
                 new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_TEXT, "name", Filter.OPERATOR_EQUALS, blacklistedWords, false)
         );
 
         ExceptionInvalidFilter exception = assertThrows(ExceptionInvalidFilter.class, () -> systemRepository.getWithFilters(filters));
 
-        assertEquals(Filter.getBlacklistedWords().size(), exception.getMessages().size(), "Unexpected number of errors returned while testing blacklisted words in filters.");
+        assertEquals(FilterService.getBlacklistedWords().size(), exception.getMessages().size(), "Unexpected number of errors returned while testing blacklisted words in filters.");
     }
 
     @Test

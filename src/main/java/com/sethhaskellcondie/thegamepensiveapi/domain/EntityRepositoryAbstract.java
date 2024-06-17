@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
@@ -24,6 +26,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     protected final JdbcTemplate jdbcTemplate;
     private final CustomFieldValueRepository customFieldValueRepository;
+    private final CustomFieldRepository customFieldRepository;
     private final String baseQuery;
     private final String baseQueryJoinCustomFieldValues;
     private final String baseQueryWhereDeletedAtIsNotNull;
@@ -35,6 +38,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     protected EntityRepositoryAbstract(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
+        this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
         this.baseQuery = this.getBaseQuery();
         this.baseQueryJoinCustomFieldValues = this.getBaseQueryJoinCustomFieldValues();
         this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereDeletedAtIsNotNull();
@@ -77,7 +81,8 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     @Override
     public List<T> getWithFilters(List<Filter> filters) {
-        filters = FilterService.validateAndOrderFilters(filters);
+        List<CustomField> customFields = customFieldRepository.getAllByKey(entityKey);
+        filters = FilterService.validateAndOrderFilters(filters, customFields);
         final List<String> whereStatements = FilterService.formatWhereStatements(filters);
         final List<Object> operands = FilterService.formatOperands(filters);
         String sql = baseQuery + String.join(" ", whereStatements);

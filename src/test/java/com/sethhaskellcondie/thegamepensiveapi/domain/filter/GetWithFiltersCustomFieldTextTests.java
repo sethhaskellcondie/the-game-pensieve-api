@@ -46,7 +46,7 @@ public class GetWithFiltersCustomFieldTextTests {
     }
 
     @Test
-    void testCustomFieldsNumberFilters() {
+    void testCustomFieldsTextFilters() {
         final CustomField publisherCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
 
         final CustomFieldValue nintendo = new CustomFieldValue(publisherCustomField.id(), publisherCustomField.name(), publisherCustomField.type(), "nintendo");

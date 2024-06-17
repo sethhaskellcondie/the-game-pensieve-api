@@ -73,18 +73,18 @@ public class FilterService {
         String key = filterRequestDtos.get(0).key();
         List<CustomField> customFields = customFieldRepository.getAllByKey(key);
 
-        Map<String, String> customFieldNameToType = new HashMap<>();
+        Map<String, String> customFieldFilterFields = new HashMap<>();
         for (CustomField customField : customFields) {
-            customFieldNameToType.put(customField.name(), customField.type());
+            customFieldFilterFields.put(customField.name(), customField.type());
         }
 
         Map<String, String> filterFields = FilterEntity.getNonCustomFieldFiltersByKey(key);
         List<Filter> filters = new ArrayList<>();
         for (FilterRequestDto filterRequestDto : filterRequestDtos) {
-            if (customFieldNameToType.containsKey(filterRequestDto.field())) {
+            if (customFieldFilterFields.containsKey(filterRequestDto.field())) {
                 filters.add(new Filter(
                         filterRequestDto.key(),
-                        customFieldNameToType.get(filterRequestDto.field()),
+                        customFieldFilterFields.get(filterRequestDto.field()),
                         filterRequestDto.field(),
                         filterRequestDto.operator(),
                         filterRequestDto.operand(),
@@ -176,13 +176,11 @@ public class FilterService {
     }
 
     // TODO fix checkstyle error
-    // TODO refactor this to be apart of the filterService?
-    public static List<Filter> validateAndOrderFilters(List<Filter> filters) throws ExceptionInvalidFilter {
+    public static List<Filter> validateAndOrderFilters(List<Filter> filters, List<CustomField> customFields) throws ExceptionInvalidFilter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
             Map<String, String> fields = FilterEntity.getNonCustomFieldFiltersByKey(filter.getKey());
-            //TODO get the custom fields as filters
             if (!filter.isCustom()) {
                 if (!fields.containsKey(filter.getField())) {
                     exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
@@ -195,6 +193,10 @@ public class FilterService {
                 }
                 if (!operators.contains(filter.getOperator())) {
                     exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator() + ".");
+                }
+            } else {
+                for (CustomField customField : customFields) {
+                    fields.put(customField.name(), customField.type());
                 }
             }
             for (String blacklistedWord : getBlacklistedWords()) {
