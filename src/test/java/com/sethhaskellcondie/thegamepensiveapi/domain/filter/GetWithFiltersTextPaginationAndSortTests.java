@@ -42,7 +42,7 @@ public class GetWithFiltersTextPaginationAndSortTests {
 
     @Test
     void testTextAndPaginationFilters() {
-        //In this data set the generation is used for the sort tests, in the other GetWithFilters test the generation is used for number filter tests.
+        //In this data set the generation is used for the sort tests, in the other GetWithFiltersNumberFilters test the generation is used for number filter tests.
         //The systems start inserting with generation 5 so that the id and the generation will not match then we know that the sort is working correctly.
         System superGameBoy = insertSystemData("Super Game Boy", 5, false);
         System nes = insertSystemData("Nintendo Entertainment System", 1, false);
