@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,6 +53,20 @@ public class TestFactory {
                         jsonPath("$.data.customFieldValues[" + i + "].value").value(expectedValue.getValue())
                 );
             }
+        }
+    }
+    public void validateCustomFieldValues(List<CustomFieldValue> returnedValues, List<CustomFieldValue> expectedValues) {
+        assertEquals(expectedValues.size(), returnedValues.size(), "The number of returned custom field values did not matched the number of expected custom field values.");
+        for (int i = 0; i < returnedValues.size(); i++) {
+            CustomFieldValue returnedValue = returnedValues.get(i);
+            CustomFieldValue expectedValue = expectedValues.get(i);
+            assertAll(
+                    "The returned custom field values didn't match the expected custom field values.",
+                    () -> assertEquals(expectedValue.getCustomFieldId(), returnedValue.getCustomFieldId()),
+                    () -> assertEquals(expectedValue.getCustomFieldName(), returnedValue.getCustomFieldName()),
+                    () -> assertEquals(expectedValue.getCustomFieldType(), returnedValue.getCustomFieldType()),
+                    () -> assertEquals(expectedValue.getValue(), returnedValue.getValue())
+            );
         }
     }
 
