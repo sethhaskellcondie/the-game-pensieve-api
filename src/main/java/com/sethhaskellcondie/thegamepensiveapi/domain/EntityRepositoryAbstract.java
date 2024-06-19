@@ -115,7 +115,9 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             logger.error(ErrorLogs.InsertThenRetrieveError(entityKey, entity.getId()));
             throw new ExceptionInternalCatastrophe(entityKey, entity.getId());
         }
-        savedEntity.setCustomFieldValues(customFieldValueRepository.upsertValues(entity.getCustomFieldValues(), savedEntity.getId(), savedEntity.getKey()));
+
+        customFieldValueRepository.upsertValues(entity.getCustomFieldValues(), savedEntity.getId(), savedEntity.getKey());
+        savedEntity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(savedEntity.getId(), savedEntity.getKey()));
         return savedEntity;
     }
 

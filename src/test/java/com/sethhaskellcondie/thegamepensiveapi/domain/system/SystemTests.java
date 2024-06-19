@@ -70,11 +70,10 @@ public class SystemTests {
 
         final SystemResponseDto responseDto = resultToResponseDto(result);
         //Use this setup in the next test
-        updateExistingSystem_ValidUpdate_ReturnOk(responseDto, expectedCustomFieldValues.get(0));
+        updateExistingSystem_ValidUpdate_ReturnOk(responseDto, responseDto.customFieldValues().get(0));
     }
 
     void updateExistingSystem_ValidUpdate_ReturnOk(SystemResponseDto existingSystem, CustomFieldValue existingCustomFieldValue) throws Exception {
-        //TODO the existing System has three custom fields we update one in this test but then we only return one instead of returning all three including the one that was updated
         final String updatedName = "New NES 3";
         final int updatedGeneration = 6;
         final boolean updatedHandheld = true;
