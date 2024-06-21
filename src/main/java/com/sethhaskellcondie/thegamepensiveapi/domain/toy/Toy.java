@@ -64,4 +64,4 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
 
 record ToyRequestDto(String name, String set, List<CustomFieldValue> customFieldValues) { }
 
-record ToyResponseDto(String key, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFields) { }
+record ToyResponseDto(String key, Integer id, String name, String set, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) { }

@@ -70,14 +70,14 @@ public class SystemTests {
 
         final SystemResponseDto responseDto = resultToResponseDto(result);
         //Use this setup in the next test
-        updateExistingSystem_ValidUpdate_ReturnOk(responseDto, responseDto.customFieldValues().get(0));
+        updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(responseDto, responseDto.customFieldValues().get(0));
     }
 
-    void updateExistingSystem_ValidUpdate_ReturnOk(SystemResponseDto existingSystem, CustomFieldValue existingCustomFieldValue) throws Exception {
+    void updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(SystemResponseDto existingSystem, CustomFieldValue existingCustomFieldValue) throws Exception {
         final String updatedName = "New NES 3";
         final int updatedGeneration = 6;
         final boolean updatedHandheld = true;
-        List<CustomFieldValue> updatedCustomFieldValues = List.of(new CustomFieldValue(
+        final List<CustomFieldValue> updatedCustomFieldValues = List.of(new CustomFieldValue(
                 existingCustomFieldValue.getCustomFieldId(),
                 "Updated" + existingCustomFieldValue.getCustomFieldName(),
                 existingCustomFieldValue.getCustomFieldType(),
@@ -168,10 +168,10 @@ public class SystemTests {
     }
 
     @Test
-    void getWithFilters_StartsWithNotCustomFilterNotCustom_TwoSystemsReturned() throws Exception {
+    void getAllSystems_StartsWithNotCustomFilterNotCustom_SystemListReturned() throws Exception {
         final String customFieldName = "Custom";
         final String customFieldType = "number";
-        final String customFieldKey = "system";
+        final String customFieldKey = Keychain.SYSTEM_KEY;
         final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
 
         final String name1 = "Mega Super Nintendo";
@@ -211,10 +211,10 @@ public class SystemTests {
 
         //Use this setup for the next test
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-        getWithFilters_GreaterThanCustomFilter_OneSystemReturned(customFilter, List.of(responseDto3));
+        getAllSystems_GreaterThanCustomFilter_SystemListReturned(customFilter, List.of(responseDto3));
     }
 
-    void getWithFilters_GreaterThanCustomFilter_OneSystemReturned(Filter filter, List<SystemResponseDto> expectedSystems) throws Exception {
+    void getAllSystems_GreaterThanCustomFilter_SystemListReturned(Filter filter, List<SystemResponseDto> expectedSystems) throws Exception {
 
         final String jsonContent = factory.formatFiltersPayload(filter);
 
