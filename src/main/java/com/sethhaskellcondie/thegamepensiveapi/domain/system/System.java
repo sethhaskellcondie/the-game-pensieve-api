@@ -115,4 +115,3 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
  */
 record SystemRequestDto(String name, Integer generation, Boolean handheld, List<CustomFieldValue> customFieldValues) { }
 
-record SystemResponseDto(String key, int id, String name, int generation, boolean handheld, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) { }

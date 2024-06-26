@@ -2,4 +2,5 @@
 target
 game_pensive_log.log
 
+backup.json
 *.iml
