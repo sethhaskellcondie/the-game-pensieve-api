@@ -37,7 +37,8 @@ public class CustomFieldRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
+    //TODO delete this
+    @Deprecated
     public CustomField insertCustomField(String name, String type, String key) {
         return insertCustomField(new CustomFieldRequestDto(name, type, key));
     }

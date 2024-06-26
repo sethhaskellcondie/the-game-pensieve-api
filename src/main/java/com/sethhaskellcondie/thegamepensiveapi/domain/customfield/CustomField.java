@@ -16,5 +16,3 @@ public record CustomField(int id, String name, String type, String entityKey) {
         return List.of(TYPE_TEXT, TYPE_NUMBER, TYPE_BOOLEAN);
     }
 }
-
-record CustomFieldRequestDto(String name, String type, String entityKey) { }

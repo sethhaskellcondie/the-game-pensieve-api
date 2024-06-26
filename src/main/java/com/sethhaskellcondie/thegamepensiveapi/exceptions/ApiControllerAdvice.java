@@ -79,4 +79,12 @@ public class ApiControllerAdvice {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
+
+    @ExceptionHandler(value = {ExceptionBackupRestore.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Map<String, List<String>> handleExceptionBackupRestore(ExceptionBackupRestore e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
+        return body.formatError();
+    }
 }

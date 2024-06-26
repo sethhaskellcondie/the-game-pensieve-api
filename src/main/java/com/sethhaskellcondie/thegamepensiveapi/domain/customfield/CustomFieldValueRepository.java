@@ -96,7 +96,7 @@ public class CustomFieldValueRepository {
     private CustomField insertOrUpdateNameOfCustomField(CustomFieldValue value, String entityKey) {
         if (value.getCustomFieldId() <= 0) {
             try {
-                return customFieldRepository.insertCustomField(value.getCustomFieldName(), value.getCustomFieldType(), entityKey);
+                return customFieldRepository.insertCustomField(new CustomFieldRequestDto(value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
             } catch (ExceptionFailedDbValidation exception) {
                 throw new ExceptionCustomFieldValue("Cannot create new custom field needed to insert a new value: " + exception.getMessage());
             }
