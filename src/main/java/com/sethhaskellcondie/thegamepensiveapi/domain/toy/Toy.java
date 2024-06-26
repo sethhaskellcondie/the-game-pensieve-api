@@ -62,4 +62,3 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
     }
 }
 
-record ToyRequestDto(String name, String set, List<CustomFieldValue> customFieldValues) { }

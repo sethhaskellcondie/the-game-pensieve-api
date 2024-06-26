@@ -3,11 +3,10 @@ package com.sethhaskellcondie.thegamepensiveapi.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemGateway;
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyGateway;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRequestDto;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,9 +34,9 @@ public class BackupRestoreController {
 
     @PostMapping("v1/function/backup")
     public Map<String, String> backupJsonToFile() {
-        List<BackupCustomField> customFields = customFieldRepository.getAllCustomFields().stream().map(BackupCustomField::covertToBackupData).toList();
-        List<BackupToy> toys = toyGateway.getWithFilters(new ArrayList<>()).stream().map(BackupToy::convertToBackupData).toList();
-        List<BackupSystem> systems = systemGateway.getWithFilters(new ArrayList<>()).stream().map(BackupSystem::convertToBackupData).toList();
+        List<CustomField> customFields = customFieldRepository.getAllCustomFields();
+        List<ToyRequestDto> toys = toyGateway.getWithFilters(new ArrayList<>()).stream().map(ToyRequestDto::convertResponseToRequest).toList();
+        List<SystemRequestDto> systems = systemGateway.getWithFilters(new ArrayList<>()).stream().map(SystemRequestDto::convertRequestToResponse).toList();
 
         FormattedBackupData backupData = new FormattedBackupData("backupData", customFields, toys, systems);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -55,27 +54,11 @@ public class BackupRestoreController {
 
     @PostMapping("v1/function/restore")
     public Map<String, String> restoreJsonFromFile() {
-        //TODO finish this
+        //save custom fields
+        //save toys
+        //save systems
         return null;
     }
 }
 
-record FormattedBackupData(String dataType, List<BackupCustomField> customFields, List<BackupToy> toys, List<BackupSystem> systems) { }
-
-record BackupCustomField(String name, String type, String entityKey) {
-    public static BackupCustomField covertToBackupData(CustomField customField) {
-        return new BackupCustomField(customField.name(), customField.type(), customField.entityKey());
-    }
-}
-
-record BackupToy(String name, String set, List<CustomFieldValue> customFieldValues) {
-    public static BackupToy convertToBackupData(ToyResponseDto toy) {
-        return new BackupToy(toy.name(), toy.set(), toy.customFieldValues());
-    }
-}
-
-record BackupSystem(String name, int generation, boolean handheld, List<CustomFieldValue> customFieldValues) {
-    public static BackupSystem convertToBackupData(SystemResponseDto system) {
-        return new BackupSystem(system.name(), system.generation(), system.handheld(), system.customFieldValues());
-    }
-}
+record FormattedBackupData(String dataType, List<CustomField> customFields, List<ToyRequestDto> toys, List<SystemRequestDto> systems) { }
