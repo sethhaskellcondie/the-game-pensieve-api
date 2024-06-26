@@ -176,6 +176,8 @@ public class FilterService {
     }
 
     public static List<Filter> validateAndOrderFilters(List<Filter> filters, List<CustomField> customFields) throws ExceptionInvalidFilter {
+        // This ExceptionInvalidFilter will travel through validateAndOrderFilters collecting exceptions when errors are found
+        // then at the end if exceptions are found then the exception is thrown else the list of filters are returned validated and ordered properly
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
@@ -265,7 +267,6 @@ public class FilterService {
         return exceptionInvalidFilter;
     }
 
-    // This was originally one function with validateAndOrderFilters() but it was very long and hard to read, it was split up to improve readability
     private static List<Filter> orderFilters(List<Filter> filters, ExceptionInvalidFilter exceptionInvalidFilter) throws ExceptionInvalidFilter {
         List<Filter> whereFilters = new ArrayList<>();
         Filter orderByFilter = null;
@@ -302,7 +303,7 @@ public class FilterService {
         }
 
         if (null == limitFilter && null != offsetFilter) {
-            exceptionInvalidFilter.addException("'Offset' filter is not allowed without also including one 'limit' filter");
+            exceptionInvalidFilter.addException("'offset' filter is not allowed without also including one 'limit' filter");
         }
 
         if (exceptionInvalidFilter.exceptionsFound()) {
@@ -312,8 +313,6 @@ public class FilterService {
         whereFilters.add(orderByFilter);
         whereFilters.add(limitFilter);
         whereFilters.add(offsetFilter);
-        // the NPathComplexity is over 200 if I put null checks on the add calls this causes the checkstyle to fail
-        // instead all the filters include the null values will be added and the null values will be removed
         return whereFilters.stream().filter(Objects::nonNull).toList();
     }
 
@@ -426,22 +425,11 @@ public class FilterService {
         for (Filter filter : filters) {
             final Object operand = filter.getOperand();
             switch (filter.getOperator()) {
-                case OPERATOR_CONTAINS -> {
-                    operands.add("%" + operand + "%");
-                }
-                case OPERATOR_STARTS_WITH -> {
-                    operands.add(operand + "%");
-                }
-                case OPERATOR_ENDS_WITH -> {
-                    operands.add("%" + operand);
-                }
-                case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> {
-                    //the order_by operators are ignored
-                    continue;
-                }
-                default -> {
-                    operands.add(castOperand(filter));
-                }
+                case OPERATOR_CONTAINS -> operands.add("%" + operand + "%");
+                case OPERATOR_STARTS_WITH -> operands.add(operand + "%");
+                case OPERATOR_ENDS_WITH -> operands.add("%" + operand);
+                case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> { } //the order_by operators are ignored
+                default -> operands.add(castOperand(filter));
             }
         }
         return operands;
@@ -458,6 +446,7 @@ public class FilterService {
             }
             case FIELD_TYPE_BOOLEAN -> {
                 if (filter.isCustom()) {
+                    //Do not cast custom boolean filters they are stored in the database as strings not booleans
                     return filter.getOperand();
                 }
                 if (Objects.equals(filter.getOperand(), "true") || Objects.equals(filter.getOperand(), "false")) {
