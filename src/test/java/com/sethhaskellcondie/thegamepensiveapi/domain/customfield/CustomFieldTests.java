@@ -166,6 +166,37 @@ public class CustomFieldTests {
     }
 
     @Test
+    void postCustomField_DuplicateFound_ReturnErrors() throws Exception {
+        final String duplicateName = "Oops Entered Twice";
+        final String type = "text";
+        final String entityKey = "toy";
+        final CustomField existingCustomField = resultToResponseDto(factory.postCustomCustomField(duplicateName, type, entityKey));
+        final String json = factory.formatCustomFieldPayload(duplicateName, type, entityKey);
+
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+
+        postCustomField_DeletedDuplicateFound_CustomFieldCreated(existingCustomField);
+    }
+
+    void postCustomField_DeletedDuplicateFound_CustomFieldCreated(CustomField existingCustomField) throws Exception {
+        mockMvc.perform(delete(baseUrlSlash + existingCustomField.id()));
+
+        final ResultActions result = factory.postCustomCustomField(existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
+
+        validateCustomFieldResponseBody(result, existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
+    }
+
+    @Test
     void deleteCustomField_InvalidId_ReturnError() throws Exception {
         final ResultActions result = mockMvc.perform(delete(baseUrlSlash + "-1"));
 

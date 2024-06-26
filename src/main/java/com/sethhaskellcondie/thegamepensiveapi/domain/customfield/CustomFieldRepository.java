@@ -151,5 +151,29 @@ public class CustomFieldRepository {
         if (!exception.getExceptions().isEmpty()) {
             throw exception;
         }
+        try {
+            getByKeyAndName(customField.entityKey(), customField.name());
+        } catch (ExceptionResourceNotFound ignored) {
+            return;
+        }
+        throw new ExceptionFailedDbValidation("Custom Field with provided Entity Key and Name already found in the database. entity_key: "
+                + customField.entityKey() + " name: " + customField.name() + ".");
+    }
+
+    private CustomField getByKeyAndName(String entityKey, String customFieldName) {
+        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? AND name = ? AND deleted = false";
+        CustomField customField;
+        try {
+            customField = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{entityKey, customFieldName}, //args to bind to the sql ?
+                    new int[]{Types.VARCHAR, Types.VARCHAR}, //the types of the objects to bind to the sql
+                    rowMapper
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ExceptionResourceNotFound("Custom Field (deleted = false) not found with given entity key and name. entity_key: " + entityKey
+                    + " name: " + customFieldName + ".");
+        }
+        return customField;
     }
 }
