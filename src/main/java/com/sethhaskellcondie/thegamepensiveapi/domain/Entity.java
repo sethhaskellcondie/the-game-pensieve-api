@@ -68,8 +68,7 @@ public abstract class Entity<RequestDto, ResponseDto> {
     }
 
     /**
-     * New Entity objects are created in that Entities' repository, after creation all entities need
-     * to be able to take the data from the request and apply that to the Entity then return it.
+     * This function will take an entity and then update it with all the attributes of the requestDto.
      * Throws an ExceptionInputValidation if the object is invalid after the requestDto has been applied.
      */
     protected abstract Entity<RequestDto, ResponseDto> updateFromRequestDto(RequestDto requestDto);
@@ -85,7 +84,7 @@ public abstract class Entity<RequestDto, ResponseDto> {
      * Every Entity will have a key that is a constant form of the name of the entity.
      * This function will return the proper key from the Keychain.
      */
-    protected abstract String getKey();
+    public abstract String getKey();
 
     @Override
     public boolean equals(Object obj) {

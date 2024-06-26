@@ -3,10 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class EntityServiceAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
@@ -26,22 +23,22 @@ public abstract class EntityServiceAbstract<T extends Entity<RequestDto, Respons
     }
 
     @Override
-    public T getById(int id) throws ExceptionResourceNotFound {
+    public T getById(int id) {
         return repository.getById(id);
     }
 
     @Override
-    public T createNew(RequestDto requestDto) throws ExceptionFailedDbValidation {
+    public T createNew(RequestDto requestDto) {
         return repository.insert(requestDto);
     }
 
     @Override
-    public T updateExisting(T t) throws ExceptionFailedDbValidation {
+    public T updateExisting(T t) {
         return repository.update(t);
     }
 
     @Override
-    public void deleteById(int id) throws ExceptionResourceNotFound {
+    public void deleteById(int id) {
         repository.deleteById(id);
     }
 }

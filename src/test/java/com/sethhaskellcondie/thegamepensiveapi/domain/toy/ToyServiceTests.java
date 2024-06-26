@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 
 import static org.mockito.Mockito.mock;
 
+@Deprecated
 public class ToyServiceTests extends EntityServiceTests<Toy, ToyRequestDto, ToyResponseDto> {
     @Override
     protected void setupServiceMockRepository() {

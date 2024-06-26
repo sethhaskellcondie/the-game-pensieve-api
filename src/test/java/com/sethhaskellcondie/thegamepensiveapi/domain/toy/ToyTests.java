@@ -3,7 +3,9 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,21 +49,46 @@ public class ToyTests {
         factory = new TestFactory(mockMvc);
     }
 
-    //TODO refactor this to match the functionality with the SystemTests (custom fields, filters on custom fields, etc.)
-
     @Test
-    void postToy_ValidPayload_ToyCreatedAndReturned() throws Exception {
+    void postToyWithCustomFieldValues_ValidPayload_ToyCreatedAndReturned() throws Exception {
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
+        final List<CustomFieldValue> expectedCustomFieldValues = List.of(
+                new CustomFieldValue(0, "Owned", "boolean", "true"),
+                new CustomFieldValue(0, "Release Year", "number", "1997"),
+                new CustomFieldValue(0, "ToySet", "text", "Kingdom Hearts")
+        );
 
-        ResultActions result = factory.postCustomToy(expectedName, expectedSet, new ArrayList<>());
+        final ResultActions result = factory.postCustomToy(expectedName, expectedSet, expectedCustomFieldValues);
 
-        result.andExpect(status().isCreated());
-        validateToyResponseBody(result, expectedName, expectedSet);
+        final ToyResponseDto responseDto = resultToResponseDto(result);
+        validateToyResponseBody(result, expectedName, expectedSet, expectedCustomFieldValues);
+        updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues().get(0));
+    }
+
+    void updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(ToyResponseDto existingToy, CustomFieldValue existingCustomFieldValue) throws Exception {
+        final String updatedName = "Donald Duck";
+        final String updatedSet = "Updated Disney Infinity";
+        final List<CustomFieldValue> updatedCustomFieldValues = List.of(new CustomFieldValue(
+                        existingCustomFieldValue.getCustomFieldId(),
+                        "Updated" + existingCustomFieldValue.getCustomFieldName(),
+                        existingCustomFieldValue.getCustomFieldType(),
+                        "false"
+                ));
+
+        final String jsonContent = factory.formatToyPayload(updatedName, updatedSet, updatedCustomFieldValues);
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + existingToy.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpect(status().isOk());
+        validateToyResponseBody(result, resultToResponseDto(result), updatedCustomFieldValues);
     }
 
     @Test
-    void postNewToy_NameBlank_ReturnBadRequest() throws Exception {
+    void postToy_NameBlank_ReturnBadRequest() throws Exception {
         final String jsonContent = factory.formatToyPayload("", "set", null);
 
         final ResultActions result = mockMvc.perform(
@@ -81,7 +108,8 @@ public class ToyTests {
     void getOneToy_ToyExists_ToySerializedCorrectly() throws Exception {
         final String name = "Mario";
         final String set = "Amiibo";
-        ResultActions postResult = factory.postCustomToy(name, set, null);
+        final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
+        ResultActions postResult = factory.postCustomToy(name, set, customFieldValues);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
@@ -90,7 +118,7 @@ public class ToyTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateToyResponseBody(result, expectedDto);
+        validateToyResponseBody(result, expectedDto, customFieldValues);
     }
 
     @Test
@@ -105,16 +133,29 @@ public class ToyTests {
     }
 
     @Test
-    void getAllToys_StartsWithFilter_TwoToysReturnedInArray() throws Exception {
+    void getAllToys_StartsWithFilter_ToyListReturned() throws Exception {
+        final String customFieldName = "Custom";
+        final String customFieldType = "number";
+        final String customFieldKey = Keychain.TOY_KEY;
+        final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
+
         final String name1 = "Something MegaMan";
         final String set1 = "Amiibo";
-        ResultActions result1 = factory.postCustomToy(name1, set1, null);
+        final List<CustomFieldValue> CustomFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
+        final ResultActions result1 = factory.postCustomToy(name1, set1, CustomFieldValues1);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
         final String name2 = "Something Goofy";
         final String set2 = "Disney Infinity";
-        ResultActions result2 = factory.postCustomToy(name2, set2, null);
+        final List<CustomFieldValue> CustomFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
+        final ResultActions result2 = factory.postCustomToy(name2, set2, CustomFieldValues2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
+
+        final String name3 = "Regular Goofy";
+        final String set3 = "Disney Infinity";
+        final List<CustomFieldValue> CustomFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
+        final ResultActions result3 = factory.postCustomToy(name3, set3, CustomFieldValues3);
+        final ToyResponseDto toyDto3 = resultToResponseDto(result3);
 
         final Filter filter = new Filter("toy", "text", "name", Filter.OPERATOR_STARTS_WITH, "Something ", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
@@ -129,6 +170,25 @@ public class ToyTests {
                 content().contentType(MediaType.APPLICATION_JSON)
         );
         validateToyResponseBody(result, List.of(toyDto1, toyDto2));
+
+        final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
+        getAllToys_GreaterThanCustomFilter_ToyListReturned(customFilter, List.of(toyDto3));
+    }
+
+    void getAllToys_GreaterThanCustomFilter_ToyListReturned(Filter filter, List<ToyResponseDto> expectedToys) throws Exception {
+
+        final String jsonContent = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateToyResponseBody(result, expectedToys);
     }
 
     @Test
@@ -146,27 +206,6 @@ public class ToyTests {
                 jsonPath("$.data").value(new ArrayList<>()),
                 jsonPath("$.errors").isEmpty()
         );
-    }
-
-    @Test
-    void putExistingToy_ValidUpdate_ReturnOk() throws Exception {
-        final String name = "Donald Duck";
-        final String set = "Disney Infinity";
-        ResultActions postResult = factory.postCustomToy(name, set, null);
-        final ToyResponseDto expectedDto = resultToResponseDto(postResult);
-
-        final String newName = "Pit";
-        final String newSet = "Amiibo";
-
-        final String jsonContent = factory.formatToyPayload(newName, newSet, null);
-        final ResultActions result = mockMvc.perform(
-                put(baseUrlSlash + expectedDto.id())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-        );
-
-        result.andExpect(status().isOk());
-        validateToyResponseBody(result, newName, newSet);
     }
 
     @Test
@@ -215,15 +254,6 @@ public class ToyTests {
         );
     }
 
-    private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.key").value("toy"),
-                jsonPath("$.data.id").isNotEmpty(),
-                jsonPath("$.data.name").value(expectedName),
-                jsonPath("$.data.set").value(expectedSet)
-        );
-    }
-
     private ToyResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
@@ -231,13 +261,26 @@ public class ToyTests {
         return body.get("data");
     }
 
-    private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse) throws Exception {
+    private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet, List<CustomFieldValue> customFieldValues) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data.key").value("toy"),
+                jsonPath("$.data.id").isNotEmpty(),
+                jsonPath("$.data.name").value(expectedName),
+                jsonPath("$.data.set").value(expectedSet),
+                jsonPath("$.errors").isEmpty()
+        );
+        factory.validateCustomFieldValues(result, customFieldValues);
+    }
+
+    private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value("toy"),
                 jsonPath("$.data.id").value(expectedResponse.id()),
                 jsonPath("$.data.name").value(expectedResponse.name()),
-                jsonPath("$.data.set").value(expectedResponse.set())
+                jsonPath("$.data.set").value(expectedResponse.set()),
+                jsonPath("$.errors").isEmpty()
         );
+        factory.validateCustomFieldValues(result, customFieldValues);
     }
 
     private void validateToyResponseBody(ResultActions result, List<ToyResponseDto> expectedToys) throws Exception {
@@ -261,6 +304,7 @@ public class ToyTests {
                     () -> assertEquals(expectedToy.name(), returnedToy.name()),
                     () -> assertEquals(expectedToy.set(), returnedToy.set())
             );
+            factory.validateCustomFieldValues(expectedToy.customFieldValues(), returnedToy.customFieldValues());
         }
     }
 }

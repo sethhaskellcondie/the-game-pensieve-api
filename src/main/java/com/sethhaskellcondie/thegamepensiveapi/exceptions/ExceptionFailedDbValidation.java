@@ -5,7 +5,7 @@ import com.sethhaskellcondie.thegamepensiveapi.api.Api;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExceptionFailedDbValidation extends Exception {
+public class ExceptionFailedDbValidation extends RuntimeException {
     private List<Exception> exceptions;
 
     public ExceptionFailedDbValidation() {

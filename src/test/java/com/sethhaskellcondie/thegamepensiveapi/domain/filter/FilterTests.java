@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * These tests will test the GET endpoint results for filters
  * There will be unit tests that will do a deep dive into converting filters into SQL
- * in a SqlFilterTests class
+ * in a series of GetWithFiltersTests suites
  */
 @SpringBootTest
 @ActiveProfiles("test-container")
@@ -34,6 +34,10 @@ public class FilterTests {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     private CustomFieldRepository customFieldRepository;
+    //JsonPath is picky when it comes to Json with spaces in it, so we will use underscores for these names
+    final String textCustomFieldName = "Text_Custom_Field";
+    final String numberCustomFieldName = "Number_Custom_Field";
+    final String booleanCustomFieldName = "Boolean_Custom_Field";
 
     @BeforeEach
     void setUp() {
@@ -56,17 +60,7 @@ public class FilterTests {
 
     @Test
     void getSystemFilters_FiltersSerializedCorrectly() throws Exception {
-        String textCustomFieldName = "Text_Custom_Field";
-        String textCustomFieldType = CustomField.TYPE_TEXT;
-        customFieldRepository.insertCustomField(textCustomFieldName, textCustomFieldType, Keychain.SYSTEM_KEY);
-
-        String numberCustomFieldName = "Number_Custom_Field";
-        String numberCustomFieldType = CustomField.TYPE_NUMBER;
-        customFieldRepository.insertCustomField(numberCustomFieldName, numberCustomFieldType, Keychain.SYSTEM_KEY);
-
-        String booleanCustomFieldName = "Boolean_Custom_Field";
-        String booleanCustomFieldType = CustomField.TYPE_BOOLEAN;
-        customFieldRepository.insertCustomField(booleanCustomFieldName, booleanCustomFieldType, Keychain.SYSTEM_KEY);
+        addCustomFields(Keychain.SYSTEM_KEY);
 
         final ResultActions result = mockMvc.perform(get("/filters/system"));
 
@@ -82,9 +76,6 @@ public class FilterTests {
                 jsonPath("$.data.fields.updated_at").value("time"),
                 jsonPath("$.data.fields.all_fields").value("sort"),
                 jsonPath("$.data.fields.pagination_fields").value("pagination"),
-                jsonPath("$.data.fields." + textCustomFieldName).value(textCustomFieldType),
-                jsonPath("$.data.fields." + numberCustomFieldName).value(numberCustomFieldType),
-                jsonPath("$.data.fields." + booleanCustomFieldName).value(booleanCustomFieldType),
                 //the filters should be returned in this specific order
                 jsonPath("$.data.filters.name[0]").value("equals"),
                 jsonPath("$.data.filters.name[1]").value("not_equals"),
@@ -106,35 +97,15 @@ public class FilterTests {
                 jsonPath("$.data.filters.all_fields[1]").value("order_by_desc"),
                 jsonPath("$.data.filters.pagination_fields[0]").value("limit"),
                 jsonPath("$.data.filters.pagination_fields[1]").value("offset"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[0]").value("equals"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[1]").value("not_equals"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[2]").value("contains"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[3]").value("starts_with"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[4]").value("ends_with"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[0]").value("equals"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[1]").value("not_equals"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[2]").value("greater_than"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[3]").value("greater_than_equal_to"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[4]").value("less_than"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[5]").value("less_than_equal_to"),
-                jsonPath("$.data.filters." + booleanCustomFieldName + "[0]").value("equals"),
                 jsonPath("$.errors").isEmpty()
         );
+
+        validateCustomFieldFilters(result);
     }
 
     @Test
     void getToyFilters_FiltersSerializedCorrectly() throws Exception {
-        String textCustomFieldName = "Text_Custom_Field";
-        String textCustomFieldType = CustomField.TYPE_TEXT;
-        customFieldRepository.insertCustomField(textCustomFieldName, textCustomFieldType, Keychain.TOY_KEY);
-
-        String numberCustomFieldName = "Number_Custom_Field";
-        String numberCustomFieldType = CustomField.TYPE_NUMBER;
-        customFieldRepository.insertCustomField(numberCustomFieldName, numberCustomFieldType, Keychain.TOY_KEY);
-
-        String booleanCustomFieldName = "Boolean_Custom_Field";
-        String booleanCustomFieldType = CustomField.TYPE_BOOLEAN;
-        customFieldRepository.insertCustomField(booleanCustomFieldName, booleanCustomFieldType, Keychain.TOY_KEY);
+        addCustomFields(Keychain.TOY_KEY);
 
         final ResultActions result = mockMvc.perform(get("/filters/toy"));
 
@@ -148,9 +119,6 @@ public class FilterTests {
                 jsonPath("$.data.fields.updated_at").value("time"),
                 jsonPath("$.data.fields.all_fields").value("sort"),
                 jsonPath("$.data.fields.pagination_fields").value("pagination"),
-                jsonPath("$.data.fields." + textCustomFieldName).value(textCustomFieldType),
-                jsonPath("$.data.fields." + numberCustomFieldName).value(numberCustomFieldType),
-                jsonPath("$.data.fields." + booleanCustomFieldName).value(booleanCustomFieldType),
                 jsonPath("$.data.filters.name[0]").value("equals"),
                 jsonPath("$.data.filters.name[1]").value("not_equals"),
                 jsonPath("$.data.filters.name[2]").value("contains"),
@@ -182,6 +150,38 @@ public class FilterTests {
                 jsonPath("$.data.filters." + numberCustomFieldName + "[5]").value("less_than_equal_to"),
                 jsonPath("$.data.filters." + booleanCustomFieldName + "[0]").value("equals"),
                 jsonPath("$.errors").isEmpty()
+        );
+
+        validateCustomFieldFilters(result);
+    }
+    private void addCustomFields(String key) {
+        String textCustomFieldType = CustomField.TYPE_TEXT;
+        customFieldRepository.insertCustomField(textCustomFieldName, textCustomFieldType, key);
+
+        String numberCustomFieldType = CustomField.TYPE_NUMBER;
+        customFieldRepository.insertCustomField(numberCustomFieldName, numberCustomFieldType, key);
+
+        String booleanCustomFieldType = CustomField.TYPE_BOOLEAN;
+        customFieldRepository.insertCustomField(booleanCustomFieldName, booleanCustomFieldType, key);
+    }
+
+    private void validateCustomFieldFilters(ResultActions result) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data.fields." + textCustomFieldName).value(CustomField.TYPE_TEXT),
+                jsonPath("$.data.fields." + numberCustomFieldName).value(CustomField.TYPE_NUMBER),
+                jsonPath("$.data.fields." + booleanCustomFieldName).value(CustomField.TYPE_BOOLEAN),
+                jsonPath("$.data.filters." + textCustomFieldName + "[0]").value("equals"),
+                jsonPath("$.data.filters." + textCustomFieldName + "[1]").value("not_equals"),
+                jsonPath("$.data.filters." + textCustomFieldName + "[2]").value("contains"),
+                jsonPath("$.data.filters." + textCustomFieldName + "[3]").value("starts_with"),
+                jsonPath("$.data.filters." + textCustomFieldName + "[4]").value("ends_with"),
+                jsonPath("$.data.filters." + numberCustomFieldName + "[0]").value("equals"),
+                jsonPath("$.data.filters." + numberCustomFieldName + "[1]").value("not_equals"),
+                jsonPath("$.data.filters." + numberCustomFieldName + "[2]").value("greater_than"),
+                jsonPath("$.data.filters." + numberCustomFieldName + "[3]").value("greater_than_equal_to"),
+                jsonPath("$.data.filters." + numberCustomFieldName + "[4]").value("less_than"),
+                jsonPath("$.data.filters." + numberCustomFieldName + "[5]").value("less_than_equal_to"),
+                jsonPath("$.data.filters." + booleanCustomFieldName + "[0]").value("equals")
         );
     }
 }

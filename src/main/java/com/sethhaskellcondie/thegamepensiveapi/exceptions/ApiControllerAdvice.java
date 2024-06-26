@@ -13,6 +13,33 @@ import java.util.Map;
 @ControllerAdvice
 public class ApiControllerAdvice {
 
+    //----Handle General Errors----
+    @ExceptionHandler(value = {Exception.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Map<String, List<String>> handleGeneralException(Exception e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Something went wrong. Generic Exception Caught.", e.getMessage()));
+        return body.formatError();
+    }
+
+
+    @ExceptionHandler(value = {RuntimeException.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Map<String, List<String>> handleRuntimeException(RuntimeException e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Something went wrong. Generic RuntimeException Caught.", e.getMessage()));
+        return body.formatError();
+    }
+
+    //----Handle System Specific Errors----
+    @ExceptionHandler(value = {ExceptionCustomFieldValue.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Map<String, List<String>> handleExceptionCustomFieldValue(ExceptionCustomFieldValue e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
+        return body.formatError();
+    }
+
     @ExceptionHandler(value = {ExceptionFailedDbValidation.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
@@ -29,11 +56,11 @@ public class ApiControllerAdvice {
         return body.formatError();
     }
 
-    @ExceptionHandler(value = {ExceptionResourceNotFound.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(value = {ExceptionInvalidFilter.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public Map<String, List<String>> handleExceptionResourceNotFound(ExceptionResourceNotFound e) {
-        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
+    public Map<String, List<String>> handleExceptionInvalidFilter(ExceptionInvalidFilter e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
         return body.formatError();
     }
 
@@ -45,11 +72,11 @@ public class ApiControllerAdvice {
         return body.formatError();
     }
 
-    @ExceptionHandler(value = {ExceptionInvalidFilter.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = {ExceptionResourceNotFound.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
-    public Map<String, List<String>> handleExceptionInvalidFilter(ExceptionInvalidFilter e) {
-        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
+    public Map<String, List<String>> handleExceptionResourceNotFound(ExceptionResourceNotFound e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
 }

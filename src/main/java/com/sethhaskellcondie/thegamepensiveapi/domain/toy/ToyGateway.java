@@ -15,7 +15,7 @@ public class ToyGateway extends EntityGatewayAbstract<Toy, ToyRequestDto, ToyRes
         super(service);
     }
 
-    //This method is ONLY here to seed data in the HeartbeatController  TODO update how we seed data and remove this method
+    //This method is ONLY here to seed data in the HeartbeatController TODO update how we seed data and remove this method
     @Deprecated
     public ToyResponseDto createNew(String name, String set, List<CustomFieldValue> customFieldValues) throws ExceptionFailedDbValidation {
         return this.createNew(new ToyRequestDto(name, set, customFieldValues));

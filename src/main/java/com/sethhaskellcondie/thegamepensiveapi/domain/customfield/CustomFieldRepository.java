@@ -1,8 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
@@ -19,7 +17,9 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class CustomFieldRepository {
@@ -38,11 +38,11 @@ public class CustomFieldRepository {
     }
 
 
-    public CustomField insertCustomField(String name, String type, String key) throws ExceptionFailedDbValidation {
+    public CustomField insertCustomField(String name, String type, String key) {
         return insertCustomField(new CustomFieldRequestDto(name, type, key));
     }
 
-    public CustomField insertCustomField(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
+    public CustomField insertCustomField(CustomFieldRequestDto customField) {
         customFieldDbValidation(customField);
         final String sql = """
                 			INSERT INTO custom_fields(name, type, entity_key) VALUES (?, ?, ?);
@@ -68,7 +68,7 @@ public class CustomFieldRepository {
         }
     }
 
-    public CustomField getById(int id) throws ExceptionResourceNotFound {
+    public CustomField getById(int id) {
         final String sql = "SELECT * FROM custom_fields WHERE id = ? AND deleted = false";
         CustomField customField;
         try {
@@ -84,8 +84,8 @@ public class CustomFieldRepository {
         return customField;
     }
 
-    public CustomField getByIdIncludeDeleted(int id) throws ExceptionResourceNotFound {
-        final String sql = "SELECT * FROM custom_fields WHERE id = ?";
+    public CustomField getDeletedById(int id) {
+        final String sql = "SELECT * FROM custom_fields WHERE id = ? AND deleted = true";
         CustomField customField;
         try {
             customField = jdbcTemplate.queryForObject(
@@ -110,7 +110,17 @@ public class CustomFieldRepository {
         return jdbcTemplate.query(sql, rowMapper, entityKey);
     }
 
-    public CustomField updateName(int id, String newName) throws ExceptionResourceNotFound {
+    public Map<String, String> getCustomFieldsAsFilterFields(String entityKey) {
+        List<CustomField> customFields = getAllByKey(entityKey);
+
+        Map<String, String> customFieldNameToType = new LinkedHashMap<>();
+        for (CustomField customField : customFields) {
+            customFieldNameToType.put(customField.name(), customField.type());
+        }
+        return customFieldNameToType;
+    }
+
+    public CustomField updateName(int id, String newName) {
         final String sql = """
                 			UPDATE custom_fields SET name = ? WHERE id = ?;
                 """;
@@ -118,7 +128,7 @@ public class CustomFieldRepository {
         return getById(id);
     }
 
-    public void deleteById(int id) throws ExceptionResourceNotFound {
+    public void deleteById(int id) {
         final String sql = """
                 			UPDATE custom_fields SET deleted = true WHERE id = ?;
                 """;
@@ -128,7 +138,7 @@ public class CustomFieldRepository {
         }
     }
 
-    private void customFieldDbValidation(CustomFieldRequestDto customField) throws ExceptionFailedDbValidation {
+    private void customFieldDbValidation(CustomFieldRequestDto customField) {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
             exception.addException("Custom Field Type: " + customField.type() + " is not a valid type. " +

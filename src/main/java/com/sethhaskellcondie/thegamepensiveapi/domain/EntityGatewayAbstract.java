@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 
 import java.util.List;
@@ -20,17 +19,17 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
     }
 
     @Override
-    public ResponseDto getById(int id) throws ExceptionResourceNotFound {
+    public ResponseDto getById(int id) {
         return service.getById(id).convertToResponseDto();
     }
 
     @Override
-    public ResponseDto createNew(RequestDto requestDto) throws ExceptionFailedDbValidation {
+    public ResponseDto createNew(RequestDto requestDto) {
         return service.createNew(requestDto).convertToResponseDto();
     }
 
     @Override
-    public ResponseDto updateExisting(int id, RequestDto requestDto) throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
+    public ResponseDto updateExisting(int id, RequestDto requestDto) {
         T t = service.getById(id);
         if (!t.isPersisted()) {
             throw new ExceptionResourceNotFound(t.getKey(), id);
@@ -40,7 +39,7 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
     }
 
     @Override
-    public void deleteById(int id) throws ExceptionResourceNotFound {
+    public void deleteById(int id) {
         service.deleteById(id);
     }
 }

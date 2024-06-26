@@ -36,6 +36,9 @@ import java.util.Map;
  * Controllers only interact with Gateways, but reference the shape of Dto objects that are defined
  * in the entity. Gateways will always take a RequestDto and will return either an appropriate
  * ResponseDto or an error, the controller will then format the response.
+ * <p>
+ * There is an ApiControllerAdvice.java file in the exceptions package that will handle formatting all the common errors
+ * controller specific error handling can be placed on the controller.
  */
 @RestController
 @RequestMapping("v1/systems")
@@ -48,7 +51,7 @@ public class SystemController {
 
     @ResponseBody
     @GetMapping("/{id}")
-    public Map<String, SystemResponseDto> getOneSystem(@PathVariable int id) throws ExceptionResourceNotFound {
+    public Map<String, SystemResponseDto> getById(@PathVariable int id) throws ExceptionResourceNotFound {
         final SystemResponseDto responseDto = gateway.getById(id);
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
@@ -61,7 +64,7 @@ public class SystemController {
      */
     @ResponseBody
     @PostMapping("/function/search")
-    public Map<String, List<SystemResponseDto>> getAllSystems(@RequestBody Map<String, List<FilterRequestDto>> requestBody) {
+    public Map<String, List<SystemResponseDto>> getWithFilters(@RequestBody Map<String, List<FilterRequestDto>> requestBody) {
         final List<SystemResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
         final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
         return body.formatData();
@@ -70,7 +73,7 @@ public class SystemController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, SystemResponseDto> createNewSystem(@RequestBody Map<String, SystemRequestDto> requestBody) throws ExceptionFailedDbValidation {
+    public Map<String, SystemResponseDto> postNew(@RequestBody Map<String, SystemRequestDto> requestBody) throws ExceptionFailedDbValidation {
         final SystemResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.SYSTEM_KEY));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
@@ -78,7 +81,7 @@ public class SystemController {
 
     @ResponseBody
     @PutMapping("/{id}")
-    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody Map<String, SystemRequestDto> requestBody)
+    public Map<String, SystemResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, SystemRequestDto> requestBody)
             throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
         final SystemResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.SYSTEM_KEY));
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
@@ -88,13 +91,14 @@ public class SystemController {
     @ResponseBody
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Map<String, String> deleteExistingSystem(@PathVariable int id) throws ExceptionResourceNotFound {
+    public Map<String, String> deleteExisting(@PathVariable int id) throws ExceptionResourceNotFound {
         gateway.deleteById(id);
         FormattedResponseBody<String> body = new FormattedResponseBody<>("");
         return body.formatData();
     }
 
     //This endpoint only exists to work with the SystemTestRestTemplateTests
+    @Deprecated
     @ResponseBody
     @PostMapping("/testRestTemplate")
     @ResponseStatus(HttpStatus.CREATED)
@@ -105,6 +109,7 @@ public class SystemController {
     }
 
     //This endpoint only exists to work with the SystemTestRestTemplateTests
+    @Deprecated
     @ResponseBody
     @PutMapping("/{id}/testRestTemplate")
     public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system)

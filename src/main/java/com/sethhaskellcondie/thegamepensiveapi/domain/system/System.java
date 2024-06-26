@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * The Entity object will extend the Entity abstract class, this will enforce the ID equality
- * and persistence check.
+ * and persistence check. This will also automatically include the timestamps.
  */
 public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 
@@ -84,7 +84,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
     }
 
     @Override
-    protected String getKey() {
+    public String getKey() {
         return Keychain.SYSTEM_KEY;
     }
 
@@ -105,11 +105,11 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
 /**
  * Define the DTO on the Entity if the shape of an object needs to be changed
  * all of those changes can be made here on the Entity with minimal changes elsewhere
- * in the project.
+ * in the system.
  * <p>
  * The request DTO will use the wrapper classes for Primitives to allow nulls to be passed
- * in as input then it will be validated when they are used for the object to be created
- * this way we can pass all validation errors back at the same time.
+ * in as input then it will be validated when the object is created then we can pass back
+ * all validation errors back at the same time.
  * <p>
  * All entities request and response data transfer objects should include List<CustomFieldValue> customFieldValues because all entities have CustomFieldValues
  */

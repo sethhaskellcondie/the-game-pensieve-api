@@ -44,16 +44,18 @@ public class CustomFieldValueRepository {
                     resultSet.getString("type")
             );
 
-    //This repository should only be accessed through EntityRepositories
+    //This repository should only be accessed through EntityRepositories (and tests)
     public CustomFieldValueRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
     }
 
-    public List<CustomFieldValue> getCustomFieldsByEntityIdAndEntityKey(int entityId, String entityKey) {
-        final String sql = "SELECT * FROM custom_field_values " +
-                "JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id " +
-                "WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ? AND custom_fields.deleted = false";
+    public List<CustomFieldValue> getCustomFieldValuesByEntityIdAndEntityKey(int entityId, String entityKey) {
+        final String sql = """
+                    SELECT * FROM custom_field_values
+                        JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id
+                        WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ? AND custom_fields.deleted = false;
+                """;
         List<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, entityId, entityKey);
         return customFieldValueJoinCustomFieldDaos.stream().map(CustomFieldValueJoinCustomFieldDao::convertToValue).toList();
     }
@@ -90,7 +92,7 @@ public class CustomFieldValueRepository {
         return getDaoByCustomFieldIdAndEntityId(valueDao.customFieldId(), valueDao.entityId(), true);
     }
 
-    //it's not an upsert because we are not updating then inserting instead we are inserting or fetching, and we want to error on the fetch.
+    //it's not an upsert because we are not checking if it exists first, instead we are inserting first then failing if retrieving the existing entry fails
     private CustomField insertOrUpdateNameOfCustomField(CustomFieldValue value, String entityKey) {
         if (value.getCustomFieldId() <= 0) {
             try {
@@ -160,6 +162,7 @@ public class CustomFieldValueRepository {
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
             }
             default -> {
+                //This is just a sanity check the type will have been matched against the found CustomField earlier in the process
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: unknown Custom Field Type provided: " + customFieldValue.getCustomFieldType() +
                         ". Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]")));
             }

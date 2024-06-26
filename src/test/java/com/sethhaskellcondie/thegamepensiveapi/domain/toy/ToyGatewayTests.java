@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 
 import static org.mockito.Mockito.mock;
 
+@Deprecated
 public class ToyGatewayTests extends EntityGatewayTests<Toy, ToyRequestDto, ToyResponseDto> {
 
     private String startsWith = "Tacocat!";
