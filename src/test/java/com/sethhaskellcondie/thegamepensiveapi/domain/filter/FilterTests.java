@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * These tests will test the GET endpoint results for filters
  * There will be unit tests that will do a deep dive into converting filters into SQL
- * in a GetWithFiltersTests class
+ * in a series of GetWithFiltersTests suites
  */
 @SpringBootTest
 @ActiveProfiles("test-container")

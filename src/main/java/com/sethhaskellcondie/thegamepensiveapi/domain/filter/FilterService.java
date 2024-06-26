@@ -185,10 +185,9 @@ public class FilterService {
                 for (CustomField customField : customFields) {
                     fields.put(customField.name(), customField.type());
                 }
-            } else {
-                if (!fields.containsKey(filter.getField())) {
-                    exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
-                }
+            }
+            if (!fields.containsKey(filter.getField())) {
+                exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
             }
             for (String blacklistedWord : getBlacklistedWords()) {
                 if (filter.getOperand().contains(blacklistedWord)) {

@@ -121,5 +121,15 @@ public class GetWithFiltersValidationTests {
         assertEquals(1, exception.getMessages().size(), "Unexpected errors returned when testing that an offset filter must include one limit filter.");
     }
 
+    @Test
+    void validateAndOrderFilters_InvalidCustomFilter_ThrowException() {
+        final List<Filter> filters = List.of(
+                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_TEXT, "invalid custom filter", Filter.OPERATOR_GREATER_THAN, "invalid operand", true)
+        );
+        ExceptionInvalidFilter exception = assertThrows(ExceptionInvalidFilter.class, () -> systemRepository.getWithFilters(filters));
+
+        assertEquals(3, exception.getMessages().size(), "Unexpected errors returned when testing an invalid custom filter.");
+    }
+
     //Validating the order of the filters is done in GetWithFiltersTextPaginationAndSortTests.java in the testOrderFilters()
 }
