@@ -316,64 +316,46 @@ public class FilterService {
         return whereFilters.stream().filter(Objects::nonNull).toList();
     }
 
-    // TODO fix checkstyle error
     public static List<String> formatWhereStatements(List<Filter> filters) {
         List<String> whereStatements = new ArrayList<>();
         for (Filter filter : filters) {
             if (filter.isCustom()) {
-                switch (filter.getType()) {
-                    case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
-                        switch (filter.getOperator()) {
-                            case OPERATOR_EQUALS -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_text = ?");
-                            }
-                            case OPERATOR_NOT_EQUALS -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_text <> ?");
-                            }
-                            case OPERATOR_CONTAINS,
-                                    OPERATOR_STARTS_WITH,
-                                    OPERATOR_ENDS_WITH -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_text LIKE ?");
-                            }
-                        }
-                    }
-                    case CustomField.TYPE_NUMBER -> {
-                        switch (filter.getOperator()) {
-                            case OPERATOR_EQUALS -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_number = ?");
-                            }
-                            case OPERATOR_NOT_EQUALS -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_number <> ?");
-                            }
-                            case OPERATOR_GREATER_THAN -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_number > ?");
-                            }
-                            case OPERATOR_LESS_THAN -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_number < ?");
-                            }
-                            case OPERATOR_GREATER_THAN_EQUAL_TO -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_number >= ?");
-                            }
-                            case OPERATOR_LESS_THAN_EQUAL_TO -> {
-                                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                                whereStatements.add(" AND values.value_number <= ?");
-                            }
-                        }
-                    }
-                }
+                //The table alias for custom_fields is always 'fields' as setup in each EntityRepository getBaseQueryJoinCustomFieldValues();
+                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
+                whereStatements.add(getCustomFilterWhereStatement(filter));
             } else {
                 whereStatements.add(getWhereStatement(filter));
             }
         }
         return whereStatements;
+    }
+
+    private static String getCustomFilterWhereStatement(Filter filter) {
+        final String whereStatement;
+        //The table alias for custom_field_values is always 'values' as setup in each EntityRepository getBaseQueryJoinCustomFieldValues();
+        switch (filter.getType()) {
+            case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
+                switch (filter.getOperator()) {
+                    case OPERATOR_EQUALS -> whereStatement = " AND values.value_text = ?";
+                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND values.value_text <> ?";
+                    case OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> whereStatement = " AND values.value_text LIKE ?";
+                    default -> whereStatement = "";
+                }
+            }
+            case CustomField.TYPE_NUMBER -> {
+                switch (filter.getOperator()) {
+                    case OPERATOR_EQUALS -> whereStatement = " AND values.value_number = ?";
+                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND values.value_number <> ?";
+                    case OPERATOR_GREATER_THAN -> whereStatement = " AND values.value_number > ?";
+                    case OPERATOR_LESS_THAN -> whereStatement = " AND values.value_number < ?";
+                    case OPERATOR_GREATER_THAN_EQUAL_TO -> whereStatement = " AND values.value_number >= ?";
+                    case OPERATOR_LESS_THAN_EQUAL_TO -> whereStatement = " AND values.value_number <= ?";
+                    default -> whereStatement = "";
+                }
+            }
+            default -> whereStatement = "";
+        }
+        return whereStatement;
     }
 
     private static String getWhereStatement(Filter filter) {
