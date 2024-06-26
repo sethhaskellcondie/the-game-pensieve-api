@@ -6,7 +6,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRep
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyGateway;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +32,7 @@ public class HeartbeatController {
 
     @Deprecated
     @PostMapping("/v1/seedMyCollection")
-    public String seedMyCollectionData() throws ExceptionFailedDbValidation {
+    public String seedMyCollectionData() {
 
         // ----- seed custom fields -----
         final CustomField releaseDateCustomField = customFieldRepository.insertCustomField("Release Date", "number", Keychain.SYSTEM_KEY);
