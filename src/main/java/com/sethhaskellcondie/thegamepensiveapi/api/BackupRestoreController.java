@@ -25,6 +25,9 @@ import java.util.Map;
 
 /**
  * This class has no automated tests, they will be tested and updated manually.
+ * <p>
+ * This class acts like another system that is trying to interact with the domain. It can only use the DTO objects (not the entities)
+ * and only has access to the gateways (except the CustomFieldRepository)
  */
 @RestController
 public class BackupRestoreController {
@@ -38,6 +41,12 @@ public class BackupRestoreController {
         this.systemGateway = systemGateway;
         this.toyGateway = toyGateway;
         this.customFieldRepository = customFieldRepository;
+    }
+
+    @PostMapping("v1/function/seedSampleData")
+    public Map<String, String> seedSampleData() {
+        //TODO finish this
+        return null;
     }
 
     @PostMapping("v1/function/backup")
@@ -76,6 +85,8 @@ public class BackupRestoreController {
             throw new RuntimeException(e);
         }
 
+        //TODO refactor this to work with the sample data
+
         ExceptionBackupRestore exceptionBackupRestore = new ExceptionBackupRestore();
         List<CustomField> customFields = backupData.customFields();
         Map<String, Integer> customFieldIds = new HashMap<>(customFields.size());
@@ -88,6 +99,8 @@ public class BackupRestoreController {
             }
         }
         if (exceptionBackupRestore.getExceptions().size() > 0) {
+            //TODO include a message saying that there were errors with the custom fields and that the restore process was stopped.
+            //TODO this introduces a new problem some of the custom fields are present in the system this first step with the custom fields should really be a get then if not found then insert
             throw exceptionBackupRestore;
         }
 
