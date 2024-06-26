@@ -39,13 +39,13 @@ public class GetWithFiltersValidationTests {
     void validateAndOrderFilters_TwoFiltersMultipleErrors_ThrowExceptionWithMultipleErrors() {
         final List<Filter> filters = List.of(
                 new Filter(Keychain.SYSTEM_KEY,
-                        Filter.FIELD_TYPE_TEXT, //will throw one error for not matching the computed field type
+                        Filter.FIELD_TYPE_TEXT, //will throw one error for not matching the computed field type (null)
                         "missingField",         //will throw two errors for not being allowed with system
                         Filter.OPERATOR_EQUALS,
                         "operand with ; not allowed",   //will throw one error for including a semicolon in the operand
                         false),
                 new Filter(Keychain.SYSTEM_KEY,
-                        Filter.FIELD_TYPE_TEXT, //will throw one error for not matching the computed field type
+                        Filter.FIELD_TYPE_TEXT, //will throw one error for not matching the computed field type (null)
                         "anotherMissingField",  //will throw two errors for not being allowed with system
                         Filter.OPERATOR_STARTS_WITH,
                         "keyword select is not allowed", //will throw one error for including the word 'select' in the operand

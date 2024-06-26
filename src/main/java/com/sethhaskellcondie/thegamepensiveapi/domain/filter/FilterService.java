@@ -200,16 +200,14 @@ public class FilterService {
                 exceptionInvalidFilter.addException(filter.getField() + " is not allowed with operator " + filter.getOperator() + ".");
             }
 
-            if (Objects.equals(fieldType, FIELD_TYPE_NUMBER) || Objects.equals(fieldType, FIELD_TYPE_PAGINATION)) {
-                exceptionInvalidFilter = additionalNumberAndPaginationFilterValidation(filter, exceptionInvalidFilter);
+            if (null == fieldType) {
+                continue;
             }
-
-            if (Objects.equals(fieldType, FIELD_TYPE_BOOLEAN)) {
-                exceptionInvalidFilter = additionalBooleanFilterValidation(filter, exceptionInvalidFilter);
-            }
-
-            if (Objects.equals(fieldType, FIELD_TYPE_TIME)) {
-                exceptionInvalidFilter = additionalTimeValidation(filter, exceptionInvalidFilter);
+            switch (fieldType) {
+                case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> exceptionInvalidFilter = additionalNumberAndPaginationFilterValidation(filter, exceptionInvalidFilter);
+                case FIELD_TYPE_BOOLEAN -> exceptionInvalidFilter = additionalBooleanFilterValidation(filter, exceptionInvalidFilter);
+                case FIELD_TYPE_TIME -> exceptionInvalidFilter = additionalTimeValidation(filter, exceptionInvalidFilter);
+                default -> { }
             }
         }
 
