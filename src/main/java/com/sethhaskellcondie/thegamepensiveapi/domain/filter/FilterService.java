@@ -175,25 +175,20 @@ public class FilterService {
         return filters;
     }
 
-    // TODO fix checkstyle error
     public static List<Filter> validateAndOrderFilters(List<Filter> filters, List<CustomField> customFields) throws ExceptionInvalidFilter {
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {
-            Map<String, String> fields = FilterEntity.getNonCustomFieldFiltersByKey(filter.getKey());
+            Map<String, String> fields;
             if (filter.isCustom()) {
-                for (CustomField customField : customFields) {
-                    fields.put(customField.name(), customField.type());
-                }
+                fields = getFiltersByKeyIncludingCustomFields(filter.getKey(), customFields);
+            } else {
+                fields = FilterEntity.getNonCustomFieldFiltersByKey(filter.getKey());
             }
             if (!fields.containsKey(filter.getField())) {
                 exceptionInvalidFilter.addException(filter.getField() + " is not allowed for " + filter.getKey() + ".");
             }
-            for (String blacklistedWord : getBlacklistedWords()) {
-                if (filter.getOperand().contains(blacklistedWord)) {
-                    exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in any filters.");
-                }
-            }
+            exceptionInvalidFilter = checkForBlacklistedWords(filter, exceptionInvalidFilter);
 
             String fieldType = fields.get(filter.getField());
             List<String> operators = getFilterOperators(fieldType, true);
@@ -219,6 +214,23 @@ public class FilterService {
         }
 
         return orderFilters(filters, exceptionInvalidFilter);
+    }
+
+    private static Map<String, String> getFiltersByKeyIncludingCustomFields(String key, List<CustomField> customFields) {
+        Map<String, String> fields = FilterEntity.getNonCustomFieldFiltersByKey(key);
+        for (CustomField customField : customFields) {
+            fields.put(customField.name(), customField.type());
+        }
+        return fields;
+    }
+
+    private static ExceptionInvalidFilter checkForBlacklistedWords(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
+        for (String blacklistedWord : getBlacklistedWords()) {
+            if (filter.getOperand().contains(blacklistedWord)) {
+                exceptionInvalidFilter.addException(blacklistedWord + " is not allowed in any filters.");
+            }
+        }
+        return exceptionInvalidFilter;
     }
 
     private static ExceptionInvalidFilter additionalNumberAndPaginationFilterValidation(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
