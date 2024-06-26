@@ -370,54 +370,34 @@ public class FilterService {
                     }
                 }
             } else {
-                String tableAlias = Keychain.getTableAliasByKey(filters.get(0).getKey());
-                switch (filter.getOperator()) {
-                    case OPERATOR_EQUALS -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " = ?");
-                    }
-                    case OPERATOR_NOT_EQUALS -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <> ?");
-                    }
-                    case OPERATOR_CONTAINS,
-                            OPERATOR_STARTS_WITH,
-                            OPERATOR_ENDS_WITH -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " LIKE ?");
-                    }
-                    case OPERATOR_GREATER_THAN -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " > ?");
-                    }
-                    case OPERATOR_LESS_THAN -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " < ?");
-                    }
-                    case OPERATOR_GREATER_THAN_EQUAL_TO -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " >= ?");
-                    }
-                    case OPERATOR_LESS_THAN_EQUAL_TO -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <= ?");
-                    }
-                    case OPERATOR_ORDER_BY -> {
-                        whereStatements.add(" ORDER BY " + tableAlias + "." + filter.getField() + " ASC");
-                    }
-                    case OPERATOR_ORDER_BY_DESC -> {
-                        whereStatements.add(" ORDER BY " + tableAlias + "." + filter.getField() + " DESC");
-                    }
-                    case OPERATOR_SINCE -> {
-                        // https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-to_timestamp/
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " >= TO_TIMESTAMP( ? , 'YYYY-MM-DD HH24:MI:SS')");
-                    }
-                    case OPERATOR_BEFORE -> {
-                        whereStatements.add(" AND " + tableAlias + "." + filter.getField() + " <= TO_TIMESTAMP( ? , 'YYYY-MM-DD HH24:MI:SS')");
-                    }
-                    case OPERATOR_LIMIT -> {
-                        whereStatements.add(" LIMIT ?");
-                    }
-                    case OPERATOR_OFFSET -> {
-                        whereStatements.add(" OFFSET ?");
-                    }
-                }
+                whereStatements.add(getWhereStatement(filter));
             }
         }
         return whereStatements;
+    }
+
+    private static String getWhereStatement(Filter filter) {
+        final String tableAlias = Keychain.getTableAliasByKey(filter.getKey());
+        final String whereStatement;
+        //statements should always begin with a space and assume that the first WHERE statement is already included
+        switch (filter.getOperator()) {
+            case OPERATOR_EQUALS -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " = ?";
+            case OPERATOR_NOT_EQUALS -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " <> ?";
+            case OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " LIKE ?";
+            case OPERATOR_GREATER_THAN -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " > ?";
+            case OPERATOR_LESS_THAN -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " < ?";
+            case OPERATOR_GREATER_THAN_EQUAL_TO -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " >= ?";
+            case OPERATOR_LESS_THAN_EQUAL_TO -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " <= ?";
+            // https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-to_timestam/
+            case OPERATOR_SINCE -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " >= TO_TIMESTAMP( ? , 'YYYY-MM-DD HH24:MI:SS')";
+            case OPERATOR_BEFORE -> whereStatement = " AND " + tableAlias + "." + filter.getField() + " <= TO_TIMESTAMP( ? , 'YYYY-MM-DD HH24:MI:SS')";
+            case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY " + tableAlias + "." + filter.getField() + " ASC";
+            case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY " + tableAlias + "." + filter.getField() + " DESC";
+            case OPERATOR_LIMIT -> whereStatement = " LIMIT ?";
+            case OPERATOR_OFFSET -> whereStatement = " OFFSET ?";
+            default -> whereStatement = "";
+        }
+        return whereStatement;
     }
 
     public static List<Object> formatOperands(List<Filter> filters) {
