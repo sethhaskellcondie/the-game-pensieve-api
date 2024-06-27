@@ -131,8 +131,8 @@ public class BackupImportService {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.TOY_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing toy data CustomFieldId not found but expected for "
-                            + toyRequestDto.name() + " with custom field value " + value.getCustomFieldName() + " this toy will be skipped."));
+                    exceptionBackupImport.addException(new Exception("Error importing toy data. CustomFieldId not found but expected for toy with name: '"
+                            + toyRequestDto.name() + "' and set '" + toyRequestDto.set() + "' with custom field value named '" + value.getCustomFieldName() + "' "));
                 } else {
                     value.setCustomFieldId(customFieldId);
                 }
@@ -156,7 +156,7 @@ public class BackupImportService {
                 }
             } catch (Exception exception) {
                 exceptionBackupImport.addException(new Exception("Error importing toy data with name: '" + toyRequestDto.name()
-                        + "' and set '" + toyRequestDto.set() + "'" + exception.getMessage()));
+                        + "' and set '" + toyRequestDto.set() + "' " + exception.getMessage()));
             }
         }
         return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
@@ -175,8 +175,8 @@ public class BackupImportService {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.SYSTEM_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing system data CustomFieldId not found but expected for "
-                            + systemRequestDto.name() + " with custom field value " + value.getCustomFieldName() + " this system will be skipped."));
+                    exceptionBackupImport.addException(new Exception("Error importing system data. CustomFieldId not found but expected for system named: '"
+                            + systemRequestDto.name() + "' with custom field value named '" + value.getCustomFieldName() + "' "));
                 } else {
                     value.setCustomFieldId(customFieldId);
                 }
@@ -188,11 +188,19 @@ public class BackupImportService {
 
         for (SystemRequestDto systemRequestDto: systemRequestsReady) {
             try {
-                //TODO add existing check
-                systemRepository.insert(systemRequestDto);
-                createdCount++;
+                int systemId = systemRepository.getIdByName(systemRequestDto.name());
+                if (systemId > 0) {
+                    System system = systemRepository.getById(systemId);
+                    system.updateFromRequestDto(systemRequestDto);
+                    systemRepository.update(system);
+                    existingCount++;
+                } else {
+                    systemRepository.insert(systemRequestDto);
+                    createdCount++;
+                }
             } catch (Exception exception) {
-                exceptionBackupImport.addException(exception);
+                exceptionBackupImport.addException(new Exception("Error importing system data with name: '" + systemRequestDto.name()
+                        + "' " + exception.getMessage()));
             }
         }
         return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);

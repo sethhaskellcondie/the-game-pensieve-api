@@ -3,11 +3,13 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInvalidFilter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -138,5 +141,21 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", System.class.getSimpleName(), id);
         }
+    }
+
+    public int getIdByName(String name) {
+        final String sql = getBaseQuery() + " AND name = ?";
+        final System system;
+        try {
+            system = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{name},
+                    new int[]{Types.VARCHAR},
+                    getRowMapper()
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            return -1;
+        }
+        return system.getId();
     }
 }
