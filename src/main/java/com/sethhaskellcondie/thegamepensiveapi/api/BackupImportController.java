@@ -65,7 +65,7 @@ public class BackupImportController {
     }
 
     @PostMapping("v1/function/importFromFile")
-    public ImportResultsResponse importJsonFromFile() {
+    public FormattedImportResultsResponse importJsonFromFile() {
         final FormattedBackupData backupData;
         try {
             final byte[] fileData = Files.readAllBytes(Paths.get(backupDataPath));
@@ -76,20 +76,20 @@ public class BackupImportController {
         }
 
         ImportResults importResults = importBackupData(backupData);
-        return new ImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
+        return new FormattedImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
     }
 
     @PostMapping("v1/function/import")
-    public ImportResultsResponse importJsonFromRequestBody(@RequestBody Map<String, FormattedBackupData> requestBody) {
+    public FormattedImportResultsResponse importJsonFromRequestBody(@RequestBody Map<String, FormattedBackupData> requestBody) {
         final FormattedBackupData backupData = requestBody.get("data");
 
         ImportResults importResults = importBackupData(backupData);
 
-        return new ImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
+        return new FormattedImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
     }
 
     @PostMapping("v1/function/seedSampleData")
-    public ImportResultsResponse seedSampleData() {
+    public FormattedImportResultsResponse seedSampleData() {
         final FormattedBackupData sampleData;
         try {
             final byte[] fileData = Files.readAllBytes(Paths.get("sampleData.json"));
@@ -100,43 +100,49 @@ public class BackupImportController {
         }
 
         ImportResults importResults = importBackupData(sampleData);
-        return new ImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
+        return new FormattedImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
     }
 
     private ImportResults importBackupData(FormattedBackupData backupData) {
         final Map<String, Integer> customFieldIds;
-        final ImportCustomFieldResults customFieldResults;
-        try {
-            customFieldResults = importCustomFields(backupData);
-            customFieldIds = customFieldResults.customFieldIds();
-        } catch (ExceptionBackupImport customFieldException) {
-            ExceptionBackupImport importException = new ExceptionBackupImport("There were errors importing Custom Fields, address the provided errors and try again. No additional data imported.");
-            importException.appendExceptions(customFieldException.getExceptions());
-            throw importException;
+        final ImportCustomFieldsResults customFieldResults;
+        customFieldResults = importCustomFields(backupData);
+        customFieldIds = customFieldResults.customFieldIds();
+        if (customFieldResults.exceptionBackupImport().getExceptions().size() > 0) {
+            ExceptionBackupImport customFieldsException = new ExceptionBackupImport("There were errors importing Custom Fields. No additional data imported.");
+            customFieldsException.appendExceptions(customFieldResults.exceptionBackupImport().getExceptions());
+            ImportResultsData data = new ImportResultsData(customFieldResults.existingCount(), customFieldResults.createdCount());
+            return new ImportResults(data, customFieldsException);
         }
 
         ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
 
-        try {
-            importToys(backupData, customFieldIds);
-        } catch (ExceptionBackupImport toyException) {
-            exceptionBackupImport.appendExceptions(toyException.getExceptions());
+        ImportEntityResults toyResults = importToys(backupData, customFieldIds);
+        if (toyResults.exceptionBackupImport().getExceptions().size() > 0) {
+            exceptionBackupImport.appendExceptions(toyResults.exceptionBackupImport().getExceptions());
         }
 
-        try {
-            importSystems(backupData, customFieldIds);
-        } catch (ExceptionBackupImport systemException) {
-            exceptionBackupImport.appendExceptions(systemException.getExceptions());
+        ImportEntityResults systemResults = importSystems(backupData, customFieldIds);
+        if (systemResults.exceptionBackupImport().getExceptions().size() > 0) {
+            exceptionBackupImport.appendExceptions(systemResults.exceptionBackupImport().getExceptions());
         }
 
-        ImportResultsData data = new ImportResultsData(customFieldResults.existingCount(), customFieldResults.createdCount());
+        ImportResultsData data = new ImportResultsData(
+                customFieldResults.existingCount(),
+                customFieldResults.createdCount(),
+                toyResults.existingCount(),
+                toyResults.createdCount(),
+                systemResults.existingCount(),
+                systemResults.createdCount()
+        );
         return new ImportResults(data, exceptionBackupImport);
     }
 
-    private ImportCustomFieldResults importCustomFields(FormattedBackupData backupData) {
+    private ImportCustomFieldsResults importCustomFields(FormattedBackupData backupData) {
         final ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         int existingCount = 0;
         int createdCount = 0;
+
         final List<CustomField> customFields = backupData.customFields();
         final Map<String, Integer> customFieldIds = new HashMap<>(customFields.size());
 
@@ -167,10 +173,7 @@ public class BackupImportController {
                 customFieldIds.put(customFieldComboKey(savedCustomField), savedCustomField.id());
             }
         }
-        if (exceptionBackupImport.getExceptions().size() > 0) {
-            throw exceptionBackupImport;
-        }
-        return new ImportCustomFieldResults(customFieldIds, existingCount, createdCount);
+        return new ImportCustomFieldsResults(customFieldIds, existingCount, createdCount, exceptionBackupImport);
     }
 
     private String customFieldComboKey(CustomField customField) {
@@ -181,8 +184,11 @@ public class BackupImportController {
         return entityKey + "-" + value.getCustomFieldName();
     }
 
-    private ExceptionBackupImport importToys(FormattedBackupData backupData, Map<String, Integer> customFieldIds) {
+    private ImportEntityResults importToys(FormattedBackupData backupData, Map<String, Integer> customFieldIds) {
         ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
+        int existingCount = 0;
+        int createdCount = 0;
+
         List<ToyRequestDto> toyRequestsToBeUpdated = backupData.toys();
         List<ToyRequestDto> toyRequestsReady = new ArrayList<>(toyRequestsToBeUpdated.size());
         for (ToyRequestDto toyRequestDto: toyRequestsToBeUpdated) {
@@ -191,7 +197,7 @@ public class BackupImportController {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.TOY_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error restoring toy data from a file CustomFieldId not found but expected for "
+                    exceptionBackupImport.addException(new Exception("Error importing toy data CustomFieldId not found but expected for "
                             + toyRequestDto.name() + " with custom field value " + value.getCustomFieldName() + " this toy will be skipped."));
                 } else {
                     value.setCustomFieldId(customFieldId);
@@ -201,21 +207,24 @@ public class BackupImportController {
                 toyRequestsReady.add(toyRequestDto);
             }
         }
+
         for (ToyRequestDto toyRequestDto: toyRequestsReady) {
             try {
+                //TODO add existing check
                 toyGateway.createNew(toyRequestDto);
+                createdCount++;
             } catch (Exception exception) {
                 exceptionBackupImport.addException(exception);
             }
         }
-        if (exceptionBackupImport.getExceptions().size() > 0) {
-            throw exceptionBackupImport;
-        }
-        return exceptionBackupImport;
+        return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
     }
 
-    private ExceptionBackupImport importSystems(FormattedBackupData backupData, Map<String, Integer> customFieldIds) {
+    private ImportEntityResults importSystems(FormattedBackupData backupData, Map<String, Integer> customFieldIds) {
         ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
+        int existingCount = 0;
+        int createdCount = 0;
+
         List<SystemRequestDto> systemRequestToBeUpdated = backupData.systems();
         List<SystemRequestDto> systemRequestsReady = new ArrayList<>(systemRequestToBeUpdated.size());
         for (SystemRequestDto systemRequestDto: systemRequestToBeUpdated) {
@@ -224,7 +233,7 @@ public class BackupImportController {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.SYSTEM_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error restoring system data from a file CustomFieldId not found but expected for "
+                    exceptionBackupImport.addException(new Exception("Error importing system data CustomFieldId not found but expected for "
                             + systemRequestDto.name() + " with custom field value " + value.getCustomFieldName() + " this system will be skipped."));
                 } else {
                     value.setCustomFieldId(customFieldId);
@@ -234,23 +243,30 @@ public class BackupImportController {
                 systemRequestsReady.add(systemRequestDto);
             }
         }
+
         for (SystemRequestDto systemRequestDto: systemRequestsReady) {
             try {
+                //TODO add existing check
                 systemGateway.createNew(systemRequestDto);
+                createdCount++;
             } catch (Exception exception) {
                 exceptionBackupImport.addException(exception);
             }
         }
-        if (exceptionBackupImport.getExceptions().size() > 0) {
-            throw exceptionBackupImport;
-        }
-        return exceptionBackupImport;
+        return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
     }
 
 }
 
 record FormattedBackupData(String filePath, List<CustomField> customFields, List<ToyRequestDto> toys, List<SystemRequestDto> systems) { }
-record ImportCustomFieldResults(Map<String, Integer> customFieldIds, int existingCount, int createdCount) { }
-record ImportResultsData(int preexistingCustomFields, int createdCustomFields) { }
+
+record ImportCustomFieldsResults(Map<String, Integer> customFieldIds, int existingCount, int createdCount, ExceptionBackupImport exceptionBackupImport) { }
+record ImportEntityResults(int existingCount, int createdCount, ExceptionBackupImport exceptionBackupImport) { }
+
+record ImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys, int existingSystems, int createdSystems) {
+    ImportResultsData(int existingCustomFields, int createdCustomFields) {
+        this(existingCustomFields, createdCustomFields, 0, 0, 0, 0);
+    }
+}
 record ImportResults(ImportResultsData data, ExceptionBackupImport exceptionBackupImport) { }
-record ImportResultsResponse(ImportResultsData data, List<String> errors) { }
+record FormattedImportResultsResponse(ImportResultsData data, List<String> errors) { }

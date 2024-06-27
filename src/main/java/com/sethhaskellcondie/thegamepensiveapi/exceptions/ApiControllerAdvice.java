@@ -81,7 +81,7 @@ public class ApiControllerAdvice {
     }
 
     @ExceptionHandler(value = {ExceptionBackupImport.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public Map<String, List<String>> handleExceptionBackupRestore(ExceptionBackupImport e) {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
