@@ -2,7 +2,6 @@ package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.api.controllers.ToyController;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
@@ -41,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+//Deprecated: This project is going to use full SpringBootTest Integration tests instead of slice tests
 @Deprecated
 @WebMvcTest(ToyController.class)
 public class ToyControllerTests {

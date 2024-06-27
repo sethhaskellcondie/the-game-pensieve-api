@@ -1,15 +1,13 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionTestFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 
+//Deprecated: This kind of implementation tried to be clever but turned out goofy.
 @Deprecated
 public class SystemFactory implements EntityFactory<System, SystemRequestDto, SystemResponseDto> {
 

@@ -19,6 +19,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+//Deprecated: This project is going to use full SpringBootTest Integration tests to test entity functionality
 @Deprecated
 public abstract class EntityGatewayTests<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 

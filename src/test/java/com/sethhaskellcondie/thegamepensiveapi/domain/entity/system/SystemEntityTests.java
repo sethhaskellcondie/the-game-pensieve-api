@@ -1,8 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * <p>
  * This is also where Entity validation will be tested.
  */
+//Deprecated: This project is going to use full SpringBootTest Integration tests to test entity functionality
 @Deprecated
 public class SystemEntityTests {
 

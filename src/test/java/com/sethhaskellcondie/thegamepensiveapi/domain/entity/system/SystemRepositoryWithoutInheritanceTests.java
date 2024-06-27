@@ -1,8 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInvalidFilter;
@@ -22,10 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * This it the "before" for unit tests looked like before the
- * "after" when I wrote the abstract tests EntityRepositoryTests
- */
+//Deprecated: This it the "before" for unit tests looked like before the "after" when I wrote the abstract tests EntityRepositoryTests
 @Deprecated
 @JdbcTest
 @ActiveProfiles("test-container")

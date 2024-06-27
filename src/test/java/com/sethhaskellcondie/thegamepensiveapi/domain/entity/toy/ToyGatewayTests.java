@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 
 import static org.mockito.Mockito.mock;
 
+//Deprecated: This project is going to use full SpringBootTest Integration tests to test entity functionality
 @Deprecated
 public class ToyGatewayTests extends EntityGatewayTests<Toy, ToyRequestDto, ToyResponseDto> {
 

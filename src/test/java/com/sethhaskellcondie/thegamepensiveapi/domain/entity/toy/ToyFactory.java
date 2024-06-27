@@ -1,15 +1,13 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionTestFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 
+//Deprecated: This project is going to use full SpringBootTest Integration tests to test entity functionality
 @Deprecated
 public class ToyFactory implements EntityFactory<Toy, ToyRequestDto, ToyResponseDto> {
 

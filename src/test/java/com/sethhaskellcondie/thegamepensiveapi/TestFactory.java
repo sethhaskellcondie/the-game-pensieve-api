@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain;
+package com.sethhaskellcondie.thegamepensiveapi;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -2,7 +2,6 @@ package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.api.controllers.SystemController;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
@@ -42,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+//Deprecated: This project is going to use full SpringBootTest Integration tests instead of slice tests
 @Deprecated
 //WebMvcTest is a "slice test" used for testing controllers with a mock servlet for http requests
 @WebMvcTest(SystemController.class)

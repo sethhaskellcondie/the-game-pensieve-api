@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;

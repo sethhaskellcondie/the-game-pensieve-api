@@ -1,8 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+//Deprecated: This project is going to use full SpringBootTest Integration tests to test entity functionality
 @Deprecated
 public class ToyEntityTests {
 
