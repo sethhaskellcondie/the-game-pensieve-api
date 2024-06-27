@@ -16,8 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class acts like another system that is trying to interact with the domain. It can only use the DTO objects (not the entities)
- * and only has access to the gateways
+ * There are no api tests for these endpoint, instead there are domain tests for the backupImportGateway
  */
 @RestController
 public class BackupImportController {
