@@ -1,0 +1,463 @@
+{
+  "dataType": "backupData",
+  "customFields": [
+    {
+      "id": 1,
+      "name": "Release Date",
+      "type": "number",
+      "entityKey": "system"
+    },
+    {
+      "id": 2,
+      "name": "Favorite",
+      "type": "boolean",
+      "entityKey": "system"
+    },
+    {
+      "id": 3,
+      "name": "Publisher",
+      "type": "text",
+      "entityKey": "system"
+    },
+    {
+      "id": 4,
+      "name": "Set",
+      "type": "text",
+      "entityKey": "toy"
+    },
+    {
+      "id": 5,
+      "name": "Ranking",
+      "type": "number",
+      "entityKey": "toy"
+    },
+    {
+      "id": 6,
+      "name": "Broken",
+      "type": "boolean",
+      "entityKey": "toy"
+    }
+  ],
+  "toys": [
+    {
+      "name": "Super Mario",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Set",
+          "customFieldType": "text",
+          "value": "Super Mario"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Ranking",
+          "customFieldType": "number",
+          "value": "2"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "name": "Super Mario",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Set",
+          "customFieldType": "text",
+          "value": "Smash Bros"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Ranking",
+          "customFieldType": "number",
+          "value": "3"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "name": "Darth Vader",
+      "set": "Disney Infinity",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Set",
+          "customFieldType": "text",
+          "value": "Star Wars"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Ranking",
+          "customFieldType": "number",
+          "value": "3"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "name": "Captain America",
+      "set": "Disney Infinity",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Set",
+          "customFieldType": "text",
+          "value": "Marvel"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Ranking",
+          "customFieldType": "number",
+          "value": "1"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "name": "Iron Man",
+      "set": "Disney Infinity",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Set",
+          "customFieldType": "text",
+          "value": "Marvel"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Ranking",
+          "customFieldType": "number",
+          "value": "2"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "name": "Donkey Kong",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Set",
+          "customFieldType": "text",
+          "value": "Super Mario"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Ranking",
+          "customFieldType": "number",
+          "value": "3"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "name": "Mega Man",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Set",
+          "customFieldType": "text",
+          "value": "Smash Bros"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Ranking",
+          "customFieldType": "number",
+          "value": "1"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "systems": [
+    {
+      "name": "NES",
+      "generation": 3,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "1987"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "true"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        }
+      ]
+    },
+    {
+      "name": "SNES",
+      "generation": 3,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "1999"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "true"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        }
+      ]
+    },
+    {
+      "name": "Genesis",
+      "generation": 4,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "1999"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "false"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Sega"
+        }
+      ]
+    },
+    {
+      "name": "Sega CD",
+      "generation": 4,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "1999"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "false"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Sega"
+        }
+      ]
+    },
+    {
+      "name": "Game Boy",
+      "generation": 4,
+      "handheld": true,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "1999"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "true"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        }
+      ]
+    },
+    {
+      "name": "Game Gear",
+      "generation": 4,
+      "handheld": true,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "1999"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "false"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Sega"
+        }
+      ]
+    },
+    {
+      "name": "Nintendo 64",
+      "generation": 5,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "2007"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "false"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        }
+      ]
+    },
+    {
+      "name": "Playstation",
+      "generation": 5,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "2007"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "false"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Sony"
+        }
+      ]
+    },
+    {
+      "name": "Playstation 2",
+      "generation": 6,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "2012"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "true"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Sony"
+        }
+      ]
+    },
+    {
+      "name": "Wii",
+      "generation": 7,
+      "handheld": false,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Release Date",
+          "customFieldType": "number",
+          "value": "2012"
+        },
+        {
+          "customFieldId": 2,
+          "customFieldName": "Favorite",
+          "customFieldType": "boolean",
+          "value": "true"
+        },
+        {
+          "customFieldId": 3,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        }
+      ]
+    }
+  ]
+}

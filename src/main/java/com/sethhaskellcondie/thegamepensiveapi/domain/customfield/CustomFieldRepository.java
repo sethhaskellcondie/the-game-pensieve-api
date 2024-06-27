@@ -1,10 +1,10 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensiveapi.api.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalCatastrophe;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -37,7 +37,8 @@ public class CustomFieldRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
+    //TODO delete this after updating the tests
+    @Deprecated
     public CustomField insertCustomField(String name, String type, String key) {
         return insertCustomField(new CustomFieldRequestDto(name, type, key));
     }
@@ -100,6 +101,23 @@ public class CustomFieldRepository {
         return customField;
     }
 
+    public CustomField getByKeyAndName(String entityKey, String customFieldName) {
+        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? AND name = ? AND deleted = false";
+        CustomField customField;
+        try {
+            customField = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{entityKey, customFieldName}, //args to bind to the sql ?
+                    new int[]{Types.VARCHAR, Types.VARCHAR}, //the types of the objects to bind to the sql
+                    rowMapper
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ExceptionResourceNotFound("Custom Field (deleted = false) not found with given entity key and name. entity_key: " + entityKey
+                    + " name: " + customFieldName + ".");
+        }
+        return customField;
+    }
+
     public List<CustomField> getAllCustomFields() {
         final String sql = "SELECT * FROM custom_fields";
         return jdbcTemplate.query(sql, rowMapper);
@@ -151,5 +169,12 @@ public class CustomFieldRepository {
         if (!exception.getExceptions().isEmpty()) {
             throw exception;
         }
+        try {
+            getByKeyAndName(customField.entityKey(), customField.name());
+        } catch (ExceptionResourceNotFound ignored) {
+            return;
+        }
+        throw new ExceptionFailedDbValidation("Custom Field with provided Entity Key and Name already found in the database. entity_key: "
+                + customField.entityKey() + " name: " + customField.name() + ".");
     }
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.TestFactory;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,6 +163,37 @@ public class CustomFieldTests {
         assertThrows(ExceptionResourceNotFound.class, () -> repository.getById(existingCustomField.id()));
         CustomField deletedCustomField = repository.getDeletedById(existingCustomField.id());
         assertEquals(existingCustomField, deletedCustomField);
+    }
+
+    @Test
+    void postCustomField_DuplicateFound_ReturnErrors() throws Exception {
+        final String duplicateName = "Oops Entered Twice";
+        final String type = "text";
+        final String entityKey = "toy";
+        final CustomField existingCustomField = resultToResponseDto(factory.postCustomCustomField(duplicateName, type, entityKey));
+        final String json = factory.formatCustomFieldPayload(duplicateName, type, entityKey);
+
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+
+        postCustomField_DeletedDuplicateFound_CustomFieldCreated(existingCustomField);
+    }
+
+    void postCustomField_DeletedDuplicateFound_CustomFieldCreated(CustomField existingCustomField) throws Exception {
+        mockMvc.perform(delete(baseUrlSlash + existingCustomField.id()));
+
+        final ResultActions result = factory.postCustomCustomField(existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
+
+        validateCustomFieldResponseBody(result, existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
     }
 
     @Test

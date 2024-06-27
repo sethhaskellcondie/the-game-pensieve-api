@@ -1,10 +1,13 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInvalidFilter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
