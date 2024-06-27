@@ -5,15 +5,15 @@ import com.sethhaskellcondie.thegamepensiveapi.api.Api;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExceptionBackupRestore extends RuntimeException {
+public class ExceptionBackupImport extends RuntimeException {
     private final List<Exception> exceptions;
 
-    public ExceptionBackupRestore() {
+    public ExceptionBackupImport() {
         super();
         this.exceptions = new ArrayList<>();
     }
 
-    public ExceptionBackupRestore(String message) {
+    public ExceptionBackupImport(String message) {
         super();
         this.exceptions = new ArrayList<>();
         exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + "Error restoring data from a file: " + message));

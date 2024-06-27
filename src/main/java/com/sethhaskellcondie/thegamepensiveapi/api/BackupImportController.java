@@ -10,7 +10,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionBackupRestore;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionBackupImport;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,14 +30,14 @@ import java.util.Map;
  * and only has access to the gateways (except the CustomFieldRepository)
  */
 @RestController
-public class BackupRestoreController {
+public class BackupImportController {
 
     private final SystemGateway systemGateway;
     private final ToyGateway toyGateway;
     private final CustomFieldRepository customFieldRepository;
     private final String backupDataPath = "backup.json";
 
-    public BackupRestoreController(SystemGateway systemGateway, ToyGateway toyGateway, CustomFieldRepository customFieldRepository) {
+    public BackupImportController(SystemGateway systemGateway, ToyGateway toyGateway, CustomFieldRepository customFieldRepository) {
         this.systemGateway = systemGateway;
         this.toyGateway = toyGateway;
         this.customFieldRepository = customFieldRepository;
@@ -69,8 +69,8 @@ public class BackupRestoreController {
         return body.formatData();
     }
 
-    @PostMapping("v1/function/restore")
-    public Map<String, String> restoreJsonFromFile() {
+    @PostMapping("v1/function/import")
+    public Map<String, String> importJsonFromFile() {
         byte[] fileData;
         try {
             fileData = Files.readAllBytes(Paths.get(backupDataPath));
@@ -87,7 +87,7 @@ public class BackupRestoreController {
 
         //TODO refactor this to work with the sample data
 
-        ExceptionBackupRestore exceptionBackupRestore = new ExceptionBackupRestore();
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         List<CustomField> customFields = backupData.customFields();
         Map<String, Integer> customFieldIds = new HashMap<>(customFields.size());
         for (CustomField customField : customFields) {
@@ -95,23 +95,23 @@ public class BackupRestoreController {
                 CustomField savedCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customField.name(), customField.type(), customField.entityKey()));
                 customFieldIds.put(customFieldComboKey(savedCustomField), savedCustomField.id());
             } catch (Exception exception) {
-                exceptionBackupRestore.addException(exception);
+                exceptionBackupImport.addException(exception);
             }
         }
-        if (exceptionBackupRestore.getExceptions().size() > 0) {
-            //TODO include a message saying that there were errors with the custom fields and that the restore process was stopped.
+        if (exceptionBackupImport.getExceptions().size() > 0) {
+            //TODO include a message saying that there were errors with the custom fields and that the import process was stopped.
             //TODO this introduces a new problem some of the custom fields are present in the system this first step with the custom fields should really be a get then if not found then insert
-            throw exceptionBackupRestore;
+            throw exceptionBackupImport;
         }
 
-        exceptionBackupRestore = saveToys(backupData, customFieldIds, exceptionBackupRestore);
+        exceptionBackupImport = importToys(backupData, customFieldIds, exceptionBackupImport);
 
-        exceptionBackupRestore = saveSystems(backupData, customFieldIds, exceptionBackupRestore);
+        exceptionBackupImport = importSystems(backupData, customFieldIds, exceptionBackupImport);
 
-        if (exceptionBackupRestore.getExceptions().size() > 0) {
-            throw exceptionBackupRestore;
+        if (exceptionBackupImport.getExceptions().size() > 0) {
+            throw exceptionBackupImport;
         }
-        final FormattedResponseBody<String> body = new FormattedResponseBody<>("JSON Restore Successful, Data pulled from: " + backupDataPath);
+        final FormattedResponseBody<String> body = new FormattedResponseBody<>("JSON Import Successful, Data pulled from: " + backupDataPath);
         return body.formatData();
     }
 
@@ -123,7 +123,7 @@ public class BackupRestoreController {
         return entityKey + "-" + value.getCustomFieldName();
     }
 
-    private ExceptionBackupRestore saveToys(FormattedBackupData backupData, Map<String, Integer> customFieldIds, ExceptionBackupRestore exceptionBackupRestore) {
+    private ExceptionBackupImport importToys(FormattedBackupData backupData, Map<String, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         List<ToyRequestDto> toyRequestsToBeUpdated = backupData.toys();
         List<ToyRequestDto> toyRequestsReady = new ArrayList<>(toyRequestsToBeUpdated.size());
         for (ToyRequestDto toyRequestDto: toyRequestsToBeUpdated) {
@@ -132,7 +132,7 @@ public class BackupRestoreController {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.TOY_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupRestore.addException(new Exception("Error restoring toy data from a file CustomFieldId not found but expected for "
+                    exceptionBackupImport.addException(new Exception("Error restoring toy data from a file CustomFieldId not found but expected for "
                             + toyRequestDto.name() + " with custom field value " + value.getCustomFieldName() + " this toy will be skipped."));
                 } else {
                     value.setCustomFieldId(customFieldId);
@@ -146,13 +146,13 @@ public class BackupRestoreController {
             try {
                 toyGateway.createNew(toyRequestDto);
             } catch (Exception exception) {
-                exceptionBackupRestore.addException(exception);
+                exceptionBackupImport.addException(exception);
             }
         }
-        return exceptionBackupRestore;
+        return exceptionBackupImport;
     }
 
-    private ExceptionBackupRestore saveSystems(FormattedBackupData backupData, Map<String, Integer> customFieldIds, ExceptionBackupRestore exceptionBackupRestore) {
+    private ExceptionBackupImport importSystems(FormattedBackupData backupData, Map<String, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         List<SystemRequestDto> systemRequestToBeUpdated = backupData.systems();
         List<SystemRequestDto> systemRequestsReady = new ArrayList<>(systemRequestToBeUpdated.size());
         for (SystemRequestDto systemRequestDto: systemRequestToBeUpdated) {
@@ -161,7 +161,7 @@ public class BackupRestoreController {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.SYSTEM_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupRestore.addException(new Exception("Error restoring system data from a file CustomFieldId not found but expected for "
+                    exceptionBackupImport.addException(new Exception("Error restoring system data from a file CustomFieldId not found but expected for "
                             + systemRequestDto.name() + " with custom field value " + value.getCustomFieldName() + " this system will be skipped."));
                 } else {
                     value.setCustomFieldId(customFieldId);
@@ -175,10 +175,10 @@ public class BackupRestoreController {
             try {
                 systemGateway.createNew(systemRequestDto);
             } catch (Exception exception) {
-                exceptionBackupRestore.addException(exception);
+                exceptionBackupImport.addException(exception);
             }
         }
-        return exceptionBackupRestore;
+        return exceptionBackupImport;
     }
 
 }

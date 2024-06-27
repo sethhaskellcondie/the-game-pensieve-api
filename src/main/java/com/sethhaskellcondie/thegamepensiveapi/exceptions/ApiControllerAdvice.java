@@ -80,10 +80,10 @@ public class ApiControllerAdvice {
         return body.formatError();
     }
 
-    @ExceptionHandler(value = {ExceptionBackupRestore.class})
+    @ExceptionHandler(value = {ExceptionBackupImport.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public Map<String, List<String>> handleExceptionBackupRestore(ExceptionBackupRestore e) {
+    public Map<String, List<String>> handleExceptionBackupRestore(ExceptionBackupImport e) {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
         return body.formatError();
     }
