@@ -48,6 +48,10 @@ public class Toy extends Entity<ToyRequestDto, ToyResponseDto> {
         return new ToyResponseDto(getKey(), this.id, this.name, this.set, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 
+    public ToyRequestDto convertToRequestDto() {
+        return new ToyRequestDto(this.name, this.set, this.customFieldValues);
+    }
+
     @Override
     public String getKey() {
         return Keychain.TOY_KEY;

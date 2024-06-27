@@ -85,6 +85,10 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         );
     }
 
+    public SystemRequestDto convertToRequestDto() {
+        return new SystemRequestDto(this.name, this.generation, this.handheld, this.customFieldValues);
+    }
+
     @Override
     public String getKey() {
         return Keychain.SYSTEM_KEY;

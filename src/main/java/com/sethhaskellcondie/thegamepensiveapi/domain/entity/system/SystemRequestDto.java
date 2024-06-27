@@ -15,10 +15,6 @@ public record SystemRequestDto(
         String name,
         Integer generation,
         Boolean handheld,
-        List<CustomFieldValue> customFieldValues) {
-
-    //used for backing up data
-    public static SystemRequestDto convertRequestToResponse(SystemResponseDto system) {
-        return new SystemRequestDto(system.name(), system.generation(), system.handheld(), system.customFieldValues());
-    }
+        List<CustomFieldValue> customFieldValues
+) {
 }

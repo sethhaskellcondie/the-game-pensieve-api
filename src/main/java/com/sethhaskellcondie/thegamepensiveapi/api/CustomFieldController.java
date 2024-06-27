@@ -23,6 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("v1/custom_fields")
 public class CustomFieldController {
+    //TODO update the custom fields to have a gateway
     private final CustomFieldRepository repository;
 
     public CustomFieldController(CustomFieldRepository repository) {
