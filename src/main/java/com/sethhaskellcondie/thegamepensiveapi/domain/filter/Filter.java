@@ -1,8 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * Filters are completely decoupled from the Entities they work with. We could pull in the database fields or
  * the fields on the entity class but instead the field must be manually entered in the fields map as it would

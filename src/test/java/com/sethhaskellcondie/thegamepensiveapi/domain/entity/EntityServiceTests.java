@@ -1,5 +1,9 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
@@ -10,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.VALID;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

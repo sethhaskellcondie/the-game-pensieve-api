@@ -1,4 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
+
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 
 @Deprecated
 public interface EntityFactory<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {

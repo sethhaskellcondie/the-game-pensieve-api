@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;

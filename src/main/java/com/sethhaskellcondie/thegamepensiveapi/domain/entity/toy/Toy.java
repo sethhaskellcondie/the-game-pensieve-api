@@ -1,6 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;

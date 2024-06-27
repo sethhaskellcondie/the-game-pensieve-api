@@ -1,7 +1,7 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.system;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
@@ -50,8 +50,9 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return handheld;
     }
 
+    //TODO update the system tests and make this function protected again
     @Override
-    protected System updateFromRequestDto(SystemRequestDto requestDto) {
+    public System updateFromRequestDto(SystemRequestDto requestDto) {
         List<Exception> exceptions = new ArrayList<>();
         this.name = requestDto.name();
         try {
@@ -76,8 +77,9 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return this;
     }
 
+    //TODO update the system tests and make this function protected again
     @Override
-    protected SystemResponseDto convertToResponseDto() {
+    public SystemResponseDto convertToResponseDto() {
         return new SystemResponseDto(this.getKey(), this.id, this.name, this.generation, this.handheld,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );

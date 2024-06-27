@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
@@ -11,11 +11,11 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_STARTS_WITH_VALID_PERSISTED;
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_VALID;
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.INVALID;
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.STARTS_WITH_VALID_PERSISTED;
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.ANOTHER_STARTS_WITH_VALID_PERSISTED;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.ANOTHER_VALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.INVALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.STARTS_WITH_VALID_PERSISTED;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

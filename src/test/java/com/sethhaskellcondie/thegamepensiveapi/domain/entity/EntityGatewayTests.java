@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.ANOTHER_STARTS_WITH_VALID_PERSISTED;
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.EMPTY;
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.STARTS_WITH_VALID_PERSISTED;
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID_PERSISTED;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.ANOTHER_STARTS_WITH_VALID_PERSISTED;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.EMPTY;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.STARTS_WITH_VALID_PERSISTED;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.VALID_PERSISTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;

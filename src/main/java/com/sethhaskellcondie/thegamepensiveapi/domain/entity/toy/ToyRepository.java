@@ -1,7 +1,7 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryAbstract;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;

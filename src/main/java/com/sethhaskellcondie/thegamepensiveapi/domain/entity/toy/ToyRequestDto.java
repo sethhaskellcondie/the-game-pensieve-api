@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 

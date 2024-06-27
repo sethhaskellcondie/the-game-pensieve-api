@@ -2,8 +2,8 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.Toy;
-import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionCustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.BeforeEach;

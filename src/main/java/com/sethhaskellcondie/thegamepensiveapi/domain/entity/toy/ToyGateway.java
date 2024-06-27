@@ -1,8 +1,8 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGateway;
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayAbstract;
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityGateway;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityGatewayAbstract;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import org.springframework.stereotype.Component;

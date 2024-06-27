@@ -1,6 +1,9 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionTestFactory;
 
 import java.sql.Timestamp;

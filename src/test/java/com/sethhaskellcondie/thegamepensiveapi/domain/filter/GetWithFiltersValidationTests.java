@@ -1,7 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInvalidFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

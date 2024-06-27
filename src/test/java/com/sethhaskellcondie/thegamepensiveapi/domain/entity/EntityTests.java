@@ -1,6 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.system.System;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;

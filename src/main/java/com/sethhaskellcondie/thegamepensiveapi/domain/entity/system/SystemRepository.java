@@ -1,7 +1,7 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.system;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryAbstract;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;

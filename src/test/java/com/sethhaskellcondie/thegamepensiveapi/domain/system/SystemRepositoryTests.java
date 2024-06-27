@@ -1,13 +1,17 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.EntityRepositoryTests;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryTests;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import static com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory.Generate.VALID;
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.VALID;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
