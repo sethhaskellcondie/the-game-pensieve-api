@@ -1,11 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.system;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityGatewayTests;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemGateway;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 

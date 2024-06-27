@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.system;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;

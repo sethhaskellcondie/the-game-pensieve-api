@@ -1,10 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.system;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryTests;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import org.junit.jupiter.api.Test;

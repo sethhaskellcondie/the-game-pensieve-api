@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.system;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
@@ -42,7 +42,7 @@ public class SystemRepositoryWithoutInheritanceTests {
 
     @Test
     void insertRequestDto_Success_ReturnEntity() throws ExceptionFailedDbValidation {
-        final String name = "NES";
+        final String name = "NES randomness avoid duplication";
         final int generation = 3;
         final boolean handheld = false;
         final SystemRequestDto expected = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
@@ -131,14 +131,14 @@ public class SystemRepositoryWithoutInheritanceTests {
 
     @Test
     void update_Success_ReturnEntity() throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
-        final String name = "Nintendo 64";
+        final String name = "Nintendo 64 garble garble random2810149389";
         final int generation = 5;
         final boolean handheld = false;
         final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
         final System expected = repository.insert(requestDto);
         final int expectedId = expected.getId();
 
-        final String updatedName = "Game Boy";
+        final String updatedName = "Game Boy ran9302188dom";
         final int updatedGeneration = 3;
         final boolean updatedHandheld = true;
         final SystemRequestDto updatedRequestDto = new SystemRequestDto(updatedName, updatedGeneration, updatedHandheld, new ArrayList<>());
@@ -154,7 +154,7 @@ public class SystemRepositoryWithoutInheritanceTests {
 
     @Test
     void deleteById_Success_NoException() throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final String name = "Playstation 2";
+        final String name = "Playstation 2 randomness a29bkemc0";
         final int generation = 6;
         final boolean handheld = false;
         final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());

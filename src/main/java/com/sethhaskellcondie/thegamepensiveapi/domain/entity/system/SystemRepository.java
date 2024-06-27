@@ -79,6 +79,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
     }
 
     protected void dbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
+        //Note: using a filter like this for dbValidation will prevent any names with blacklisted words or symbols from being entered into the database
         Filter nameFilter = new Filter("system", Filter.FIELD_TYPE_TEXT, "name", "equals", system.getName(), false);
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {

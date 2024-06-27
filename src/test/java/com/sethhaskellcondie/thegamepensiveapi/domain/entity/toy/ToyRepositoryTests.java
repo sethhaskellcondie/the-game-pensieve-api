@@ -1,10 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
+package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryTests;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;

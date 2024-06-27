@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.system;
+package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
