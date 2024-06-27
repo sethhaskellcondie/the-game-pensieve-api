@@ -2,7 +2,7 @@ package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -24,11 +24,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("v1/custom_fields")
 public class CustomFieldController {
-    //TODO update the custom fields to have a gateway
-    private final CustomFieldRepository repository;
+    private final CustomFieldGateway gateway;
 
-    public CustomFieldController(CustomFieldRepository repository) {
-        this.repository = repository;
+    public CustomFieldController(CustomFieldGateway gateway) {
+        this.gateway = gateway;
     }
 
     @ResponseBody
@@ -36,7 +35,7 @@ public class CustomFieldController {
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequestDto> requestBody) throws ExceptionFailedDbValidation {
         final CustomFieldRequestDto newCustomField = requestBody.get("custom_field");
-        final CustomField savedCustomField = repository.insertCustomField(newCustomField);
+        final CustomField savedCustomField = gateway.createNew(newCustomField);
         final FormattedResponseBody<CustomField> body = new FormattedResponseBody<>(savedCustomField);
         return body.formatData();
     }
@@ -44,7 +43,7 @@ public class CustomFieldController {
     @ResponseBody
     @GetMapping("")
     public Map<String, List<CustomField>> getAllCustomFields() {
-        final List<CustomField> allCustomFields = repository.getAllCustomFields();
+        final List<CustomField> allCustomFields = gateway.getAllCustomFields();
         final FormattedResponseBody<List<CustomField>> body = new FormattedResponseBody<>(allCustomFields);
         return body.formatData();
     }
@@ -53,7 +52,7 @@ public class CustomFieldController {
     @PatchMapping("/{id}")
     public Map<String, CustomField> patchName(@PathVariable int id, @RequestBody Map<String, String> requestBody) throws ExceptionResourceNotFound {
         final String newName = requestBody.get("name");
-        final CustomField updatedCustomField = repository.updateName(id, newName);
+        final CustomField updatedCustomField = gateway.updateName(id, newName);
         final FormattedResponseBody<CustomField> body = new FormattedResponseBody<>(updatedCustomField);
         return body.formatData();
     }
@@ -62,7 +61,7 @@ public class CustomFieldController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Map<String, String> deleteExistingCustomField(@PathVariable int id) throws ExceptionResourceNotFound {
-        repository.deleteById(id);
+        gateway.deleteById(id);
         FormattedResponseBody<String> body = new FormattedResponseBody<>("");
         return body.formatData();
     }
