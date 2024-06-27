@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.exceptions;
+package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
 import java.util.ArrayList;
 import java.util.List;

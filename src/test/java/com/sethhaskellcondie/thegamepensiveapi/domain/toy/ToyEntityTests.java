@@ -1,6 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
 
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;

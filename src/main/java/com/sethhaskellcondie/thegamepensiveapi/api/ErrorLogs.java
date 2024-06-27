@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.exceptions;
+package com.sethhaskellcondie.thegamepensiveapi.api;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.Api;
 

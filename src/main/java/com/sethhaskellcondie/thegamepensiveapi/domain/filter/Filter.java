@@ -80,4 +80,3 @@ public class Filter {
     }
 }
 
-record FilterResponseDto(String type, Map<String, String> fields, Map<String, List<String>> filters) { }

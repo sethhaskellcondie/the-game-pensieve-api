@@ -10,8 +10,8 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionBackupImport;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionBackupImport;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -102,6 +102,10 @@ public class BackupImportController {
         ImportResults importResults = importBackupData(sampleData);
         return new FormattedImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
     }
+
+    /**
+     * If needed everything below could be refactored into a service with a gateway that is accessed through this controller
+     */
 
     private ImportResults importBackupData(FormattedBackupData backupData) {
         final Map<String, Integer> customFieldIds;
@@ -255,7 +259,6 @@ public class BackupImportController {
         }
         return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
     }
-
 }
 
 record FormattedBackupData(String filePath, List<CustomField> customFields, List<ToyRequestDto> toys, List<SystemRequestDto> systems) { }

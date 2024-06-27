@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.exceptions;
+package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
 @Deprecated
 public class ExceptionTestFactory extends RuntimeException {

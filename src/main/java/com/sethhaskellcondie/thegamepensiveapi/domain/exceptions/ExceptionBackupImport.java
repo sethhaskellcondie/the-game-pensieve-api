@@ -1,30 +1,34 @@
-package com.sethhaskellcondie.thegamepensiveapi.exceptions;
+package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.Api;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExceptionFailedDbValidation extends RuntimeException {
-    private List<Exception> exceptions;
+public class ExceptionBackupImport extends RuntimeException {
+    private final List<Exception> exceptions;
 
-    public ExceptionFailedDbValidation() {
+    public ExceptionBackupImport() {
         super();
         this.exceptions = new ArrayList<>();
     }
 
-    public ExceptionFailedDbValidation(String message) {
+    public ExceptionBackupImport(String message) {
         super();
         this.exceptions = new ArrayList<>();
-        exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + "Failed Database Validation: " + message));
+        exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + message));
     }
 
     public List<Exception> getExceptions() {
         return this.exceptions;
     }
 
-    public void addException(String message) {
-        this.exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + "Failed Database Validation: " + message));
+    public void addException(Exception exception) {
+        this.exceptions.add(exception);
+    }
+
+    public void appendExceptions(List<Exception> exceptions) {
+        this.exceptions.addAll(exceptions);
     }
 
     @Override

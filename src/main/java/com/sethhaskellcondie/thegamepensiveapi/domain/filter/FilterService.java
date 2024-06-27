@@ -3,8 +3,8 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalError;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInvalidFilter;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInvalidFilter;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;

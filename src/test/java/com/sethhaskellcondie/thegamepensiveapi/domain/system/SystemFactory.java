@@ -1,7 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityFactory;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionTestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionTestFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;

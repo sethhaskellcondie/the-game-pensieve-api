@@ -4,7 +4,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityGatewayAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

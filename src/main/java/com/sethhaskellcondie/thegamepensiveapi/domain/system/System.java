@@ -3,8 +3,8 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.system;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionMalformedEntity;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInputValidation;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;

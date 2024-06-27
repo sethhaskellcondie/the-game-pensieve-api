@@ -5,9 +5,9 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRep
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ErrorLogs;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionInternalCatastrophe;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensiveapi.api.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalCatastrophe;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;

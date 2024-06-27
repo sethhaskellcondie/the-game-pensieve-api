@@ -1,8 +1,10 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
+package com.sethhaskellcondie.thegamepensiveapi.api;
 
-import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
