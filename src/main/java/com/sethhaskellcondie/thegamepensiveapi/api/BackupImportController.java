@@ -13,6 +13,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
@@ -63,7 +64,7 @@ public class BackupImportController {
         return body.formatData();
     }
 
-    @PostMapping("v1/function/import")
+    @PostMapping("v1/function/importFromFile")
     public ImportResultsResponse importJsonFromFile() {
         final FormattedBackupData backupData;
         try {
@@ -75,6 +76,15 @@ public class BackupImportController {
         }
 
         ImportResults importResults = importBackupData(backupData);
+        return new ImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
+    }
+
+    @PostMapping("v1/function/import")
+    public ImportResultsResponse importJsonFromRequestBody(@RequestBody Map<String, FormattedBackupData> requestBody) {
+        final FormattedBackupData backupData = requestBody.get("data");
+
+        ImportResults importResults = importBackupData(backupData);
+
         return new ImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
     }
 
