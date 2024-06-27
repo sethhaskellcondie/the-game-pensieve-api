@@ -144,11 +144,19 @@ public class BackupImportService {
 
         for (ToyRequestDto toyRequestDto: toyRequestsReady) {
             try {
-                //TODO add existing check
-                toyRepository.insert(toyRequestDto);
-                createdCount++;
+                int toyId = toyRepository.getIdByNameAndSet(toyRequestDto.name(), toyRequestDto.set());
+                if (toyId > 0) {
+                    Toy toy = toyRepository.getById(toyId);
+                    toy.updateFromRequestDto(toyRequestDto);
+                    toyRepository.update(toy);
+                    existingCount++;
+                } else {
+                    toyRepository.insert(toyRequestDto);
+                    createdCount++;
+                }
             } catch (Exception exception) {
-                exceptionBackupImport.addException(exception);
+                exceptionBackupImport.addException(new Exception("Error importing toy data with name: '" + toyRequestDto.name()
+                        + "' and set '" + toyRequestDto.set() + "'" + exception.getMessage()));
             }
         }
         return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);

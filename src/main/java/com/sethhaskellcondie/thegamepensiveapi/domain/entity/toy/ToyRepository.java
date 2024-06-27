@@ -3,9 +3,8 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
 
@@ -106,13 +106,13 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
     }
 
     @Override
-    public Toy insert(ToyRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
+    public Toy insert(ToyRequestDto requestDto) {
         final Toy toy = new Toy().updateFromRequestDto(requestDto);
         return this.insert(toy);
     }
 
     @Override
-    public void deleteById(int id) throws ExceptionResourceNotFound {
+    public void deleteById(int id) {
         String sql = """
                 			UPDATE toys SET deleted_at = ? WHERE id = ?;
                 """;
@@ -120,5 +120,21 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", Toy.class.getSimpleName(), id);
         }
+    }
+
+    public int getIdByNameAndSet(String name, String set) {
+        String sql = getBaseQuery() + " AND name = ? AND set = ?";
+        final Toy toy;
+        try {
+            toy = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{name, set},
+                    new int[]{Types.VARCHAR, Types.VARCHAR},
+                    getRowMapper()
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            return -1;
+        }
+        return toy.getId();
     }
 }
