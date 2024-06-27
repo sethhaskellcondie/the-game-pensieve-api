@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
@@ -47,7 +48,7 @@ public class GetWithFiltersCustomFieldTextTests {
 
     @Test
     void testCustomFieldsTextFilters() {
-        final CustomField publisherCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final CustomField publisherCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY));
 
         final CustomFieldValue nintendo = new CustomFieldValue(publisherCustomField.id(), publisherCustomField.name(), publisherCustomField.type(), "nintendo");
         final CustomFieldValue sega = new CustomFieldValue(publisherCustomField.id(), publisherCustomField.name(), publisherCustomField.type(), "sega sammy");

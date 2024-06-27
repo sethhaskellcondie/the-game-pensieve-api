@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,13 +157,13 @@ public class FilterTests {
     }
     private void addCustomFields(String key) {
         String textCustomFieldType = CustomField.TYPE_TEXT;
-        customFieldRepository.insertCustomField(textCustomFieldName, textCustomFieldType, key);
+        customFieldRepository.insertCustomField(new CustomFieldRequestDto(textCustomFieldName, textCustomFieldType, key));
 
         String numberCustomFieldType = CustomField.TYPE_NUMBER;
-        customFieldRepository.insertCustomField(numberCustomFieldName, numberCustomFieldType, key);
+        customFieldRepository.insertCustomField(new CustomFieldRequestDto(numberCustomFieldName, numberCustomFieldType, key));
 
         String booleanCustomFieldType = CustomField.TYPE_BOOLEAN;
-        customFieldRepository.insertCustomField(booleanCustomFieldName, booleanCustomFieldType, key);
+        customFieldRepository.insertCustomField(new CustomFieldRequestDto(booleanCustomFieldName, booleanCustomFieldType, key));
     }
 
     private void validateCustomFieldFilters(ResultActions result) throws Exception {

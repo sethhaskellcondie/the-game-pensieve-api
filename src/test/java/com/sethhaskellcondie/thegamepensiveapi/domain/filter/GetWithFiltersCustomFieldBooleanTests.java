@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
@@ -47,7 +48,7 @@ public class GetWithFiltersCustomFieldBooleanTests {
 
     @Test
     void testCustomFieldBooleanFilters() {
-        final CustomField favoriteCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY);
+        final CustomField favoriteCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY));
 
         CustomFieldValue favoriteTrue = new CustomFieldValue(favoriteCustomField.id(), favoriteCustomField.name(), favoriteCustomField.type(), "true");
         CustomFieldValue favoriteFalse = new CustomFieldValue(favoriteCustomField.id(), favoriteCustomField.name(), favoriteCustomField.type(), "false");

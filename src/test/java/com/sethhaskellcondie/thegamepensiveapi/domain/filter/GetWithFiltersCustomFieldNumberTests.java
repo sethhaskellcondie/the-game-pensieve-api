@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
@@ -47,7 +48,7 @@ public class GetWithFiltersCustomFieldNumberTests {
 
     @Test
     void testCustomFieldsNumberFilters() {
-        final CustomField releaseDateCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY);
+        final CustomField releaseDateCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
 
         CustomFieldValue releaseDate1991 = new CustomFieldValue(releaseDateCustomField.id(), releaseDateCustomField.name(), releaseDateCustomField.type(), "1991");
         CustomFieldValue releaseDate1992 = new CustomFieldValue(releaseDateCustomField.id(), releaseDateCustomField.name(), releaseDateCustomField.type(), "1992");
