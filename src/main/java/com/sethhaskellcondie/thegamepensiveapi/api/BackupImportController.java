@@ -11,6 +11,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.toy.ToyRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionBackupImport;
+import com.sethhaskellcondie.thegamepensiveapi.exceptions.ExceptionResourceNotFound;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,18 +23,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * This class has no automated tests, they will be tested and updated manually.
- * <p>
  * This class acts like another system that is trying to interact with the domain. It can only use the DTO objects (not the entities)
- * and only has access to the gateways (except the CustomFieldRepository)
+ * and only has access to the gateways
  */
 @RestController
 public class BackupImportController {
 
     private final SystemGateway systemGateway;
     private final ToyGateway toyGateway;
+    //TODO refactor the CustomFields to have a Gateway and use that instead of the Repository
     private final CustomFieldRepository customFieldRepository;
     private final String backupDataPath = "backup.json";
 
@@ -43,76 +44,123 @@ public class BackupImportController {
         this.customFieldRepository = customFieldRepository;
     }
 
-    @PostMapping("v1/function/seedSampleData")
-    public Map<String, String> seedSampleData() {
-        //TODO finish this
-        return null;
-    }
-
     @PostMapping("v1/function/backup")
-    public Map<String, String> backupJsonToFile() {
+    public Map<String, FormattedBackupData> backupJsonToFile() {
         List<CustomField> customFields = customFieldRepository.getAllCustomFields();
         List<ToyRequestDto> toys = toyGateway.getWithFilters(new ArrayList<>()).stream().map(ToyRequestDto::convertResponseToRequest).toList();
         List<SystemRequestDto> systems = systemGateway.getWithFilters(new ArrayList<>()).stream().map(SystemRequestDto::convertRequestToResponse).toList();
 
-        FormattedBackupData backupData = new FormattedBackupData("backupData", customFields, toys, systems);
-        ObjectMapper objectMapper = new ObjectMapper();
-
         File file = new File(backupDataPath);
+        ObjectMapper objectMapper = new ObjectMapper();
+        FormattedBackupData backupData = new FormattedBackupData(file.getAbsolutePath(), customFields, toys, systems);
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, backupData);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        final FormattedResponseBody<String> body = new FormattedResponseBody<>("JSON Backup Successful, File saved to: " + file.getAbsolutePath());
+        final FormattedResponseBody<FormattedBackupData> body = new FormattedResponseBody<>(backupData);
         return body.formatData();
     }
 
     @PostMapping("v1/function/import")
-    public Map<String, String> importJsonFromFile() {
-        byte[] fileData;
+    public ImportResultsResponse importJsonFromFile() {
+        final FormattedBackupData backupData;
         try {
-            fileData = Files.readAllBytes(Paths.get(backupDataPath));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        FormattedBackupData backupData;
-        try {
+            final byte[] fileData = Files.readAllBytes(Paths.get(backupDataPath));
+            final ObjectMapper objectMapper = new ObjectMapper();
             backupData = objectMapper.readValue(fileData, FormattedBackupData.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        //TODO refactor this to work with the sample data
+        ImportResults importResults = importBackupData(backupData);
+        return new ImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
+    }
 
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
-        List<CustomField> customFields = backupData.customFields();
-        Map<String, Integer> customFieldIds = new HashMap<>(customFields.size());
+    @PostMapping("v1/function/seedSampleData")
+    public ImportResultsResponse seedSampleData() {
+        final FormattedBackupData sampleData;
+        try {
+            final byte[] fileData = Files.readAllBytes(Paths.get("sampleData.json"));
+            final ObjectMapper objectMapper = new ObjectMapper();
+            sampleData = objectMapper.readValue(fileData, FormattedBackupData.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        ImportResults importResults = importBackupData(sampleData);
+        return new ImportResultsResponse(importResults.data(), importResults.exceptionBackupImport().getMessages());
+    }
+
+    private ImportResults importBackupData(FormattedBackupData backupData) {
+        final Map<String, Integer> customFieldIds;
+        final ImportCustomFieldResults customFieldResults;
+        try {
+            customFieldResults = importCustomFields(backupData);
+            customFieldIds = customFieldResults.customFieldIds();
+        } catch (ExceptionBackupImport customFieldException) {
+            ExceptionBackupImport importException = new ExceptionBackupImport("There were errors importing Custom Fields, address the provided errors and try again. No additional data imported.");
+            importException.appendExceptions(customFieldException.getExceptions());
+            throw importException;
+        }
+
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
+
+        try {
+            importToys(backupData, customFieldIds);
+        } catch (ExceptionBackupImport toyException) {
+            exceptionBackupImport.appendExceptions(toyException.getExceptions());
+        }
+
+        try {
+            importSystems(backupData, customFieldIds);
+        } catch (ExceptionBackupImport systemException) {
+            exceptionBackupImport.appendExceptions(systemException.getExceptions());
+        }
+
+        ImportResultsData data = new ImportResultsData(customFieldResults.existingCount(), customFieldResults.createdCount());
+        return new ImportResults(data, exceptionBackupImport);
+    }
+
+    private ImportCustomFieldResults importCustomFields(FormattedBackupData backupData) {
+        final ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
+        int existingCount = 0;
+        int createdCount = 0;
+        final List<CustomField> customFields = backupData.customFields();
+        final Map<String, Integer> customFieldIds = new HashMap<>(customFields.size());
+
         for (CustomField customField : customFields) {
+            CustomField savedCustomField;
             try {
-                CustomField savedCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customField.name(), customField.type(), customField.entityKey()));
+                savedCustomField = customFieldRepository.getByKeyAndName(customField.entityKey(), customField.name());
+                if (!Objects.equals(savedCustomField.type(), customField.type())) {
+                    exceptionBackupImport.addException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"
+                            + customField.name() + "' and key: '" + customField.entityKey() + "' had a type mismatch with the existing custom field in the database provided type: '"
+                            + customField.type() + "' existing (correct) type: '" + savedCustomField.type() + "'"));
+                } else {
+                    existingCount++;
+                }
+            } catch (ExceptionResourceNotFound ignored) {
+                savedCustomField = null;
+            }
+            if (null != savedCustomField) {
+                try {
+                    savedCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customField.name(), customField.type(), customField.entityKey()));
+                    createdCount++;
+                } catch (Exception exception) {
+                    exceptionBackupImport.addException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"
+                            + customField.name() + "' Message: " + exception.getMessage()));
+                }
+            }
+            if (null != savedCustomField) {
                 customFieldIds.put(customFieldComboKey(savedCustomField), savedCustomField.id());
-            } catch (Exception exception) {
-                exceptionBackupImport.addException(exception);
             }
         }
         if (exceptionBackupImport.getExceptions().size() > 0) {
-            //TODO include a message saying that there were errors with the custom fields and that the import process was stopped.
-            //TODO this introduces a new problem some of the custom fields are present in the system this first step with the custom fields should really be a get then if not found then insert
             throw exceptionBackupImport;
         }
-
-        exceptionBackupImport = importToys(backupData, customFieldIds, exceptionBackupImport);
-
-        exceptionBackupImport = importSystems(backupData, customFieldIds, exceptionBackupImport);
-
-        if (exceptionBackupImport.getExceptions().size() > 0) {
-            throw exceptionBackupImport;
-        }
-        final FormattedResponseBody<String> body = new FormattedResponseBody<>("JSON Import Successful, Data pulled from: " + backupDataPath);
-        return body.formatData();
+        return new ImportCustomFieldResults(customFieldIds, existingCount, createdCount);
     }
 
     private String customFieldComboKey(CustomField customField) {
@@ -123,7 +171,8 @@ public class BackupImportController {
         return entityKey + "-" + value.getCustomFieldName();
     }
 
-    private ExceptionBackupImport importToys(FormattedBackupData backupData, Map<String, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private ExceptionBackupImport importToys(FormattedBackupData backupData, Map<String, Integer> customFieldIds) {
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         List<ToyRequestDto> toyRequestsToBeUpdated = backupData.toys();
         List<ToyRequestDto> toyRequestsReady = new ArrayList<>(toyRequestsToBeUpdated.size());
         for (ToyRequestDto toyRequestDto: toyRequestsToBeUpdated) {
@@ -149,10 +198,14 @@ public class BackupImportController {
                 exceptionBackupImport.addException(exception);
             }
         }
+        if (exceptionBackupImport.getExceptions().size() > 0) {
+            throw exceptionBackupImport;
+        }
         return exceptionBackupImport;
     }
 
-    private ExceptionBackupImport importSystems(FormattedBackupData backupData, Map<String, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private ExceptionBackupImport importSystems(FormattedBackupData backupData, Map<String, Integer> customFieldIds) {
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         List<SystemRequestDto> systemRequestToBeUpdated = backupData.systems();
         List<SystemRequestDto> systemRequestsReady = new ArrayList<>(systemRequestToBeUpdated.size());
         for (SystemRequestDto systemRequestDto: systemRequestToBeUpdated) {
@@ -178,9 +231,16 @@ public class BackupImportController {
                 exceptionBackupImport.addException(exception);
             }
         }
+        if (exceptionBackupImport.getExceptions().size() > 0) {
+            throw exceptionBackupImport;
+        }
         return exceptionBackupImport;
     }
 
 }
 
-record FormattedBackupData(String dataType, List<CustomField> customFields, List<ToyRequestDto> toys, List<SystemRequestDto> systems) { }
+record FormattedBackupData(String filePath, List<CustomField> customFields, List<ToyRequestDto> toys, List<SystemRequestDto> systems) { }
+record ImportCustomFieldResults(Map<String, Integer> customFieldIds, int existingCount, int createdCount) { }
+record ImportResultsData(int preexistingCustomFields, int createdCustomFields) { }
+record ImportResults(ImportResultsData data, ExceptionBackupImport exceptionBackupImport) { }
+record ImportResultsResponse(ImportResultsData data, List<String> errors) { }

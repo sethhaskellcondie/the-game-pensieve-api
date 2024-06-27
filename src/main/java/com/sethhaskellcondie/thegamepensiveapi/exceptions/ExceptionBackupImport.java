@@ -16,7 +16,7 @@ public class ExceptionBackupImport extends RuntimeException {
     public ExceptionBackupImport(String message) {
         super();
         this.exceptions = new ArrayList<>();
-        exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + "Error restoring data from a file: " + message));
+        exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + message));
     }
 
     public List<Exception> getExceptions() {
@@ -25,6 +25,10 @@ public class ExceptionBackupImport extends RuntimeException {
 
     public void addException(Exception exception) {
         this.exceptions.add(exception);
+    }
+
+    public void appendExceptions(List<Exception> exceptions) {
+        this.exceptions.addAll(exceptions);
     }
 
     @Override
