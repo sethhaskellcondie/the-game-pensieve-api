@@ -1,5 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.api;
+package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
+import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterResponseDto;
 import org.springframework.web.bind.annotation.GetMapping;

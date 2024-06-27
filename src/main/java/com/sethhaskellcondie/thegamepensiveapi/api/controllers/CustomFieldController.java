@@ -1,5 +1,6 @@
-package com.sethhaskellcondie.thegamepensiveapi.api;
+package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
+import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;

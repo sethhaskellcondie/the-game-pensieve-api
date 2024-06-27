@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
+package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;

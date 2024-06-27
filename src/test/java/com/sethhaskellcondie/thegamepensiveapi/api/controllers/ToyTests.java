@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.toy;
+package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
