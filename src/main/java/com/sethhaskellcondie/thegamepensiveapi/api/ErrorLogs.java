@@ -1,7 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.api;
 
-import com.sethhaskellcondie.thegamepensiveapi.api.Api;
-
 public class ErrorLogs {
     public static String InsertThenRetrieveError(String entityName, int id) {
         return Api.PRE_DISASTER_MESSAGE + "Database State Error: Just inserted a(n) " + entityName +

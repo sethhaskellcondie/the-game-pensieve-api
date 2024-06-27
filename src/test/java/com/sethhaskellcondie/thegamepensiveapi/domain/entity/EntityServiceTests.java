@@ -1,14 +1,10 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
