@@ -1,7 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
-import com.sethhaskellcondie.thegamepensiveapi.api.Api;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +11,7 @@ public class ExceptionInvalidFilter extends RuntimeException {
     }
 
     public void addException(String message) {
-        exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + "Exception Invalid Filter: " + message));
+        exceptions.add(new Exception("Exception Invalid Filter: " + message));
     }
 
     public List<Exception> getExceptions() {

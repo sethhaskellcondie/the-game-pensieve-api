@@ -1,7 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.api.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.domain.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
