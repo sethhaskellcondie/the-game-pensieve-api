@@ -9,6 +9,15 @@ This is a CRUD based Entity system. Entities all contain an ID, all entities mus
 
 Each layer only calls the layers on the same level or below it. For more information on the responsibilities of each layer check the Entity and System classes for each layer.
 
+## Domain Encapsulation
+The domain is the core of the system, it could be compiled on its own or transplanted to another system if needed. The only way to access the domain is through the different Gateways. And the only things allowed to be exported from the domain are:
+- The Gateway Classes
+- Data Transfer Objects
+- Exceptions
+- The Keychain
+
+I haven't found a way to implement this restriction programmatically right now it is implemented by hand, but I would like to find a solution to this in the future.
+
 ## Return Body
 The body of requests was inspired a bit by the JSON API format. Intentional responses will have a "data" and "errors" attributes as part of the body. If the request was successful then the errors will return with a null value. Otherwise the data will be null and the errors will display one or more messages. This will illustrate when the response was intentional or not, for example a DELETE reuqest will usually not return a body in this date will be blank, and the errors will be null showing that the request was successful there was just no data to return.
 

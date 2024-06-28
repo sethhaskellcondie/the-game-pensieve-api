@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import java.util.List;
 
 //Custom Fields are NOT entities, they don't follow the entity pattern
+//Custom Field is a sudo DTO this is why it is allowed to be public and used in the api layer
 public record CustomField(int id, String name, String type, String entityKey) {
 
     //Custom Field Types MUST always also be a Filter Field Type otherwise custom fields wouldn't work as filters
