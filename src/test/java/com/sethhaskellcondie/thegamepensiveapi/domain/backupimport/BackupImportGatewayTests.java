@@ -5,8 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+/**
+ * This test suite is a little different it's a set of integration tests that simulate the likely situation of updating and importing a single file
+ * again and again trying to get their data imported so the tests are not independent instead they build on top of one another. Each assuming that
+ * some data was imported from the previous test. Because of this, there is a single test-container dedicated to this test suite to be spun up
+ * each time the test run to ensure repeated accurate results.
+ */
 @SpringBootTest
-@ActiveProfiles("test-container")
+@ActiveProfiles("import-tests")
 public class BackupImportGatewayTests {
 
     @Autowired
