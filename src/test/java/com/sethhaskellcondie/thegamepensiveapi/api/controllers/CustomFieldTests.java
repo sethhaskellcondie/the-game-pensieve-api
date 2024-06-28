@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -43,16 +41,14 @@ public class CustomFieldTests {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private CustomFieldGateway customFieldGateway;
     private TestFactory factory;
-    private CustomFieldRepository repository;
     private final String baseUrl = "/v1/custom_fields";
     private final String baseUrlSlash = "/v1/custom_fields/";
 
     @BeforeEach
     void setUp() {
         factory = new TestFactory(mockMvc);
-        repository = new CustomFieldRepository(jdbcTemplate);
     }
 
     @Test
@@ -162,9 +158,7 @@ public class CustomFieldTests {
                 jsonPath("$.errors").isEmpty()
         );
 
-        assertThrows(ExceptionResourceNotFound.class, () -> repository.getById(existingCustomField.id()));
-        CustomField deletedCustomField = repository.getDeletedById(existingCustomField.id());
-        assertEquals(existingCustomField, deletedCustomField);
+        assertThrows(ExceptionResourceNotFound.class, () -> customFieldGateway.getById(existingCustomField.id()));
     }
 
     @Test

@@ -16,6 +16,7 @@ The domain is the core of the system, it could be compiled on its own or transpl
 - Exceptions
 - The Keychain
 
+Filters and CustomFieldValues are a blurry area for the api tests. They do make writing and maintaining the tests much easier, so I'm willing to bend the rules there.
 I haven't found a way to implement this restriction programmatically right now it is implemented by hand, but I would like to find a solution to this in the future.
 
 ## Return Body

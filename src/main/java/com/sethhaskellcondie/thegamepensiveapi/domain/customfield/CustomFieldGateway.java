@@ -20,6 +20,10 @@ public class CustomFieldGateway {
         return repository.getAllCustomFields();
     }
 
+    public CustomField getById(int id) {
+        return repository.getById(id);
+    }
+
     public CustomField updateName(int id, String newName) {
         return repository.updateName(id, newName);
     }

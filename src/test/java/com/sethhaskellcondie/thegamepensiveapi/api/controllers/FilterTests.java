@@ -1,16 +1,14 @@
 package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
+import com.sethhaskellcondie.thegamepensiveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -32,9 +30,7 @@ public class FilterTests {
 
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    private CustomFieldRepository customFieldRepository;
+    private TestFactory factory;
     //JsonPath is picky when it comes to Json with spaces in it, so we will use underscores for these names
     final String textCustomFieldName = "Text_Custom_Field";
     final String numberCustomFieldName = "Number_Custom_Field";
@@ -42,7 +38,7 @@ public class FilterTests {
 
     @BeforeEach
     void setUp() {
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        factory = new TestFactory(mockMvc);
     }
 
     @Test
@@ -155,15 +151,16 @@ public class FilterTests {
 
         validateCustomFieldFilters(result);
     }
-    private void addCustomFields(String key) {
+
+    private void addCustomFields(String key) throws Exception {
         String textCustomFieldType = CustomField.TYPE_TEXT;
-        customFieldRepository.insertCustomField(new CustomFieldRequestDto(textCustomFieldName, textCustomFieldType, key));
+        factory.postCustomCustomField(textCustomFieldName, textCustomFieldType, key);
 
         String numberCustomFieldType = CustomField.TYPE_NUMBER;
-        customFieldRepository.insertCustomField(new CustomFieldRequestDto(numberCustomFieldName, numberCustomFieldType, key));
+        factory.postCustomCustomField(numberCustomFieldName, numberCustomFieldType, key);
 
         String booleanCustomFieldType = CustomField.TYPE_BOOLEAN;
-        customFieldRepository.insertCustomField(new CustomFieldRequestDto(booleanCustomFieldName, booleanCustomFieldType, key));
+        factory.postCustomCustomField(booleanCustomFieldName, booleanCustomFieldType, key);
     }
 
     private void validateCustomFieldFilters(ResultActions result) throws Exception {

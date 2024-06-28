@@ -2,21 +2,20 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.backupimport;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @ActiveProfiles("test-container")
-@AutoConfigureMockMvc
 public class BackupImportGatewayTests {
+
     @Autowired
-    private MockMvc mockMvc;
+    private BackupImportGateway gateway;
 
     //TODO finish fleshing out these tests
     @Test
     void testImportCustomFields_MismatchedType_ReturnErrors() {
+        gateway.getBackupData();
         //The system will check for existing custom fields in the system by Name and EntityKey
         //if a system is found in the system then the type on the found system MUST match the type of the field to be imported
         //otherwise it will be skipped
