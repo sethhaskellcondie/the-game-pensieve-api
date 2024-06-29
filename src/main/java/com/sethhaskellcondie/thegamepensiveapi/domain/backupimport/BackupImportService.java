@@ -52,7 +52,7 @@ public class BackupImportService {
         }
 
         customFieldIds = customFieldResults.customFieldIds();
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
 
         ImportEntityResults toyResults = importToys(backupDataDto, customFieldIds);
         if (toyResults.exceptionBackupImport().getExceptions().size() > 0) {
@@ -62,6 +62,12 @@ public class BackupImportService {
         ImportEntityResults systemResults = importSystems(backupDataDto, customFieldIds);
         if (systemResults.exceptionBackupImport().getExceptions().size() > 0) {
             exceptionBackupImport.appendExceptions(systemResults.exceptionBackupImport().getExceptions());
+        }
+
+        if (exceptionBackupImport.getExceptions().size() > 0) {
+            ExceptionBackupImport importException = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
+            importException.appendExceptions(exceptionBackupImport.getExceptions());
+            exceptionBackupImport = importException;
         }
 
         return new ImportResultsDto(
@@ -86,7 +92,7 @@ public class BackupImportService {
                 savedCustomField = customFieldRepository.getByKeyAndName(customField.entityKey(), customField.name());
                 if (!Objects.equals(savedCustomField.type(), customField.type())) {
                     exceptionBackupImport.addException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"
-                            + customField.name() + "' and key: '" + customField.entityKey() + "' had a type mismatch with the existing custom field in the database provided type: '"
+                            + customField.name() + "' and key: '" + customField.entityKey() + "' had a type mismatch with the existing custom field in the database. Provided type: '"
                             + customField.type() + "' existing (correct) type: '" + savedCustomField.type() + "'"));
                 } else {
                     existingCount++;
@@ -94,7 +100,7 @@ public class BackupImportService {
             } catch (ExceptionResourceNotFound ignored) {
                 savedCustomField = null;
             }
-            if (null != savedCustomField) {
+            if (null == savedCustomField) {
                 try {
                     savedCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customField.name(), customField.type(), customField.entityKey()));
                     createdCount++;
