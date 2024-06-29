@@ -30,11 +30,16 @@ public class BackupImportGatewayTests {
     @Autowired
     private BackupImportGateway gateway;
 
-    private final CustomField initialCustomField = new CustomField(0, "Initial Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY); //id is ignored
+    //ids for custom fields and custom field values are ignored.
+    private final CustomField initialCustomField = new CustomField(0, "Initial Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
     private final ToyRequestDto initialToy = new ToyRequestDto("Initial Toy", "Initial Set", new ArrayList<>());
-    private final SystemRequestDto initialSystem = new SystemRequestDto("Initial System", 3, false, List.of(new CustomFieldValue(0, "Initial Custom Field", CustomField.TYPE_TEXT, "Initial Value"))); //id is ignored
 
+    private final CustomField toyCustomField = new CustomField(11, "Count", CustomField.TYPE_NUMBER, Keychain.TOY_KEY);
+    private final ToyRequestDto secondToy = new ToyRequestDto("Second Toy", "Second Set", List.of(new CustomFieldValue(11, "Count", CustomField.TYPE_NUMBER, "4")));
+
+    private final SystemRequestDto initialSystem = new SystemRequestDto("Initial System", 3, false, List.of(new CustomFieldValue(0, "Initial Custom Field", CustomField.TYPE_TEXT, "Initial Value")));
     private final CustomField systemCustomField = new CustomField(99, "Owned", CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY);
+    private final SystemRequestDto secondSystem = new SystemRequestDto("Second System", 4, false, List.of(new CustomFieldValue(0, "Owned", CustomField.TYPE_BOOLEAN, "false")));
 
 
     @Test
@@ -42,18 +47,18 @@ public class BackupImportGatewayTests {
         BackupDataDto backupData = new BackupDataDto(
             List.of(initialCustomField),
             List.of(initialToy),
-            List.of(initialSystem)
+            null
         );
 
         ImportResultsDto results = gateway.importBackupData(backupData);
 
         assertAll(
-            "Unexpected results returned from the initial import.",
+            "Error when importing brand new data for testing.",
             () -> assertEquals(1, results.createdCustomFields()),
             () -> assertEquals(0, results.existingCustomFields()),
             () -> assertEquals(1, results.createdToys()),
             () -> assertEquals(0, results.existingToys()),
-            () -> assertEquals(1, results.createdSystems()),
+            () -> assertEquals(0, results.createdSystems()),
             () -> assertEquals(0, results.existingSystems()),
             () -> assertEquals(0, results.exceptionBackupImport().getExceptions().size())
         );
@@ -61,6 +66,9 @@ public class BackupImportGatewayTests {
         //call the following tests in order
         testImportCustomFields_MismatchedType_ReturnErrors();
         testImportCustomFields_ValidFieldsAndInvalidTypeAndKey_ReturnSuccessAndErrors();
+        testImportToys_MissingCustomField_ReturnSuccessAndErrors();
+        testImportSystems_MissingCustomField_ReturnSuccessAndErrors();
+        testImportSystems_SomeExistingSomeNew_ReturnSuccess();
     }
 
     void testImportCustomFields_MismatchedType_ReturnErrors() {
@@ -74,7 +82,7 @@ public class BackupImportGatewayTests {
         ImportResultsDto results = gateway.importBackupData(backupData);
 
         assertAll(
-            "Unexpected results returned from the initial import.",
+            "Unexpected results for importing custom fields with mismatched types.",
             () -> assertEquals(0, results.createdCustomFields()),
             () -> assertEquals(0, results.existingCustomFields()),
             () -> assertEquals(0, results.createdToys()),
@@ -87,16 +95,16 @@ public class BackupImportGatewayTests {
 
     void testImportCustomFields_ValidFieldsAndInvalidTypeAndKey_ReturnSuccessAndErrors() {
         BackupDataDto backupData = new BackupDataDto(
-            //The systemCustomField will work but the invalidCustomField will throw an error preventing the rest of the import from completing.
-            List.of(initialCustomField, systemCustomField, new CustomField(42, "Valid Name", "Invalid Type", "Invalid Key")),
-            List.of(initialToy),
-            List.of(initialSystem)
+            //The toyCustomField will work but the invalidCustomField will throw an error preventing the rest of the import from completing.
+            List.of(initialCustomField, toyCustomField, new CustomField(42, "Valid Name", "Invalid Type", "Invalid Key")),
+            List.of(new ToyRequestDto("Will Be Skipped", "Ignored", new ArrayList<>())),
+            List.of(new SystemRequestDto("Will Be Skipped", 3, false, new ArrayList<>()))
         );
 
         ImportResultsDto results = gateway.importBackupData(backupData);
 
         assertAll(
-            "Unexpected results returned from the initial import.",
+            "Unexpected results for importing some custom fields while others return errors.",
             () -> assertEquals(1, results.createdCustomFields()),
             () -> assertEquals(1, results.existingCustomFields()),
             () -> assertEquals(0, results.createdToys()),
@@ -107,33 +115,78 @@ public class BackupImportGatewayTests {
         );
     }
 
-    @Test
-    void testImportBackupData_ErrorInCustomFieldsImport_ImportStopped() {
-        //This will have a valid toy import and an invalid custom field import
-        //the import function will return early without attempting to import the toy
-    }
-
-    @Test
     void testImportToys_MissingCustomField_ReturnSuccessAndErrors() {
         //if a toy to be imported has a custom field value but is missing a matching custom field in the import that toy will be skipped
-        //valid toys will still be imported
+        final ToyRequestDto skippedToy = new ToyRequestDto("Valid Name", "Valid Set", List.of(new CustomFieldValue(0, "Missing Name", CustomField.TYPE_TEXT, "Value")));
+        BackupDataDto backupData = new BackupDataDto(
+            List.of(initialCustomField, toyCustomField),
+            List.of(initialToy, secondToy, skippedToy),
+            List.of()
+        );
+
+        ImportResultsDto results = gateway.importBackupData(backupData);
+
+        assertAll(
+            "Unexpected results for importing some toys while others return errors.",
+            () -> assertEquals(0, results.createdCustomFields()),
+            () -> assertEquals(2, results.existingCustomFields()),
+            () -> assertEquals(1, results.createdToys()),
+            () -> assertEquals(1, results.existingToys()),
+            () -> assertEquals(0, results.createdSystems()),
+            () -> assertEquals(0, results.existingSystems()),
+            () -> assertEquals(2, results.exceptionBackupImport().getExceptions().size())
+        );
     }
 
-    @Test
-    void testImportToys_ExistingToys_NoNewToysCreated() {
-        //the system will check to see if a toy exists with the given name and set, if that toy is found then the custom fields values will be updated
-        //but the toy will not be created again
-    }
-
-    @Test
     void testImportSystems_MissingCustomField_ReturnSuccessAndErrors() {
         //if a system to be imported has a custom field value but is missing a matching custom field in the import that system will be skipped
-        //valid new system will still be created
+        final SystemRequestDto skippedSystem = new SystemRequestDto("Valid Name", 4, false, List.of(new CustomFieldValue(0, "Missing Name", CustomField.TYPE_TEXT, "Value")));
+        BackupDataDto backupData = new BackupDataDto(
+            List.of(initialCustomField, toyCustomField),
+            List.of(initialToy, secondToy),
+            List.of(initialSystem, skippedSystem)
+        );
+
+        ImportResultsDto results = gateway.importBackupData(backupData);
+
+        assertAll(
+            "Unexpected results for importing some systems successfully and others with missing custom fields.",
+            () -> assertEquals(0, results.createdCustomFields()),
+            () -> assertEquals(2, results.existingCustomFields()),
+            () -> assertEquals(0, results.createdToys()),
+            () -> assertEquals(2, results.existingToys()),
+            () -> assertEquals(1, results.createdSystems()),
+            () -> assertEquals(0, results.existingSystems()),
+            () -> assertEquals(2, results.exceptionBackupImport().getExceptions().size())
+        );
     }
 
-    @Test
-    void testImportSystems_SomeExistingSomeNew_ReturnSuccessAndErrors() {
-        //the system will check to see if an existing system entity is already in the database with the given name, if that system is found then it will be updated
-        //new systems will be created in the database
+    void testImportSystems_SomeExistingSomeNew_ReturnSuccess() {
+        BackupDataDto backupData = new BackupDataDto(
+            List.of(initialCustomField, toyCustomField, systemCustomField),
+            List.of(initialToy, secondToy),
+            List.of(initialSystem, secondSystem)
+        );
+
+        ImportResultsDto results = gateway.importBackupData(backupData);
+
+        assertAll(
+            "Unexpected results for importing some systems while others systems already exist.",
+            () -> assertEquals(1, results.createdCustomFields()), //systemCustomField is new
+            () -> assertEquals(2, results.existingCustomFields()),
+            () -> assertEquals(0, results.createdToys()),
+            () -> assertEquals(2, results.existingToys()),
+            () -> assertEquals(1, results.createdSystems()), //secondSystem is new
+            () -> assertEquals(1, results.existingSystems()), //initialSystem is existing
+            () -> assertEquals(0, results.exceptionBackupImport().getExceptions().size())
+        );
+    }
+
+    void getBackupData_HappyPath_AllDataPresent() {
+        //get all of the data that has been imported into the database
+    }
+
+    void importBackupData_UsingRetrievedBackupData_NoNewDataImported() {
+        //test to make sure that a double import will not create any new data
     }
 }

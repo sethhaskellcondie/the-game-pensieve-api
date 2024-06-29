@@ -130,6 +130,9 @@ public class BackupImportService {
         int createdCount = 0;
 
         List<ToyRequestDto> toyRequestsToBeUpdated = backupDataDto.toys();
+        if (null == toyRequestsToBeUpdated) {
+            return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
+        }
         List<ToyRequestDto> toyRequestsReady = new ArrayList<>(toyRequestsToBeUpdated.size());
         for (ToyRequestDto toyRequestDto: toyRequestsToBeUpdated) {
             boolean skipped = false;
@@ -137,8 +140,9 @@ public class BackupImportService {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.TOY_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing toy data. CustomFieldId not found but expected for toy with name: '"
-                            + toyRequestDto.name() + "' and set '" + toyRequestDto.set() + "' with custom field value named '" + value.getCustomFieldName() + "' "));
+                    exceptionBackupImport.addException(new Exception("Error Importing Toy Data: Imported Custom Field not found but expected for toy with name: '"
+                        + toyRequestDto.name() + "' and set '" + toyRequestDto.set() + "' with custom field value named '" + value.getCustomFieldName()
+                        + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
                     value.setCustomFieldId(customFieldId);
                 }
@@ -174,6 +178,9 @@ public class BackupImportService {
         int createdCount = 0;
 
         List<SystemRequestDto> systemRequestToBeUpdated = backupDataDto.systems();
+        if (null == systemRequestToBeUpdated) {
+            return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
+        }
         List<SystemRequestDto> systemRequestsReady = new ArrayList<>(systemRequestToBeUpdated.size());
         for (SystemRequestDto systemRequestDto: systemRequestToBeUpdated) {
             boolean skipped = false;
@@ -181,8 +188,9 @@ public class BackupImportService {
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.SYSTEM_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing system data. CustomFieldId not found but expected for system named: '"
-                            + systemRequestDto.name() + "' with custom field value named '" + value.getCustomFieldName() + "' "));
+                    exceptionBackupImport.addException(new Exception("Error importing system data: Imported Custom Field not found but expected for system named: '"
+                        + systemRequestDto.name() + "' with custom field value named '" + value.getCustomFieldName()
+                        + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
                     value.setCustomFieldId(customFieldId);
                 }
