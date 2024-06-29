@@ -64,20 +64,23 @@ public class ToyTests {
 
         final ToyResponseDto responseDto = resultToResponseDto(result);
         validateToyResponseBody(result, expectedName, expectedSet, expectedCustomFieldValues);
-        updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues().get(0));
+        updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
     }
 
-    void updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(ToyResponseDto existingToy, CustomFieldValue existingCustomFieldValue) throws Exception {
+    void updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(ToyResponseDto existingToy, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
         final String updatedName = "Donald Duck";
         final String updatedSet = "Updated Disney Infinity";
-        final List<CustomFieldValue> updatedCustomFieldValues = List.of(new CustomFieldValue(
-                        existingCustomFieldValue.getCustomFieldId(),
-                        "Updated" + existingCustomFieldValue.getCustomFieldName(),
-                        existingCustomFieldValue.getCustomFieldType(),
-                        "false"
-                ));
+        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
+        existingCustomFieldValue.remove(0);
+        final CustomFieldValue updatedValue = new CustomFieldValue(
+            customFieldValueToUpdate.getCustomFieldId(),
+            "Updated" + customFieldValueToUpdate.getCustomFieldName(),
+            customFieldValueToUpdate.getCustomFieldType(),
+            "false"
+        );
+        existingCustomFieldValue.add(updatedValue);
 
-        final String jsonContent = factory.formatToyPayload(updatedName, updatedSet, updatedCustomFieldValues);
+        final String jsonContent = factory.formatToyPayload(updatedName, updatedSet, existingCustomFieldValue);
         final ResultActions result = mockMvc.perform(
                 put(baseUrlSlash + existingToy.id())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -85,7 +88,7 @@ public class ToyTests {
         );
 
         result.andExpect(status().isOk());
-        validateToyResponseBody(result, resultToResponseDto(result), updatedCustomFieldValues);
+        validateToyResponseBody(result, resultToResponseDto(result), existingCustomFieldValue);
     }
 
     @Test
@@ -270,7 +273,8 @@ public class ToyTests {
                 jsonPath("$.data.set").value(expectedSet),
                 jsonPath("$.errors").isEmpty()
         );
-        factory.validateCustomFieldValues(result, customFieldValues);
+        ToyResponseDto responseDto = resultToResponseDto(result);
+        factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 
     private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse, List<CustomFieldValue> customFieldValues) throws Exception {
@@ -281,7 +285,7 @@ public class ToyTests {
                 jsonPath("$.data.set").value(expectedResponse.set()),
                 jsonPath("$.errors").isEmpty()
         );
-        factory.validateCustomFieldValues(result, customFieldValues);
+        factory.validateCustomFieldValues(expectedResponse.customFieldValues(), customFieldValues);
     }
 
     private void validateToyResponseBody(ResultActions result, List<ToyResponseDto> expectedToys) throws Exception {

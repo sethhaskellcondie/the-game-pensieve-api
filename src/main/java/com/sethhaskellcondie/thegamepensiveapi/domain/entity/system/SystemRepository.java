@@ -83,11 +83,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
         //Note: using a filter like this for dbValidation will prevent any names with blacklisted words or symbols from being entered into the database
         Filter nameFilter = new Filter("system", Filter.FIELD_TYPE_TEXT, "name", "equals", system.getName(), false);
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
-        if (existingSystems.isEmpty()) {
-            return;
-        }
-        //Double check that the system with the existing name is NOT actually the same system that is being updated.
-        if (existingSystems.size() != 1 && !Objects.equals(system.getId(), existingSystems.get(0).getId())) {
+        if (!existingSystems.isEmpty()) {
             throw new ExceptionFailedDbValidation("System insert/update failed, duplicate name found.");
         }
     }

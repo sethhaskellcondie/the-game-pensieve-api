@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,40 +34,27 @@ public class TestFactory {
         return RandomStringUtils.random(length, true, true);
     }
 
-    public void validateCustomFieldValues(ResultActions result, List<CustomFieldValue> expectedValues) throws Exception {
-        result.andExpect(jsonPath("$.data.customFieldValues").isArray());
-
-        for (int i = 0; i < expectedValues.size(); i++) {
-            CustomFieldValue expectedValue = expectedValues.get(i);
-            if (expectedValue.getCustomFieldId() == 0) {
-                result.andExpectAll(
-                        jsonPath("$.data.customFieldValues[" + i + "].customFieldId").isNotEmpty(),
-                        jsonPath("$.data.customFieldValues[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
-                        jsonPath("$.data.customFieldValues[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
-                        jsonPath("$.data.customFieldValues[" + i + "].value").value(expectedValue.getValue())
-                );
-            } else {
-                result.andExpectAll(
-                        jsonPath("$.data.customFieldValues[" + i + "].customFieldId").value(expectedValue.getCustomFieldId()),
-                        jsonPath("$.data.customFieldValues[" + i + "].customFieldName").value(expectedValue.getCustomFieldName()),
-                        jsonPath("$.data.customFieldValues[" + i + "].customFieldType").value(expectedValue.getCustomFieldType()),
-                        jsonPath("$.data.customFieldValues[" + i + "].value").value(expectedValue.getValue())
-                );
-            }
-        }
-    }
     public void validateCustomFieldValues(List<CustomFieldValue> returnedValues, List<CustomFieldValue> expectedValues) {
         assertEquals(expectedValues.size(), returnedValues.size(), "The number of returned custom field values did not matched the number of expected custom field values.");
         for (int i = 0; i < returnedValues.size(); i++) {
             CustomFieldValue returnedValue = returnedValues.get(i);
             CustomFieldValue expectedValue = expectedValues.get(i);
-            assertAll(
+            if (expectedValue.getCustomFieldId() == 0) {
+                assertAll(
+                    "The returned custom field values didn't match the expected custom field values.",
+                    () -> assertEquals(expectedValue.getCustomFieldName(), returnedValue.getCustomFieldName()),
+                    () -> assertEquals(expectedValue.getCustomFieldType(), returnedValue.getCustomFieldType()),
+                    () -> assertEquals(expectedValue.getValue(), returnedValue.getValue())
+                );
+            } else {
+                assertAll(
                     "The returned custom field values didn't match the expected custom field values.",
                     () -> assertEquals(expectedValue.getCustomFieldId(), returnedValue.getCustomFieldId()),
                     () -> assertEquals(expectedValue.getCustomFieldName(), returnedValue.getCustomFieldName()),
                     () -> assertEquals(expectedValue.getCustomFieldType(), returnedValue.getCustomFieldType()),
                     () -> assertEquals(expectedValue.getValue(), returnedValue.getValue())
-            );
+                );
+            }
         }
     }
 

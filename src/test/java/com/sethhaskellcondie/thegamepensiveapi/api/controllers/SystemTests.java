@@ -71,21 +71,24 @@ public class SystemTests {
 
         final SystemResponseDto responseDto = resultToResponseDto(result);
         //Use this setup in the next test
-        updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(responseDto, responseDto.customFieldValues().get(0));
+        updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(responseDto, responseDto.customFieldValues());
     }
 
-    void updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(SystemResponseDto existingSystem, CustomFieldValue existingCustomFieldValue) throws Exception {
+    void updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(SystemResponseDto existingSystem, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
         final String updatedName = "New NES 3";
         final int updatedGeneration = 6;
         final boolean updatedHandheld = true;
-        final List<CustomFieldValue> updatedCustomFieldValues = List.of(new CustomFieldValue(
-                existingCustomFieldValue.getCustomFieldId(),
-                "Updated" + existingCustomFieldValue.getCustomFieldName(),
-                existingCustomFieldValue.getCustomFieldType(),
-                "false"
-        ));
+        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
+        existingCustomFieldValue.remove(0);
+        final CustomFieldValue updatedValue = new CustomFieldValue(
+            customFieldValueToUpdate.getCustomFieldId(),
+            "Updated" + customFieldValueToUpdate.getCustomFieldName(),
+            customFieldValueToUpdate.getCustomFieldType(),
+            "false"
+        );
+        existingCustomFieldValue.add(updatedValue);
 
-        final String jsonContent = factory.formatSystemPayload(updatedName, updatedGeneration, updatedHandheld, updatedCustomFieldValues);
+        final String jsonContent = factory.formatSystemPayload(updatedName, updatedGeneration, updatedHandheld, existingCustomFieldValue);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/" + existingSystem.id())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,7 +96,7 @@ public class SystemTests {
         );
 
         result.andExpect(status().isOk());
-        validateSystemResponseBody(result, resultToResponseDto(result), updatedCustomFieldValues);
+        validateSystemResponseBody(result, resultToResponseDto(result), existingCustomFieldValue);
     }
 
     @Test
@@ -310,7 +313,8 @@ public class SystemTests {
                 jsonPath("$.data.handheld").value(expectedHandheld),
                 jsonPath("$.errors").isEmpty()
         );
-        factory.validateCustomFieldValues(result, customFieldValues);
+        SystemResponseDto responseDto = resultToResponseDto(result);
+        factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 
     private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto, List<CustomFieldValue> customFieldValues) throws Exception {
@@ -322,7 +326,7 @@ public class SystemTests {
                 jsonPath("$.data.handheld").value(responseDto.handheld()),
                 jsonPath("$.errors").isEmpty()
         );
-        factory.validateCustomFieldValues(result, customFieldValues);
+        factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 
     private void validateSystemResponseBody(ResultActions result, List<SystemResponseDto> expectedSystems) throws Exception {
