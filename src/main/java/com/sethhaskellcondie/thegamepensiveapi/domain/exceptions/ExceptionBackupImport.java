@@ -1,7 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
-import com.sethhaskellcondie.thegamepensiveapi.api.Api;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +14,7 @@ public class ExceptionBackupImport extends RuntimeException {
     public ExceptionBackupImport(String message) {
         super();
         this.exceptions = new ArrayList<>();
-        exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + message));
+        exceptions.add(new Exception(message));
     }
 
     public List<Exception> getExceptions() {

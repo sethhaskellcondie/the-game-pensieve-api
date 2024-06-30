@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
+//Deprecated: This implementation tried to come off clever but ended up being goofy.
 @Deprecated
 public interface EntityFactory<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
 

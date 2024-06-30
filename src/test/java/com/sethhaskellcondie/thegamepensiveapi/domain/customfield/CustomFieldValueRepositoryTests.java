@@ -158,7 +158,8 @@ public class CustomFieldValueRepositoryTests {
     @Test
     public void upsertValuesOnInsert_ExistingCustomFieldTypeMismatch_ExceptionThrown() {
         final String customFieldName = "Custom!";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_TEXT, Keychain.TOY_KEY); //TYPE_TEXT should match TYPE_BOOLEAN in the value
+        //TYPE_TEXT should match TYPE_BOOLEAN in the value
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_TEXT, Keychain.TOY_KEY));
         final CustomFieldValue newValueTypeMismatch = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_BOOLEAN, "true");
         final Toy newToy = createNewToyWithCustomFields(List.of(newValueTypeMismatch));
 
@@ -168,7 +169,7 @@ public class CustomFieldValueRepositoryTests {
     @Test
     public void upsertValuesOnInsert_ExistingCustomFieldNewInvalidNumberValue_ExceptionThrown() {
         final String customFieldName = "Custom Whole Number!";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_NUMBER, Keychain.TOY_KEY);
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_NUMBER, Keychain.TOY_KEY));
         final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_NUMBER, "InvalidNumber"); //the value should be able to convert to an int.
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
@@ -178,7 +179,7 @@ public class CustomFieldValueRepositoryTests {
     @Test
     public void upsertValuesOnInsert_ExistingCustomFieldNewInvalidBooleanValue_ExceptionThrown() {
         final String customFieldName = "Custom Boolean!";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.TOY_KEY);
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.TOY_KEY));
         final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_BOOLEAN, "InvalidBoolean"); //the value should be 'true' or 'false'
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
@@ -189,7 +190,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValuesOnInsert_ExistingCustomFieldUpdatedNameOnNewValue_CustomFieldUpdatedValueCreated() {
         final String updatedCustomFieldName = "UpdatedName";
         final String customFieldValueText = "Valid Text";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField("Old Custom Field Name", CustomField.TYPE_TEXT, Keychain.TOY_KEY);
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto("Old Custom Field Name", CustomField.TYPE_TEXT, Keychain.TOY_KEY));
         final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), updatedCustomFieldName, CustomField.TYPE_TEXT, customFieldValueText);
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 

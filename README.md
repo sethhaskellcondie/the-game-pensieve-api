@@ -54,7 +54,7 @@ Commands:
   - $ mvn install -DskipTests
   - $ java -jar /target/the_game_pensive_api.jar
 - You can access the api on port 8080
-- The test endpoint localhost:8080/heartbeat will return the string "thump thump" when working correctly.
+- The test endpoint localhost:8080/v1/heartbeat will return the string "thump thump" when working correctly.
 
 ### Documentation
 The Entity and System classes are heavily commented to explain the decisions behind the design.

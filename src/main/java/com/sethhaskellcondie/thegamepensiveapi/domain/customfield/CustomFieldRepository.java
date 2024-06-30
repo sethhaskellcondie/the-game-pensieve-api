@@ -1,7 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.api.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.domain.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -35,12 +35,6 @@ public class CustomFieldRepository {
 
     public CustomFieldRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-    }
-
-    //TODO delete this after updating the tests
-    @Deprecated
-    public CustomField insertCustomField(String name, String type, String key) {
-        return insertCustomField(new CustomFieldRequestDto(name, type, key));
     }
 
     public CustomField insertCustomField(CustomFieldRequestDto customField) {

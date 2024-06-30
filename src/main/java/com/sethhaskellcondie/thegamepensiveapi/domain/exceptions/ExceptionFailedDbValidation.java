@@ -1,7 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
-import com.sethhaskellcondie.thegamepensiveapi.api.Api;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +14,7 @@ public class ExceptionFailedDbValidation extends RuntimeException {
     public ExceptionFailedDbValidation(String message) {
         super();
         this.exceptions = new ArrayList<>();
-        exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + "Failed Database Validation: " + message));
+        exceptions.add(new Exception("Failed Database Validation: " + message));
     }
 
     public List<Exception> getExceptions() {
@@ -24,7 +22,7 @@ public class ExceptionFailedDbValidation extends RuntimeException {
     }
 
     public void addException(String message) {
-        this.exceptions.add(new Exception(Api.PRE_ERROR_MESSAGE + "Failed Database Validation: " + message));
+        this.exceptions.add(new Exception("Failed Database Validation: " + message));
     }
 
     @Override

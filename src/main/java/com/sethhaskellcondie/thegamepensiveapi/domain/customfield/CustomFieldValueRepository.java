@@ -1,6 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.customfield;
 
-import com.sethhaskellcondie.thegamepensiveapi.api.ErrorLogs;
+import com.sethhaskellcondie.thegamepensiveapi.domain.ErrorLogs;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionCustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalCatastrophe;
@@ -77,9 +77,9 @@ public class CustomFieldValueRepository {
         }
 
         final String sql = """
-                			UPDATE custom_field_values SET value_text = ?, value_number = ?;
+                			UPDATE custom_field_values SET value_text = ?, value_number = ? WHERE custom_field_id = ? AND entity_id = ?;
                 """;
-        jdbcTemplate.update(sql, valueDao.valueText(), valueDao.valueNumber());
+        jdbcTemplate.update(sql, valueDao.valueText(), valueDao.valueNumber(), valueDao.customFieldId(), valueDao.entityId());
         return value;
     }
 

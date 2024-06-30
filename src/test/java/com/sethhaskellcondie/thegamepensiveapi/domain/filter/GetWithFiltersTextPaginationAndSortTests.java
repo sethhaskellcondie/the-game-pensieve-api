@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * every entity.
  */
 @JdbcTest
-@ActiveProfiles("test-db6")
+@ActiveProfiles("filter-tests6")
 public class GetWithFiltersTextPaginationAndSortTests {
 
     @Autowired
