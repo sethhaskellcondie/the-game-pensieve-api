@@ -50,7 +50,6 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return handheld;
     }
 
-    //TODO update the system tests and make this function protected again
     @Override
     public System updateFromRequestDto(SystemRequestDto requestDto) {
         List<Exception> exceptions = new ArrayList<>();
@@ -77,7 +76,6 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         return this;
     }
 
-    //TODO update the system tests and make this function protected again
     @Override
     public SystemResponseDto convertToResponseDto() {
         return new SystemResponseDto(this.getKey(), this.id, this.name, this.generation, this.handheld,

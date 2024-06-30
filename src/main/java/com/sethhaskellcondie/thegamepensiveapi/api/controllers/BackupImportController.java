@@ -30,7 +30,7 @@ public class BackupImportController {
     }
 
     @PostMapping("v1/function/backup")
-    public Map<String, FormattedBackupData> backupJsonToFile() {
+    public Map<String, BackupDataDto> backupJsonToFile() {
         final File file = new File(backupDataPath);
         final ObjectMapper objectMapper = new ObjectMapper();
         final BackupDataDto backupDataDto = gateway.getBackupData();
@@ -40,7 +40,7 @@ public class BackupImportController {
             throw new RuntimeException(e);
         }
 
-        final FormattedResponseBody<FormattedBackupData> body = new FormattedResponseBody<>(new FormattedBackupData(file.getAbsolutePath(), backupDataDto));
+        final FormattedResponseBody<BackupDataDto> body = new FormattedResponseBody<>(backupDataDto);
         return body.formatData();
     }
 
@@ -97,9 +97,26 @@ public class BackupImportController {
         return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
     }
 
-    //TODO seed my collection endpoint
+    @PostMapping("v1/function/seedMyCollection")
+    public FormattedImportResults seedMyCollection() {
+        final BackupDataDto myCollectionData;
+        try {
+            final byte[] fileData = Files.readAllBytes(Paths.get("myCollection.json"));
+            final ObjectMapper objectMapper = new ObjectMapper();
+            myCollectionData = objectMapper.readValue(fileData, BackupDataDto.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        final ImportResultsDto importResults = gateway.importBackupData(myCollectionData);
+        final FormattedImportResultsData data = new FormattedImportResultsData(
+                importResults.existingCustomFields(), importResults.createdCustomFields(),
+                importResults.existingToys(), importResults.createdToys(),
+                importResults.existingSystems(), importResults.createdSystems()
+        );
+        return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
+    }
 }
 
-record FormattedBackupData(String filePath, BackupDataDto data) { }
 record FormattedImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys, int existingSystems, int createdSystems) { }
 record FormattedImportResults(FormattedImportResultsData data, List<String> errors) { }

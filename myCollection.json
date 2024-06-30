@@ -1,0 +1,110 @@
+{
+  "customFields": [
+    {
+      "id": 0,
+      "name": "Line",
+      "type": "text",
+      "entityKey": "toy"
+    }
+  ],
+  "toys": [
+    {
+      "name": "Super Mario",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 0,
+          "customFieldName": "Line",
+          "customFieldType": "text",
+          "value": "Super Mario"
+        }
+      ]
+    },
+    {
+      "name": "Super Mario",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 0,
+          "customFieldName": "Line",
+          "customFieldType": "text",
+          "value": "Smash Bros"
+        }
+      ]
+    },
+    {
+      "name": "Darth Vader",
+      "set": "Disney Infinity",
+      "customFieldValues": [
+        {
+          "customFieldId": 0,
+          "customFieldName": "Line",
+          "customFieldType": "text",
+          "value": "Star Wars"
+        }
+      ]
+    },
+    {
+      "name": "Captain America",
+      "set": "Disney Infinity",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Line",
+          "customFieldType": "text",
+          "value": "Marvel"
+        }
+      ]
+    },
+    {
+      "name": "Iron Man",
+      "set": "Disney Infinity",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Line",
+          "customFieldType": "text",
+          "value": "Marvel"
+        }
+      ]
+    },
+    {
+      "name": "Donkey Kong",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Line",
+          "customFieldType": "text",
+          "value": "Super Mario"
+        }
+      ]
+    },
+    {
+      "name": "Mega Man",
+      "set": "Amiibo",
+      "customFieldValues": [
+        {
+          "customFieldId": 4,
+          "customFieldName": "Line",
+          "customFieldType": "text",
+          "value": "Smash Bros"
+        }
+      ]
+    }
+  ],
+  "systems": [
+    {
+      "name": "NES",
+      "generation": 3,
+      "handheld": false,
+      "customFieldValues": []
+    },
+    {
+      "name": "SNES",
+      "generation": 3,
+      "handheld": false,
+      "customFieldValues": []
+    }
+  ]
+}
