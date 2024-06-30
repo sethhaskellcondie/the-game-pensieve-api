@@ -182,11 +182,21 @@ public class SystemRepositoryWithoutInheritanceTests {
     @Test
     void update_duplicateNameFound_ThrowsExceptionFailedDbValidation() throws ExceptionFailedDbValidation {
         final String name = "Playstation 3";
-        final int generation = 7;
-        final boolean handheld = false;
-        final SystemRequestDto requestDto = new SystemRequestDto(name, generation, handheld, new ArrayList<>());
+        final SystemRequestDto requestDto = new SystemRequestDto(name, 7, false, new ArrayList<>());
         final System expected = repository.insert(requestDto);
+        final SystemRequestDto anotherValidDto = new SystemRequestDto("not duplicate name", 7, false, new ArrayList<>());
+        final System systemToBeUpdated = repository.insert(anotherValidDto);
+        final System systemToBeUpdatedWithDuplicateName = new System(
+            systemToBeUpdated.getId(),
+            name, //this name was already used and will be found to be a duplicate
+            systemToBeUpdated.getGeneration(),
+            systemToBeUpdated.isHandheld(),
+            systemToBeUpdated.getCreatedAt(),
+            systemToBeUpdated.getUpdatedAt(),
+            systemToBeUpdated.getDeletedAt(),
+            systemToBeUpdated.getCustomFieldValues()
+        );
 
-        assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(expected));
+        assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(systemToBeUpdatedWithDuplicateName));
     }
 }

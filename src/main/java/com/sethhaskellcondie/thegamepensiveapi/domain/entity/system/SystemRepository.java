@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.system;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInvalidFilter;
@@ -79,12 +80,30 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
                 );
     }
 
-    protected void dbValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
+    protected void insertValidation(System system) throws ExceptionFailedDbValidation, ExceptionInvalidFilter {
         //Note: using a filter like this for dbValidation will prevent any names with blacklisted words or symbols from being entered into the database
         Filter nameFilter = new Filter("system", Filter.FIELD_TYPE_TEXT, "name", "equals", system.getName(), false);
         final List<System> existingSystems = getWithFilters(List.of(nameFilter));
         if (!existingSystems.isEmpty()) {
-            throw new ExceptionFailedDbValidation("System insert/update failed, duplicate name found.");
+            throw new ExceptionFailedDbValidation("System insert failed, duplicate name found.");
+        }
+    }
+
+    @Override
+    protected void updateValidation(System system) {
+        Filter nameFilter = new Filter("system", Filter.FIELD_TYPE_TEXT, "name", "equals", system.getName(), false);
+        final List<System> existingSystems = getWithFilters(List.of(nameFilter));
+
+        if (existingSystems.size() > 1) {
+            throw new ExceptionInternalError("Database is in an invalid state there are multiple systems in the database with the same name.");
+        }
+
+        if (existingSystems.size() == 1) {
+            //if we find system in the database that has the same name as the system we are updating that is okay if they are the same system
+            //this will not update a system to have the same name as a different system already in the database
+            if (!Objects.equals(existingSystems.get(0), system)) {
+                throw new ExceptionFailedDbValidation("System update failed, duplicate name found.");
+            }
         }
     }
 

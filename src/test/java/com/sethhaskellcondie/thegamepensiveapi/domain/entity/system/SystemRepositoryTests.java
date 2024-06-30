@@ -7,12 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.ANOTHER_VALID;
 import static com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityFactory.Generate.VALID;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.ArrayList;
 
 //Deprecated: This project is going to use full SpringBootTest Integration tests to test entity functionality
 @Deprecated
@@ -80,9 +83,21 @@ public class SystemRepositoryTests extends EntityRepositoryTests<System, SystemR
     @Test
     void update_duplicateNameFound_ThrowsExceptionFailedDbValidation() throws ExceptionFailedDbValidation {
         final SystemRequestDto requestDto = factory.generateRequestDto(VALID);
-        final System expected = repository.insert(requestDto);
+        final System existing = repository.insert(requestDto);
+        final SystemRequestDto anotherRequestDto = factory.generateRequestDto(ANOTHER_VALID);
+        final System alsoExisting = repository.insert(anotherRequestDto);
+        final System systemToUpdateWithDuplicateName = new System(
+            alsoExisting.getId(),
+            existing.getName(), //use the name from existing
+            alsoExisting.getGeneration(),
+            alsoExisting.isHandheld(),
+            alsoExisting.getCreatedAt(),
+            alsoExisting.getUpdatedAt(),
+            alsoExisting.getDeletedAt(),
+            alsoExisting.getCustomFieldValues()
+        );
 
-        assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(expected),
+        assertThrows(ExceptionFailedDbValidation.class, () -> repository.update(systemToUpdateWithDuplicateName),
                 "The " + entityName + " repository allowed an update of an object with a duplicate name when it shouldn't have.");
     }
 }

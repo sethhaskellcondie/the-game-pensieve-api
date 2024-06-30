@@ -69,7 +69,12 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
                 );
     }
 
-    protected void dbValidation(Toy toy) {
+    protected void insertValidation(Toy toy) {
+        //no validation needed for Toy table
+    }
+
+    @Override
+    protected void updateValidation(Toy entity) {
         //no validation needed for Toy table
     }
 

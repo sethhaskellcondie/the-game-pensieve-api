@@ -55,7 +55,8 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     //This method will be commonly used to validate objects before they are inserted or updated,
     //performing any validation that is not enforced by the database schema
-    protected abstract void dbValidation(T entity);
+    protected abstract void insertValidation(T entity);
+    protected abstract void updateValidation(T entity);
     protected abstract Integer insertImplementation(T entity);
     protected abstract void updateImplementation(T entity);
 
@@ -63,7 +64,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     @Override
     public T insert(T entity) {
-        dbValidation(entity);
+        insertValidation(entity);
 
         Integer id = insertImplementation(entity);
 
@@ -103,7 +104,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     @Override
     public T update(T entity) {
-        dbValidation(entity);
+        updateValidation(entity);
 
         updateImplementation(entity);
 
