@@ -27,51 +27,51 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 @RestController
 @RequestMapping("v1/videoGames")
 public class VideoGameController {
-	private final VideoGameGateway gateway;
+    private final VideoGameGateway gateway;
 
-	public VideoGameController(VideoGameGateway gateway) {
-		this.gateway = gateway;
-	}
+    public VideoGameController(VideoGameGateway gateway) {
+        this.gateway = gateway;
+    }
 
-	@ResponseBody
-	@GetMapping("/{id}")
-	public Map<String, VideoGameResponseDto> getById(@PathVariable int id) throws ExceptionResourceNotFound {
-		final VideoGameResponseDto responseDto = gateway.getById(id);
-		final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
-		return body.formatData();
-	}
+    @ResponseBody
+    @GetMapping("/{id}")
+    public Map<String, VideoGameResponseDto> getById(@PathVariable int id) throws ExceptionResourceNotFound {
+        final VideoGameResponseDto responseDto = gateway.getById(id);
+        final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
+    }
 
-	@ResponseBody
-	@PostMapping("/function/search")
-	public Map<String, List<VideoGameResponseDto>> getWithFilters(@RequestBody Map<String, List<FilterRequestDto>> requestBody) {
-		final List<VideoGameResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
-		final FormattedResponseBody<List<VideoGameResponseDto>> body = new FormattedResponseBody<>(data);
-		return body.formatData();
-	}
+    @ResponseBody
+    @PostMapping("/function/search")
+    public Map<String, List<VideoGameResponseDto>> getWithFilters(@RequestBody Map<String, List<FilterRequestDto>> requestBody) {
+        final List<VideoGameResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
+        final FormattedResponseBody<List<VideoGameResponseDto>> body = new FormattedResponseBody<>(data);
+        return body.formatData();
+    }
 
-	@ResponseBody
-	@PostMapping("")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Map<String, VideoGameResponseDto> createNew(@RequestBody Map<String, VideoGameRequestDto> requestBody) throws ExceptionFailedDbValidation {
-		final VideoGameResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.VIDEO_GAME_KEY));
-		final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
-		return body.formatData();
-	}
+    @ResponseBody
+    @PostMapping("")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, VideoGameResponseDto> createNew(@RequestBody Map<String, VideoGameRequestDto> requestBody) throws ExceptionFailedDbValidation {
+        final VideoGameResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.VIDEO_GAME_KEY));
+        final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
+    }
 
-	@ResponseBody
-	@PutMapping("/{id}")
-	public Map<String, VideoGameResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, VideoGameRequestDto> requestBody) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
-		final VideoGameResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.VIDEO_GAME_KEY));
-		final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
-		return body.formatData();
-	}
+    @ResponseBody
+    @PutMapping("/{id}")
+    public Map<String, VideoGameResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, VideoGameRequestDto> requestBody) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
+        final VideoGameResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.VIDEO_GAME_KEY));
+        final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
+        return body.formatData();
+    }
 
-	@ResponseBody
-	@DeleteMapping("/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public Map<String, String> deleteExisting(@PathVariable int id) throws ExceptionResourceNotFound {
-		gateway.deleteById(id);
-		FormattedResponseBody<String> body = new FormattedResponseBody<>("");
-		return body.formatData();
-	}
+    @ResponseBody
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Map<String, String> deleteExisting(@PathVariable int id) throws ExceptionResourceNotFound {
+        gateway.deleteById(id);
+        FormattedResponseBody<String> body = new FormattedResponseBody<>("");
+        return body.formatData();
+    }
 }

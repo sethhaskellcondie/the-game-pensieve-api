@@ -8,8 +8,8 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
 
 @Component
 public class VideoGameGateway extends EntityGatewayAbstract<VideoGame, VideoGameRequestDto, VideoGameResponseDto>
-	implements EntityGateway<VideoGame, VideoGameRequestDto, VideoGameResponseDto> {
-	public VideoGameGateway(EntityService<VideoGame, VideoGameRequestDto, VideoGameResponseDto> service) {
-		super(service);
-	}
+        implements EntityGateway<VideoGame, VideoGameRequestDto, VideoGameResponseDto> {
+    public VideoGameGateway(EntityService<VideoGame, VideoGameRequestDto, VideoGameResponseDto> service) {
+        super(service);
+    }
 }
