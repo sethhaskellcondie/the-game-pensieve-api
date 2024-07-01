@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ExceptionInvalidFilter extends MultiException {

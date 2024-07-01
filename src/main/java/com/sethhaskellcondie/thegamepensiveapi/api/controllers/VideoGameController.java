@@ -60,7 +60,7 @@ public class VideoGameController {
 
     @ResponseBody
     @PutMapping("/{id}")
-    public Map<String, VideoGameResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, VideoGameRequestDto> requestBody) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
+    public Map<String, VideoGameResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, VideoGameRequestDto> requestBody) {
         final VideoGameResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.VIDEO_GAME_KEY));
         final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
