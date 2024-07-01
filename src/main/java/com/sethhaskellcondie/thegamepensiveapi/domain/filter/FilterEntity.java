@@ -20,6 +20,12 @@ public class FilterEntity {
                 fields.put("name", Filter.FIELD_TYPE_TEXT);
                 fields.put("set", Filter.FIELD_TYPE_TEXT);
             }
+            case Keychain.VIDEO_GAME_KEY -> {
+                fields.put("title", Filter.FIELD_TYPE_TEXT);
+                //Right now video games cannot filter on system text because the system name is not in the database table
+                //we would need to join that table in the getWithFilters query but then unique filters would need to be allowed
+                //for system text...
+            }
             default -> {
                 return new LinkedHashMap<>();
             }

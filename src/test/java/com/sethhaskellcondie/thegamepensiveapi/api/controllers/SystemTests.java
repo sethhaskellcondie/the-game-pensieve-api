@@ -297,6 +297,7 @@ public class SystemTests {
         );
     }
 
+    //TODO migrate this to the test factory
     private SystemResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();

@@ -1,26 +1,27 @@
 package com.sethhaskellcondie.thegamepensiveapi;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 
 public class TestFactory {
 
@@ -241,5 +242,46 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, name, set, customFieldValuesString);
+    }
+
+    public VideoGameResponseDto postVideoGame() throws Exception {
+        final String title = "TestVideoGame-" + randomString(4);
+        final int systemId = postSystem().id();
+        final ResultActions result = postVideoGameReturnResult(title, systemId, null);
+        return resultToVideoGameResponseDto(result);
+    }
+
+    public ResultActions postVideoGameReturnResult(String title, int systemId, List<CustomFieldValue> customFieldValues) throws Exception {
+        final String formattedJson = formatVideoGamePayload(title, systemId, customFieldValues);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/videoGames")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public VideoGameResponseDto resultToVideoGameResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, VideoGameResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
+    public String formatVideoGamePayload(String title, int systemId, List<CustomFieldValue> customFieldValues) {
+        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
+        final String json = """
+                {
+                	"videoGame": {
+                	    "title": "%s",
+                	    "systemId": "%d",
+                        "customFieldValues": %s
+                	    }
+                }
+                """;
+        return String.format(json, title, systemId, customFieldValuesString);
     }
 }

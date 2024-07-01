@@ -88,6 +88,7 @@ public class ToyTests {
         );
 
         result.andExpect(status().isOk());
+        //TODO refactor this call it should be like the previous test
         validateToyResponseBody(result, resultToResponseDto(result), existingCustomFieldValue);
     }
 
@@ -258,6 +259,7 @@ public class ToyTests {
         );
     }
 
+    //TODO migrate this to the test factory
     private ToyResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
