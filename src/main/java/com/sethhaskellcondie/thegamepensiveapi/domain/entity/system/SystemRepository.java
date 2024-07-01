@@ -35,7 +35,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
     protected String getBaseQuery() {
         return """
                 SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at
-                    FROM systems WHERE deleted_at IS NULL
+                    FROM systems WHERE systems.deleted_at IS NULL
             """;
     }
 

@@ -1,44 +1,23 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ExceptionBackupImport extends RuntimeException {
-    private final List<Exception> exceptions;
+public class ExceptionBackupImport extends MultiException {
 
     public ExceptionBackupImport() {
         super();
-        this.exceptions = new ArrayList<>();
+        this.messagePrefix = "Backup/Import Error - ";
     }
 
     public ExceptionBackupImport(String message) {
         super();
-        this.exceptions = new ArrayList<>();
+        this.messagePrefix = "Backup/Import Error - ";
         exceptions.add(new Exception(message));
     }
 
-    public List<Exception> getExceptions() {
-        return this.exceptions;
-    }
-
-    public void addException(Exception exception) {
-        this.exceptions.add(exception);
-    }
-
-    public void appendExceptions(List<Exception> exceptions) {
-        this.exceptions.addAll(exceptions);
-    }
-
-    @Override
-    public String getMessage() {
-        return String.join(" ", getMessages());
-    }
-
-    public List<String> getMessages() {
-        List<String> errorMessages = new ArrayList<>();
-        for (Exception e : this.exceptions) {
-            errorMessages.add(e.getMessage());
-        }
-        return errorMessages;
+    public ExceptionBackupImport(List<Exception> exceptions) {
+        super();
+        this.messagePrefix = "Backup/Import Error - ";
+        this.exceptions = exceptions;
     }
 }

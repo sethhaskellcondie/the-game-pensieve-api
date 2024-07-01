@@ -57,7 +57,7 @@ public class CustomFieldTests {
         final String expectedType = "text";
         final String expectedEntityKey = "toy";
 
-        final ResultActions result = factory.postCustomCustomField(expectedName, expectedType, expectedEntityKey);
+        final ResultActions result = factory.postCustomFieldReturnResult(expectedName, expectedType, expectedEntityKey);
 
         validateCustomFieldResponseBody(result, expectedName, expectedType, expectedEntityKey);
     }
@@ -82,8 +82,8 @@ public class CustomFieldTests {
     @Test
     void getCustomFields_HappyPath_ReturnAll() throws Exception {
         //at least two results
-        CustomField customField1 = resultToResponseDto(factory.postCustomField());
-        CustomField customField2 = resultToResponseDto(factory.postCustomField());
+        CustomField customField1 = resultToResponseDto(factory.postCustomFieldReturnResult());
+        CustomField customField2 = resultToResponseDto(factory.postCustomFieldReturnResult());
 
         final ResultActions result = mockMvc.perform(get(baseUrl));
 
@@ -106,7 +106,7 @@ public class CustomFieldTests {
 
     @Test
     void patchCustomFieldName_HappyPath_CustomFieldReturned() throws Exception {
-        final CustomField existingCustomField = resultToResponseDto(factory.postCustomField());
+        final CustomField existingCustomField = resultToResponseDto(factory.postCustomFieldReturnResult());
         final String newName = "patched name!";
         final CustomField expectedCustomField = new CustomField(existingCustomField.id(), newName, existingCustomField.type(), existingCustomField.entityKey());
 
@@ -148,7 +148,7 @@ public class CustomFieldTests {
 
     @Test
     void deleteCustomField_HappyPath_CustomFieldDeleted() throws Exception {
-        final CustomField existingCustomField = resultToResponseDto(factory.postCustomField());
+        final CustomField existingCustomField = resultToResponseDto(factory.postCustomFieldReturnResult());
 
         final ResultActions result = mockMvc.perform(delete(baseUrlSlash + existingCustomField.id()));
 
@@ -166,7 +166,7 @@ public class CustomFieldTests {
         final String duplicateName = "Oops Entered Twice";
         final String type = "text";
         final String entityKey = "toy";
-        final CustomField existingCustomField = resultToResponseDto(factory.postCustomCustomField(duplicateName, type, entityKey));
+        final CustomField existingCustomField = resultToResponseDto(factory.postCustomFieldReturnResult(duplicateName, type, entityKey));
         final String json = factory.formatCustomFieldPayload(duplicateName, type, entityKey);
 
         final ResultActions result = mockMvc.perform(
@@ -187,7 +187,7 @@ public class CustomFieldTests {
     void postCustomField_DeletedDuplicateFound_CustomFieldCreated(CustomField existingCustomField) throws Exception {
         mockMvc.perform(delete(baseUrlSlash + existingCustomField.id()));
 
-        final ResultActions result = factory.postCustomCustomField(existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
+        final ResultActions result = factory.postCustomFieldReturnResult(existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
 
         validateCustomFieldResponseBody(result, existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
     }

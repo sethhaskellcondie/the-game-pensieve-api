@@ -75,21 +75,21 @@ public class TestFactory {
     }
 
     public int postCustomFieldReturnId(String name, String type, String entityKey) throws Exception {
-        ResultActions result = postCustomCustomField(name, type, entityKey);
+        ResultActions result = postCustomFieldReturnResult(name, type, entityKey);
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
         final Map<String, CustomField> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         return body.get("data").id();
     }
 
-    public ResultActions postCustomField() throws Exception {
+    public ResultActions postCustomFieldReturnResult() throws Exception {
         final String name = "TestCustomField-" + randomString(6);
         final String type = "text";
         final String entityKey = "toy";
-        return postCustomCustomField(name, type, entityKey);
+        return postCustomFieldReturnResult(name, type, entityKey);
     }
 
-    public ResultActions postCustomCustomField(String name, String type, String entityKey) throws Exception {
+    public ResultActions postCustomFieldReturnResult(String name, String type, String entityKey) throws Exception {
         final String formattedJson = formatCustomFieldPayload(name, type, entityKey);
 
         final ResultActions result = mockMvc.perform(
@@ -155,15 +155,23 @@ public class TestFactory {
         return String.format(customFieldString, value.getCustomFieldId(), value.getCustomFieldName(), value.getCustomFieldType(), value.getValue());
     }
 
-    public ResultActions postSystem() throws Exception {
+    public SystemResponseDto postSystem() throws Exception {
+        final ResultActions result = postSystemReturnResult();
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, SystemResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
+    public ResultActions postSystemReturnResult() throws Exception {
         final String name = "TestSystem-" + randomString(8);
         final int generation = 1;
         final boolean handheld = false;
 
-        return postCustomSystem(name, generation, handheld, null);
+        return postSystemReturnResult(name, generation, handheld, null);
     }
 
-    public ResultActions postCustomSystem(String name, int generation, boolean handheld, List<CustomFieldValue> customFieldValues) throws Exception {
+    public ResultActions postSystemReturnResult(String name, int generation, boolean handheld, List<CustomFieldValue> customFieldValues) throws Exception {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
                 {
@@ -202,13 +210,13 @@ public class TestFactory {
         return String.format(json, name, generation, handheld, customFieldValuesString);
     }
 
-    public ResultActions postToy() throws Exception {
+    public ResultActions postToyReturnResult() throws Exception {
         final String name = "TestToy-" + randomString(4);
         final String set = "TestSet-" + randomString(4);
-        return postCustomToy(name, set, null);
+        return postToyReturnResult(name, set, null);
     }
 
-    public ResultActions postCustomToy(String name, String set, List<CustomFieldValue> customFieldValues) throws Exception {
+    public ResultActions postToyReturnResult(String name, String set, List<CustomFieldValue> customFieldValues) throws Exception {
         final String formattedJson = formatToyPayload(name, set, customFieldValues);
 
         final ResultActions result = mockMvc.perform(

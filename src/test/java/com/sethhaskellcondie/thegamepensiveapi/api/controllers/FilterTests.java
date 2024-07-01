@@ -154,13 +154,13 @@ public class FilterTests {
 
     private void addCustomFields(String key) throws Exception {
         String textCustomFieldType = CustomField.TYPE_TEXT;
-        factory.postCustomCustomField(textCustomFieldName, textCustomFieldType, key);
+        factory.postCustomFieldReturnResult(textCustomFieldName, textCustomFieldType, key);
 
         String numberCustomFieldType = CustomField.TYPE_NUMBER;
-        factory.postCustomCustomField(numberCustomFieldName, numberCustomFieldType, key);
+        factory.postCustomFieldReturnResult(numberCustomFieldName, numberCustomFieldType, key);
 
         String booleanCustomFieldType = CustomField.TYPE_BOOLEAN;
-        factory.postCustomCustomField(booleanCustomFieldName, booleanCustomFieldType, key);
+        factory.postCustomFieldReturnResult(booleanCustomFieldName, booleanCustomFieldType, key);
     }
 
     private void validateCustomFieldFilters(ResultActions result) throws Exception {

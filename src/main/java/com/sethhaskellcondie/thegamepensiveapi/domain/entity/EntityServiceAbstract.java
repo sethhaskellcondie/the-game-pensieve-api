@@ -8,7 +8,7 @@ import java.util.List;
 
 public abstract class EntityServiceAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
 
-    private final EntityRepository<T, RequestDto, ResponseDto> repository;
+    protected final EntityRepository<T, RequestDto, ResponseDto> repository;
     private final FilterService filterService;
 
     public EntityServiceAbstract(EntityRepository<T, RequestDto, ResponseDto> repository, FilterService filterService) {
