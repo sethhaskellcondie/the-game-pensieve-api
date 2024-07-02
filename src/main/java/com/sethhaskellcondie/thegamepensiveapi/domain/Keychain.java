@@ -17,12 +17,14 @@ public class Keychain {
     public static final String SYSTEM_KEY = "system";
     public static final String TOY_KEY = "toy";
     public static final String VIDEO_GAME_KEY = "videoGame";
+    public static final String VIDEO_GAME_BOX_KEY = "videoGameBox";
 
     public static List<String> getAllKeys() {
         return List.of(
             SYSTEM_KEY,
             TOY_KEY,
-            VIDEO_GAME_KEY
+            VIDEO_GAME_KEY,
+            VIDEO_GAME_BOX_KEY
         );
     }
 
@@ -38,6 +40,9 @@ public class Keychain {
             }
             case VIDEO_GAME_KEY -> {
                 return "video_games";
+            }
+            case VIDEO_GAME_BOX_KEY -> {
+                return "video_game_boxes";
             }
             default -> {
                 throw new RuntimeException("Keychain.getTableAliasByKey() called with unknown key:" + key + " available keys are: " + String.join(", ", getAllKeys()));

@@ -15,7 +15,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     private String title;
     private int systemId;
     //The system name is a flag that also indicates that the systemId is valid
-    //The only way to set the systemName is through the service not on the object
+    //it must be set manually and cannot be set in the constructor.
     private String systemName;
 
     public VideoGame() {
@@ -42,7 +42,6 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         return systemName;
     }
 
-    //Should only be called in the VideoGameService
     public void setSystemName(String systemName) {
         this.systemName = systemName;
     }
@@ -58,7 +57,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         try {
             this.systemId = requestDto.systemId();
         } catch (NullPointerException e) {
-            exceptions.add(new ExceptionInputValidation("Video Game object error, the systemId cannot be null"));
+            exceptions.add(new ExceptionInputValidation("Video Game object error, the systemId cannot be null."));
         }
         this.systemName = null;
         setCustomFieldValues(requestDto.customFieldValues());
@@ -80,6 +79,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         );
     }
 
+    @Override
     public VideoGameRequestDto convertToRequestDto() {
         return new VideoGameRequestDto(this.title, this.systemId, this.customFieldValues);
     }

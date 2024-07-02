@@ -81,6 +81,12 @@ public abstract class Entity<RequestDto, ResponseDto> {
     protected abstract ResponseDto convertToResponseDto();
 
     /**
+     * Every Entity will need to be able to convert into a default requestDto, this is
+     * used for backing up and importing data.
+     */
+    protected abstract RequestDto convertToRequestDto();
+
+    /**
      * Every Entity will have a key that is a constant form of the name of the entity.
      * This function will return the proper key from the Keychain.
      */

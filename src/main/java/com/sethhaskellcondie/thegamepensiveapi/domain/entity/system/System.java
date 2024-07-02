@@ -83,6 +83,7 @@ public class System extends Entity<SystemRequestDto, SystemResponseDto> {
         );
     }
 
+    @Override
     public SystemRequestDto convertToRequestDto() {
         return new SystemRequestDto(this.name, this.generation, this.handheld, this.customFieldValues);
     }
