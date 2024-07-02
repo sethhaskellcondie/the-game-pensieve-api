@@ -52,7 +52,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     }
 
     @Override
-    protected VideoGame updateFromRequestDto(VideoGameRequestDto requestDto) {
+    public VideoGame updateFromRequestDto(VideoGameRequestDto requestDto) {
         List<Exception> exceptions = new ArrayList<>();
         this.title = requestDto.title();
         try {
@@ -78,6 +78,10 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, this.systemName,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );
+    }
+
+    public VideoGameRequestDto convertToRequestDto() {
+        return new VideoGameRequestDto(this.title, this.systemId, this.customFieldValues);
     }
 
     @Override

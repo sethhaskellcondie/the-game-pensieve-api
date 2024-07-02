@@ -3,9 +3,11 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -134,5 +136,14 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
         jdbcTemplate.update(sql, entity.getTitle(), entity.getSystemId(), Timestamp.from(Instant.now()), entity.getId());
     }
 
-    //public int getIdByNameAndSystem(String name, int systemId)?
+    public int getIdByTitleAndSystem(String title, int systemId) {
+        final String sql = getBaseQuery() + " AND title = ? AND system_id = ?";
+        final VideoGame videoGame;
+        try {
+            videoGame = jdbcTemplate.queryForObject(sql, new Object[]{title, systemId}, new int[]{Types.VARCHAR, Types.BIGINT}, getRowMapper());
+        } catch (EmptyResultDataAccessException ignored) {
+            return -1;
+        }
+        return videoGame.getId();
+    }
 }
