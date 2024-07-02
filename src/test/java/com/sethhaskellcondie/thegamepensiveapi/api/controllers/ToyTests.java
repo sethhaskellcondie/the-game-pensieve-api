@@ -1,10 +1,9 @@
 package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.TestFactory;
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
@@ -19,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +25,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,7 +58,7 @@ public class ToyTests {
                 new CustomFieldValue(0, "ToySet", "text", "Kingdom Hearts")
         );
 
-        final ResultActions result = factory.postCustomToy(expectedName, expectedSet, expectedCustomFieldValues);
+        final ResultActions result = factory.postToyReturnResult(expectedName, expectedSet, expectedCustomFieldValues);
 
         final ToyResponseDto responseDto = resultToResponseDto(result);
         validateToyResponseBody(result, expectedName, expectedSet, expectedCustomFieldValues);
@@ -88,7 +86,7 @@ public class ToyTests {
         );
 
         result.andExpect(status().isOk());
-        validateToyResponseBody(result, resultToResponseDto(result), existingCustomFieldValue);
+        validateToyResponseBody(result, updatedName, updatedSet, existingCustomFieldValue);
     }
 
     @Test
@@ -113,7 +111,7 @@ public class ToyTests {
         final String name = "Mario";
         final String set = "Amiibo";
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
-        ResultActions postResult = factory.postCustomToy(name, set, customFieldValues);
+        ResultActions postResult = factory.postToyReturnResult(name, set, customFieldValues);
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
@@ -146,19 +144,19 @@ public class ToyTests {
         final String name1 = "Something MegaMan";
         final String set1 = "Amiibo";
         final List<CustomFieldValue> CustomFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postCustomToy(name1, set1, CustomFieldValues1);
+        final ResultActions result1 = factory.postToyReturnResult(name1, set1, CustomFieldValues1);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
         final String name2 = "Something Goofy";
         final String set2 = "Disney Infinity";
         final List<CustomFieldValue> CustomFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postCustomToy(name2, set2, CustomFieldValues2);
+        final ResultActions result2 = factory.postToyReturnResult(name2, set2, CustomFieldValues2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
         final String name3 = "Regular Goofy";
         final String set3 = "Disney Infinity";
         final List<CustomFieldValue> CustomFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postCustomToy(name3, set3, CustomFieldValues3);
+        final ResultActions result3 = factory.postToyReturnResult(name3, set3, CustomFieldValues3);
         final ToyResponseDto toyDto3 = resultToResponseDto(result3);
 
         final Filter filter = new Filter("toy", "text", "name", Filter.OPERATOR_STARTS_WITH, "Something ", false);
@@ -231,7 +229,7 @@ public class ToyTests {
 
     @Test
     void deleteExistingToy_ToyExists_ReturnNoContent() throws Exception {
-        ResultActions postResult = factory.postToy();
+        ResultActions postResult = factory.postToyReturnResult();
         final ToyResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(
@@ -258,11 +256,8 @@ public class ToyTests {
         );
     }
 
-    private ToyResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, ToyResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        return body.get("data");
+    private ToyResponseDto resultToResponseDto(ResultActions result) throws Exception {
+        return factory.resultToToyResponseDto(result);
     }
 
     private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet, List<CustomFieldValue> customFieldValues) throws Exception {

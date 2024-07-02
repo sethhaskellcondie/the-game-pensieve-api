@@ -1,32 +1,23 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.exceptions;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ExceptionInvalidFilter extends RuntimeException {
-    private final List<Exception> exceptions;
+public class ExceptionInvalidFilter extends MultiException {
 
     public ExceptionInvalidFilter() {
-        this.exceptions = new ArrayList<>();
+        super();
+        this.messagePrefix = "Filter Error - ";
     }
 
-    public void addException(String message) {
-        exceptions.add(new Exception("Exception Invalid Filter: " + message));
+    public ExceptionInvalidFilter(String message) {
+        super();
+        this.messagePrefix = "Filter Error - ";
+        exceptions.add(new Exception(messagePrefix + message));
     }
 
-    public List<Exception> getExceptions() {
-        return this.exceptions;
-    }
-
-    public boolean exceptionsFound() {
-        return !exceptions.isEmpty();
-    }
-
-    public List<String> getMessages() {
-        List<String> errorMessages = new ArrayList<>();
-        for (Exception e : this.exceptions) {
-            errorMessages.add(e.getMessage());
-        }
-        return errorMessages;
+    public ExceptionInvalidFilter(List<Exception> exceptions) {
+        super();
+        this.messagePrefix = "Filter Error - ";
+        this.exceptions = exceptions;
     }
 }

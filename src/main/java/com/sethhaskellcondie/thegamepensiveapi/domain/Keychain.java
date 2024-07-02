@@ -16,11 +16,13 @@ import java.util.List;
 public class Keychain {
     public static final String SYSTEM_KEY = "system";
     public static final String TOY_KEY = "toy";
+    public static final String VIDEO_GAME_KEY = "videoGame";
 
     public static List<String> getAllKeys() {
         return List.of(
-                SYSTEM_KEY,
-                TOY_KEY
+            SYSTEM_KEY,
+            TOY_KEY,
+            VIDEO_GAME_KEY
         );
     }
 
@@ -34,8 +36,11 @@ public class Keychain {
             case TOY_KEY -> {
                 return "toys";
             }
+            case VIDEO_GAME_KEY -> {
+                return "video_games";
+            }
             default -> {
-                throw new RuntimeException("Keychain.getTableNameByKey() called with unknown key:" + key + " available keys are: " + String.join(", ", getAllKeys()));
+                throw new RuntimeException("Keychain.getTableAliasByKey() called with unknown key:" + key + " available keys are: " + String.join(", ", getAllKeys()));
             }
         }
     }

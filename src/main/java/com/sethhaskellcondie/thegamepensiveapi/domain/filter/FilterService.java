@@ -306,7 +306,7 @@ public class FilterService {
             exceptionInvalidFilter.addException("'offset' filter is not allowed without also including one 'limit' filter");
         }
 
-        if (exceptionInvalidFilter.exceptionsFound()) {
+        if (!exceptionInvalidFilter.isEmpty()) {
             throw exceptionInvalidFilter;
         }
 

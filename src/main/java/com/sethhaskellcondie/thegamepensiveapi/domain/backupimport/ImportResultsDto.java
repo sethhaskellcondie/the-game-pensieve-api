@@ -5,9 +5,10 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionBackup
 public record ImportResultsDto(int existingCustomFields, int createdCustomFields,
                                int existingToys, int createdToys,
                                int existingSystems, int createdSystems,
+                               int existingVideoGames, int createdVideoGames,
                                ExceptionBackupImport exceptionBackupImport
 ) {
     ImportResultsDto(int existingCustomFields, int createdCustomFields, ExceptionBackupImport exceptionBackupImport) {
-        this(existingCustomFields, createdCustomFields, 0, 0, 0, 0, exceptionBackupImport);
+        this(existingCustomFields, createdCustomFields, 0, 0, 0, 0, 0, 0, exceptionBackupImport);
     }
 }

@@ -1,26 +1,28 @@
 package com.sethhaskellcondie.thegamepensiveapi;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 
 public class TestFactory {
 
@@ -75,21 +77,21 @@ public class TestFactory {
     }
 
     public int postCustomFieldReturnId(String name, String type, String entityKey) throws Exception {
-        ResultActions result = postCustomCustomField(name, type, entityKey);
+        ResultActions result = postCustomFieldReturnResult(name, type, entityKey);
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
         final Map<String, CustomField> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         return body.get("data").id();
     }
 
-    public ResultActions postCustomField() throws Exception {
+    public ResultActions postCustomFieldReturnResult() throws Exception {
         final String name = "TestCustomField-" + randomString(6);
         final String type = "text";
         final String entityKey = "toy";
-        return postCustomCustomField(name, type, entityKey);
+        return postCustomFieldReturnResult(name, type, entityKey);
     }
 
-    public ResultActions postCustomCustomField(String name, String type, String entityKey) throws Exception {
+    public ResultActions postCustomFieldReturnResult(String name, String type, String entityKey) throws Exception {
         final String formattedJson = formatCustomFieldPayload(name, type, entityKey);
 
         final ResultActions result = mockMvc.perform(
@@ -155,15 +157,23 @@ public class TestFactory {
         return String.format(customFieldString, value.getCustomFieldId(), value.getCustomFieldName(), value.getCustomFieldType(), value.getValue());
     }
 
-    public ResultActions postSystem() throws Exception {
+    public SystemResponseDto postSystem() throws Exception {
+        final ResultActions result = postSystemReturnResult();
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, SystemResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
+    public ResultActions postSystemReturnResult() throws Exception {
         final String name = "TestSystem-" + randomString(8);
         final int generation = 1;
         final boolean handheld = false;
 
-        return postCustomSystem(name, generation, handheld, null);
+        return postSystemReturnResult(name, generation, handheld, null);
     }
 
-    public ResultActions postCustomSystem(String name, int generation, boolean handheld, List<CustomFieldValue> customFieldValues) throws Exception {
+    public ResultActions postSystemReturnResult(String name, int generation, boolean handheld, List<CustomFieldValue> customFieldValues) throws Exception {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
                 {
@@ -187,6 +197,13 @@ public class TestFactory {
         return result;
     }
 
+    public SystemResponseDto resultToSystemResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, SystemResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
     public String formatSystemPayload(String name, Integer generation, Boolean handheld, List<CustomFieldValue> customFieldValues) {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
@@ -202,13 +219,13 @@ public class TestFactory {
         return String.format(json, name, generation, handheld, customFieldValuesString);
     }
 
-    public ResultActions postToy() throws Exception {
+    public ResultActions postToyReturnResult() throws Exception {
         final String name = "TestToy-" + randomString(4);
         final String set = "TestSet-" + randomString(4);
-        return postCustomToy(name, set, null);
+        return postToyReturnResult(name, set, null);
     }
 
-    public ResultActions postCustomToy(String name, String set, List<CustomFieldValue> customFieldValues) throws Exception {
+    public ResultActions postToyReturnResult(String name, String set, List<CustomFieldValue> customFieldValues) throws Exception {
         final String formattedJson = formatToyPayload(name, set, customFieldValues);
 
         final ResultActions result = mockMvc.perform(
@@ -219,6 +236,13 @@ public class TestFactory {
 
         result.andExpect(status().isCreated());
         return result;
+    }
+
+    public ToyResponseDto resultToToyResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, ToyResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
     }
 
     public String formatToyPayload(String name, String set, List<CustomFieldValue> customFieldValues) {
@@ -233,5 +257,46 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, name, set, customFieldValuesString);
+    }
+
+    public VideoGameResponseDto postVideoGame() throws Exception {
+        final String title = "TestVideoGame-" + randomString(4);
+        final int systemId = postSystem().id();
+        final ResultActions result = postVideoGameReturnResult(title, systemId, null);
+        return resultToVideoGameResponseDto(result);
+    }
+
+    public ResultActions postVideoGameReturnResult(String title, int systemId, List<CustomFieldValue> customFieldValues) throws Exception {
+        final String formattedJson = formatVideoGamePayload(title, systemId, customFieldValues);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/videoGames")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public VideoGameResponseDto resultToVideoGameResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, VideoGameResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
+    public String formatVideoGamePayload(String title, int systemId, List<CustomFieldValue> customFieldValues) {
+        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
+        final String json = """
+                {
+                	"videoGame": {
+                	    "title": "%s",
+                	    "systemId": "%d",
+                        "customFieldValues": %s
+                	    }
+                }
+                """;
+        return String.format(json, title, systemId, customFieldValuesString);
     }
 }

@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
@@ -19,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +63,7 @@ public class SystemTests {
                 new CustomFieldValue(0, "Publisher", "text", "Nintendo")
         );
 
-        final ResultActions result = factory.postCustomSystem(expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
+        final ResultActions result = factory.postSystemReturnResult(expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
         validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
@@ -126,7 +124,7 @@ public class SystemTests {
         final String duplicateName = "Game Boy Pocket";
         final int generation = 3;
         final boolean handheld = true;
-        factory.postCustomSystem(duplicateName, generation, handheld, new ArrayList<>());
+        factory.postSystemReturnResult(duplicateName, generation, handheld, new ArrayList<>());
 
         final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld, new ArrayList<>());
         final ResultActions result = mockMvc.perform(
@@ -148,7 +146,7 @@ public class SystemTests {
         final int generation = 4;
         final boolean handheld = true;
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "name of custom field", "text", "value for custom field"));
-        final ResultActions postResult = factory.postCustomSystem(name, generation, handheld, customFieldValues);
+        final ResultActions postResult = factory.postSystemReturnResult(name, generation, handheld, customFieldValues);
         final SystemResponseDto expectedDto = resultToResponseDto(postResult);
 
         final ResultActions result = mockMvc.perform(get(baseUrl + "/" + expectedDto.id()));
@@ -182,21 +180,21 @@ public class SystemTests {
         final int generation1 = 3;
         final boolean handheld1 = false;
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postCustomSystem(name1, generation1, handheld1, customFieldValues1);
+        final ResultActions result1 = factory.postSystemReturnResult(name1, generation1, handheld1, customFieldValues1);
         final SystemResponseDto responseDto1 = resultToResponseDto(result1);
 
         final String name2 = "Mega Sony Playstation";
         final int generation2 = 4;
         final boolean handheld2 = false;
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postCustomSystem(name2, generation2, handheld2, customFieldValues2);
+        final ResultActions result2 = factory.postSystemReturnResult(name2, generation2, handheld2, customFieldValues2);
         final SystemResponseDto responseDto2 = resultToResponseDto(result2);
 
         final String name3 = "Regular Sony Playstation";
         final int generation3 = 5;
         final boolean handheld3 = true;
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postCustomSystem(name3, generation3, handheld3, customFieldValues3);
+        final ResultActions result3 = factory.postSystemReturnResult(name3, generation3, handheld3, customFieldValues3);
         final SystemResponseDto responseDto3 = resultToResponseDto(result3);
 
         final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "Mega ", false);
@@ -270,7 +268,7 @@ public class SystemTests {
 
     @Test
     void deleteExistingSystem_SystemExists_ReturnNoContent() throws Exception {
-        final ResultActions existingResult = factory.postSystem();
+        final ResultActions existingResult = factory.postSystemReturnResult();
         final SystemResponseDto responseDto = resultToResponseDto(existingResult);
 
         final ResultActions result = mockMvc.perform(
@@ -297,11 +295,8 @@ public class SystemTests {
         );
     }
 
-    private SystemResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, SystemResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        return body.get("data");
+    private SystemResponseDto resultToResponseDto(ResultActions result) throws Exception {
+        return factory.resultToSystemResponseDto(result);
     }
 
     private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld, List<CustomFieldValue> customFieldValues) throws Exception {
