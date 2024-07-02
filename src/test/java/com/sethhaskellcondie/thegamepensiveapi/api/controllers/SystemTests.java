@@ -297,12 +297,8 @@ public class SystemTests {
         );
     }
 
-    //TODO migrate this to the test factory
-    private SystemResponseDto resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, SystemResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        return body.get("data");
+    private SystemResponseDto resultToResponseDto(ResultActions result) throws Exception {
+        return factory.resultToSystemResponseDto(result);
     }
 
     private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld, List<CustomFieldValue> customFieldValues) throws Exception {

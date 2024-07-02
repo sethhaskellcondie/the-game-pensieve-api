@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -196,6 +197,13 @@ public class TestFactory {
         return result;
     }
 
+    public SystemResponseDto resultToSystemResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, SystemResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
     public String formatSystemPayload(String name, Integer generation, Boolean handheld, List<CustomFieldValue> customFieldValues) {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
@@ -228,6 +236,13 @@ public class TestFactory {
 
         result.andExpect(status().isCreated());
         return result;
+    }
+
+    public ToyResponseDto resultToToyResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, ToyResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
     }
 
     public String formatToyPayload(String name, String set, List<CustomFieldValue> customFieldValues) {
