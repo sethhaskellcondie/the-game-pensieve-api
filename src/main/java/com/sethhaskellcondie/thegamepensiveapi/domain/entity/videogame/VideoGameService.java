@@ -61,7 +61,10 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
 
     @Override
     public VideoGame updateExisting(VideoGame videoGame) {
-        final VideoGame validatedVideoGame = validateSystemId(videoGame);
+        VideoGame validatedVideoGame = videoGame;
+        if (!videoGame.isSystemIdValid()) {
+            validatedVideoGame = validateSystemId(videoGame);
+        }
         final VideoGame updatedVideoGame = repository.update(validatedVideoGame);
         updatedVideoGame.setSystemName(validatedVideoGame.getSystemName());
         return updatedVideoGame;
@@ -69,7 +72,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
 
     public VideoGame validateSystemId(VideoGame videoGame) {
         try {
-            System system = systemRepository.getById(videoGame.getSystemId());
+            System system = systemRepository.getByIdIncludeDeleted(videoGame.getSystemId());
             videoGame.setSystemName(system.getName());
         } catch (Exception e) {
             throw new ExceptionMalformedEntity(List.of(new Exception("Error - Problem getting video games from the database, video game with title: '"

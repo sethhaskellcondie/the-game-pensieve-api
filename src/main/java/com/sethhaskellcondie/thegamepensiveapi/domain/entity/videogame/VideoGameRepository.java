@@ -59,6 +59,15 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
     }
 
     @Override
+    protected String getBaseQueryIncludeDeleted() {
+        return """
+                SELECT video_games.id, video_games.title, video_games.system_id,
+                       video_games.created_at, video_games.updated_at, video_games.deleted_at
+                        FROM video_games WHERE 1 = 1
+                """;
+    }
+
+    @Override
     public VideoGame insert(VideoGameRequestDto videoGameRequestDto) {
         final VideoGame videoGame = new VideoGame().updateFromRequestDto(videoGameRequestDto);
         return this.insert(videoGame);

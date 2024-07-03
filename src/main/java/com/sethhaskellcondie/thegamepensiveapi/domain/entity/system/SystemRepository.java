@@ -62,6 +62,13 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
             """;
     }
 
+    protected String getBaseQueryIncludeDeleted() {
+        return """
+                SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at
+                    FROM systems WHERE 1 = 1
+            """;
+    }
+
     protected String getEntityKey() {
         return Keychain.SYSTEM_KEY;
     }

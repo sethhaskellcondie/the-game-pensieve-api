@@ -68,6 +68,16 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     }
 
     @Override
+    protected String getBaseQueryIncludeDeleted() {
+        return """
+                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.is_physical, video_game_boxes.is_collection,
+                video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
+                FROM video_game_boxes
+                WHERE 1 = 1
+                """;
+    }
+
+    @Override
     public VideoGameBox insert(VideoGameBoxRequestDto requestDto) {
         final VideoGameBox videoGameBox = new VideoGameBox().updateFromRequestDto(requestDto);
         return this.insert(videoGameBox);

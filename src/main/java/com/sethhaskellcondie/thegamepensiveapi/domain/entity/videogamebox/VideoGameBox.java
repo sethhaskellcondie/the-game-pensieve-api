@@ -54,7 +54,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         this.systemName = systemName;
     }
 
-    public List<Integer> getVideoGameId() {
+    public List<Integer> getVideoGameIds() {
         return this.videoGameIds;
     }
 

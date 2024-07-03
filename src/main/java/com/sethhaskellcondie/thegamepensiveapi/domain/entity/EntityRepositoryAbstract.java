@@ -30,6 +30,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     private final String baseQuery;
     private final String baseQueryJoinCustomFieldValues;
     private final String baseQueryWhereDeletedAtIsNotNull;
+    private final String baseQueryIncludeDeleted;
     private final String entityKey;
     private final RowMapper<T> rowMapper;
     private final Logger logger = LoggerFactory.getLogger(EntityRepositoryAbstract.class);
@@ -42,14 +43,17 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         this.baseQuery = this.getBaseQuery();
         this.baseQueryJoinCustomFieldValues = this.getBaseQueryJoinCustomFieldValues();
         this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereDeletedAtIsNotNull();
+        this.baseQueryIncludeDeleted = this.getBaseQueryIncludeDeleted();
         this.entityKey = this.getEntityKey();
         this.rowMapper = this.getRowMapper();
     }
 
     //DO NOT end the base queries with a ';' they will be appended
+    //TODO refactor base queries
     protected abstract String getBaseQuery();
     protected abstract String getBaseQueryJoinCustomFieldValues();
     protected abstract String getBaseQueryWhereDeletedAtIsNotNull();
+    protected abstract String getBaseQueryIncludeDeleted();
     protected abstract String getEntityKey();
     protected abstract RowMapper<T> getRowMapper();
 
@@ -127,6 +131,11 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     @Override
     public T getDeletedById(int id) {
         return queryById(id, baseQueryWhereDeletedAtIsNotNull);
+    }
+
+    @Override
+    public T getByIdIncludeDeleted(int id) {
+        return queryById(id, baseQueryIncludeDeleted);
     }
 
     private T queryById(int id, String baseSql) {
