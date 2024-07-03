@@ -152,6 +152,8 @@ public class FilterTests {
         validateCustomFieldFilters(result);
     }
 
+    //TODO add tests for video games and video game boxes
+
     private void addCustomFields(String key) throws Exception {
         String textCustomFieldType = CustomField.TYPE_TEXT;
         factory.postCustomFieldReturnResult(textCustomFieldName, textCustomFieldType, key);
