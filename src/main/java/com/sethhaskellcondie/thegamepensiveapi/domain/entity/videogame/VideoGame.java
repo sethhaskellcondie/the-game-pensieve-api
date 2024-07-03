@@ -73,7 +73,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     }
 
     @Override
-    protected VideoGameResponseDto convertToResponseDto() {
+    public VideoGameResponseDto convertToResponseDto() {
         return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, this.systemName,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );

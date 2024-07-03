@@ -4,6 +4,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 
@@ -126,7 +127,11 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
 
     @Override
     protected VideoGameBoxResponseDto convertToResponseDto() {
-        return new VideoGameBoxResponseDto(this.getKey(), this.id, this.title, this.systemId, this.systemName, this.physical, this.collection,
+        List<VideoGameResponseDto> videoGameDtos = new ArrayList<>();
+        for(VideoGame videoGame : this.videoGames) {
+            videoGameDtos.add(videoGame.convertToResponseDto());
+        }
+        return new VideoGameBoxResponseDto(this.getKey(), this.id, this.title, this.systemId, this.systemName, this.videoGameIds, videoGameDtos, this.physical, this.collection,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );
     }
