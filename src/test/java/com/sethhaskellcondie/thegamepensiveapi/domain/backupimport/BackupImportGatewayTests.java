@@ -44,6 +44,7 @@ public class BackupImportGatewayTests {
     private final CustomField systemCustomField = new CustomField(99, "Owned", CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY);
     private final SystemRequestDto secondSystem = new SystemRequestDto("Second System", 4, false, List.of(new CustomFieldValue(0, "Owned", CustomField.TYPE_BOOLEAN, "false")));
 
+    //TODO update the functionality of this to work with no id assumed
     //This is assuming that there is a system in the database with an ID of 1, this should be the initial system but any system will work.
     private final VideoGameRequestDto initialVideoGame = new VideoGameRequestDto("Initial Video Game", 1, new ArrayList<>());
     private final CustomField videoGameCustomField = new CustomField(0, "Hall Of Fame", CustomField.TYPE_TEXT, Keychain.VIDEO_GAME_KEY);

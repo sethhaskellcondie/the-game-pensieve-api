@@ -6,7 +6,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -17,10 +16,10 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     private String title;
     private int systemId;
     private String systemName; //the systemName is also a flags that is only set after the systemId has been verified
-    List<Integer> videoGameIds; //the videoGameId's and videoGames work in a similar fashion to the systemId and systemName
-    List<VideoGame> videoGames; //a list of games that can be played on the cart/disc/box, one or more
-    boolean physical;
-    boolean collection;
+    private List<Integer> videoGameIds; //the videoGameId's and videoGames work in a similar fashion to the systemId and systemName
+    private List<VideoGame> videoGames; //a list of games that can be played on the cart/disc/box, one or more
+    private boolean physical;
+    private boolean collection;
 
     public VideoGameBox() {
         super();
@@ -85,6 +84,14 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
 
     public boolean isCollection() {
         return collection;
+    }
+
+    public boolean isSystemIdValid() {
+        return null != systemName;
+    }
+
+    public boolean isVideoGamesValid() {
+        return !videoGames.isEmpty();
     }
 
     @Override
