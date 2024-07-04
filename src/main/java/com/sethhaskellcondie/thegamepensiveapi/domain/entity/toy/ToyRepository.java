@@ -52,6 +52,13 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
             """;
     }
 
+    protected String getBaseQueryIncludeDeleted() {
+        return """
+            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
+                FROM toys WHERE 1 = 1
+            """;
+    }
+
     protected String getEntityKey() {
         return Keychain.TOY_KEY;
     }

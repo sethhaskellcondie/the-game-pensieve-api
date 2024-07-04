@@ -26,6 +26,13 @@ public class FilterEntity {
                 //we would need to join that table in the getWithFilters query but then unique filters would need to be allowed
                 //for system text...
             }
+            case Keychain.VIDEO_GAME_BOX_KEY -> {
+                fields.put("title", Filter.FIELD_TYPE_TEXT);
+                fields.put("is_physical", Filter.FIELD_TYPE_BOOLEAN);
+                fields.put("is_collection", Filter.FIELD_TYPE_BOOLEAN);
+                //Video game boxes have the same issue where we can't filter on the games inside the box because they are
+                //not on the table through the base query, but adjustments could be made in the future...
+            }
             default -> {
                 return new LinkedHashMap<>();
             }

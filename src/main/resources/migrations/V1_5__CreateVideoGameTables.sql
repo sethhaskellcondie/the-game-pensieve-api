@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS video_games (
 CREATE TABLE IF NOT EXISTS video_game_boxes (
     id SERIAL PRIMARY KEY,
     title VARCHAR NOT NULL,
+    system_id INTEGER REFERENCES systems (id),
     is_physical BOOLEAN DEFAULT false,
     is_collection BOOLEAN DEFAULT false,
     created_at timestamp with time zone NOT NULL default now(),
