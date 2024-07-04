@@ -105,13 +105,14 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
             exception.addException(new ExceptionInputValidation("Video Game Box object error, the systemId cannot be null."));
         }
         this.systemName = null;
-        if(requestDto.videoGameIds().isEmpty()) {
+        if (requestDto.videoGameIds().isEmpty()) {
             exception.addException(new ExceptionInputValidation("Video Game Box object error, boxes must contain at least one game."));
         }
         this.videoGameIds = requestDto.videoGameIds();
         this.videoGames = new ArrayList<>();
         this.physical = requestDto.isPhysical();
         this.collection = requestDto.isCollection();
+        this.customFieldValues = requestDto.customFieldValues();
 
         try {
             this.validate();
@@ -128,7 +129,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     @Override
     protected VideoGameBoxResponseDto convertToResponseDto() {
         List<VideoGameResponseDto> videoGameDtos = new ArrayList<>();
-        for(VideoGame videoGame : this.videoGames) {
+        for (VideoGame videoGame : this.videoGames) {
             videoGameDtos.add(videoGame.convertToResponseDto());
         }
         return new VideoGameBoxResponseDto(this.getKey(), this.id, this.title, this.systemId, this.systemName, this.videoGameIds, videoGameDtos, this.physical, this.collection,
@@ -150,6 +151,9 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         ExceptionMalformedEntity exception = new ExceptionMalformedEntity();
         if (null == this.title || this.title.isBlank()) {
             exception.addException(new ExceptionInputValidation("Video Game Box error, title cannot be blank."));
+        }
+        if (this.systemId <= 0) {
+            exception.addException("Video Game Box error, invalid system ID.");
         }
         if (this.videoGameIds.isEmpty() && this.videoGames.isEmpty()) {
             exception.addException(new ExceptionInputValidation("A Video Game Box must always have either a list of game ids, or a list of games."));

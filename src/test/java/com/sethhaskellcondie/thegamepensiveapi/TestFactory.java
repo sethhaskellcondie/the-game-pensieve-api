@@ -6,10 +6,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -298,5 +300,57 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, title, systemId, customFieldValuesString);
+    }
+
+    public VideoGameBoxResponseDto postVideoGameBox() throws Exception {
+        final String title = "TestVideoGameBox-" + randomString(4);
+        final int systemId = postSystem().id();
+        final int videoGameId = postVideoGame().id();
+        final ResultActions result = postVideoGameBoxReturnResult(title, systemId, List.of(videoGameId), false, false, null);
+        return resultToVideoGameBoxResponseDto(result);
+    }
+
+    public ResultActions postVideoGameBoxReturnResult(String title, int systemId, List<Integer> videoGameIds, boolean isPhysical, boolean isCollection, List<CustomFieldValue> customFieldValues)
+            throws Exception {
+        final String formattedJson = formatVideoGameBoxPayload(title, systemId, videoGameIds, isPhysical, isCollection, customFieldValues);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/videoGameBoxes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public VideoGameBoxResponseDto resultToVideoGameBoxResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, VideoGameBoxResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
+    public String formatVideoGameBoxPayload(String title, int systemId, List<Integer> videoGameIds, boolean isPhysical, boolean isCollection, List<CustomFieldValue> customFieldValues) {
+        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
+        final String videoGameIdsString;
+        if (null == videoGameIds || videoGameIds.isEmpty()) {
+            videoGameIdsString = "[]";
+        } else {
+            videoGameIdsString = Arrays.toString(videoGameIds.toArray());
+        }
+        final String json = """
+                {
+                	"videoGame": {
+                	    "title": "%s",
+                	    "systemId": "%d",
+                	    "videoGameIds": %s,
+                        "isPhysical": %b,
+                        "isCollection": %b,
+                        "customFieldValues": %s
+                	    }
+                }
+                """;
+        return String.format(json, title, systemId, videoGameIdsString, isPhysical, isCollection, customFieldValuesString);
     }
 }

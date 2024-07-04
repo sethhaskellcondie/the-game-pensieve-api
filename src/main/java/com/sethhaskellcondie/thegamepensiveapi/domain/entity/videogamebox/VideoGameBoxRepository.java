@@ -36,8 +36,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     @Override
     protected String getBaseQuery() {
         return """
-                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.is_physical, video_game_boxes.is_collection,
-                video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
+                SELECT id, title, system_id, is_physical, is_collection, created_at, updated_at, deleted_at
                 FROM video_game_boxes
                 WHERE video_game_boxes.deleted_at IS NULL
                 """;
@@ -53,7 +52,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
                 JOIN custom_fields as fields ON values.custom_field_id = fields.id
                 WHERE video_game_boxes.deleted_at IS NULL
                 AND values.entity_key = 'video_game_box'
-                WHERE video_game_boxes.deleted_at IS NULL
+                AND video_game_boxes.deleted_at IS NULL
                 """;
     }
 
@@ -180,9 +179,9 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     @Override
     protected void updateImplementation(VideoGameBox videoGameBox) {
         final String sql = """
-                UPDATE video_game_boxes SET title = ?, system_id = ?, updated_at = ? WHERE id = ?;
+                UPDATE video_game_boxes SET title = ?, system_id = ?, is_physical = ?, is_collection = ?, updated_at = ? WHERE id = ?;
                 """;
-        jdbcTemplate.update(sql, videoGameBox.getTitle(), videoGameBox.getSystemId(), Timestamp.from(Instant.now()), videoGameBox.getId());
+        jdbcTemplate.update(sql, videoGameBox.getTitle(), videoGameBox.getSystemId(), videoGameBox.isPhysical(), videoGameBox.isCollection(), Timestamp.from(Instant.now()), videoGameBox.getId());
 
         final String joinTableSelect = """
                 SELECT video_game_id FROM video_game_to_video_game_box WHERE video_game_box_id = ?;

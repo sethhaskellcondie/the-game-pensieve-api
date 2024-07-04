@@ -7,6 +7,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
@@ -21,12 +22,14 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
 
     private final SystemRepository systemRepository;
     private final VideoGameRepository videoGameRepository;
+    private final VideoGameService videoGameService;
 
     public VideoGameBoxService(EntityRepository<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto> repository, FilterService filterService,
-                               SystemRepository systemRepository, VideoGameRepository videoGameRepository) {
+                               SystemRepository systemRepository, VideoGameRepository videoGameRepository, VideoGameService videoGameService) {
         super(repository, filterService);
         this.systemRepository = systemRepository;
         this.videoGameRepository = videoGameRepository;
+        this.videoGameService = videoGameService;
     }
 
     @Override
@@ -99,16 +102,21 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
         if (videoGameBox.getVideoGameIds().isEmpty()) {
             exceptionMalformedEntity.addException("Attempted to validate the video games for video game box with title: '" + videoGameBox.getTitle()
-                    + ", but there were not video game ids found on that object");
+                    + "', but there were not video game ids found on that object");
             throw exceptionMalformedEntity;
         }
         List<VideoGame> videoGames = new ArrayList<>();
         for (Integer videoGameId : videoGameBox.getVideoGameIds()) {
             try {
-                videoGames.add(videoGameRepository.getByIdIncludeDeleted(videoGameId));
+                VideoGame videoGame = videoGameRepository.getByIdIncludeDeleted(videoGameId);
+                videoGames.add(videoGameService.validateSystemId(videoGame));
             } catch (Exception e) {
-                exceptionMalformedEntity.addException(e);
+                exceptionMalformedEntity.addException("Attempted to validate the video games for video game box with title: '" + videoGameBox.getTitle()
+                        + "', but there was an error getting video game data: " + e.getMessage());
             }
+        }
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
         }
         videoGameBox.setVideoGames(videoGames);
         return videoGameBox;
