@@ -11,20 +11,24 @@ import java.util.List;
  * Each entity will have a getKey() function that will pull the key from the keychain, but
  * other parts of the program can pull keys from the keychain for comparison.
  * <p>
- * Keys will be singular, and lowercase with spaces.
+ * Keys will be singular and initial Camel Case.
  */
 public class Keychain {
     public static final String SYSTEM_KEY = "system";
     public static final String TOY_KEY = "toy";
     public static final String VIDEO_GAME_KEY = "videoGame";
     public static final String VIDEO_GAME_BOX_KEY = "videoGameBox";
+    public static final String BOARD_GAME_KEY = "boardGame";
+    public static final String BOARD_GAME_BOX_KEY = "boardGameBox";
 
     public static List<String> getAllKeys() {
         return List.of(
             SYSTEM_KEY,
             TOY_KEY,
             VIDEO_GAME_KEY,
-            VIDEO_GAME_BOX_KEY
+            VIDEO_GAME_BOX_KEY,
+            BOARD_GAME_KEY,
+            BOARD_GAME_BOX_KEY
         );
     }
 
@@ -43,6 +47,12 @@ public class Keychain {
             }
             case VIDEO_GAME_BOX_KEY -> {
                 return "video_game_boxes";
+            }
+            case BOARD_GAME_KEY -> {
+                return "board_games";
+            }
+            case BOARD_GAME_BOX_KEY -> {
+                return "board_game_boxes";
             }
             default -> {
                 throw new RuntimeException("Keychain.getTableAliasByKey() called with unknown key:" + key + " available keys are: " + String.join(", ", getAllKeys()));
