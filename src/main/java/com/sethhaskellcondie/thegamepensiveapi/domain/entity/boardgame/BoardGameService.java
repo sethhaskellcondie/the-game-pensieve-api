@@ -8,7 +8,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,13 +23,17 @@ public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGame
 
     @Override
     public List<BoardGame> getWithFilters(List<FilterRequestDto> dtoFilters) {
-        final List<BoardGame> unPopulatedBoardGames = super.getWithFilters(dtoFilters);
-        final List<BoardGame> populatedBoardGames = new ArrayList<>();
-        for (BoardGame boardGame : unPopulatedBoardGames) {
-            //TODO after the boardGameBoxRepository is done use it to populate the list of board games boxes for each board game
+        final List<BoardGame> boardGames = super.getWithFilters(dtoFilters);
+        for (BoardGame boardGame : boardGames) {
+            boardGame.setBoardGameBoxes(boardGameBoxRepository.getBoardGameBoxesByBoardGameId(boardGame.getId()));
         }
-        return populatedBoardGames;
+        return boardGames;
     }
 
-
+    @Override
+    public BoardGame getById(int id) {
+        final BoardGame boardGame = super.getById(id);
+        boardGame.setBoardGameBoxes(boardGameBoxRepository.getBoardGameBoxesByBoardGameId(boardGame.getId()));
+        return boardGame;
+    }
 }

@@ -53,6 +53,10 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
         return boardGameId;
     }
 
+    public void setBoardGame(BoardGame boardGame) {
+        this.boardGame = boardGame;
+    }
+
     public BoardGame getBoardGame() {
         return boardGame;
     }

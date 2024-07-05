@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -15,6 +16,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto>
@@ -139,5 +141,15 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
                 UPDATE board_game_boxes SET title = ?, is_expansion = ?, is_stand_alone = ?, base_set_id = ?, board_game_id = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, entity.getTitle(), entity.isExpansion(), entity.isStandAlone(), entity.getBaseSetId(), entity.getBoardGameId(), Timestamp.from(Instant.now()), entity.getId());
+    }
+
+    public List<BoardGameBox> getBoardGameBoxesByBoardGameId(int boardGameId) {
+        String sql = getBaseQuery() + " WHERE board_game_id = ? ";
+        List<BoardGameBox> boardGameBoxes = jdbcTemplate.query(sql, getRowMapper(), List.of(boardGameId));
+        List<BoardGameBox> boardGameBoxesWithCustomFields = new ArrayList<>();
+        for (BoardGameBox boardGameBox : boardGameBoxes) {
+            boardGameBoxesWithCustomFields.add(setCustomFieldsValuesForEntity(boardGameBox));
+        }
+        return boardGameBoxesWithCustomFields;
     }
 }

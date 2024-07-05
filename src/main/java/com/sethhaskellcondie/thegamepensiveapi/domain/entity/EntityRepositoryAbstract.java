@@ -138,6 +138,12 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         return queryById(id, baseQueryIncludeDeleted);
     }
 
+    //TODO refactor this into the other methods
+    public T setCustomFieldsValuesForEntity(T entity) {
+        entity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(entity.getId(), entity.getKey()));
+        return entity;
+    }
+
     private T queryById(int id, String baseSql) {
         final String sql = baseSql + " AND id = ? ;";
         final T entity;
