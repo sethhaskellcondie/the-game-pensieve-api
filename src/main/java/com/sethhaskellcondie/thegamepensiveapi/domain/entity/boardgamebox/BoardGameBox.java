@@ -15,7 +15,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
     private boolean expansion;
     private boolean standAlone;
     private Integer baseSetId; //this is a BoardGameBox id to the base set if this box is not standAlone
-    private int boardGameId;
+    private Integer boardGameId;
     private BoardGame boardGame; //the board game is initially set to null, but can be hydrated in the service
 
     public BoardGameBox() {
@@ -80,7 +80,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
 
     @Override
     protected BoardGameBoxRequestDto convertToRequestDto() {
-        return new BoardGameBoxRequestDto(this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGameId, this.customFieldValues);
+        return new BoardGameBoxRequestDto(this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGameId, this.boardGame.convertToRequestDto(), this.customFieldValues);
     }
 
     @Override

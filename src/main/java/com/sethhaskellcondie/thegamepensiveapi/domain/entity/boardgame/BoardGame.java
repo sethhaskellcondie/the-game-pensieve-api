@@ -14,36 +14,21 @@ import java.util.List;
 public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto> {
 
     private String title;
-    private List<Integer> boardGameBoxIds; //The object is initially created with these ids, they can be validated and hydrated through the service.
     private List<BoardGameBox> boardGameBoxes;
 
     public BoardGame() {
         super();
-        this.boardGameBoxIds = new ArrayList<>();
         this.boardGameBoxes = new ArrayList<>();
     }
 
     public BoardGame(Integer id, String title, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) {
         super(id, createdAt, updatedAt, deletedAt, customFieldValues);
         this.title = title;
-        this.boardGameBoxIds = new ArrayList<>();
         this.boardGameBoxes = new ArrayList<>();
     }
 
     public String getTitle() {
         return title;
-    }
-
-    public List<Integer> getBoardGameBoxIds() {
-        return boardGameBoxIds;
-    }
-
-    public void setBoardGameBoxIds(List<Integer> boardGameBoxIds) {
-        if (null == boardGameBoxIds) {
-            this.boardGameBoxIds = new ArrayList<>();
-            return;
-        }
-        this.boardGameBoxIds = boardGameBoxIds;
     }
 
     public List<BoardGameBox> getBoardGamesBoxes() {
@@ -65,7 +50,6 @@ public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto>
     @Override
     protected BoardGame updateFromRequestDto(BoardGameRequestDto requestDto) {
         this.title = requestDto.title();
-        this.setBoardGameBoxIds(requestDto.boardGameBoxIds());
         this.boardGameBoxes = new ArrayList<>();
         this.setCustomFieldValues(requestDto.customFieldValues());
         this.validate();
@@ -73,8 +57,8 @@ public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto>
     }
 
     @Override
-    protected BoardGameRequestDto convertToRequestDto() {
-        return new BoardGameRequestDto(this.title, this.boardGameBoxIds, this.customFieldValues);
+    public BoardGameRequestDto convertToRequestDto() {
+        return new BoardGameRequestDto(this.title, this.customFieldValues);
     }
 
     @Override

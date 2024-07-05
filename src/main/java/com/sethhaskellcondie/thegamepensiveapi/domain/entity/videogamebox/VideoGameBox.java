@@ -15,7 +15,7 @@ import java.util.List;
 public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxResponseDto> {
 
     private String title;
-    private int systemId;
+    private int systemId; //TODO refactor the video game box to have the entire system instead of just the name
     private String systemName; //the systemName is also a flags that is only set after the systemId has been verified
     private List<Integer> videoGameIds; //the videoGameId's and videoGames work in a similar fashion to the systemId and systemName
     private List<VideoGame> videoGames; //a list of games that can be played on the cart/disc/box, one or more

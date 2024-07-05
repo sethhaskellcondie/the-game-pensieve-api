@@ -16,6 +16,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     private int systemId;
     //The system name is a flag that also indicates that the systemId is valid
     //it must be set manually and cannot be set in the constructor.
+    //TODO refactor the game to have the entire system instead of just the name
     private String systemName;
 
     public VideoGame() {

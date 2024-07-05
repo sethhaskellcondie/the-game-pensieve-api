@@ -6,7 +6,6 @@ import java.util.List;
 
 public record BoardGameRequestDto(
         String title,
-        List<Integer> boardGameBoxIds,
         List<CustomFieldValue> customFieldValues
 ) {
 }
