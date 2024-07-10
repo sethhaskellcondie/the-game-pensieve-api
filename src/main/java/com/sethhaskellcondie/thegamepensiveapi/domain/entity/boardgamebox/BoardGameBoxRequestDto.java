@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameRequestDto;
 
 import java.util.List;
 
@@ -9,9 +8,8 @@ public record BoardGameBoxRequestDto(
         String title,
         boolean isExpansion,
         boolean isStandAlone,
-        Integer baseSetId, //this is a board game box id
-        Integer boardGameId, //this is a board game id
-        BoardGameRequestDto newBoardGame,
+        Integer baseSetId, //this is a board game box id can be null
+        Integer boardGameId, //this is a board game id leave blank or at 0 to create a new board game for this box using the same name
         List<CustomFieldValue> customFieldValues
 ) {
 }

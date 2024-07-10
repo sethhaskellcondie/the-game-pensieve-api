@@ -84,7 +84,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
 
     @Override
     protected BoardGameBoxRequestDto convertToRequestDto() {
-        return new BoardGameBoxRequestDto(this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGameId, this.boardGame.convertToRequestDto(), this.customFieldValues);
+        return new BoardGameBoxRequestDto(this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGameId, this.customFieldValues);
     }
 
     @Override
