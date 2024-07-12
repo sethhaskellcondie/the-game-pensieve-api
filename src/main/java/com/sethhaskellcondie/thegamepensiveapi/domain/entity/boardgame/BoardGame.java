@@ -3,8 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBox;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.SlimBoardGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 
 import java.sql.Timestamp;
@@ -14,7 +13,7 @@ import java.util.List;
 public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto> {
 
     private String title;
-    private List<BoardGameBox> boardGameBoxes;
+    private List<SlimBoardGameBox> boardGameBoxes;
 
     public BoardGame() {
         super();
@@ -31,11 +30,11 @@ public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto>
         return title;
     }
 
-    public List<BoardGameBox> getBoardGamesBoxes() {
+    public List<SlimBoardGameBox> getBoardGamesBoxes() {
         return boardGameBoxes;
     }
 
-    public void setBoardGameBoxes(List<BoardGameBox> boardGameBoxes) {
+    public void setBoardGameBoxes(List<SlimBoardGameBox> boardGameBoxes) {
         if (null == boardGameBoxes) {
             this.boardGameBoxes = new ArrayList<>();
             return;
@@ -63,11 +62,7 @@ public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto>
 
     @Override
     public BoardGameResponseDto convertToResponseDto() {
-        List<BoardGameBoxResponseDto> boardGameBoxResponseDtos = new ArrayList<>();
-        for (BoardGameBox boardGameBox : this.boardGameBoxes) {
-            boardGameBoxResponseDtos.add(boardGameBox.convertToResponseDto());
-        }
-        return new BoardGameResponseDto(this.getKey(), this.id, this.title, boardGameBoxResponseDtos, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
+        return new BoardGameResponseDto(this.getKey(), this.id, this.title, this.boardGameBoxes, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 
     @Override

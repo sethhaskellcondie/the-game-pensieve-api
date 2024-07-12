@@ -52,7 +52,7 @@ public class BoardGameController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, BoardGameResponseDto> createNew(@RequestBody Map<String, BoardGameRequestDto> requestBody) throws ExceptionFailedDbValidation {
-        final BoardGameResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.VIDEO_GAME_KEY));
+        final BoardGameResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.BOARD_GAME_KEY));
         final FormattedResponseBody<BoardGameResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

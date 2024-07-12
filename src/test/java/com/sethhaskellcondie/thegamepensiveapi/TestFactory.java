@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.SlimBoardGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.springframework.http.MediaType;
@@ -343,7 +344,7 @@ public class TestFactory {
         }
         final String json = """
                 {
-                	"videoGame": {
+                	"videoGameBox": {
                 	    "title": "%s",
                 	    "systemId": "%d",
                 	    "videoGameIds": %s,
@@ -360,6 +361,17 @@ public class TestFactory {
         final String title = "TestBoardGameBox-" + randomString(4);
         final ResultActions result = postBoardGameBoxReturnResult(title, false, false, null, null, null);
         return resultToBoardGameBoxResponseDto(result);
+    }
+
+    public BoardGameBoxResponseDto postBoardGameBox(int boardGameId) throws Exception {
+        final String title = "TestBoardGameBox-" + randomString(4);
+        final ResultActions result = postBoardGameBoxReturnResult(title, false, false, null, boardGameId, null);
+        return resultToBoardGameBoxResponseDto(result);
+    }
+
+    public SlimBoardGameBox convertBoardGameBoxResponseToSlimBoardGameBox(BoardGameBoxResponseDto responseDto) {
+        return new SlimBoardGameBox(responseDto.id(), responseDto.title(), responseDto.isExpansion(), responseDto.isStandAlone(), responseDto.baseSetId(),
+                responseDto.createdAt(), responseDto.updatedAt(), responseDto.deletedAt(), responseDto.customFieldValues());
     }
 
     public ResultActions postBoardGameBoxReturnResult(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId, List<CustomFieldValue> customFieldValues)
@@ -431,7 +443,7 @@ public class TestFactory {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
                 {
-                	"videoGame": {
+                	"boardGame": {
                 	    "title": "%s",
                         "customFieldValues": %s
                 	    }

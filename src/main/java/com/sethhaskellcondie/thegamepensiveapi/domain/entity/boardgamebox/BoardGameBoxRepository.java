@@ -1,11 +1,11 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,9 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
     @Override
     protected String getBaseQuery() {
         return """
-                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id
-                board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
+                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id, 
+                board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at 
+                FROM board_game_boxes 
                 WHERE board_game_boxes.deleted_at IS NULL
                 """;
     }
@@ -37,8 +39,9 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
     @Override
     protected String getBaseQueryJoinCustomFieldValues() {
         return """
-                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id
+                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id,
                 board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
+                FROM board_game_boxes
                 JOIN custom_field_values as values ON board_game_boxes.id = values.entity_id
                 	  	JOIN custom_fields as fields ON values.custom_field_id = fields.id
                                	WHERE board_game_boxes.deleted_at IS NULL
@@ -51,6 +54,7 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
         return """
                 SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id
                 board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
+                FROM board_game_boxes
                 WHERE board_game_boxes.deleted_at IS NOT NULL
                 """;
     }
@@ -60,6 +64,7 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
         return """
                 SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id
                 board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
+                FROM board_game_boxes
                 WHERE 1 = 1
                 """;
     }
@@ -118,21 +123,69 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
                 			INSERT INTO board_game_boxes(title, is_expansion, is_stand_alone, base_set_id, board_game_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(
-                connection -> {
+        if (entity.getBaseSetId() == null) {
+            jdbcTemplate.update(
+                    getPreparedStatement(sql, entity),
+                    keyHolder
+            );
+        }
+        return (Integer) keyHolder.getKeys().get("id");
+    }
+
+    private PreparedStatementCreator getPreparedStatement(String sql, BoardGameBox entity) {
+        if (entity.getBaseSetId() == null) {
+            if (entity.getBoardGameId() == null) {
+                return connection -> {
                     PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, entity.getTitle());
                     ps.setBoolean(2, entity.isExpansion());
                     ps.setBoolean(3, entity.isStandAlone());
-                    ps.setInt(4, entity.getBaseSetId());
+                    ps.setNull(4, Types.INTEGER);
+                    ps.setNull(5, Types.INTEGER);
+                    ps.setTimestamp(6, Timestamp.from(Instant.now()));
+                    ps.setTimestamp(7, Timestamp.from(Instant.now()));
+                    return ps;
+                };
+            } else {
+                return connection -> {
+                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, entity.getTitle());
+                    ps.setBoolean(2, entity.isExpansion());
+                    ps.setBoolean(3, entity.isStandAlone());
+                    ps.setNull(4, Types.INTEGER);
                     ps.setInt(5, entity.getBoardGameId());
                     ps.setTimestamp(6, Timestamp.from(Instant.now()));
                     ps.setTimestamp(7, Timestamp.from(Instant.now()));
                     return ps;
-                },
-                keyHolder
-        );
-        return (Integer) keyHolder.getKeys().get("id");
+                };
+            }
+        } else {
+            if (entity.getBoardGameId() == null) {
+                return connection -> {
+                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, entity.getTitle());
+                    ps.setBoolean(2, entity.isExpansion());
+                    ps.setBoolean(3, entity.isStandAlone());
+                    ps.setNull(4, entity.getBaseSetId());
+                    ps.setInt(5, Types.INTEGER);
+                    ps.setTimestamp(6, Timestamp.from(Instant.now()));
+                    ps.setTimestamp(7, Timestamp.from(Instant.now()));
+                    return ps;
+                };
+            } else {
+                return connection -> {
+                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, entity.getTitle());
+                    ps.setBoolean(2, entity.isExpansion());
+                    ps.setBoolean(3, entity.isStandAlone());
+                    ps.setNull(4, entity.getBaseSetId());
+                    ps.setInt(5, entity.getBoardGameId());
+                    ps.setTimestamp(6, Timestamp.from(Instant.now()));
+                    ps.setTimestamp(7, Timestamp.from(Instant.now()));
+                    return ps;
+                };
+            }
+        }
     }
 
     @Override
@@ -143,13 +196,19 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
         jdbcTemplate.update(sql, entity.getTitle(), entity.isExpansion(), entity.isStandAlone(), entity.getBaseSetId(), entity.getBoardGameId(), Timestamp.from(Instant.now()), entity.getId());
     }
 
-    public List<BoardGameBox> getBoardGameBoxesByBoardGameId(int boardGameId) {
-        String sql = getBaseQuery() + " WHERE board_game_id = ? ";
-        List<BoardGameBox> boardGameBoxes = jdbcTemplate.query(sql, getRowMapper(), List.of(boardGameId));
-        List<BoardGameBox> boardGameBoxesWithCustomFields = new ArrayList<>();
+    public List<SlimBoardGameBox> getSlimBoardGameBoxesByBoardGameId(int boardGameId) {
+        String sql = getBaseQuery() + " AND board_game_id = ? ";
+        List<BoardGameBox> boardGameBoxes = jdbcTemplate.query(
+                sql,
+                new Object[]{boardGameId},
+                new int[]{Types.BIGINT},
+                getRowMapper()
+        );
+        List<SlimBoardGameBox> slimBoardGameBoxes = new ArrayList<>();
         for (BoardGameBox boardGameBox : boardGameBoxes) {
-            boardGameBoxesWithCustomFields.add(setCustomFieldsValuesForEntity(boardGameBox));
+            setCustomFieldsValuesForEntity(boardGameBox);
+            slimBoardGameBoxes.add(boardGameBox.convertToSlimBoardGameBox());
         }
-        return boardGameBoxesWithCustomFields;
+        return slimBoardGameBoxes;
     }
 }

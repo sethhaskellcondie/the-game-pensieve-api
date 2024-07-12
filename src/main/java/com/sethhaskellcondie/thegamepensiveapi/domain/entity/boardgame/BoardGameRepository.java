@@ -26,7 +26,7 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
     @Override
     protected String getBaseQuery() {
         return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board.games.deleted_at
+                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
                 FROM board_games WHERE board_games.deleted_at IS NULL
                 """;
     }
@@ -34,7 +34,7 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
     @Override
     protected String getBaseQueryJoinCustomFieldValues() {
         return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board.games.deleted_at
+                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
                 FROM board_games
                 JOIN custom_field_values as values ON board_games.id = values.entity_id
                 	  	JOIN custom_fields as fields ON values.custom_field_id = fields.id
@@ -46,7 +46,7 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
     @Override
     protected String getBaseQueryWhereDeletedAtIsNotNull() {
         return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board.games.deleted_at
+                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
                 FROM board_games WHERE board_games.deleted_at IS NOT NULL
                 """;
     }
@@ -54,7 +54,7 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
     @Override
     protected String getBaseQueryIncludeDeleted() {
         return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board.games.deleted_at
+                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
                 FROM board_games WHERE 1 = 1
                 """;
     }

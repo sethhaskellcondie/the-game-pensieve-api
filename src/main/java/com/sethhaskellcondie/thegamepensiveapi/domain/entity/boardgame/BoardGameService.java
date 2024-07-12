@@ -25,7 +25,7 @@ public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGame
     public List<BoardGame> getWithFilters(List<FilterRequestDto> dtoFilters) {
         final List<BoardGame> boardGames = super.getWithFilters(dtoFilters);
         for (BoardGame boardGame : boardGames) {
-            boardGame.setBoardGameBoxes(boardGameBoxRepository.getBoardGameBoxesByBoardGameId(boardGame.getId()));
+            boardGame.setBoardGameBoxes(boardGameBoxRepository.getSlimBoardGameBoxesByBoardGameId(boardGame.getId()));
         }
         return boardGames;
     }
@@ -33,7 +33,7 @@ public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGame
     @Override
     public BoardGame getById(int id) {
         final BoardGame boardGame = super.getById(id);
-        boardGame.setBoardGameBoxes(boardGameBoxRepository.getBoardGameBoxesByBoardGameId(boardGame.getId()));
+        boardGame.setBoardGameBoxes(boardGameBoxRepository.getSlimBoardGameBoxesByBoardGameId(boardGame.getId()));
         return boardGame;
     }
 }

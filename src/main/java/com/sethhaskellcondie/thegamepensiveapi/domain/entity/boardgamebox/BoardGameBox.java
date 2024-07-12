@@ -4,6 +4,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGame;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 
 import java.sql.Timestamp;
@@ -22,7 +23,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
         super();
     }
 
-    public BoardGameBox(Integer id, String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, int boardGameId,
+    public BoardGameBox(Integer id, String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId,
                         Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) {
         super(id, createdAt, updatedAt, deletedAt, customFieldValues);
         this.title = title;
@@ -49,7 +50,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
         return baseSetId;
     }
 
-    public int getBoardGameId() {
+    public Integer getBoardGameId() {
         return boardGameId;
     }
 
@@ -89,7 +90,11 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
 
     @Override
     public BoardGameBoxResponseDto convertToResponseDto() {
-        return new BoardGameBoxResponseDto(this.getKey(), this.id, this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGame.convertToResponseDto(),
+        BoardGameResponseDto boardGame = null;
+        if (this.boardGame != null) {
+            boardGame = this.boardGame.convertToResponseDto();
+        }
+        return new BoardGameBoxResponseDto(this.getKey(), this.id, this.title, this.expansion, this.standAlone, this.baseSetId, boardGame,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 
@@ -97,5 +102,19 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
         if (null == this.title || this.title.isBlank()) {
             throw new ExceptionMalformedEntity("Board Game Box object error, title cannot be blank");
         }
+    }
+
+    SlimBoardGameBox convertToSlimBoardGameBox() {
+        return new SlimBoardGameBox(
+                this.id,
+                this.title,
+                this.expansion,
+                this.standAlone,
+                this.baseSetId,
+                this.created_at,
+                this.updated_at,
+                this.deleted_at,
+                this.customFieldValues
+        );
     }
 }
