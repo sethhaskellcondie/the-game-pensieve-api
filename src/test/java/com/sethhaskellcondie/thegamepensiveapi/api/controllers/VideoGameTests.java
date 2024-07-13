@@ -269,7 +269,7 @@ public class VideoGameTests {
     }
 
     @Test
-    void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
+    void deleteExistingVideoGame_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
                 delete(baseUrl + "/-1")
         );

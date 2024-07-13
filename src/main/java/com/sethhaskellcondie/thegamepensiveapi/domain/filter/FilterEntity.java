@@ -33,6 +33,14 @@ public class FilterEntity {
                 //Video game boxes have the same issue where we can't filter on the games inside the box because they are
                 //not on the table through the base query, but adjustments could be made in the future...
             }
+            case Keychain.BOARD_GAME_KEY -> {
+                fields.put("title", Filter.FIELD_TYPE_TEXT);
+            }
+            case Keychain.BOARD_GAME_BOX_KEY -> {
+                fields.put("title", Filter.FIELD_TYPE_TEXT);
+                fields.put("is_expansion", Filter.FIELD_TYPE_BOOLEAN);
+                fields.put("is_stand_alone", Filter.FIELD_TYPE_BOOLEAN);
+            }
             default -> {
                 return new LinkedHashMap<>();
             }

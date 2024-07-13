@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.SlimBoardGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.springframework.http.MediaType;
@@ -341,7 +344,7 @@ public class TestFactory {
         }
         final String json = """
                 {
-                	"videoGame": {
+                	"videoGameBox": {
                 	    "title": "%s",
                 	    "systemId": "%d",
                 	    "videoGameIds": %s,
@@ -352,5 +355,100 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, title, systemId, videoGameIdsString, isPhysical, isCollection, customFieldValuesString);
+    }
+
+    public BoardGameBoxResponseDto postBoardGameBox() throws Exception {
+        final String title = "TestBoardGameBox-" + randomString(4);
+        final ResultActions result = postBoardGameBoxReturnResult(title, false, false, null, null, null);
+        return resultToBoardGameBoxResponseDto(result);
+    }
+
+    public BoardGameBoxResponseDto postBoardGameBox(int boardGameId) throws Exception {
+        final String title = "TestBoardGameBox-" + randomString(4);
+        final ResultActions result = postBoardGameBoxReturnResult(title, false, false, null, boardGameId, null);
+        return resultToBoardGameBoxResponseDto(result);
+    }
+
+    public SlimBoardGameBox convertBoardGameBoxResponseToSlimBoardGameBox(BoardGameBoxResponseDto responseDto) {
+        return new SlimBoardGameBox(responseDto.id(), responseDto.title(), responseDto.isExpansion(), responseDto.isStandAlone(), responseDto.baseSetId(),
+                responseDto.createdAt(), responseDto.updatedAt(), responseDto.deletedAt(), responseDto.customFieldValues());
+    }
+
+    public ResultActions postBoardGameBoxReturnResult(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId, List<CustomFieldValue> customFieldValues)
+            throws Exception {
+        final String formattedJson = formatBoardGameBoxPayload(title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValues);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/boardGameBoxes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public BoardGameBoxResponseDto resultToBoardGameBoxResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, BoardGameBoxResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
+    public String formatBoardGameBoxPayload(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId, List<CustomFieldValue> customFieldValues) {
+        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
+        final String json = """
+                {
+                	"boardGameBox": {
+                	    "title": "%s",
+                	    "isExpansion": "%b",
+                	    "isStandAlone": %b,
+                        "baseSetId": %d,
+                        "boardGameId": %d,
+                        "customFieldValues": %s
+                	    }
+                }
+                """;
+        return String.format(json, title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValuesString);
+    }
+
+    public BoardGameResponseDto postBoardGame() throws Exception {
+        final String title = "TestBoardGame-" + randomString(4);
+        final ResultActions result = postBoardGameReturnResult(title, null);
+        return resultToBoardGameResponseDto(result);
+    }
+
+    public ResultActions postBoardGameReturnResult(String title, List<CustomFieldValue> customFieldValues)
+            throws Exception {
+        final String formattedJson = formatBoardGamePayload(title, customFieldValues);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/boardGames")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public BoardGameResponseDto resultToBoardGameResponseDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, BoardGameResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        return body.get("data");
+    }
+
+    public String formatBoardGamePayload(String title, List<CustomFieldValue> customFieldValues) {
+        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
+        final String json = """
+                {
+                	"boardGame": {
+                	    "title": "%s",
+                        "customFieldValues": %s
+                	    }
+                }
+                """;
+        return String.format(json, title, customFieldValuesString);
     }
 }
