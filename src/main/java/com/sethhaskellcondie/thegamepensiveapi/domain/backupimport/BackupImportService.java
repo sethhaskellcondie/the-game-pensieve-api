@@ -5,6 +5,14 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGame;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameService;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBox;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
@@ -15,6 +23,10 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameService;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBox;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.stereotype.Service;
@@ -32,14 +44,27 @@ public class BackupImportService {
     private final CustomFieldRepository customFieldRepository;
     private final VideoGameService videoGameService;
     private final VideoGameRepository videoGameRepository;
+    private final VideoGameBoxService videoGameBoxService;
+    private final VideoGameBoxRepository videoGameBoxRepository;
+    private final BoardGameService boardGameService;
+    private final BoardGameRepository boardGameRepository;
+    private final BoardGameBoxService boardGameBoxService;
+    private final BoardGameBoxRepository boardGameBoxRepository;
 
-    protected BackupImportService(SystemRepository systemRepository, ToyRepository toyRepository, CustomFieldRepository customFieldRepository,
-                                  VideoGameService videoGameService, VideoGameRepository videoGameRepository) {
+    protected BackupImportService(SystemRepository systemRepository, ToyRepository toyRepository, CustomFieldRepository customFieldRepository, VideoGameService videoGameService,
+                                  VideoGameRepository videoGameRepository, VideoGameBoxService videoGameBoxService, VideoGameBoxRepository videoGameBoxRepository, BoardGameService boardGameService,
+                                  BoardGameRepository boardGameRepository, BoardGameBoxService boardGameBoxService, BoardGameBoxRepository boardGameBoxRepository) {
         this.systemRepository = systemRepository;
         this.toyRepository = toyRepository;
         this.customFieldRepository = customFieldRepository;
         this.videoGameService = videoGameService;
         this.videoGameRepository = videoGameRepository;
+        this.videoGameBoxService = videoGameBoxService;
+        this.videoGameBoxRepository = videoGameBoxRepository;
+        this.boardGameService = boardGameService;
+        this.boardGameRepository = boardGameRepository;
+        this.boardGameBoxService = boardGameBoxService;
+        this.boardGameBoxRepository = boardGameBoxRepository;
     }
 
     protected BackupDataDto getBackupData() {
@@ -47,8 +72,11 @@ public class BackupImportService {
         List<ToyRequestDto> toys = toyRepository.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToRequestDto).toList();
         List<SystemRequestDto> systems = systemRepository.getWithFilters(new ArrayList<>()).stream().map(System::convertToRequestDto).toList();
         List<VideoGameRequestDto> videoGames = videoGameService.getWithFilters(new ArrayList<>()).stream().map(VideoGame::convertToRequestDto).toList();
+        List<VideoGameBoxRequestDto> videoGameBoxes = videoGameBoxService.getWithFilters(new ArrayList<>()).stream().map(VideoGameBox::convertToRequestDto).toList();
+        List<BoardGameRequestDto> boardGames = boardGameService.getWithFilters(new ArrayList<>()).stream().map(BoardGame::convertToRequestDto).toList();
+        List<BoardGameBoxRequestDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToRequestDto).toList();
 
-        return new BackupDataDto(customFields, toys, systems, videoGames);
+        return new BackupDataDto(customFields, toys, systems, videoGames, videoGameBoxes, boardGames, boardGameBoxes);
     }
 
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {

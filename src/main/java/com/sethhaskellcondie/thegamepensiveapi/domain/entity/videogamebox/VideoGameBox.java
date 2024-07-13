@@ -138,7 +138,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     }
 
     @Override
-    protected VideoGameBoxRequestDto convertToRequestDto() {
+    public VideoGameBoxRequestDto convertToRequestDto() {
         return new VideoGameBoxRequestDto(this.title, this.systemId, this.videoGameIds, this.physical, this.collection, this.customFieldValues);
     }
 
