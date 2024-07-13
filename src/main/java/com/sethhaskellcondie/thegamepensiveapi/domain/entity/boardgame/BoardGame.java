@@ -47,7 +47,7 @@ public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto>
     }
 
     @Override
-    protected BoardGame updateFromRequestDto(BoardGameRequestDto requestDto) {
+    public BoardGame updateFromRequestDto(BoardGameRequestDto requestDto) {
         this.title = requestDto.title();
         this.boardGameBoxes = new ArrayList<>();
         this.setCustomFieldValues(requestDto.customFieldValues());

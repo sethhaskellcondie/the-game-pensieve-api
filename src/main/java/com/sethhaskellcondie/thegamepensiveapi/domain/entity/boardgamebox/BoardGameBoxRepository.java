@@ -134,57 +134,29 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
 
     private PreparedStatementCreator getPreparedStatement(String sql, BoardGameBox entity) {
         if (entity.getBaseSetId() == null) {
-            if (entity.getBoardGameId() == null) {
-                return connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, entity.getTitle());
-                    ps.setBoolean(2, entity.isExpansion());
-                    ps.setBoolean(3, entity.isStandAlone());
-                    ps.setNull(4, Types.INTEGER);
-                    ps.setNull(5, Types.INTEGER);
-                    ps.setTimestamp(6, Timestamp.from(Instant.now()));
-                    ps.setTimestamp(7, Timestamp.from(Instant.now()));
-                    return ps;
-                };
-            } else {
-                return connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, entity.getTitle());
-                    ps.setBoolean(2, entity.isExpansion());
-                    ps.setBoolean(3, entity.isStandAlone());
-                    ps.setNull(4, Types.INTEGER);
-                    ps.setInt(5, entity.getBoardGameId());
-                    ps.setTimestamp(6, Timestamp.from(Instant.now()));
-                    ps.setTimestamp(7, Timestamp.from(Instant.now()));
-                    return ps;
-                };
-            }
+            return connection -> {
+                PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, entity.getTitle());
+                ps.setBoolean(2, entity.isExpansion());
+                ps.setBoolean(3, entity.isStandAlone());
+                ps.setNull(4, Types.INTEGER);
+                ps.setInt(5, entity.getBoardGameId());
+                ps.setTimestamp(6, Timestamp.from(Instant.now()));
+                ps.setTimestamp(7, Timestamp.from(Instant.now()));
+                return ps;
+            };
         } else {
-            if (entity.getBoardGameId() == null) {
-                return connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, entity.getTitle());
-                    ps.setBoolean(2, entity.isExpansion());
-                    ps.setBoolean(3, entity.isStandAlone());
-                    ps.setNull(4, entity.getBaseSetId());
-                    ps.setInt(5, Types.INTEGER);
-                    ps.setTimestamp(6, Timestamp.from(Instant.now()));
-                    ps.setTimestamp(7, Timestamp.from(Instant.now()));
-                    return ps;
-                };
-            } else {
-                return connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, entity.getTitle());
-                    ps.setBoolean(2, entity.isExpansion());
-                    ps.setBoolean(3, entity.isStandAlone());
-                    ps.setNull(4, entity.getBaseSetId());
-                    ps.setInt(5, entity.getBoardGameId());
-                    ps.setTimestamp(6, Timestamp.from(Instant.now()));
-                    ps.setTimestamp(7, Timestamp.from(Instant.now()));
-                    return ps;
-                };
-            }
+            return connection -> {
+                PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, entity.getTitle());
+                ps.setBoolean(2, entity.isExpansion());
+                ps.setBoolean(3, entity.isStandAlone());
+                ps.setNull(4, entity.getBaseSetId());
+                ps.setInt(5, entity.getBoardGameId());
+                ps.setTimestamp(6, Timestamp.from(Instant.now()));
+                ps.setTimestamp(7, Timestamp.from(Instant.now()));
+                return ps;
+            };
         }
     }
 

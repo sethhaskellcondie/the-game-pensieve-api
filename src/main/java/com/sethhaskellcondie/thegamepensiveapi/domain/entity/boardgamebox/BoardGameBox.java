@@ -30,6 +30,9 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
         this.expansion = isExpansion;
         this.standAlone = isStandAlone;
         this.baseSetId = baseSetId;
+        if (this.baseSetId == 0) {
+            this.baseSetId = null;
+        }
         this.boardGameId = boardGameId;
         this.boardGame = null;
     }
@@ -55,6 +58,11 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
     }
 
     public void setBoardGame(BoardGame boardGame) {
+        if (null == boardGame.getId()) {
+            this.boardGame = null;
+            return;
+        }
+        this.boardGameId = boardGame.getId();
         this.boardGame = boardGame;
     }
 
