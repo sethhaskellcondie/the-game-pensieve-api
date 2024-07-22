@@ -118,12 +118,6 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
     }
 
     @Override
-    public Toy insert(ToyRequestDto requestDto) {
-        final Toy toy = new Toy().updateFromRequestDto(requestDto);
-        return this.insert(toy);
-    }
-
-    @Override
     public void deleteById(int id) {
         String sql = """
                 			UPDATE toys SET deleted_at = ? WHERE id = ?;

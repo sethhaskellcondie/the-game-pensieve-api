@@ -64,8 +64,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     protected abstract Integer insertImplementation(T entity);
     protected abstract void updateImplementation(T entity);
 
-    //public T insert (RequestDto requestDto) will need to implemented manually in each repository
-
     @Override
     public T insert(T entity) {
         insertValidation(entity);

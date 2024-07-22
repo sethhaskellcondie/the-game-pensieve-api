@@ -77,12 +77,6 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     }
 
     @Override
-    public VideoGameBox insert(VideoGameBoxRequestDto requestDto) {
-        final VideoGameBox videoGameBox = new VideoGameBox().updateFromRequestDto(requestDto);
-        return this.insert(videoGameBox);
-    }
-
-    @Override
     public List<VideoGameBox> getWithFilters(List<Filter> filters) {
         List<VideoGameBox> boxesWithNoIds = super.getWithFilters(filters);
         List<VideoGameBox> boxesWithIds = new ArrayList<>();

@@ -52,7 +52,7 @@ public class VideoGameBoxController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, VideoGameBoxResponseDto> createNew(@RequestBody Map<String, VideoGameBoxRequestDto> requestBody) throws ExceptionFailedDbValidation {
-        final VideoGameBoxResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.VIDEO_GAME_KEY));
+        final VideoGameBoxResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.VIDEO_GAME_BOX_KEY));
         final FormattedResponseBody<VideoGameBoxResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
@@ -60,7 +60,7 @@ public class VideoGameBoxController {
     @ResponseBody
     @PutMapping("/{id}")
     public Map<String, VideoGameBoxResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, VideoGameBoxRequestDto> requestBody) {
-        final VideoGameBoxResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.VIDEO_GAME_KEY));
+        final VideoGameBoxResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.VIDEO_GAME_BOX_KEY));
         final FormattedResponseBody<VideoGameBoxResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }

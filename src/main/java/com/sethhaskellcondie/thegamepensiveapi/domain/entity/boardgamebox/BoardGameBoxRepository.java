@@ -70,12 +70,6 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
     }
 
     @Override
-    public BoardGameBox insert(BoardGameBoxRequestDto requestDto) {
-        final BoardGameBox boardGameBox = new BoardGameBox().updateFromRequestDto(requestDto);
-        return this.insert(boardGameBox);
-    }
-
-    @Override
     public void deleteById(int id) {
         final String sql = """
                 			UPDATE board_game_boxes SET deleted_at = ? WHERE id = ?;

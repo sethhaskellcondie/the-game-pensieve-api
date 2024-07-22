@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRepository;
 import org.springframework.stereotype.Service;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
@@ -20,7 +21,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
 
     private final SystemRepository systemRepository;
 
-    public VideoGameService(EntityRepository<VideoGame, VideoGameRequestDto, VideoGameResponseDto> repository, FilterService filterService, SystemRepository systemRepository) {
+    public VideoGameService(VideoGameRepository repository, FilterService filterService, SystemRepository systemRepository) {
         super(repository, filterService);
         this.systemRepository = systemRepository;
     }
@@ -80,5 +81,10 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
                     + e.getMessage())));
         }
         return videoGame;
+    }
+
+    public int getIdByTitleAndSystem(String title, int systemId) {
+        VideoGameRepository videoGameRepository = (VideoGameRepository) repository;
+        return videoGameRepository.getIdByTitleAndSystem(title, systemId);
     }
 }

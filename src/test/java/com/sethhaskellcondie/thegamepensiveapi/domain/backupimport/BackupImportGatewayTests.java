@@ -55,6 +55,9 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField),
                 List.of(initialToy),
                 List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of()
         );
 
@@ -92,11 +95,17 @@ public class BackupImportGatewayTests {
                 List.of(new CustomField(0, "Initial Custom Field", CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY)),
                 List.of(new ToyRequestDto("Will Be Skipped", "Ignored", new ArrayList<>())),
                 List.of(new SystemRequestDto("Will Be Skipped", 3, false, new ArrayList<>())),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of()
         );
         final BackupDataDto expectedBackupData = new BackupDataDto(
                 List.of(initialCustomField),
                 List.of(initialToy),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of(),
                 List.of()
         );
@@ -124,11 +133,17 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField, toyCustomField, new CustomField(42, "Valid Name", "Invalid Type", "Invalid Key")),
                 List.of(new ToyRequestDto("Will Be Skipped", "Ignored", new ArrayList<>())),
                 List.of(new SystemRequestDto("Will Be Skipped", 3, false, new ArrayList<>())),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of()
         );
         final BackupDataDto expectedBackupData = new BackupDataDto(
                 List.of(initialCustomField, toyCustomField),
                 List.of(initialToy),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of(),
                 List.of()
         );
@@ -157,11 +172,17 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField, toyCustomField),
                 List.of(initialToy, secondToy, skippedToy),
                 List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of()
         );
         final BackupDataDto expectedBackupData = new BackupDataDto(
                 List.of(initialCustomField, toyCustomField),
                 List.of(initialToy, secondToy),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of(),
                 List.of()
         );
@@ -190,12 +211,18 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField, toyCustomField),
                 List.of(initialToy, secondToy),
                 List.of(initialSystem, skippedSystem),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of()
         );
         final BackupDataDto expectedBackupData = new BackupDataDto(
                 List.of(initialCustomField, toyCustomField),
                 List.of(initialToy, secondToy),
                 List.of(initialSystem),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of()
         );
 
@@ -221,6 +248,9 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField, toyCustomField, systemCustomField),
                 List.of(initialToy, secondToy),
                 List.of(initialSystem, secondSystem),
+                List.of(),
+                List.of(),
+                List.of(),
                 List.of()
         );
 
@@ -247,13 +277,19 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField, toyCustomField, systemCustomField),
                 List.of(initialToy, secondToy),
                 List.of(initialSystem, secondSystem),
-                List.of(initialVideoGame, skippedVideoGame)
+                List.of(initialVideoGame, skippedVideoGame),
+                List.of(),
+                List.of(),
+                List.of()
         );
         final BackupDataDto expectedBackupData = new BackupDataDto(
                 List.of(initialCustomField, toyCustomField, systemCustomField),
                 List.of(initialToy, secondToy),
                 List.of(initialSystem, secondSystem),
-                List.of(initialVideoGame)
+                List.of(initialVideoGame),
+                List.of(),
+                List.of(),
+                List.of()
         );
 
         final ImportResultsDto results = gateway.importBackupData(backupData);
@@ -278,7 +314,10 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField, toyCustomField, systemCustomField, videoGameCustomField),
                 List.of(initialToy, secondToy),
                 List.of(initialSystem, secondSystem),
-                List.of(initialVideoGame, secondVideoGame)
+                List.of(initialVideoGame, secondVideoGame),
+                List.of(),
+                List.of(),
+                List.of()
         );
 
         final ImportResultsDto results = gateway.importBackupData(backupData);
@@ -305,7 +344,10 @@ public class BackupImportGatewayTests {
                 List.of(initialCustomField, toyCustomField, systemCustomField, videoGameCustomField),
                 List.of(initialToy, secondToy),
                 List.of(initialSystem, secondSystem),
-                List.of(initialVideoGame, secondVideoGame)
+                List.of(initialVideoGame, secondVideoGame),
+                List.of(),
+                List.of(),
+                List.of()
         );
         validateBackupData(expectedBackupData, actualBackupData);
 

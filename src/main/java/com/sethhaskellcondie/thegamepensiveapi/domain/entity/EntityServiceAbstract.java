@@ -27,10 +27,13 @@ public abstract class EntityServiceAbstract<T extends Entity<RequestDto, Respons
         return repository.getById(id);
     }
 
-    @Override
-    public T createNew(RequestDto requestDto) {
-        return repository.insert(requestDto);
-    }
+    /**
+     *  createNew will need to be implemented in each service
+     *  public T createNew(RequestDto requestDto) {
+     *      T t = new t().updatedFromRequestDto(requestDto);
+     *      return repository.insert(t);
+     *  }
+     */
 
     @Override
     public T updateExisting(T t) {

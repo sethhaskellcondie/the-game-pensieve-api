@@ -36,4 +36,10 @@ public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGame
         boardGame.setBoardGameBoxes(boardGameBoxRepository.getSlimBoardGameBoxesByBoardGameId(boardGame.getId()));
         return boardGame;
     }
+
+    @Override
+    public BoardGame createNew(BoardGameRequestDto boardGameRequestDto) {
+        BoardGame boardGame = new BoardGame().updateFromRequestDto(boardGameRequestDto);
+        return repository.insert(boardGame);
+    }
 }

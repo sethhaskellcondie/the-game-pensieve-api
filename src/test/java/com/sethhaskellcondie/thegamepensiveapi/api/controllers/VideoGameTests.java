@@ -69,6 +69,8 @@ public class VideoGameTests {
         updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
     }
 
+    //TODO create and implement a test that when a video game box with no video game id is passed in a video game with the same title will be created
+
     void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(VideoGameResponseDto existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
         final String updatedTitle = "Donald Duck";
         final SystemResponseDto newRelatedSystem = factory.postSystem();

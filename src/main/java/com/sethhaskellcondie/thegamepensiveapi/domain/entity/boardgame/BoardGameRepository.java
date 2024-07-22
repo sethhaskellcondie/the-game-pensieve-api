@@ -60,12 +60,6 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
     }
 
     @Override
-    public BoardGame insert(BoardGameRequestDto requestDto) {
-        final BoardGame boardGame = new BoardGame().updateFromRequestDto(requestDto);
-        return this.insert(boardGame);
-    }
-
-    @Override
     public void deleteById(int id) {
         final String sql = """
                 			UPDATE board_games SET deleted_at = ? WHERE id = ?;

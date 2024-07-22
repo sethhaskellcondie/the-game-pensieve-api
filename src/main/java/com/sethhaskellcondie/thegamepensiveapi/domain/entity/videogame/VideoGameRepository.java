@@ -67,13 +67,6 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
                 """;
     }
 
-    //TODO remove this from the Abstract and the Implementation only implement this function as needed
-    @Override
-    public VideoGame insert(VideoGameRequestDto videoGameRequestDto) {
-        final VideoGame videoGame = new VideoGame().updateFromRequestDto(videoGameRequestDto);
-        return this.insert(videoGame);
-    }
-
     @Override
     public void deleteById(int id) {
         final String sql = """

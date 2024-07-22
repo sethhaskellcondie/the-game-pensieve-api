@@ -154,12 +154,6 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
     }
 
     @Override
-    public System insert(SystemRequestDto requestDto) throws ExceptionMalformedEntity, ExceptionFailedDbValidation {
-        final System system = new System().updateFromRequestDto(requestDto);
-        return this.insert(system);
-    }
-
-    @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
         final String sql = """
                 			UPDATE systems SET deleted_at = ? WHERE id = ?;
