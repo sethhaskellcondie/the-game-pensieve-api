@@ -40,20 +40,19 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         this.jdbcTemplate = jdbcTemplate;
         this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
         this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
-        this.baseQuery = this.getBaseQuery();
+        this.baseQuery = this.getBaseQueryExcludeDeleted();
         this.baseQueryJoinCustomFieldValues = this.getBaseQueryJoinCustomFieldValues();
-        this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereDeletedAtIsNotNull();
-        this.baseQueryIncludeDeleted = this.getBaseQueryIncludeDeleted();
+        this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereIsDeleted();
+        this.baseQueryIncludeDeleted = this.getBaseQuery();
         this.entityKey = this.getEntityKey();
         this.rowMapper = this.getRowMapper();
     }
 
     //DO NOT end the base queries with a ';' they will be appended
-    //TODO refactor base queries
     protected abstract String getBaseQuery();
+    protected abstract String getBaseQueryExcludeDeleted();
+    protected abstract String getBaseQueryWhereIsDeleted();
     protected abstract String getBaseQueryJoinCustomFieldValues();
-    protected abstract String getBaseQueryWhereDeletedAtIsNotNull();
-    protected abstract String getBaseQueryIncludeDeleted();
     protected abstract String getEntityKey();
     protected abstract RowMapper<T> getRowMapper();
 

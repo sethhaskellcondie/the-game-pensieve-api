@@ -27,13 +27,20 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
         super(jdbcTemplate);
     }
 
-    @Override
+    private String getSelectClause() {
+        return "SELECT video_games.id, video_games.title, video_games.system_id, video_games.created_at, video_games.updated_at, video_games.deleted_at ";
+    }
+
     protected String getBaseQuery() {
-        return """
-                SELECT video_games.id, video_games.title, video_games.system_id,
-                       video_games.created_at, video_games.updated_at, video_games.deleted_at
-                        FROM video_games WHERE video_games.deleted_at IS NULL
-                """;
+        return getSelectClause() + " FROM video_games WHERE 1 = 1 ";
+    }
+
+    protected String getBaseQueryExcludeDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NULL ";
+    }
+
+    protected String getBaseQueryWhereIsDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
     }
 
     @Override
@@ -46,24 +53,6 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
                 	  	JOIN custom_fields as fields ON values.custom_field_id = fields.id
                                	WHERE video_games.deleted_at IS NULL
                                  AND values.entity_key = 'video_game'
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-                SELECT video_games.id, video_games.title, video_games.system_id,
-                       video_games.created_at, video_games.updated_at, video_games.deleted_at
-                        FROM video_games WHERE video_games.deleted_at IS NOT NULL
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-                SELECT video_games.id, video_games.title, video_games.system_id,
-                       video_games.created_at, video_games.updated_at, video_games.deleted_at
-                        FROM video_games WHERE 1 = 1
                 """;
     }
 
@@ -141,7 +130,7 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
     }
 
     public int getIdByTitleAndSystem(String title, int systemId) {
-        final String sql = getBaseQuery() + " AND title = ? AND system_id = ?";
+        final String sql = getBaseQueryExcludeDeleted() + " AND title = ? AND system_id = ?";
         final VideoGame videoGame;
         try {
             videoGame = jdbcTemplate.queryForObject(sql, new Object[]{title, systemId}, new int[]{Types.VARCHAR, Types.BIGINT}, getRowMapper());

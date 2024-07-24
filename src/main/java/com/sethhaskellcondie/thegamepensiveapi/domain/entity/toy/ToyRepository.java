@@ -25,11 +25,20 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
         super(jdbcTemplate);
     }
 
+    private String getSelectClause() {
+        return "SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at ";
+    }
+
     protected String getBaseQuery() {
-        return """
-            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
-                FROM toys WHERE toys.deleted_at IS NULL
-            """;
+        return getSelectClause() + " FROM toys WHERE 1 = 1 ";
+    }
+
+    protected String getBaseQueryExcludeDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NULL ";
+    }
+
+    protected String getBaseQueryWhereIsDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
     }
 
     protected String getBaseQueryJoinCustomFieldValues() {
@@ -43,20 +52,6 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
             WHERE toys.deleted_at IS NULL
             AND values.entity_key = 'toy'
                 """;
-    }
-
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
-                FROM toys WHERE toys.deleted_at IS NOT NULL
-            """;
-    }
-
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
-                FROM toys WHERE 1 = 1
-            """;
     }
 
     protected String getEntityKey() {
@@ -129,7 +124,7 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
     }
 
     public int getIdByNameAndSet(String name, String set) {
-        String sql = getBaseQuery() + " AND name = ? AND set = ?";
+        String sql = getBaseQueryExcludeDeleted() + " AND name = ? AND set = ?";
         final Toy toy;
         try {
             toy = jdbcTemplate.queryForObject(

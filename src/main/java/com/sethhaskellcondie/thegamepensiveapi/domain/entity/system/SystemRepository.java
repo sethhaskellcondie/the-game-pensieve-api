@@ -7,7 +7,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionIntern
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInvalidFilter;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,11 +31,20 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
         super(jdbcTemplate);
     }
 
+    private String getSelectClause() {
+        return "SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at ";
+    }
+
     protected String getBaseQuery() {
-        return """
-                SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at
-                    FROM systems WHERE systems.deleted_at IS NULL
-            """;
+        return getSelectClause() + " FROM systems WHERE 1 = 1 ";
+    }
+
+    protected String getBaseQueryExcludeDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NULL ";
+    }
+
+    protected String getBaseQueryWhereIsDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
     }
 
     protected String getBaseQueryJoinCustomFieldValues() {
@@ -52,20 +60,6 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
                     JOIN custom_fields as fields ON values.custom_field_id = fields.id
                     WHERE systems.deleted_at IS NULL
                     AND values.entity_key = 'system'
-            """;
-    }
-
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-                SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at
-                    FROM systems WHERE deleted_at IS NOT NULL
-            """;
-    }
-
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-                SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at
-                    FROM systems WHERE 1 = 1
             """;
     }
 
@@ -165,7 +159,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
     }
 
     public int getIdByName(String name) {
-        final String sql = getBaseQuery() + " AND name = ?";
+        final String sql = getBaseQueryExcludeDeleted() + " AND name = ?";
         final System system;
         try {
             system = jdbcTemplate.queryForObject(

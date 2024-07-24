@@ -33,13 +33,20 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
         super(jdbcTemplate);
     }
 
-    @Override
+    private String getSelectClause() {
+        return "SELECT id, title, system_id, is_physical, is_collection, created_at, updated_at, deleted_at ";
+    }
+
     protected String getBaseQuery() {
-        return """
-                SELECT id, title, system_id, is_physical, is_collection, created_at, updated_at, deleted_at
-                FROM video_game_boxes
-                WHERE video_game_boxes.deleted_at IS NULL
-                """;
+        return getSelectClause() + " FROM video_game_boxes WHERE 1 = 1 ";
+    }
+
+    protected String getBaseQueryExcludeDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NULL ";
+    }
+
+    protected String getBaseQueryWhereIsDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
     }
 
     @Override
@@ -53,26 +60,6 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
                 WHERE video_game_boxes.deleted_at IS NULL
                 AND values.entity_key = 'video_game_box'
                 AND video_game_boxes.deleted_at IS NULL
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.is_physical, video_game_boxes.is_collection,
-                video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
-                FROM video_game_boxes
-                WHERE video_game_boxes.deleted_at IS NOT NULL
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.is_physical, video_game_boxes.is_collection,
-                video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
-                FROM video_game_boxes
-                WHERE 1 = 1
                 """;
     }
 
@@ -202,7 +189,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     }
 
     public int getIdByTitleAndSystem(String title, int systemId) {
-        final String sql = getBaseQuery() + " AND title = ? AND system_id = ?";
+        final String sql = getBaseQueryExcludeDeleted() + " AND title = ? AND system_id = ?";
         final VideoGameBox videoGameBox;
         try {
             videoGameBox = jdbcTemplate.queryForObject(sql, new Object[]{title, systemId}, new int[]{Types.VARCHAR, Types.BIGINT}, getRowMapper());

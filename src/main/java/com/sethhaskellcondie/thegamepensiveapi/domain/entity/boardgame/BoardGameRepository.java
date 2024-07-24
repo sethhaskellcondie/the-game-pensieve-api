@@ -23,12 +23,20 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
         super(jdbcTemplate);
     }
 
-    @Override
+    private String getSelectClause() {
+        return "SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at";
+    }
+
     protected String getBaseQuery() {
-        return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
-                FROM board_games WHERE board_games.deleted_at IS NULL
-                """;
+        return getSelectClause() + " FROM board_games WHERE 1 = 1 ";
+    }
+
+    protected String getBaseQueryExcludeDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NULL ";
+    }
+
+    protected String getBaseQueryWhereIsDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
     }
 
     @Override
@@ -40,22 +48,6 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
                 	  	JOIN custom_fields as fields ON values.custom_field_id = fields.id
                                	WHERE board_games.deleted_at IS NULL
                                  AND values.entity_key = 'board_game'
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
-                FROM board_games WHERE board_games.deleted_at IS NOT NULL
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
-                FROM board_games WHERE 1 = 1
                 """;
     }
 
