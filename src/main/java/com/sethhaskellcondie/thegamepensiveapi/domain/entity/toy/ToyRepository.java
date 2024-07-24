@@ -33,14 +33,6 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
         return getSelectClause() + " FROM toys WHERE 1 = 1 ";
     }
 
-    protected String getBaseQueryExcludeDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NULL ";
-    }
-
-    protected String getBaseQueryWhereIsDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
-    }
-
     protected String getBaseQueryJoinCustomFieldValues() {
         return """
             SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at,

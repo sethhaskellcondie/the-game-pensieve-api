@@ -39,14 +39,6 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
         return getSelectClause() + " FROM systems WHERE 1 = 1 ";
     }
 
-    protected String getBaseQueryExcludeDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NULL ";
-    }
-
-    protected String getBaseQueryWhereIsDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
-    }
-
     protected String getBaseQueryJoinCustomFieldValues() {
         //in general the first row are the columns for the entity
         //the second and third row are the columns for the custom field values and the custom fields they should always be the same

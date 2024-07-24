@@ -31,14 +31,6 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
         return getSelectClause() + " FROM board_games WHERE 1 = 1 ";
     }
 
-    protected String getBaseQueryExcludeDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NULL ";
-    }
-
-    protected String getBaseQueryWhereIsDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
-    }
-
     @Override
     protected String getBaseQueryJoinCustomFieldValues() {
         return """

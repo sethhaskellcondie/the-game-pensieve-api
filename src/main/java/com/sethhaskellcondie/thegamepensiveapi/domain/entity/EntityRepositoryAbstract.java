@@ -50,8 +50,13 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     //DO NOT end the base queries with a ';' they will be appended
     protected abstract String getBaseQuery();
-    protected abstract String getBaseQueryExcludeDeleted();
-    protected abstract String getBaseQueryWhereIsDeleted();
+    protected String getBaseQueryExcludeDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NULL ";
+    }
+
+    protected String getBaseQueryWhereIsDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
+    }
     protected abstract String getBaseQueryJoinCustomFieldValues();
     protected abstract String getEntityKey();
     protected abstract RowMapper<T> getRowMapper();
@@ -92,8 +97,8 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             sql = baseQueryJoinCustomFieldValues + String.join(" ", whereStatements);
         }
         List<T> entities = jdbcTemplate.query(sql, rowMapper, operands.toArray());
-        for (Entity<RequestDto, ResponseDto> entity: entities) {
-            entity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(entity.getId(), entity.getKey()));
+        for (T entity: entities) {
+            setCustomFieldsValuesForEntity(entity);
         }
         return entities;
     }
@@ -119,8 +124,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         }
 
         customFieldValueRepository.upsertValues(entity.getCustomFieldValues(), savedEntity.getId(), savedEntity.getKey());
-        savedEntity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(savedEntity.getId(), savedEntity.getKey()));
-        return savedEntity;
+        return setCustomFieldsValuesForEntity(savedEntity);
     }
 
     //public void deleteById(int id) will need to be implemented manually
@@ -135,7 +139,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         return queryById(id, baseQueryIncludeDeleted);
     }
 
-    //TODO refactor this into the other methods
     public T setCustomFieldsValuesForEntity(T entity) {
         entity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(entity.getId(), entity.getKey()));
         return entity;
@@ -154,7 +157,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(entityKey, id);
         }
-        entity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(entity.getId(), entity.getKey()));
-        return entity;
+        return setCustomFieldsValuesForEntity(entity);
     }
 }
