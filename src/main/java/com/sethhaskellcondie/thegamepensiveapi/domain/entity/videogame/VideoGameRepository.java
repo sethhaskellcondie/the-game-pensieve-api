@@ -6,7 +6,10 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBox;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -46,6 +49,24 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
                                	WHERE video_games.deleted_at IS NULL
                                  AND values.entity_key = 'video_game'
                 """;
+    }
+
+    @Override
+    public List<VideoGame> getWithFilters(List<Filter> filters) {
+        List<VideoGame> gamesWithNoIds = super.getWithFilters(filters);
+        List<VideoGame> gamesWithIds = new ArrayList<>();
+        for (VideoGame game : gamesWithNoIds) {
+            game.setVideoGameBoxIds(getRelatedBoxIds(game.getId()));
+            gamesWithIds.add(game);
+        }
+        return gamesWithIds;
+    }
+
+    @Override
+    public VideoGame getById(int id) {
+        VideoGame videoGame = super.getById(id);
+        videoGame.setVideoGameBoxIds(getRelatedBoxIds(id));
+        return videoGame;
     }
 
     @Override
@@ -119,6 +140,13 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
                 UPDATE video_games SET title = ?, system_id = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, entity.getTitle(), entity.getSystemId(), Timestamp.from(Instant.now()), entity.getId());
+    }
+
+    private List<Integer> getRelatedBoxIds(int videoGameId) {
+        final String sql = """
+                SELECT * FROM video_game_to_video_game_box WHERE video_game_id = ?;
+                """;
+        return jdbcTemplate.query(sql, (resultSet, rowNumber) -> resultSet.getInt("video_game_box_id"), videoGameId);
     }
 
     public int getIdByTitleAndSystem(String title, int systemId) {

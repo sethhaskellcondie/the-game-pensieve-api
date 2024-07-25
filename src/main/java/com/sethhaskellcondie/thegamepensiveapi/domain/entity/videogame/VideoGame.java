@@ -9,6 +9,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldVal
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 
@@ -16,9 +17,11 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
 
     private String title;
     private int systemId;
-    //The system name is a flag that also indicates that the systemId is valid
-    //it must be set manually and cannot be set in the constructor.
+    //The system is a flag that also indicates that the systemId is valid
+    //it must be set manually in the service and cannot be set in the constructor.
     private System system;
+    private List<Integer> videoGameBoxIds;
+    private List<SlimVideoGameBox> videoGameBoxes;
 
     public VideoGame() {
         super();
@@ -30,6 +33,8 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         this.title = title;
         this.systemId = systemId;
         this.system = null;
+        this.videoGameBoxIds = new ArrayList<>();
+        this.videoGameBoxes = new ArrayList<>();
     }
 
     public String getTitle() {
@@ -52,6 +57,34 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         return null != system;
     }
 
+    public List<Integer> getVideoGameBoxIds() {
+        return videoGameBoxIds;
+    }
+
+    public void setVideoGameBoxIds(List<Integer> videoGameBoxIds) {
+        if (null == videoGameBoxIds) {
+            this.videoGameBoxIds = new ArrayList<>();
+            return;
+        }
+        this.videoGameBoxIds = videoGameBoxIds;
+    }
+
+    public List<SlimVideoGameBox> getVideoGameBoxes() {
+        return this.videoGameBoxes;
+    }
+
+    public void setVideoGameBoxes(List<SlimVideoGameBox> videoGameBoxes) {
+        if (null == videoGameBoxes) {
+            this.videoGameBoxes = new ArrayList<>();
+            return;
+        }
+        this.videoGameBoxes = videoGameBoxes;
+    }
+
+    public boolean isVideoGameBoxesValid() {
+        return !videoGameBoxes.isEmpty();
+    }
+
     @Override
     public VideoGame updateFromRequestDto(VideoGameRequestDto requestDto) {
         List<Exception> exceptions = new ArrayList<>();
@@ -62,6 +95,8 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
             exceptions.add(new ExceptionInputValidation("Video Game object error, the systemId cannot be null."));
         }
         this.system = null;
+        this.videoGameBoxIds = new ArrayList<>();
+        this.videoGameBoxes = new ArrayList<>();
         setCustomFieldValues(requestDto.customFieldValues());
         try {
             this.validate();
@@ -80,7 +115,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         if (isSystemValid()) {
             systemResponseDto = this.system.convertToResponseDto();
         }
-        return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, systemResponseDto,
+        return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, systemResponseDto, videoGameBoxes,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );
     }

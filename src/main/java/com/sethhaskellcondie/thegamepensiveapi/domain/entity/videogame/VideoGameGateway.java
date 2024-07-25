@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import org.springframework.stereotype.Component;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityGateway;
@@ -12,4 +13,10 @@ public class VideoGameGateway extends EntityGatewayAbstract<VideoGame, VideoGame
     public VideoGameGateway(EntityService<VideoGame, VideoGameRequestDto, VideoGameResponseDto> service) {
         super(service);
     }
+
+    @Override
+    public VideoGameResponseDto createNew(VideoGameRequestDto requestDto) {
+        throw new RuntimeException("Not Implemented Error: Create new video game objects through the VideoGameBoxGateway instead of the VideoGameGateway.");
+    }
+
 }
