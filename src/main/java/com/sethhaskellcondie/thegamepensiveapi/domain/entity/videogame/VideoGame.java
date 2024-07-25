@@ -17,11 +17,9 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
 
     private String title;
     private int systemId;
-    //The system is a flag that also indicates that the systemId is valid
-    //it must be set manually in the service and cannot be set in the constructor.
-    private System system;
-    private List<Integer> videoGameBoxIds;
-    private List<SlimVideoGameBox> videoGameBoxes;
+    private System system; //The system is a flag that also indicates that the systemId is valid, it must be set manually in the service and cannot be set in the constructor
+    private List<Integer> videoGameBoxIds; // A list of the ids that are found in the database they should all match with a video game box in the database
+    private List<SlimVideoGameBox> videoGameBoxes; // A list of the video game boxes that match the ids found in the database, hydrated in the service
 
     public VideoGame() {
         super();
@@ -128,6 +126,14 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     @Override
     public String getKey() {
         return Keychain.VIDEO_GAME_KEY;
+    }
+
+    public SlimVideoGame convertToSlimVideoGame() {
+        SystemResponseDto systemResponseDto = null;
+        if (isSystemValid()) {
+            systemResponseDto = this.system.convertToResponseDto();
+        }
+        return new SlimVideoGame(this.id, this.title, systemResponseDto, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 
     private void validate() throws ExceptionMalformedEntity {

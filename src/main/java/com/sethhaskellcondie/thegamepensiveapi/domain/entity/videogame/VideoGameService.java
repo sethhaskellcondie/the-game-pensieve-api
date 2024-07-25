@@ -60,8 +60,6 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
     public VideoGame createNew(VideoGameRequestDto requestDto) {
         final VideoGame videoGame = new VideoGame().updateFromRequestDto(requestDto);
         final VideoGame validatedVideoGame = validateSystem(videoGame);
-        //Note: there is no validation for video game boxes until the video game is retrieved from the database.
-        //TODO double check that this isn't a problem
         final VideoGame savedVideoGame = repository.insert(validatedVideoGame);
         savedVideoGame.setSystem(validatedVideoGame.getSystem());
         return savedVideoGame;
@@ -81,6 +79,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
     @Override
     @Transactional
     public void deleteById(int id) {
+        //TODO is this needed
         VideoGame videoGame = repository.getById(id);
 
         List<VideoGameBox> markedForDeletion = new ArrayList<>();

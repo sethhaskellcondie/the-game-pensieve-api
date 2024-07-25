@@ -34,6 +34,17 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRespon
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 
+/**
+ * Video games represent the games that are owned but not how they appear on the shelf in a collection.
+ * If a video game appears in a collection multiple times it will only appear once in the system as a video game.
+ * Because of this video games cannot be created or deleted through the API instead this is done through the video game box endpoints.
+ * Video games must include a title, a system, and include at least one video game box.
+ * Only one video game is allowed with the same title, and system combination, if another game is entered with the same title and system it will be updated with any new information.
+ * Video games can be patched and read through the API.
+ */
+
+//TODO update these tests to reflect this new functionality.
+
 @SpringBootTest
 @ActiveProfiles("test-container")
 @AutoConfigureMockMvc
@@ -53,6 +64,7 @@ public class VideoGameTests {
 
     @Test
     void postVideoGameWithCustomFieldValues_ValidPayload_VideoGameCreatedAndReturned() throws Exception {
+        //TODO update test, create the video game through a video game box
         final String expectedTitle = "Mega Man";
         final SystemResponseDto relatedSystem = factory.postSystem();
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
@@ -70,6 +82,7 @@ public class VideoGameTests {
     }
 
     void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(VideoGameResponseDto existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+        //TODO update test, update the video game through a video game box
         final String updatedTitle = "Donald Duck";
         final SystemResponseDto newRelatedSystem = factory.postSystem();
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
@@ -95,6 +108,7 @@ public class VideoGameTests {
 
     @Test
     void postVideoGame_TitleBlankInvalidSystemId_ReturnBadRequest() throws Exception {
+        //TODO update test, create the video game through a video game box
         //Two errors the title cannot be blank
         //the systemId must be a valid int
         final String jsonContent = factory.formatVideoGamePayload("", -1, null);
@@ -114,6 +128,7 @@ public class VideoGameTests {
 
     @Test
     void postVideoGame_SystemIdInvalid_ReturnBadRequest() throws Exception {
+        //TODO update test, create the video game through a video game box
         //This test is a little different from the last one, in this one we are passing in a valid int for the systemId
         //but there is not a matching system in the database for that id, so the error message will be different.
         final String jsonContent = factory.formatVideoGamePayload("Valid Title", Integer.MAX_VALUE, null);
@@ -133,6 +148,7 @@ public class VideoGameTests {
 
     @Test
     void getOneVideoGame_GameExists_VideoGameSerializedCorrectly() throws Exception {
+        //TODO update test, test for related video game boxes
         final String title = "Super Mario Bros. 3";
         final SystemResponseDto relatedSystem = factory.postSystem();
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
@@ -161,6 +177,7 @@ public class VideoGameTests {
 
     @Test
     void getAllVideoGames_StartsWithFilter_VideoGameListReturned() throws Exception {
+        //TODO update test, test for related video game boxes
         //This is used in the following test
         final String customFieldName = "Custom";
         final String customFieldType = "number";
@@ -255,6 +272,7 @@ public class VideoGameTests {
 
     @Test
     void deleteExistingVideoGame_GameExists_ReturnNoContent() throws Exception {
+        //TODO update test, delete through a video game box (tested in the video game box tests?)
         VideoGameResponseDto existingVideoGame = factory.postVideoGame();
 
         final ResultActions result = mockMvc.perform(
@@ -270,6 +288,7 @@ public class VideoGameTests {
 
     @Test
     void deleteExistingVideoGame_InvalidId_ReturnNotFound() throws Exception {
+        //TODO update test, delete through a video game box (tested in the video game box tests?)
         final ResultActions result = mockMvc.perform(
                 delete(baseUrl + "/-1")
         );

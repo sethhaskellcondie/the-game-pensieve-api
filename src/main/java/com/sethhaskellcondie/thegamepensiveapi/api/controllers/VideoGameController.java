@@ -56,13 +56,4 @@ public class VideoGameController {
         final FormattedResponseBody<VideoGameResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
-
-    @ResponseBody
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Map<String, String> deleteExisting(@PathVariable int id) throws ExceptionResourceNotFound {
-        gateway.deleteById(id);
-        FormattedResponseBody<String> body = new FormattedResponseBody<>("");
-        return body.formatData();
-    }
 }

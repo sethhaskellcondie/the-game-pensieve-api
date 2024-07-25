@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -106,7 +107,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
 
     @Override
     protected void insertValidation(VideoGameBox videoGameBox) {
-        if (!videoGameBox.isSystemIdValid() || !videoGameBox.isVideoGamesValid()) {
+        if (!videoGameBox.isSystemValid() || !videoGameBox.isVideoGamesValid()) {
             throw new ExceptionInternalError("Error Persisting Video Game Box Entity: The system_id and video game list must be validated before inserting into the database. "
             + "Call createNew from the VideoGameBoxService instead of calling insert() directly on the repository.");
         }
@@ -114,7 +115,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
 
     @Override
     protected void updateValidation(VideoGameBox videoGameBox) {
-        if (!videoGameBox.isSystemIdValid() || !videoGameBox.isVideoGamesValid()) {
+        if (!videoGameBox.isSystemValid() || !videoGameBox.isVideoGamesValid()) {
             throw new ExceptionInternalError("Error Persisting Video Game Box Entity: The system_id and video game list must be validated before updating the database. "
                     + "Call updateExisting from the VideoGameBoxService instead of calling update() directly on the repository.");
         }
@@ -142,8 +143,8 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
         );
 
         int videoGameBoxId = (Integer) keyHolder.getKeys().get("id");
-        for (VideoGame videoGame : videoGameBox.getVideoGames()) {
-            insertRelationshipBetweenGameAndBox(videoGame.getId(), videoGameBoxId);
+        for (SlimVideoGame videoGame : videoGameBox.getVideoGames()) {
+            insertRelationshipBetweenGameAndBox(videoGame.id(), videoGameBoxId);
         }
 
         return videoGameBoxId;
@@ -164,11 +165,11 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
                 (resultSet, rowNumber) -> valueOf(resultSet.getInt("video_game_id")),
                 videoGameBox.getId()
         );
-        for (VideoGame videoGame : videoGameBox.getVideoGames()) {
-            if (!gameListIds.contains(videoGame.getId())) {
-                insertRelationshipBetweenGameAndBox(videoGame.getId(), videoGameBox.getId());
+        for (SlimVideoGame videoGame : videoGameBox.getVideoGames()) {
+            if (!gameListIds.contains(videoGame.id())) {
+                insertRelationshipBetweenGameAndBox(videoGame.id(), videoGameBox.getId());
             }
-            gameListIds.remove(videoGame.getId());
+            gameListIds.remove(videoGame.id());
         }
         if (!gameListIds.isEmpty()) {
             final String inClause = String.join(",", Collections.nCopies(gameListIds.size(), "?"));

@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import org.springframework.stereotype.Component;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityGateway;
@@ -19,4 +18,8 @@ public class VideoGameGateway extends EntityGatewayAbstract<VideoGame, VideoGame
         throw new RuntimeException("Not Implemented Error: Create new video game objects through the VideoGameBoxGateway instead of the VideoGameGateway.");
     }
 
+    @Override
+    public void deleteById(int id) {
+        throw new RuntimeException("Not Implemented Error: Delete video game objects through the VideoGameBoxGateway instead of the VideoGameGateway.");
+    }
 }
