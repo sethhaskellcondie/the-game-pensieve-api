@@ -32,6 +32,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Toys are the most basic of the entities, they implement all the basic CRUD functions along with custom fields and filters.
+ * Toys must include a name (not unique)
+ */
+
 @SpringBootTest
 @ActiveProfiles("test-container")
 @AutoConfigureMockMvc
@@ -272,6 +277,7 @@ public class ToyTests {
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 
+    //TODO refactor this call out
     private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value("toy"),

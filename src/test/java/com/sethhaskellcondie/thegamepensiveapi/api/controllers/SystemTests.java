@@ -36,6 +36,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * I've done a bunch of different tests and for this project I feel like the best option is to
  * run with MockMvc integration tests for the rest of the tests now. It is the easiest to use
  * I was able to get everything done with MockMvc tests.
+ * <p>
+ * Systems are another basic entity, they implement all entity CRUD functions, custom fields, and filters.
+ * Systems must have a unique name.
+ * Systems have a "belongs-to" relationship with video games and video games boxes.
  */
 @SpringBootTest
 @ActiveProfiles("test-container")
@@ -312,6 +316,7 @@ public class SystemTests {
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 
+    //TODO refactor this function out
     private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value("system"),
