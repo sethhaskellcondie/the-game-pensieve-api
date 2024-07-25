@@ -108,6 +108,8 @@ public class VideoGameBoxTests {
 //                List.of(newRelatedVideoGame1, newRelatedVideoGame2), newPhysical, newCollection, orderedCustomFieldValue);
     }
 
+    //TODO create and implement a test that when a video game box with no video game id is passed in a video game with the same title will be created
+
     @Test
     void postVideoGameBox_TitleBlankInvalidSystemIdMissingVideoGames_ReturnBadRequest() throws Exception {
         //Three errors the title cannot be blank
@@ -345,8 +347,8 @@ public class VideoGameBoxTests {
                     jsonPath("$.data.videoGames[" + i + "].key").value(expectedGameDto.key()),
                     jsonPath("$.data.videoGames[" + i + "].id").value(expectedGameDto.id()),
                     jsonPath("$.data.videoGames[" + i + "].title").value(expectedGameDto.title()),
-                    jsonPath("$.data.videoGames[" + i + "].systemId").value(expectedGameDto.systemId()),
-                    jsonPath("$.data.videoGames[" + i + "].systemName").value(expectedGameDto.systemName())
+                    jsonPath("$.data.videoGames[" + i + "].systemId").value(expectedGameDto.systemId())
+//                    jsonPath("$.data.videoGames[" + i + "].systemName").value(expectedGameDto.systemName())
             );
             //Note: the custom fields on the video games are not being tested
         }

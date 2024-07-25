@@ -3,10 +3,8 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRepository;
 import org.springframework.stereotype.Service;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityServiceAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
@@ -56,25 +54,25 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
         final VideoGame videoGame = new VideoGame().updateFromRequestDto(requestDto);
         final VideoGame validatedVideoGame = validateSystemId(videoGame);
         final VideoGame savedVideoGame = repository.insert(validatedVideoGame);
-        savedVideoGame.setSystemName(validatedVideoGame.getSystemName());
+        savedVideoGame.setSystem(validatedVideoGame.getSystem());
         return savedVideoGame;
     }
 
     @Override
     public VideoGame updateExisting(VideoGame videoGame) {
         VideoGame validatedVideoGame = videoGame;
-        if (!videoGame.isSystemIdValid()) {
+        if (!videoGame.isSystemValid()) {
             validatedVideoGame = validateSystemId(videoGame);
         }
         final VideoGame updatedVideoGame = repository.update(validatedVideoGame);
-        updatedVideoGame.setSystemName(validatedVideoGame.getSystemName());
+        updatedVideoGame.setSystem(validatedVideoGame.getSystem());
         return updatedVideoGame;
     }
 
     public VideoGame validateSystemId(VideoGame videoGame) {
         try {
             System system = systemRepository.getByIdIncludeDeleted(videoGame.getSystemId());
-            videoGame.setSystemName(system.getName());
+            videoGame.setSystem(system);
         } catch (Exception e) {
             throw new ExceptionMalformedEntity(List.of(new Exception("Error - Problem getting video games from the database, video game with title: '"
                     + videoGame.getTitle() + "' had systemId: " + videoGame.getSystemId() + " but couldn't get a valid system from the database with that id. Message: "

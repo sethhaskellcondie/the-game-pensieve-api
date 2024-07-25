@@ -79,7 +79,7 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
 
     @Override
     protected void insertValidation(VideoGame entity) {
-        if (!entity.isSystemIdValid()) {
+        if (!entity.isSystemValid()) {
             throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before inserting data into the database. " +
                     "Call createNew from the VideoGameService instead of calling insert() directly on the repository");
         }
@@ -87,7 +87,7 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
 
     @Override
     protected void updateValidation(VideoGame entity) {
-        if (!entity.isSystemIdValid()) {
+        if (!entity.isSystemValid()) {
             throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before updating the database. " +
                     "Call updateExisting from the VideoGameService instead of calling update() directly on the repository");
         }

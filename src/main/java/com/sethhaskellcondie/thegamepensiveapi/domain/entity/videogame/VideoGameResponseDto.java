@@ -4,13 +4,14 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 
 public record VideoGameResponseDto(
 	String key,
 	int id,
 	String title,
 	int systemId,
-	String systemName,
+	SystemResponseDto system,
 	Timestamp createdAt,
 	Timestamp updatedAt,
 	Timestamp deletedAt,

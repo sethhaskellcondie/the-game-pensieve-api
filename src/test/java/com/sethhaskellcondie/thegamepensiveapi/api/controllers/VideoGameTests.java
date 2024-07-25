@@ -63,13 +63,11 @@ public class VideoGameTests {
 
         final ResultActions result = factory.postVideoGameReturnResult(expectedTitle, relatedSystem.id(), expectedCustomFieldValues);
 
-        validateVideoGameResponseBody(result, expectedTitle, relatedSystem.id(), relatedSystem.name(), expectedCustomFieldValues);
+        validateVideoGameResponseBody(result, expectedTitle, relatedSystem.id(), relatedSystem, expectedCustomFieldValues);
 
         final VideoGameResponseDto responseDto = factory.resultToVideoGameResponseDto(result);
         updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
     }
-
-    //TODO create and implement a test that when a video game box with no video game id is passed in a video game with the same title will be created
 
     void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(VideoGameResponseDto existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
         final String updatedTitle = "Donald Duck";
@@ -92,7 +90,7 @@ public class VideoGameTests {
         );
 
         result.andExpect(status().isOk());
-        validateVideoGameResponseBody(result, updatedTitle, newRelatedSystem.id(), newRelatedSystem.name(), existingCustomFieldValue);
+        validateVideoGameResponseBody(result, updatedTitle, newRelatedSystem.id(), newRelatedSystem, existingCustomFieldValue);
     }
 
     @Test
@@ -147,7 +145,7 @@ public class VideoGameTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateVideoGameResponseBody(result, expectedDto, customFieldValues);
+        validateVideoGameResponseBody(result, title, relatedSystem.id(), relatedSystem, customFieldValues);
     }
 
     @Test
@@ -283,30 +281,23 @@ public class VideoGameTests {
         );
     }
 
-    private void validateVideoGameResponseBody(ResultActions result, String expectedTitle, int expectedSystemId, String expectedSystemName,
+    private void validateVideoGameResponseBody(ResultActions result, String expectedTitle, int expectedSystemId, SystemResponseDto expectedSystem,
                                                List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value(Keychain.VIDEO_GAME_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.title").value(expectedTitle),
                 jsonPath("$.data.systemId").value(expectedSystemId),
-                jsonPath("$.data.systemName").value(expectedSystemName),
+                jsonPath("$.data.system.key").value(expectedSystem.key()),
+                jsonPath("$.data.system.id").value(expectedSystem.id()),
+                jsonPath("$.data.system.name").value(expectedSystem.name()),
+                jsonPath("$.data.system.generation").value(expectedSystem.generation()),
+                jsonPath("$.data.system.handheld").value(expectedSystem.handheld()),
+                //the custom fields will not be tested here, those are tested in the systemTests
                 jsonPath("$.errors").isEmpty()
         );
         VideoGameResponseDto responseDto = factory.resultToVideoGameResponseDto(result);
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
-    }
-
-    private void validateVideoGameResponseBody(ResultActions result, VideoGameResponseDto expectedResponse, List<CustomFieldValue> customFieldValues) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.key").value(Keychain.VIDEO_GAME_KEY),
-                jsonPath("$.data.id").value(expectedResponse.id()),
-                jsonPath("$.data.title").value(expectedResponse.title()),
-                jsonPath("$.data.systemId").value(expectedResponse.systemId()),
-                jsonPath("$.data.systemName").value(expectedResponse.systemName()),
-                jsonPath("$.errors").isEmpty()
-        );
-        factory.validateCustomFieldValues(expectedResponse.customFieldValues(), customFieldValues);
     }
 
     private void validateVideoGameResponseBody(ResultActions result, List<VideoGameResponseDto> expectedGames) throws Exception {
@@ -330,7 +321,7 @@ public class VideoGameTests {
                     () -> assertEquals(expectedGame.id(), returnedGame.id()),
                     () -> assertEquals(expectedGame.title(), returnedGame.title()),
                     () -> assertEquals(expectedGame.systemId(), returnedGame.systemId()),
-                    () -> assertEquals(expectedGame.systemName(), returnedGame.systemName())
+                    () -> assertEquals(expectedGame.system(), returnedGame.system())
             );
             factory.validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues());
         }

@@ -7,6 +7,8 @@ import java.util.List;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 
@@ -16,8 +18,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     private int systemId;
     //The system name is a flag that also indicates that the systemId is valid
     //it must be set manually and cannot be set in the constructor.
-    //TODO refactor the game to have the entire system instead of just the name
-    private String systemName;
+    private System system;
 
     public VideoGame() {
         super();
@@ -28,7 +29,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         super(id, createdAt, updatedAt, deletedAt, customFieldValues);
         this.title = title;
         this.systemId = systemId;
-        this.systemName = null;
+        this.system = null;
     }
 
     public String getTitle() {
@@ -39,16 +40,16 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         return systemId;
     }
 
-    public String getSystemName() {
-        return systemName;
+    public System getSystem() {
+        return system;
     }
 
-    public void setSystemName(String systemName) {
-        this.systemName = systemName;
+    public void setSystem(System system) {
+        this.system = system;
     }
 
-    public boolean isSystemIdValid() {
-        return null != systemName;
+    public boolean isSystemValid() {
+        return null != system;
     }
 
     @Override
@@ -60,7 +61,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         } catch (NullPointerException e) {
             exceptions.add(new ExceptionInputValidation("Video Game object error, the systemId cannot be null."));
         }
-        this.systemName = null;
+        this.system = null;
         setCustomFieldValues(requestDto.customFieldValues());
         try {
             this.validate();
@@ -75,7 +76,11 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
 
     @Override
     public VideoGameResponseDto convertToResponseDto() {
-        return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, this.systemName,
+        SystemResponseDto systemResponseDto = null;
+        if (isSystemValid()) {
+            systemResponseDto = this.system.convertToResponseDto();
+        }
+        return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, systemResponseDto,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );
     }
