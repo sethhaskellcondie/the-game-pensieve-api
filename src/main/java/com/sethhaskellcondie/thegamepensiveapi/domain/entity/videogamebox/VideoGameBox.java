@@ -6,7 +6,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
@@ -110,11 +109,6 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
 
     @Override
     protected VideoGameBox updateFromRequestDto(VideoGameBoxRequestDto requestDto) {
-        return updateFromRequestDto(requestDto, new ArrayList<>());
-    }
-
-    protected VideoGameBox updateFromRequestDto(VideoGameBoxRequestDto requestDto, List<SlimVideoGame> relatedVideoGames) {
-
         ExceptionMalformedEntity exception = new ExceptionMalformedEntity();
         this.title = requestDto.title();
         try {
@@ -123,11 +117,9 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
             exception.addException(new ExceptionInputValidation("Video Game Box object error, the systemId cannot be null."));
         }
         this.system = null;
-        if (requestDto.existingVideoGameIds().isEmpty() && relatedVideoGames.isEmpty()) {
-            exception.addException(new ExceptionInputValidation("Video Game Box object error, boxes must contain at least one existingGameId, or newVideoGame."));
-        }
         this.setVideoGameIds(requestDto.existingVideoGameIds());
-        this.setVideoGames(relatedVideoGames);
+        //the videoGameRequestDto objects will be validated and assigned to the video game box in the service
+        this.videoGames = new ArrayList<>();
         this.physical = requestDto.isPhysical();
         this.customFieldValues = requestDto.customFieldValues();
 
@@ -140,7 +132,8 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         if (!exception.isEmpty()) {
             throw exception;
         }
-        return this;    }
+        return this;
+    }
 
     @Override
     protected VideoGameBoxResponseDto convertToResponseDto() {
@@ -167,16 +160,13 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         return Keychain.VIDEO_GAME_BOX_KEY;
     }
 
-    private void validate() throws ExceptionMalformedEntity {
+    private void validate() {
         ExceptionMalformedEntity exception = new ExceptionMalformedEntity();
         if (null == this.title || this.title.isBlank()) {
             exception.addException(new ExceptionInputValidation("Video Game Box error, title cannot be blank."));
         }
         if (this.systemId <= 0) {
             exception.addException("Video Game Box error, invalid system ID.");
-        }
-        if (this.videoGameIds.isEmpty() && this.videoGames.isEmpty()) {
-            exception.addException(new ExceptionInputValidation("A Video Game Box must always have either a list of game ids, or a list of games."));
         }
         if (!exception.isEmpty()) {
             throw exception;

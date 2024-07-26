@@ -290,45 +290,11 @@ public class TestFactory {
         return String.format(json, name, set, customFieldValuesString);
     }
 
-    public VideoGameResponseDto postVideoGame() throws Exception {
-        final String title = "TestVideoGame-" + randomString(4);
-        final int systemId = postSystem().id();
-        final ResultActions result = postVideoGameReturnResult(title, systemId, null);
-        return resultToVideoGameResponseDto(result);
-    }
-
-    public ResultActions postVideoGameReturnResult(String title, int systemId, List<CustomFieldValue> customFieldValues) throws Exception {
-        final String formattedJson = formatVideoGamePayload(title, systemId, customFieldValues);
-
-        final ResultActions result = mockMvc.perform(
-                post("/v1/videoGames")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(formattedJson)
-        );
-
-        result.andExpect(status().isCreated());
-        return result;
-    }
-
     public VideoGameResponseDto resultToVideoGameResponseDto(ResultActions result) throws Exception {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
         final Map<String, VideoGameResponseDto> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         return body.get("data");
-    }
-
-    public String formatVideoGamePayload(String title, int systemId, List<CustomFieldValue> customFieldValues) {
-        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
-        final String json = """
-                {
-                	"videoGame": {
-                	    "title": "%s",
-                	    "systemId": "%d",
-                        "customFieldValues": %s
-                	    }
-                }
-                """;
-        return String.format(json, title, systemId, customFieldValuesString);
     }
 
     public void validateSlimVideoGames(List<SlimVideoGame> expectedVideoGames, List<SlimVideoGame> actualVideoGames) {
