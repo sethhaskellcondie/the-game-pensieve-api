@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +42,9 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 /**
  * Video games represent the games that are owned but not how they appear on the shelf in a collection.
  * If a video game appears in a collection multiple times it will only appear once in the system as a video game.
- * Because of this video games cannot be created or deleted through the API instead this is done through the video game box endpoints.
+ * Because of this video games cannot be created or deleted through the videoGames endpoints instead this is done through the videoGameBox endpoints.
  * Video games must include a title, a system, and include at least one video game box.
- * Only one video game is allowed with the same title, and system combination, if another game is entered with the same title and system it will be updated with any new information.
- * Video games can be patched and read through the API.
  */
-
-//TODO update these tests to reflect this new functionality.
 
 @SpringBootTest
 @ActiveProfiles("test-container")
@@ -61,51 +62,59 @@ public class VideoGameTests {
     void setUp() {
         factory = new TestFactory(mockMvc);
     }
-//
-//    @Test
-//    void postVideoGameWithCustomFieldValues_ValidPayload_VideoGameCreatedAndReturned() throws Exception {
-//        //TODO update test, create the video game through a video game box
-//        final String expectedTitle = "Mega Man";
-//        final SystemResponseDto relatedSystem = factory.postSystem();
-//        final List<CustomFieldValue> expectedCustomFieldValues = List.of(
-//                new CustomFieldValue(0, "Owned", "boolean", "true"),
-//                new CustomFieldValue(0, "Players", "number", "1"),
-//                new CustomFieldValue(0, "Publisher", "text", "Capcom")
-//        );
-//
-//        final ResultActions result = factory.postVideoGameReturnResult(expectedTitle, relatedSystem.id(), expectedCustomFieldValues);
-//
-//        validateVideoGameResponseBody(result, expectedTitle, relatedSystem.id(), relatedSystem, expectedCustomFieldValues);
-//
-//        final VideoGameResponseDto responseDto = factory.resultToVideoGameResponseDto(result);
-//        updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
-//    }
-//
-//    void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(VideoGameResponseDto existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
-//        //TODO update test, update the video game through a video game box
-//        final String updatedTitle = "Donald Duck";
-//        final SystemResponseDto newRelatedSystem = factory.postSystem();
-//        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
-//        existingCustomFieldValue.remove(0);
-//        final CustomFieldValue updatedValue = new CustomFieldValue(
-//                customFieldValueToUpdate.getCustomFieldId(),
-//                "Updated" + customFieldValueToUpdate.getCustomFieldName(),
-//                customFieldValueToUpdate.getCustomFieldType(),
-//                "false"
-//        );
-//        existingCustomFieldValue.add(updatedValue);
-//
-//        final String jsonContent = factory.formatVideoGamePayload(updatedTitle, newRelatedSystem.id(), existingCustomFieldValue);
-//        final ResultActions result = mockMvc.perform(
-//                put(baseUrlSlash + existingVideoGame.id())
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(jsonContent)
-//        );
-//
-//        result.andExpect(status().isOk());
-//        validateVideoGameResponseBody(result, updatedTitle, newRelatedSystem.id(), newRelatedSystem, existingCustomFieldValue);
-//    }
-//
+
+    @Test
+    void postVideoGameWithCustomFieldValues_ValidPayload_VideoGameCreatedAndReturned() throws Exception {
+        final String boxTitle = "Mega Man Legacy Collection";
+        final SystemResponseDto boxSystem = factory.postSystem();
+        final SystemResponseDto gameSystem = factory.postSystem();
+        final boolean isPhysical = true;
+        final boolean expectedCollection = true;
+        final List<CustomFieldValue> expectedCustomFieldValues = List.of(
+                new CustomFieldValue(0, "Owned", "boolean", "true"),
+                new CustomFieldValue(0, "Players", "number", "1"),
+                new CustomFieldValue(0, "Publisher", "text", "Capcom")
+        );
+        final VideoGameRequestDto newGame1 = new VideoGameRequestDto("Mega Man", gameSystem.id(), expectedCustomFieldValues);
+        final VideoGameRequestDto newGame2 = new VideoGameRequestDto("Mega Man 2", gameSystem.id(), new ArrayList<>());
+        final List<SlimVideoGame> expectedVideoGameResults = List.of(
+                convertToExpectedSlimVideoGameResponse(newGame1, gameSystem),
+                convertToExpectedSlimVideoGameResponse(newGame2, gameSystem)
+        );
+
+        final ResultActions result = factory.postVideoGameBoxReturnResult(boxTitle, boxSystem.id(), new ArrayList<>(), List.of(newGame1, newGame2), isPhysical, new ArrayList<>());
+
+        factory.validateVideoGameBoxResponseBody(result, boxTitle, boxSystem, expectedVideoGameResults, isPhysical, expectedCollection, new ArrayList<>());
+
+        final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
+        final SlimVideoGame existingVideoGame = responseDto.videoGames().get(0);
+        updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(responseDto, existingVideoGame, existingVideoGame.customFieldValues());
+    }
+
+    void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(VideoGameBoxResponseDto existingVideoGameBox, SlimVideoGame existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+        final String updatedTitle = "Mega Man 3";
+        final SystemResponseDto newRelatedSystem = factory.postSystem();
+        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
+        existingCustomFieldValue.remove(0);
+        final CustomFieldValue updatedValue = new CustomFieldValue(
+                customFieldValueToUpdate.getCustomFieldId(),
+                "Updated" + customFieldValueToUpdate.getCustomFieldName(),
+                customFieldValueToUpdate.getCustomFieldType(),
+                "false"
+        );
+        existingCustomFieldValue.add(updatedValue);
+
+        final String jsonContent = factory.formatVideoGamePayload(updatedTitle, newRelatedSystem.id(), existingCustomFieldValue);
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + existingVideoGame.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpect(status().isOk());
+        validateVideoGameResponseBody(result, updatedTitle, newRelatedSystem, List.of(convertToExpectedSlimVideoGameBox(existingVideoGameBox, existingVideoGameBox.system())), existingCustomFieldValue);
+    }
+
 //    @Test
 //    void postVideoGame_TitleBlankInvalidSystemId_ReturnBadRequest() throws Exception {
 //        //TODO update test, create the video game through a video game box
@@ -300,23 +309,27 @@ public class VideoGameTests {
 //        );
 //    }
 
-    private void validateVideoGameResponseBody(ResultActions result, String expectedTitle, int expectedSystemId, SystemResponseDto expectedSystem,
+    private SlimVideoGame convertToExpectedSlimVideoGameResponse(VideoGameRequestDto requestDto, SystemResponseDto expectedSystem) {
+        return new SlimVideoGame(0, requestDto.title(), expectedSystem, null, null, null, requestDto.customFieldValues());
+    }
+
+    private SlimVideoGameBox convertToExpectedSlimVideoGameBox(VideoGameBoxResponseDto responseDto, SystemResponseDto expectedSystem) {
+        return new SlimVideoGameBox(0, responseDto.title(), expectedSystem, responseDto.isPhysical(), responseDto.isCollection(), null, null, null, responseDto.customFieldValues());
+    }
+
+    private void validateVideoGameResponseBody(ResultActions result, String expectedTitle, SystemResponseDto expectedSystem, List<SlimVideoGameBox> expectedVideoGameBoxes,
                                                List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value(Keychain.VIDEO_GAME_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.title").value(expectedTitle),
-                jsonPath("$.data.systemId").value(expectedSystemId),
-                jsonPath("$.data.system.key").value(expectedSystem.key()),
-                jsonPath("$.data.system.id").value(expectedSystem.id()),
-                jsonPath("$.data.system.name").value(expectedSystem.name()),
-                jsonPath("$.data.system.generation").value(expectedSystem.generation()),
-                jsonPath("$.data.system.handheld").value(expectedSystem.handheld()),
-                //the custom fields will not be tested here, those are tested in the systemTests
+                jsonPath("$.data.videoGameBoxes.size()").value(expectedVideoGameBoxes.size()),
                 jsonPath("$.errors").isEmpty()
         );
         VideoGameResponseDto responseDto = factory.resultToVideoGameResponseDto(result);
-        factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
+        factory.validateSystem(expectedSystem, responseDto.system());
+        validateSlimVideoGameBoxes(expectedVideoGameBoxes, responseDto.videoGameBoxes());
+        factory.validateCustomFieldValues(customFieldValues, responseDto.customFieldValues());
     }
 
     private void validateVideoGameResponseBody(ResultActions result, List<VideoGameResponseDto> expectedGames) throws Exception {
@@ -339,10 +352,37 @@ public class VideoGameTests {
                     () -> assertEquals(Keychain.VIDEO_GAME_KEY, returnedGame.key()),
                     () -> assertEquals(expectedGame.id(), returnedGame.id()),
                     () -> assertEquals(expectedGame.title(), returnedGame.title()),
-                    () -> assertEquals(expectedGame.systemId(), returnedGame.systemId()),
                     () -> assertEquals(expectedGame.system(), returnedGame.system())
             );
             factory.validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues());
+        }
+    }
+
+    private void validateSlimVideoGameBoxes(List<SlimVideoGameBox> expectedVideoGameBoxes, List<SlimVideoGameBox> actualVideoGameBoxes) {
+        assertEquals(expectedVideoGameBoxes.size(), actualVideoGameBoxes.size(), "The number of returned slim video games did not matched the number of expected slim video games.");
+        for (int i = 0; i < actualVideoGameBoxes.size(); i++) {
+            SlimVideoGameBox returnedGame = actualVideoGameBoxes.get(i);
+            SlimVideoGameBox expectedGame = expectedVideoGameBoxes.get(i);
+            if (expectedGame.id() == 0) {
+                assertAll(
+                        "The returned slim video games didn't match the expected slim video games.",
+                        () -> assertEquals(expectedGame.title(), returnedGame.title()),
+                        () -> factory.validateSystem(expectedGame.system(), returnedGame.system()),
+                        () -> assertEquals(expectedGame.physical(), returnedGame.physical()),
+                        () -> assertEquals(expectedGame.collection(), returnedGame.collection()),
+                        () -> factory.validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues())
+                );
+            } else {
+                assertAll(
+                        "The returned slim video games didn't match the expected slim video games.",
+                        () -> assertEquals(expectedGame.id(), returnedGame.id()),
+                        () -> assertEquals(expectedGame.title(), returnedGame.title()),
+                        () -> factory.validateSystem(expectedGame.system(), returnedGame.system()),
+                        () -> assertEquals(expectedGame.physical(), returnedGame.physical()),
+                        () -> assertEquals(expectedGame.collection(), returnedGame.collection()),
+                        () -> factory.validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues())
+                );
+            }
         }
     }
 }

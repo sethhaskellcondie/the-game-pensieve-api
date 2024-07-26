@@ -6,6 +6,7 @@ import java.util.List;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import org.springframework.stereotype.Service;
 
@@ -73,13 +74,14 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
         }
         final VideoGame updatedVideoGame = repository.update(validatedVideoGame);
         updatedVideoGame.setSystem(validatedVideoGame.getSystem());
+        updatedVideoGame.setVideoGameBoxes(validatedVideoGame.getVideoGameBoxes());
         return updatedVideoGame;
     }
 
     @Override
     @Transactional
     public void deleteById(int id) {
-        //TODO is this needed
+        //TODO is this needed?
         VideoGame videoGame = repository.getById(id);
 
         List<VideoGameBox> markedForDeletion = new ArrayList<>();
@@ -132,6 +134,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
         for (Integer videoGameBoxId : videoGame.getVideoGameBoxIds()) {
             try {
                 VideoGameBox videoGameBox = videoGameBoxRepository.getById(videoGameBoxId);
+                videoGameBox.setSystem(systemRepository.getById(videoGameBox.getSystemId()));
                 videoGameBoxes.add(videoGameBox.convertToSlimVideoGameBox());
             } catch (Exception e) {
                 exceptionMalformedEntity.addException("Error - Problem getting video game with title " + videoGame.getTitle()

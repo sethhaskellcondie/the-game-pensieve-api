@@ -1,7 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensiveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
@@ -18,15 +16,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Because of this video games are created and deleted through the video game boxes endpoints.
  * Video game boxes must have a title, system, and at least one video game.
  * When a video game box is created/updated a list of video games ids, or video game data is included in the request, on create these relationships are created in the system.
- *    On a PUT (overwrite) request, if there were three games in a collection and now there are only two the third entry will be deleted from the database.
+ * On a PUT (overwrite) request, if there were three games in a collection and now there are only two the third entry will be deleted from the database.
  * This test suite will focus on the video game boxes, the video game functionality will be tested in the VideoGameTests suite.
  */
 
@@ -78,7 +72,7 @@ public class VideoGameBoxTests {
 
         final ResultActions result = factory.postVideoGameBoxReturnResult(expectedTitle, relatedSystem.id(), new ArrayList<>(), List.of(relatedVideoGame), isPhysical, expectedCustomFieldValues);
 
-        validateVideoGameBoxResponseBody(result, expectedTitle, relatedSystem, expectedVideoGameResults, isPhysical, isCollection, expectedCustomFieldValues);
+        factory.validateVideoGameBoxResponseBody(result, expectedTitle, relatedSystem, expectedVideoGameResults, isPhysical, isCollection, expectedCustomFieldValues);
 
         final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
         updateExistingVideoGameBox_UpdateVideoGameBoxAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
@@ -111,7 +105,7 @@ public class VideoGameBoxTests {
         );
 
         result.andExpect(status().isOk());
-        validateVideoGameBoxResponseBody(result, updatedTitle, newRelatedSystem, existingVideoGameBox.videoGames(), newPhysical, newCollection, existingCustomFieldValue);
+        factory.validateVideoGameBoxResponseBody(result, updatedTitle, newRelatedSystem, existingVideoGameBox.videoGames(), newPhysical, newCollection, existingCustomFieldValue);
     }
 
 
@@ -193,7 +187,7 @@ public class VideoGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateVideoGameBoxResponseBody(result, expectedDto.title(), relatedSystem, expectedVideoGames, physical, collection, customFieldValues);
+        factory.validateVideoGameBoxResponseBody(result, expectedDto.title(), relatedSystem, expectedVideoGames, physical, collection, customFieldValues);
     }
 
     @Test
@@ -248,7 +242,7 @@ public class VideoGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateVideoGameBoxResponseBody(result, List.of(gameBoxDto1, gameBoxDto2));
+        factory.validateVideoGameBoxResponseBody(result, List.of(gameBoxDto1, gameBoxDto2));
 
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
         getWithFilters_GreaterThanCustomFilter_VideoGameBoxListReturned(customFilter, List.of(gameBoxDto3));
@@ -267,7 +261,7 @@ public class VideoGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateVideoGameBoxResponseBody(result, expectedGames);
+        factory.validateVideoGameBoxResponseBody(result, expectedGames);
     }
 
     @Test
@@ -334,50 +328,5 @@ public class VideoGameBoxTests {
 
     private SlimVideoGame convertToExpectedSlimVideoGameResponse(VideoGameRequestDto requestDto, SystemResponseDto expectedSystem) {
         return new SlimVideoGame(0, requestDto.title(), expectedSystem, null, null, null, requestDto.customFieldValues());
-    }
-
-    private void validateVideoGameBoxResponseBody(ResultActions result, String expectedTitle, SystemResponseDto expectedSystem,
-                                                  List<SlimVideoGame> expectedVideoGames, boolean expectedPhysical, boolean expectedCollection,
-                                                  List<CustomFieldValue> customFieldValues) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.key").value(Keychain.VIDEO_GAME_BOX_KEY),
-                jsonPath("$.data.id").isNotEmpty(),
-                jsonPath("$.data.title").value(expectedTitle),
-                jsonPath("$.data.videoGames.size()").value(expectedVideoGames.size()),
-                jsonPath("$.data.isPhysical").value(expectedPhysical),
-                jsonPath("$.data.isCollection").value(expectedCollection),
-                jsonPath("$.errors").isEmpty()
-        );
-        VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
-        factory.validateSystem(expectedSystem, responseDto.system());
-        factory.validateSlimVideoGames(expectedVideoGames, responseDto.videoGames());
-        factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
-    }
-
-    private void validateVideoGameBoxResponseBody(ResultActions result, List<VideoGameBoxResponseDto> expectedGameBoxes) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
-        );
-
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<VideoGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<VideoGameBoxResponseDto> returnedGameBoxes = body.get("data");
-        //test the order, and the deserialization
-        for (int i = 0; i < returnedGameBoxes.size(); i++) {
-            VideoGameBoxResponseDto expectedGameBox = expectedGameBoxes.get(i);
-            VideoGameBoxResponseDto returnedGameBox = returnedGameBoxes.get(i);
-            assertAll(
-                    "The response body for videoGameBoxes is not formatted correctly",
-                    () -> assertEquals(Keychain.VIDEO_GAME_BOX_KEY, returnedGameBox.key()),
-                    () -> assertEquals(expectedGameBox.id(), returnedGameBox.id()),
-                    () -> assertEquals(expectedGameBox.title(), returnedGameBox.title()),
-                    () -> factory.validateSlimVideoGames(expectedGameBox.videoGames(), returnedGameBox.videoGames()),
-                    () -> assertEquals(expectedGameBox.isPhysical(), returnedGameBox.isPhysical()),
-                    () -> assertEquals(expectedGameBox.isCollection(), returnedGameBox.isCollection())
-            );
-            factory.validateCustomFieldValues(expectedGameBox.customFieldValues(), returnedGameBox.customFieldValues());
-        }
     }
 }

@@ -11,7 +11,6 @@ public record VideoGameResponseDto(
 	String key,
 	int id,
 	String title,
-	int systemId,
 	SystemResponseDto system,
 	List<SlimVideoGameBox> videoGameBoxes,
 	Timestamp createdAt,

@@ -93,8 +93,6 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
             exceptions.add(new ExceptionInputValidation("Video Game object error, the systemId cannot be null."));
         }
         this.system = null;
-        this.videoGameBoxIds = new ArrayList<>();
-        this.videoGameBoxes = new ArrayList<>();
         setCustomFieldValues(requestDto.customFieldValues());
         try {
             this.validate();
@@ -113,7 +111,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         if (isSystemValid()) {
             systemResponseDto = this.system.convertToResponseDto();
         }
-        return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, systemResponseDto, videoGameBoxes,
+        return new VideoGameResponseDto(this.getKey(), this.id, this.title, systemResponseDto, videoGameBoxes,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );
     }
