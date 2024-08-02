@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
@@ -60,6 +61,13 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     }
 
     public List<Integer> getVideoGameIds() {
+        if (!videoGames.isEmpty()) {
+            List<Integer> gameIds = new ArrayList<>();
+            for (SlimVideoGame game : videoGames) {
+                gameIds.add(game.id());
+            }
+            return gameIds;
+        }
         return this.videoGameIds;
     }
 
@@ -117,7 +125,10 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
             exception.addException(new ExceptionInputValidation("Video Game Box object error, the systemId cannot be null."));
         }
         this.system = null;
-        this.setVideoGameIds(requestDto.existingVideoGameIds());
+        List<Integer> videoGameIds = new ArrayList<>();
+        videoGameIds.addAll(this.videoGameIds);
+        videoGameIds.addAll(requestDto.existingVideoGameIds());
+        this.setVideoGameIds(videoGameIds);
         //the videoGameRequestDto objects will be validated and assigned to the video game box in the service
         this.videoGames = new ArrayList<>();
         this.physical = requestDto.isPhysical();

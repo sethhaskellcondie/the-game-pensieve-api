@@ -78,31 +78,6 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
         return updatedVideoGame;
     }
 
-    @Override
-    @Transactional
-    public void deleteById(int id) {
-        //TODO is this needed?
-        VideoGame videoGame = repository.getById(id);
-
-        List<VideoGameBox> markedForDeletion = new ArrayList<>();
-        for (Integer videoGameBoxId : videoGame.getVideoGameBoxIds()) {
-            try {
-                VideoGameBox videoGameBox = videoGameBoxRepository.getById(videoGameBoxId);
-                if (videoGameBox.getVideoGameIds().size() == 1) {
-                    markedForDeletion.add(videoGameBox);
-                }
-            } catch (Exception e) {
-                throw new ExceptionInternalError("Internal Database Error - Problem deleting video game with title " + videoGame.getTitle()
-                        + " from the database, related video game box with id " + videoGameBoxId
-                        + " failed when trying to retrieve a video game box with that id from the database. The database is in a bad state.");
-            }
-        }
-        for (VideoGameBox videoGameBox : markedForDeletion) {
-            videoGameBoxRepository.deleteById(videoGameBox.getId());
-        }
-        repository.deleteById(id);
-    }
-
     public VideoGame validateSystem(VideoGame videoGame) {
         try {
             System system = systemRepository.getByIdIncludeDeleted(videoGame.getSystemId());

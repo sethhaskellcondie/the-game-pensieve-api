@@ -6,6 +6,8 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldVal
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +51,7 @@ public class VideoGameBoxTests {
     private TestFactory factory;
     private final String baseUrl = "/v1/videoGameBoxes";
     private final String baseUrlSlash = "/v1/videoGameBoxes/";
+    private final String videoGameUrlSlash = "/v1/videoGames/";
 
 
     @BeforeEach
@@ -114,6 +117,8 @@ public class VideoGameBoxTests {
         // Two errors total:
         // 1) The title cannot be blank.
         // 2) The systemId must be a valid int greater than zero.
+        //TODO test for this
+        // 3? Both video games lists are blank.
         final String jsonContent = factory.formatVideoGameBoxPayload("", -1, List.of(), List.of(), false, null);
 
         final ResultActions result = mockMvc.perform(
@@ -299,22 +304,7 @@ public class VideoGameBoxTests {
     }
 
     @Test
-    void deleteExistingVideoGameBox_GameBoxExists_ReturnNoContent() throws Exception {
-        VideoGameBoxResponseDto existingVideoGameBox = factory.postVideoGameBox();
-
-        final ResultActions result = mockMvc.perform(
-                delete(baseUrlSlash + existingVideoGameBox.id())
-        );
-
-        result.andExpectAll(
-                status().isNoContent(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
-        );
-    }
-
-    @Test
-    void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
+    void deleteExistingVideoGameBox_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
                 delete(baseUrl + "/-1")
         );

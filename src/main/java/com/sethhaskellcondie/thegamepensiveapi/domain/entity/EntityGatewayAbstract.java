@@ -6,7 +6,7 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResour
 import java.util.List;
 
 public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityGateway<T, RequestDto, ResponseDto> {
-    private final EntityService<T, RequestDto, ResponseDto> service;
+    protected final EntityService<T, RequestDto, ResponseDto> service;
 
     public EntityGatewayAbstract(EntityService<T, RequestDto, ResponseDto> service) {
         this.service = service;

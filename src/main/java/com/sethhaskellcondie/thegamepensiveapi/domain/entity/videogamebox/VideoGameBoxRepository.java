@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -75,6 +76,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     }
 
     @Override
+    @Transactional
     public void deleteById(int id) {
         final String sql = """
                 UPDATE video_game_boxes SET deleted_at = ? WHERE id = ?;
@@ -83,6 +85,10 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", getEntityKey(), id);
         }
+        final String sql2 = """
+                DELETE FROM video_game_to_video_game_box WHERE video_game_box_id = ?;
+                """;
+        jdbcTemplate.update(sql2, id);
     }
 
     @Override
