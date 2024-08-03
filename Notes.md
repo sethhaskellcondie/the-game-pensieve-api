@@ -1,13 +1,13 @@
-# Notes
+# -- Notes --
 
 ## Design
-This is a CRUD based Entity system. Entities all contain an ID, all entities must implement all the CRUD methods but not all of them need to expose that functionality through the controller. There are four layers to the system:
-- Controller - <Entity>Controller.java "SystemController.java"
-- Gateway - <Entity>Gateway.java "SystemGateway.java"
-- Service - <Entity>Service.java "SystemService.java"
-- Repository - <Entity>Repository.java "SystemRepository.java"
+This is a CRUD based Entity system. Entities all contain an ID, all entities must implement all the CRUD methods but not all of them need to expose that functionality through the controller. There are four layers to the system, they all follow this naming convention:
+- Controller - (Entity)Controller.java - "SystemController.java"
+- Gateway - (Entity)Gateway.java - "SystemGateway.java"
+- Service - (Entity)Service.java - "SystemService.java"
+- Repository - (Entity)Repository.java - "SystemRepository.java"
 
-Each layer only calls the layers on the same level or below it. For more information on the responsibilities of each layer check the Entity and System classes for each layer.
+Each layer only calls the layers on the same level or below it.
 
 ## Domain Encapsulation
 The domain is the core of the system, it could be compiled on its own or transplanted to another system if needed. The only way to access the domain is through the different Gateways. And the only things allowed to be exported from the domain are:
@@ -16,11 +16,8 @@ The domain is the core of the system, it could be compiled on its own or transpl
 - Exceptions
 - The Keychain
 
-Filters and CustomFieldValues are a blurry area for the api tests. They do make writing and maintaining the tests much easier, so I'm willing to bend the rules there.
-I haven't found a way to implement this restriction programmatically right now it is implemented by hand, but I would like to find a solution to this in the future.
-
 ## Return Body
-The body of requests was inspired a bit by the JSON API format. Intentional responses will have a "data" and "errors" attributes as part of the body. If the request was successful then the errors will return with a null value. Otherwise the data will be null and the errors will display one or more messages. This will illustrate when the response was intentional or not, for example a DELETE reuqest will usually not return a body in this date will be blank, and the errors will be null showing that the request was successful there was just no data to return.
+The body of requests was inspired by the JSON API format. Responses will have a "data" and "errors" attributes as part of the body. If the request was successful then the errors will return with a null value. Otherwise the data will be null and the errors will display one or more messages. This will illustrate when the response was intentional or not, for example a DELETE reuqest will usually not return a body in this date will be blank, and the errors will be null showing that the request was successful there was just no data to return.
 
 ## Docker Flow
 The project can be run by running the dockerfile this will spin up three containers.
@@ -30,13 +27,8 @@ The project can be run by running the dockerfile this will spin up three contain
   - When the program is run in docker it will load with the 'docker' profile "application-docker.properties"
 
 ## Test Plan / Flow
-Integration tests with the database use Testcontainers, they are called "RepositoryTests" they use the file format <Entity>RepositoryTests. They test the connection with the database and the hydration of objects.
-Entity Tests using the file format "<Entity>EntityTests" test the validation of objects as they are created making sure that multiple errors are thrown when multiple issues are found with an object.
-Controller tests using the file format "<Entity>ControllerTests" test the serialization and deserialization of request and response bodies along with the proper status codes.
-There is also a suite of unit tests for each layer making sure that the base functionality and added functionality work as intended.
+This project uses the diamond testing strategy, there are many integration tests that run tests from the controller, but there are parts of the program that needs more in-depth unit testing like custom fields and filters. The integration tests use test-containers to make sure that there is no cross containment between data for tests. The integration tests use the MockMvc library that comes included with Spring Boot library.
 
-Repository Tests use test containers to spin up a database to run tests on. They run a @JdbcTest that would usually run an in memory database, we can change that to a test container with a different @ActiveProfile "test-container."
-This profile has two lines to tell Spring to not spin up an in memory database spring.test.database.replace=none and then another line that changes the data source to a test container. With this setup we can autowire the jdbcTemplate and 
-use that to create an instance of a repository to run tests on.
-
-Currently the tests will spin up a new docker container and reinitialize the repository between each test, if this were implemented in a larger system steps would need to be taken to reuse the docker containers.
+## Documentation
+The design notes can be found with documentation style comments on the Entity, and System classes.
+The requirements for each entity is listed on the integration tests for that entity. For example to find the requirements for the Video Game Box check the VideoGameBoxTests.java
