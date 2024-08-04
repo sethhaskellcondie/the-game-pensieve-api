@@ -35,9 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Custom fields are not entities they belong to entities.
- * The custom field endpoints are mostly used for set up work, making sure that the custom fields are set up as intended before entering in other entity data.
+ * The custom field endpoints are mostly used for set up work, making sure that the custom fields are set up as intended before entering in other entity's data.
  * Custom fields must contain a valid type, and a unique name.
- * Custom fields cannot be PUT (overwritten) only PATCHed on the name.
+ * Custom fields cannot be PUT (overwritten) only the name can be PATCHed.
  */
 
 @SpringBootTest
