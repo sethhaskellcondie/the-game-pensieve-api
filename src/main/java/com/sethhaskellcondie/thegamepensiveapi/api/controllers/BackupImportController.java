@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * There are no api tests for these endpoint, instead there are domain tests for the backupImportGateway
+ * There are no api tests for these endpoints, instead there are domain tests for the backupImportGateway
  */
 @RestController
 public class BackupImportController {

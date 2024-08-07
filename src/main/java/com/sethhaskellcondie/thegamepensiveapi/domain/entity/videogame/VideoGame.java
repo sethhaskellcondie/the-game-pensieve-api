@@ -7,6 +7,9 @@ import java.util.List;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.Entity;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 
@@ -14,10 +17,9 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
 
     private String title;
     private int systemId;
-    //The system name is a flag that also indicates that the systemId is valid
-    //it must be set manually and cannot be set in the constructor.
-    //TODO refactor the game to have the entire system instead of just the name
-    private String systemName;
+    private System system; //The system is a flag that also indicates that the systemId is valid, it must be set manually in the service and cannot be set in the constructor
+    private List<Integer> videoGameBoxIds; // A list of the ids that are found in the database they should all match with a video game box in the database
+    private List<SlimVideoGameBox> videoGameBoxes; // A list of the video game boxes that match the ids found in the database, hydrated in the service
 
     public VideoGame() {
         super();
@@ -28,7 +30,9 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         super(id, createdAt, updatedAt, deletedAt, customFieldValues);
         this.title = title;
         this.systemId = systemId;
-        this.systemName = null;
+        this.system = null;
+        this.videoGameBoxIds = new ArrayList<>();
+        this.videoGameBoxes = new ArrayList<>();
     }
 
     public String getTitle() {
@@ -39,16 +43,44 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         return systemId;
     }
 
-    public String getSystemName() {
-        return systemName;
+    public System getSystem() {
+        return system;
     }
 
-    public void setSystemName(String systemName) {
-        this.systemName = systemName;
+    public void setSystem(System system) {
+        this.system = system;
     }
 
-    public boolean isSystemIdValid() {
-        return null != systemName;
+    public boolean isSystemValid() {
+        return null != system;
+    }
+
+    public List<Integer> getVideoGameBoxIds() {
+        return videoGameBoxIds;
+    }
+
+    public void setVideoGameBoxIds(List<Integer> videoGameBoxIds) {
+        if (null == videoGameBoxIds) {
+            this.videoGameBoxIds = new ArrayList<>();
+            return;
+        }
+        this.videoGameBoxIds = videoGameBoxIds;
+    }
+
+    public List<SlimVideoGameBox> getVideoGameBoxes() {
+        return this.videoGameBoxes;
+    }
+
+    public void setVideoGameBoxes(List<SlimVideoGameBox> videoGameBoxes) {
+        if (null == videoGameBoxes) {
+            this.videoGameBoxes = new ArrayList<>();
+            return;
+        }
+        this.videoGameBoxes = videoGameBoxes;
+    }
+
+    public boolean isVideoGameBoxesValid() {
+        return !videoGameBoxes.isEmpty();
     }
 
     @Override
@@ -60,7 +92,7 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
         } catch (NullPointerException e) {
             exceptions.add(new ExceptionInputValidation("Video Game object error, the systemId cannot be null."));
         }
-        this.systemName = null;
+        this.system = null;
         setCustomFieldValues(requestDto.customFieldValues());
         try {
             this.validate();
@@ -75,7 +107,11 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
 
     @Override
     public VideoGameResponseDto convertToResponseDto() {
-        return new VideoGameResponseDto(this.getKey(), this.id, this.title, this.systemId, this.systemName,
+        SystemResponseDto systemResponseDto = null;
+        if (isSystemValid()) {
+            systemResponseDto = this.system.convertToResponseDto();
+        }
+        return new VideoGameResponseDto(this.getKey(), this.id, this.title, systemResponseDto, videoGameBoxes,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
         );
     }
@@ -88,6 +124,14 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     @Override
     public String getKey() {
         return Keychain.VIDEO_GAME_KEY;
+    }
+
+    public SlimVideoGame convertToSlimVideoGame() {
+        SystemResponseDto systemResponseDto = null;
+        if (isSystemValid()) {
+            systemResponseDto = this.system.convertToResponseDto();
+        }
+        return new SlimVideoGame(this.id, this.title, systemResponseDto, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 
     private void validate() throws ExceptionMalformedEntity {

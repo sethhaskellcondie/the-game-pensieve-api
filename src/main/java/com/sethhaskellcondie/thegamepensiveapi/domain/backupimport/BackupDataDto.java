@@ -1,9 +1,12 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.backupimport;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
 
 import java.util.List;
 
@@ -14,6 +17,9 @@ import java.util.List;
 public record BackupDataDto(List<CustomField> customFields,
                             List<ToyRequestDto> toys,
                             List<SystemRequestDto> systems,
-                            List<VideoGameRequestDto> videoGames
+                            List<VideoGameRequestDto> videoGames,
+                            List<VideoGameBoxRequestDto> videoGameBoxes,
+                            List<BoardGameRequestDto> boardGames,
+                            List<BoardGameBoxRequestDto> boardGameBoxes
 ) {
 }

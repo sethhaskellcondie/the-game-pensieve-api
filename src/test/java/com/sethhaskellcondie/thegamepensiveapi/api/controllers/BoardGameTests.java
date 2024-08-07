@@ -231,7 +231,7 @@ public class BoardGameTests {
     @Test
     void updateExistingBoardGame_InvalidId_ReturnNotFound() throws Exception {
 
-        final String jsonContent = factory.formatVideoGamePayload("invalidId", 1, null);
+        final String jsonContent = factory.formatBoardGamePayload("invalidId", null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)

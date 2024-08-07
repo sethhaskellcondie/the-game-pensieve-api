@@ -5,13 +5,16 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityServiceAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRepository;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameService;
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,14 +24,12 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         implements EntityService<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto> {
 
     private final SystemRepository systemRepository;
-    private final VideoGameRepository videoGameRepository;
     private final VideoGameService videoGameService;
 
     public VideoGameBoxService(EntityRepository<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto> repository, FilterService filterService,
-                               SystemRepository systemRepository, VideoGameRepository videoGameRepository, VideoGameService videoGameService) {
+                               SystemRepository systemRepository, VideoGameService videoGameService) {
         super(repository, filterService);
         this.systemRepository = systemRepository;
-        this.videoGameRepository = videoGameRepository;
         this.videoGameService = videoGameService;
     }
 
@@ -57,39 +58,124 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
     }
 
     @Override
+    @Transactional
     public VideoGameBox createNew(VideoGameBoxRequestDto requestDto) {
+        ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
         final VideoGameBox videoGameBox = new VideoGameBox().updateFromRequestDto(requestDto);
-        final VideoGameBox validatedVideoGameBox = validateSystemAndVideoGamesList(videoGameBox);
+        List<SlimVideoGame> relatedVideoGames = new ArrayList<>();
+        for (Integer videoGameId : requestDto.existingVideoGameIds()) {
+            try {
+                relatedVideoGames.add(videoGameService.getById(videoGameId).convertToSlimVideoGame());
+            } catch (Exception e) {
+                exceptionMalformedEntity.addException(e);
+            }
+        }
+        for (VideoGameRequestDto videoGameRequestDto : requestDto.newVideoGames()) {
+            try {
+                relatedVideoGames.add(videoGameService.createNew(videoGameRequestDto).convertToSlimVideoGame());
+            } catch (Exception e) {
+                exceptionMalformedEntity.addException(e);
+            }
+        }
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
+        }
+        videoGameBox.setVideoGames(relatedVideoGames);
+        final VideoGameBox validatedVideoGameBox = validateSystem(videoGameBox);
         final VideoGameBox savedVideoGameBox = repository.insert(validatedVideoGameBox);
-        savedVideoGameBox.setSystemName(validatedVideoGameBox.getSystemName());
-        savedVideoGameBox.setVideoGames(validatedVideoGameBox.getVideoGames());
+        savedVideoGameBox.setSystem(validatedVideoGameBox.getSystem());
+        savedVideoGameBox.setVideoGames(relatedVideoGames);
         return savedVideoGameBox;
     }
 
     @Override
     public VideoGameBox updateExisting(VideoGameBox videoGameBox) {
-        VideoGameBox validatedVideoGameBox = videoGameBox;
-        if (!validatedVideoGameBox.isSystemIdValid()) {
-            validatedVideoGameBox = validateSystemId(validatedVideoGameBox);
+        //TODO refactor the updateExisting to pass in the requestDto to match this signature
+        throw new ExceptionInternalError("Call VideoGameBox::updateExisting(VideoGameBox videoGameBox, VideoGameBoxRequestDto requestDto) " +
+                "instead of this call VideoGameBox::updateExisting(VideoGameBox videoGameBox) the requestDto needs to be passed in separately.");
+    }
+
+    @Transactional
+    public VideoGameBox updateExisting(VideoGameBox videoGameBox, VideoGameBoxRequestDto requestDto) {
+        ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
+        List<Integer> relatedGameIds = videoGameBox.getVideoGameIds();
+        List<SlimVideoGame> relatedVideoGames = new ArrayList<>();
+        for (Integer id : relatedGameIds) {
+            try {
+                if (!requestDto.existingVideoGameIds().contains(id)) {
+                        VideoGame videoGame = videoGameService.getById(id);
+                        relatedGameIds.remove(id);
+                        //if this video game is the only game associated to this video game box then delete it
+                        if (videoGame.getVideoGameBoxes().size() == 1) {
+                            videoGameService.deleteById(id);
+                        }
+                }
+            } catch (Exception e) {
+                exceptionMalformedEntity.addException("Error updating video game box: " + e.getMessage());
+            }
         }
-        if (!validatedVideoGameBox.isVideoGamesValid()) {
-            validatedVideoGameBox = validateVideoGames(validatedVideoGameBox);
+
+        for (Integer id : requestDto.existingVideoGameIds()) {
+            if (!relatedGameIds.contains(id)) {
+                relatedGameIds.add(id);
+            }
         }
-        final VideoGameBox savedVideoGameBox = repository.update(validatedVideoGameBox);
-        savedVideoGameBox.setSystemName(validatedVideoGameBox.getSystemName());
-        savedVideoGameBox.setVideoGames(validatedVideoGameBox.getVideoGames());
+
+        for (Integer id : relatedGameIds) {
+            try {
+                relatedVideoGames.add(videoGameService.getById(id).convertToSlimVideoGame());
+            } catch (Exception e) {
+                exceptionMalformedEntity.addException("Error updating video game box: Problem validating related video game with ID - " + id + ":" + e.getMessage());
+            }
+        }
+
+        for (VideoGameRequestDto videoGameRequestDto : requestDto.newVideoGames()) {
+            try {
+                relatedVideoGames.add(videoGameService.createNew(videoGameRequestDto).convertToSlimVideoGame());
+            } catch (Exception e) {
+                exceptionMalformedEntity.addException(e);
+            }
+        }
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
+        }
+
+        videoGameBox.setVideoGames(relatedVideoGames);
+        videoGameBox.updateFromRequestDto(requestDto);
+        validateSystem(videoGameBox);
+        final VideoGameBox savedVideoGameBox = repository.update(videoGameBox);
+        savedVideoGameBox.setSystem(videoGameBox.getSystem());
+        savedVideoGameBox.setVideoGames(videoGameBox.getVideoGames());
         return savedVideoGameBox;
     }
 
+    @Override
+    @Transactional
+    public void deleteById(int id) {
+        VideoGameBox videoGameBox = getById(id);
+        List<VideoGame> markedForDeletion = new ArrayList<>();
+        for (SlimVideoGame slimVideoGame : videoGameBox.getVideoGames()) {
+            VideoGame videoGame = videoGameService.getById(slimVideoGame.id());
+            //if this video game is the only game associated to this video game box then delete it as well as the box.
+            if (videoGame.getVideoGameBoxes().size() == 1) {
+                markedForDeletion.add(videoGame);
+            }
+        }
+        for (VideoGame videoGame : markedForDeletion) {
+            videoGameService.deleteById(videoGame.getId());
+        }
+        repository.deleteById(id);
+    }
+
     public VideoGameBox validateSystemAndVideoGamesList(VideoGameBox videoGameBox) {
-        final VideoGameBox systemVerified = validateSystemId(videoGameBox);
+        final VideoGameBox systemVerified = validateSystem(videoGameBox);
         return validateVideoGames(systemVerified);
     }
 
-    public VideoGameBox validateSystemId(VideoGameBox videoGameBox) {
+    public VideoGameBox validateSystem(VideoGameBox videoGameBox) {
         try {
             System system = systemRepository.getByIdIncludeDeleted(videoGameBox.getSystemId());
-            videoGameBox.setSystemName(system.getName());
+            videoGameBox.setSystem(system);
         } catch (Exception e) {
             throw new ExceptionMalformedEntity(List.of(new Exception("Error - Problem getting video game box from the database, video game box with title: '"
                     + videoGameBox.getTitle() + "' had systemId: " + videoGameBox.getSystemId() + " but couldn't get a valid system from the database with that id. Message: "
@@ -105,11 +191,10 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
                     + "', but there were not video game ids found on that object");
             throw exceptionMalformedEntity;
         }
-        List<VideoGame> videoGames = new ArrayList<>();
+        List<SlimVideoGame> videoGames = new ArrayList<>();
         for (Integer videoGameId : videoGameBox.getVideoGameIds()) {
             try {
-                VideoGame videoGame = videoGameRepository.getByIdIncludeDeleted(videoGameId);
-                videoGames.add(videoGameService.validateSystemId(videoGame));
+                videoGames.add(videoGameService.getById(videoGameId).convertToSlimVideoGame());
             } catch (Exception e) {
                 exceptionMalformedEntity.addException("Attempted to validate the video games for video game box with title: '" + videoGameBox.getTitle()
                         + "', but there was an error getting video game data: " + e.getMessage());

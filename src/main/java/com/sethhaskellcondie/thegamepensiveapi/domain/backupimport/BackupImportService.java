@@ -5,16 +5,24 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGame;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameService;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBox;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.Toy;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameService;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBox;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.stereotype.Service;
@@ -27,28 +35,35 @@ import java.util.Objects;
 
 @Service
 public class BackupImportService {
-    private final SystemRepository systemRepository;
-    private final ToyRepository toyRepository;
     private final CustomFieldRepository customFieldRepository;
+    private final SystemService systemService;
+    private final ToyService toyService;
     private final VideoGameService videoGameService;
-    private final VideoGameRepository videoGameRepository;
+    private final VideoGameBoxService videoGameBoxService;
+    private final BoardGameService boardGameService;
+    private final BoardGameBoxService boardGameBoxService;
 
-    protected BackupImportService(SystemRepository systemRepository, ToyRepository toyRepository, CustomFieldRepository customFieldRepository,
-                                  VideoGameService videoGameService, VideoGameRepository videoGameRepository) {
-        this.systemRepository = systemRepository;
-        this.toyRepository = toyRepository;
+    protected BackupImportService(CustomFieldRepository customFieldRepository, SystemService systemService, ToyService toyService, VideoGameService videoGameService,
+                                  VideoGameBoxService videoGameBoxService, BoardGameService boardGameService, BoardGameBoxService boardGameBoxService) {
         this.customFieldRepository = customFieldRepository;
+        this.systemService = systemService;
+        this.toyService = toyService;
         this.videoGameService = videoGameService;
-        this.videoGameRepository = videoGameRepository;
+        this.videoGameBoxService = videoGameBoxService;
+        this.boardGameService = boardGameService;
+        this.boardGameBoxService = boardGameBoxService;
     }
 
     protected BackupDataDto getBackupData() {
         List<CustomField> customFields = customFieldRepository.getAllCustomFields();
-        List<ToyRequestDto> toys = toyRepository.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToRequestDto).toList();
-        List<SystemRequestDto> systems = systemRepository.getWithFilters(new ArrayList<>()).stream().map(System::convertToRequestDto).toList();
+        List<ToyRequestDto> toys = toyService.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToRequestDto).toList();
+        List<SystemRequestDto> systems = systemService.getWithFilters(new ArrayList<>()).stream().map(System::convertToRequestDto).toList();
         List<VideoGameRequestDto> videoGames = videoGameService.getWithFilters(new ArrayList<>()).stream().map(VideoGame::convertToRequestDto).toList();
+        List<VideoGameBoxRequestDto> videoGameBoxes = videoGameBoxService.getWithFilters(new ArrayList<>()).stream().map(VideoGameBox::convertToRequestDto).toList();
+        List<BoardGameRequestDto> boardGames = boardGameService.getWithFilters(new ArrayList<>()).stream().map(BoardGame::convertToRequestDto).toList();
+        List<BoardGameBoxRequestDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToRequestDto).toList();
 
-        return new BackupDataDto(customFields, toys, systems, videoGames);
+        return new BackupDataDto(customFields, toys, systems, videoGames, videoGameBoxes, boardGames, boardGameBoxes);
     }
 
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
@@ -170,14 +185,14 @@ public class BackupImportService {
 
         for (ToyRequestDto toyRequestDto: toyRequestsReady) {
             try {
-                int toyId = toyRepository.getIdByNameAndSet(toyRequestDto.name(), toyRequestDto.set());
+                int toyId = toyService.getIdByNameAndSet(toyRequestDto.name(), toyRequestDto.set());
                 if (toyId > 0) {
-                    Toy toy = toyRepository.getById(toyId);
+                    Toy toy = toyService.getById(toyId);
                     toy.updateFromRequestDto(toyRequestDto);
-                    toyRepository.update(toy);
+                    toyService.updateExisting(toy);
                     existingCount++;
                 } else {
-                    toyRepository.insert(toyRequestDto);
+                    toyService.createNew(toyRequestDto);
                     createdCount++;
                 }
             } catch (Exception exception) {
@@ -218,14 +233,14 @@ public class BackupImportService {
 
         for (SystemRequestDto systemRequestDto: systemRequestsReady) {
             try {
-                int systemId = systemRepository.getIdByName(systemRequestDto.name());
+                int systemId = systemService.getIdByName(systemRequestDto.name());
                 if (systemId > 0) {
-                    System system = systemRepository.getById(systemId);
+                    System system = systemService.getById(systemId);
                     system.updateFromRequestDto(systemRequestDto);
-                    systemRepository.update(system);
+                    systemService.updateExisting(system);
                     existingCount++;
                 } else {
-                    systemRepository.insert(systemRequestDto);
+                    systemService.createNew(systemRequestDto);
                     createdCount++;
                 }
             } catch (Exception exception) {
@@ -266,9 +281,9 @@ public class BackupImportService {
 
         for (VideoGameRequestDto videoGameRequestDto: videoGamesToBeImported) {
             try {
-                int videoGameId = videoGameRepository.getIdByTitleAndSystem(videoGameRequestDto.title(), videoGameRequestDto.systemId());
+                int videoGameId = videoGameService.getIdByTitleAndSystem(videoGameRequestDto.title(), videoGameRequestDto.systemId());
                 if (videoGameId > 0) {
-                    VideoGame videoGame = videoGameRepository.getById(videoGameId);
+                    VideoGame videoGame = videoGameService.getById(videoGameId);
                     videoGame.updateFromRequestDto(videoGameRequestDto);
                     //call update and create from the service instead of the repository because that will include the system validation code
                     videoGameService.updateExisting(videoGame);

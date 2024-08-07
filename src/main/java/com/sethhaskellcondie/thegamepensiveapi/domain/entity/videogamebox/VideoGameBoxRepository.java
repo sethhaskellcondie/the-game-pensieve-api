@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -13,6 +14,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -33,13 +35,12 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
         super(jdbcTemplate);
     }
 
-    @Override
+    private String getSelectClause() {
+        return "SELECT id, title, system_id, is_physical, is_collection, created_at, updated_at, deleted_at ";
+    }
+
     protected String getBaseQuery() {
-        return """
-                SELECT id, title, system_id, is_physical, is_collection, created_at, updated_at, deleted_at
-                FROM video_game_boxes
-                WHERE video_game_boxes.deleted_at IS NULL
-                """;
+        return getSelectClause() + " FROM video_game_boxes WHERE 1 = 1 ";
     }
 
     @Override
@@ -54,32 +55,6 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
                 AND values.entity_key = 'video_game_box'
                 AND video_game_boxes.deleted_at IS NULL
                 """;
-    }
-
-    @Override
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.is_physical, video_game_boxes.is_collection,
-                video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
-                FROM video_game_boxes
-                WHERE video_game_boxes.deleted_at IS NOT NULL
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.is_physical, video_game_boxes.is_collection,
-                video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
-                FROM video_game_boxes
-                WHERE 1 = 1
-                """;
-    }
-
-    @Override
-    public VideoGameBox insert(VideoGameBoxRequestDto requestDto) {
-        final VideoGameBox videoGameBox = new VideoGameBox().updateFromRequestDto(requestDto);
-        return this.insert(videoGameBox);
     }
 
     @Override
@@ -101,6 +76,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     }
 
     @Override
+    @Transactional
     public void deleteById(int id) {
         final String sql = """
                 UPDATE video_game_boxes SET deleted_at = ? WHERE id = ?;
@@ -109,6 +85,10 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", getEntityKey(), id);
         }
+        final String sql2 = """
+                DELETE FROM video_game_to_video_game_box WHERE video_game_box_id = ?;
+                """;
+        jdbcTemplate.update(sql2, id);
     }
 
     @Override
@@ -133,7 +113,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
 
     @Override
     protected void insertValidation(VideoGameBox videoGameBox) {
-        if (!videoGameBox.isSystemIdValid() || !videoGameBox.isVideoGamesValid()) {
+        if (!videoGameBox.isSystemValid() || !videoGameBox.isVideoGamesValid()) {
             throw new ExceptionInternalError("Error Persisting Video Game Box Entity: The system_id and video game list must be validated before inserting into the database. "
             + "Call createNew from the VideoGameBoxService instead of calling insert() directly on the repository.");
         }
@@ -141,7 +121,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
 
     @Override
     protected void updateValidation(VideoGameBox videoGameBox) {
-        if (!videoGameBox.isSystemIdValid() || !videoGameBox.isVideoGamesValid()) {
+        if (!videoGameBox.isSystemValid() || !videoGameBox.isVideoGamesValid()) {
             throw new ExceptionInternalError("Error Persisting Video Game Box Entity: The system_id and video game list must be validated before updating the database. "
                     + "Call updateExisting from the VideoGameBoxService instead of calling update() directly on the repository.");
         }
@@ -169,8 +149,8 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
         );
 
         int videoGameBoxId = (Integer) keyHolder.getKeys().get("id");
-        for (VideoGame videoGame : videoGameBox.getVideoGames()) {
-            insertRelationshipBetweenGameAndBox(videoGame.getId(), videoGameBoxId);
+        for (SlimVideoGame videoGame : videoGameBox.getVideoGames()) {
+            insertRelationshipBetweenGameAndBox(videoGame.id(), videoGameBoxId);
         }
 
         return videoGameBoxId;
@@ -191,11 +171,11 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
                 (resultSet, rowNumber) -> valueOf(resultSet.getInt("video_game_id")),
                 videoGameBox.getId()
         );
-        for (VideoGame videoGame : videoGameBox.getVideoGames()) {
-            if (!gameListIds.contains(videoGame.getId())) {
-                insertRelationshipBetweenGameAndBox(videoGame.getId(), videoGameBox.getId());
+        for (SlimVideoGame videoGame : videoGameBox.getVideoGames()) {
+            if (!gameListIds.contains(videoGame.id())) {
+                insertRelationshipBetweenGameAndBox(videoGame.id(), videoGameBox.getId());
             }
-            gameListIds.remove(videoGame.getId());
+            gameListIds.remove(videoGame.id());
         }
         if (!gameListIds.isEmpty()) {
             final String inClause = String.join(",", Collections.nCopies(gameListIds.size(), "?"));
@@ -208,7 +188,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     }
 
     public int getIdByTitleAndSystem(String title, int systemId) {
-        final String sql = getBaseQuery() + " AND title = ? AND system_id = ?";
+        final String sql = getBaseQueryExcludeDeleted() + " AND title = ? AND system_id = ?";
         final VideoGameBox videoGameBox;
         try {
             videoGameBox = jdbcTemplate.queryForObject(sql, new Object[]{title, systemId}, new int[]{Types.VARCHAR, Types.BIGINT}, getRowMapper());

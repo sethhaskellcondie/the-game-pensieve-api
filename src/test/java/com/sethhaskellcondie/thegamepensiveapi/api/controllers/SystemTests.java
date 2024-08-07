@@ -36,6 +36,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * I've done a bunch of different tests and for this project I feel like the best option is to
  * run with MockMvc integration tests for the rest of the tests now. It is the easiest to use
  * I was able to get everything done with MockMvc tests.
+ * <p>
+ * Systems are another basic entity, they implement all entity CRUD functions, custom fields, and filters.
+ * Systems must have a unique name.
+ * Systems have a "belongs-to" relationship with video games and video games boxes.
+ * <p>
+ * Systems have all the basic CRUD functionality
+ * The System name is required and the name must be unique.
  */
 @SpringBootTest
 @ActiveProfiles("test-container")
@@ -95,49 +102,6 @@ public class SystemTests {
 
         result.andExpect(status().isOk());
         validateSystemResponseBody(result, resultToResponseDto(result), existingCustomFieldValue);
-    }
-
-    @Test
-    void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
-        final String jsonContent = factory.formatSystemPayload(
-                "", //the name cannot be blank
-                -1, //the generation must be positive
-                null,
-                null
-        );
-
-        final ResultActions result = mockMvc.perform(
-                post(baseUrl)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-        );
-
-        result.andExpectAll(
-                status().isBadRequest(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors.length()").value(2)
-        );
-    }
-
-    @Test
-    void postSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
-        final String duplicateName = "Game Boy Pocket";
-        final int generation = 3;
-        final boolean handheld = true;
-        factory.postSystemReturnResult(duplicateName, generation, handheld, new ArrayList<>());
-
-        final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld, new ArrayList<>());
-        final ResultActions result = mockMvc.perform(
-                post(baseUrl)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(formattedJson)
-        );
-
-        result.andExpectAll(
-                status().isBadRequest(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors.length()").value(1)
-        );
     }
 
     @Test
@@ -295,6 +259,49 @@ public class SystemTests {
         );
     }
 
+    @Test
+    void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
+        final String jsonContent = factory.formatSystemPayload(
+                "", //the name cannot be blank
+                -1, //the generation must be positive
+                null,
+                null
+        );
+
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(2)
+        );
+    }
+
+    @Test
+    void postSystem_SystemNameDuplicate_ReturnBadRequest() throws Exception {
+        final String duplicateName = "Game Boy Pocket";
+        final int generation = 3;
+        final boolean handheld = true;
+        factory.postSystemReturnResult(duplicateName, generation, handheld, new ArrayList<>());
+
+        final String formattedJson = factory.formatSystemPayload(duplicateName, generation, handheld, new ArrayList<>());
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
     private SystemResponseDto resultToResponseDto(ResultActions result) throws Exception {
         return factory.resultToSystemResponseDto(result);
     }
@@ -312,6 +319,7 @@ public class SystemTests {
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 
+    //TODO refactor this function out
     private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value("system"),

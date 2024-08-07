@@ -26,14 +26,13 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
         super(jdbcTemplate);
     }
 
-    @Override
+    private String getSelectClause() {
+        return "SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id, " +
+                "board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at";
+    }
+
     protected String getBaseQuery() {
-        return """
-                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id, 
-                board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at 
-                FROM board_game_boxes 
-                WHERE board_game_boxes.deleted_at IS NULL
-                """;
+        return getSelectClause() + " FROM board_game_boxes WHERE 1 = 1 ";
     }
 
     @Override
@@ -47,32 +46,6 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
                                	WHERE board_game_boxes.deleted_at IS NULL
                                  AND values.entity_key = 'board_game_box'
                 """;
-    }
-
-    @Override
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id
-                board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
-                FROM board_game_boxes
-                WHERE board_game_boxes.deleted_at IS NOT NULL
-                """;
-    }
-
-    @Override
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id
-                board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
-                FROM board_game_boxes
-                WHERE 1 = 1
-                """;
-    }
-
-    @Override
-    public BoardGameBox insert(BoardGameBoxRequestDto requestDto) {
-        final BoardGameBox boardGameBox = new BoardGameBox().updateFromRequestDto(requestDto);
-        return this.insert(boardGameBox);
     }
 
     @Override
@@ -169,7 +142,7 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
     }
 
     public List<SlimBoardGameBox> getSlimBoardGameBoxesByBoardGameId(int boardGameId) {
-        String sql = getBaseQuery() + " AND board_game_id = ? ";
+        String sql = getBaseQueryExcludeDeleted() + " AND board_game_id = ? ";
         List<BoardGameBox> boardGameBoxes = jdbcTemplate.query(
                 sql,
                 new Object[]{boardGameId},

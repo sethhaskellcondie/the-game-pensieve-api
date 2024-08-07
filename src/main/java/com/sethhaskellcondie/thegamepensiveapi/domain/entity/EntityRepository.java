@@ -17,8 +17,6 @@ import java.util.List;
  */
 @Repository
 public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
-    T insert(RequestDto requestDto);
-
     T insert(T t);
 
     List<T> getWithFilters(List<Filter> filters);

@@ -33,6 +33,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Custom fields are not entities they belong to entities.
+ * The custom field endpoints are mostly used for set up work, making sure that the custom fields are set up as intended before entering in other entity's data.
+ * Custom fields must contain a valid type, and a unique name.
+ * Custom fields cannot be PUT (overwritten) only the name can be PATCHed.
+ */
+
 @SpringBootTest
 @ActiveProfiles("test-container")
 @AutoConfigureMockMvc
@@ -220,6 +227,7 @@ public class CustomFieldTests {
         );
     }
 
+    //TODO refactor this out
     private void validateCustomFieldResponseBody(ResultActions result, CustomField customField) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.id").value(customField.id()),

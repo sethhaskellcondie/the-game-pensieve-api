@@ -6,7 +6,10 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBox;
+import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -27,13 +30,12 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
         super(jdbcTemplate);
     }
 
-    @Override
+    private String getSelectClause() {
+        return "SELECT video_games.id, video_games.title, video_games.system_id, video_games.created_at, video_games.updated_at, video_games.deleted_at ";
+    }
+
     protected String getBaseQuery() {
-        return """
-                SELECT video_games.id, video_games.title, video_games.system_id,
-                       video_games.created_at, video_games.updated_at, video_games.deleted_at
-                        FROM video_games WHERE video_games.deleted_at IS NULL
-                """;
+        return getSelectClause() + " FROM video_games WHERE 1 = 1 ";
     }
 
     @Override
@@ -50,28 +52,21 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
     }
 
     @Override
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-                SELECT video_games.id, video_games.title, video_games.system_id,
-                       video_games.created_at, video_games.updated_at, video_games.deleted_at
-                        FROM video_games WHERE video_games.deleted_at IS NOT NULL
-                """;
+    public List<VideoGame> getWithFilters(List<Filter> filters) {
+        List<VideoGame> gamesWithNoIds = super.getWithFilters(filters);
+        List<VideoGame> gamesWithIds = new ArrayList<>();
+        for (VideoGame game : gamesWithNoIds) {
+            game.setVideoGameBoxIds(getRelatedBoxIds(game.getId()));
+            gamesWithIds.add(game);
+        }
+        return gamesWithIds;
     }
 
     @Override
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-                SELECT video_games.id, video_games.title, video_games.system_id,
-                       video_games.created_at, video_games.updated_at, video_games.deleted_at
-                        FROM video_games WHERE 1 = 1
-                """;
-    }
-
-    //TODO remove this from the Abstract and the Implementation only implement this function as needed
-    @Override
-    public VideoGame insert(VideoGameRequestDto videoGameRequestDto) {
-        final VideoGame videoGame = new VideoGame().updateFromRequestDto(videoGameRequestDto);
-        return this.insert(videoGame);
+    public VideoGame getById(int id) {
+        VideoGame videoGame = super.getById(id);
+        videoGame.setVideoGameBoxIds(getRelatedBoxIds(id));
+        return videoGame;
     }
 
     @Override
@@ -105,7 +100,7 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
 
     @Override
     protected void insertValidation(VideoGame entity) {
-        if (!entity.isSystemIdValid()) {
+        if (!entity.isSystemValid()) {
             throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before inserting data into the database. " +
                     "Call createNew from the VideoGameService instead of calling insert() directly on the repository");
         }
@@ -113,7 +108,7 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
 
     @Override
     protected void updateValidation(VideoGame entity) {
-        if (!entity.isSystemIdValid()) {
+        if (!entity.isSystemValid()) {
             throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before updating the database. " +
                     "Call updateExisting from the VideoGameService instead of calling update() directly on the repository");
         }
@@ -147,8 +142,15 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
         jdbcTemplate.update(sql, entity.getTitle(), entity.getSystemId(), Timestamp.from(Instant.now()), entity.getId());
     }
 
+    private List<Integer> getRelatedBoxIds(int videoGameId) {
+        final String sql = """
+                SELECT * FROM video_game_to_video_game_box WHERE video_game_id = ?;
+                """;
+        return jdbcTemplate.query(sql, (resultSet, rowNumber) -> resultSet.getInt("video_game_box_id"), videoGameId);
+    }
+
     public int getIdByTitleAndSystem(String title, int systemId) {
-        final String sql = getBaseQuery() + " AND title = ? AND system_id = ?";
+        final String sql = getBaseQueryExcludeDeleted() + " AND title = ? AND system_id = ?";
         final VideoGame videoGame;
         try {
             videoGame = jdbcTemplate.queryForObject(sql, new Object[]{title, systemId}, new int[]{Types.VARCHAR, Types.BIGINT}, getRowMapper());

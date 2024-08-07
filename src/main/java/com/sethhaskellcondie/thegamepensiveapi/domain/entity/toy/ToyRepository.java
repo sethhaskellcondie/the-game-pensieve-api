@@ -25,11 +25,12 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
         super(jdbcTemplate);
     }
 
+    private String getSelectClause() {
+        return "SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at ";
+    }
+
     protected String getBaseQuery() {
-        return """
-            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
-                FROM toys WHERE toys.deleted_at IS NULL
-            """;
+        return getSelectClause() + " FROM toys WHERE 1 = 1 ";
     }
 
     protected String getBaseQueryJoinCustomFieldValues() {
@@ -43,20 +44,6 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
             WHERE toys.deleted_at IS NULL
             AND values.entity_key = 'toy'
                 """;
-    }
-
-    protected String getBaseQueryWhereDeletedAtIsNotNull() {
-        return """
-            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
-                FROM toys WHERE toys.deleted_at IS NOT NULL
-            """;
-    }
-
-    protected String getBaseQueryIncludeDeleted() {
-        return """
-            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at
-                FROM toys WHERE 1 = 1
-            """;
     }
 
     protected String getEntityKey() {
@@ -118,12 +105,6 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
     }
 
     @Override
-    public Toy insert(ToyRequestDto requestDto) {
-        final Toy toy = new Toy().updateFromRequestDto(requestDto);
-        return this.insert(toy);
-    }
-
-    @Override
     public void deleteById(int id) {
         String sql = """
                 			UPDATE toys SET deleted_at = ? WHERE id = ?;
@@ -135,7 +116,7 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
     }
 
     public int getIdByNameAndSet(String name, String set) {
-        String sql = getBaseQuery() + " AND name = ? AND set = ?";
+        String sql = getBaseQueryExcludeDeleted() + " AND name = ? AND set = ?";
         final Toy toy;
         try {
             toy = jdbcTemplate.queryForObject(

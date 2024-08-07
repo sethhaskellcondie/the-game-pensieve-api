@@ -44,7 +44,7 @@ public class CustomFieldValueRepository {
                     resultSet.getString("type")
             );
 
-    //This repository should only be accessed through EntityRepositories (and tests)
+    //This repository should only be accessed through EntityRepositories
     public CustomFieldValueRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);

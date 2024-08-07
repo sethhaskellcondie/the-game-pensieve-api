@@ -56,5 +56,5 @@ Commands:
 - You can access the api on port 8080
 - The test endpoint localhost:8080/v1/heartbeat will return the string "thump thump" when working correctly.
 
-### Documentation
-The Entity and System classes are heavily commented to explain the decisions behind the design.
+### Additional Information
+Check the Notes.md file for more information on the design and documentation of this project

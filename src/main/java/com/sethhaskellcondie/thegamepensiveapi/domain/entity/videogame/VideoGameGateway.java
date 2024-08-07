@@ -12,4 +12,14 @@ public class VideoGameGateway extends EntityGatewayAbstract<VideoGame, VideoGame
     public VideoGameGateway(EntityService<VideoGame, VideoGameRequestDto, VideoGameResponseDto> service) {
         super(service);
     }
+
+    @Override
+    public VideoGameResponseDto createNew(VideoGameRequestDto requestDto) {
+        throw new RuntimeException("Not Implemented Error: Create new video game objects through the VideoGameBoxGateway instead of the VideoGameGateway.");
+    }
+
+    @Override
+    public void deleteById(int id) {
+        throw new RuntimeException("Not Implemented Error: Delete video game objects through the VideoGameBoxGateway instead of the VideoGameGateway.");
+    }
 }

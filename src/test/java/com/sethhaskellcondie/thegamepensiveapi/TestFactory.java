@@ -2,7 +2,9 @@ package com.sethhaskellcondie.thegamepensiveapi;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -10,10 +12,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgame.BoardGameResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.boardgamebox.SlimBoardGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyResponseDto;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
+import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,7 +51,7 @@ public class TestFactory {
         for (int i = 0; i < returnedValues.size(); i++) {
             CustomFieldValue returnedValue = returnedValues.get(i);
             CustomFieldValue expectedValue = expectedValues.get(i);
-            if (expectedValue.getCustomFieldId() == 0) {
+            if (expectedValue.getCustomFieldId() == 0 || returnedValue.getCustomFieldId() == 0) {
                 assertAll(
                     "The returned custom field values didn't match the expected custom field values.",
                     () -> assertEquals(expectedValue.getCustomFieldName(), returnedValue.getCustomFieldName()),
@@ -209,6 +214,29 @@ public class TestFactory {
         return body.get("data");
     }
 
+    public void validateSystem(SystemResponseDto expectedSystem, SystemResponseDto actualSystem) {
+        if (expectedSystem.id() == 0) {
+            assertAll(
+                    "The returned system response didn't match the expected system response.",
+                    () -> assertEquals(expectedSystem.key(), actualSystem.key()),
+                    () -> assertEquals(expectedSystem.name(), actualSystem.name()),
+                    () -> assertEquals(expectedSystem.generation(), actualSystem.generation()),
+                    () -> assertEquals(expectedSystem.handheld(), actualSystem.handheld()),
+                    () -> validateCustomFieldValues(expectedSystem.customFieldValues(), actualSystem.customFieldValues())
+            );
+        } else {
+            assertAll(
+                    "The returned system response didn't match the expected system response.",
+                    () -> assertEquals(expectedSystem.key(), actualSystem.key()),
+                    () -> assertEquals(expectedSystem.id(), actualSystem.id()),
+                    () -> assertEquals(expectedSystem.name(), actualSystem.name()),
+                    () -> assertEquals(expectedSystem.generation(), actualSystem.generation()),
+                    () -> assertEquals(expectedSystem.handheld(), actualSystem.handheld()),
+                    () -> validateCustomFieldValues(expectedSystem.customFieldValues(), actualSystem.customFieldValues())
+            );
+        }
+    }
+
     public String formatSystemPayload(String name, Integer generation, Boolean handheld, List<CustomFieldValue> customFieldValues) {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
@@ -264,26 +292,6 @@ public class TestFactory {
         return String.format(json, name, set, customFieldValuesString);
     }
 
-    public VideoGameResponseDto postVideoGame() throws Exception {
-        final String title = "TestVideoGame-" + randomString(4);
-        final int systemId = postSystem().id();
-        final ResultActions result = postVideoGameReturnResult(title, systemId, null);
-        return resultToVideoGameResponseDto(result);
-    }
-
-    public ResultActions postVideoGameReturnResult(String title, int systemId, List<CustomFieldValue> customFieldValues) throws Exception {
-        final String formattedJson = formatVideoGamePayload(title, systemId, customFieldValues);
-
-        final ResultActions result = mockMvc.perform(
-                post("/v1/videoGames")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(formattedJson)
-        );
-
-        result.andExpect(status().isCreated());
-        return result;
-    }
-
     public VideoGameResponseDto resultToVideoGameResponseDto(ResultActions result) throws Exception {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
@@ -292,30 +300,54 @@ public class TestFactory {
     }
 
     public String formatVideoGamePayload(String title, int systemId, List<CustomFieldValue> customFieldValues) {
-        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
                 {
                 	"videoGame": {
                 	    "title": "%s",
-                	    "systemId": "%d",
+                	    "systemId": %d,
                         "customFieldValues": %s
                 	    }
                 }
                 """;
-        return String.format(json, title, systemId, customFieldValuesString);
+        return String.format(json, title, systemId, formatCustomFieldValues(customFieldValues));
+    }
+
+    public void validateSlimVideoGames(List<SlimVideoGame> expectedVideoGames, List<SlimVideoGame> actualVideoGames) {
+        assertEquals(expectedVideoGames.size(), actualVideoGames.size(), "The number of returned slim video games did not matched the number of expected slim video games.");
+        for (int i = 0; i < actualVideoGames.size(); i++) {
+            SlimVideoGame returnedGame = actualVideoGames.get(i);
+            SlimVideoGame expectedGame = expectedVideoGames.get(i);
+            if (expectedGame.id() == 0) {
+                assertAll(
+                        "The returned slim video games didn't match the expected slim video games.",
+                        () -> assertEquals(expectedGame.title(), returnedGame.title()),
+                        () -> validateSystem(expectedGame.system(), returnedGame.system()),
+                        () -> validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues())
+                );
+            } else {
+                assertAll(
+                        "The returned slim video games didn't match the expected slim video games.",
+                        () -> assertEquals(expectedGame.id(), returnedGame.id()),
+                        () -> assertEquals(expectedGame.title(), returnedGame.title()),
+                        () -> validateSystem(expectedGame.system(), returnedGame.system()),
+                        () -> validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues())
+                );
+            }
+        }
     }
 
     public VideoGameBoxResponseDto postVideoGameBox() throws Exception {
         final String title = "TestVideoGameBox-" + randomString(4);
         final int systemId = postSystem().id();
-        final int videoGameId = postVideoGame().id();
-        final ResultActions result = postVideoGameBoxReturnResult(title, systemId, List.of(videoGameId), false, false, null);
+        final VideoGameRequestDto newVideoGame = new VideoGameRequestDto(title, systemId, new ArrayList<>());
+        final ResultActions result = postVideoGameBoxReturnResult(title, systemId, new ArrayList<Integer>(), List.of(newVideoGame), false, null);
         return resultToVideoGameBoxResponseDto(result);
     }
 
-    public ResultActions postVideoGameBoxReturnResult(String title, int systemId, List<Integer> videoGameIds, boolean isPhysical, boolean isCollection, List<CustomFieldValue> customFieldValues)
+    public ResultActions postVideoGameBoxReturnResult(String title, int systemId, List<Integer> existingGameIds, List<VideoGameRequestDto> newVideoGames, boolean isPhysical,
+                                                      List<CustomFieldValue> customFieldValues)
             throws Exception {
-        final String formattedJson = formatVideoGameBoxPayload(title, systemId, videoGameIds, isPhysical, isCollection, customFieldValues);
+        final String formattedJson = formatVideoGameBoxPayload(title, systemId, existingGameIds, newVideoGames, isPhysical, customFieldValues);
 
         final ResultActions result = mockMvc.perform(
                 post("/v1/videoGameBoxes")
@@ -334,27 +366,112 @@ public class TestFactory {
         return body.get("data");
     }
 
-    public String formatVideoGameBoxPayload(String title, int systemId, List<Integer> videoGameIds, boolean isPhysical, boolean isCollection, List<CustomFieldValue> customFieldValues) {
-        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
+    public String formatVideoGameBoxPayload(String title, int systemId, List<Integer> videoGameIds, List<VideoGameRequestDto> newVideoGames, boolean isPhysical,
+                                            List<CustomFieldValue> customFieldValues) {
+
         final String videoGameIdsString;
         if (null == videoGameIds || videoGameIds.isEmpty()) {
             videoGameIdsString = "[]";
         } else {
             videoGameIdsString = Arrays.toString(videoGameIds.toArray());
         }
+
         final String json = """
                 {
                 	"videoGameBox": {
                 	    "title": "%s",
-                	    "systemId": "%d",
-                	    "videoGameIds": %s,
+                	    "systemId": %d,
+                	    "existingVideoGameIds": %s,
+                	    "newVideoGames": %s,
                         "isPhysical": %b,
-                        "isCollection": %b,
                         "customFieldValues": %s
                 	    }
                 }
                 """;
-        return String.format(json, title, systemId, videoGameIdsString, isPhysical, isCollection, customFieldValuesString);
+        return String.format(json, title, systemId, videoGameIdsString, formatVideoGameRequestDtoArray(newVideoGames), isPhysical, formatCustomFieldValues(customFieldValues));
+    }
+
+    private String formatVideoGameRequestDtoArray(List<VideoGameRequestDto> videoGames) {
+
+        if (null == videoGames || videoGames.isEmpty()) {
+            return "[]";
+        }
+        String videoGameRequestDtoArray = """
+                [
+                    %s
+                ]
+                """;
+        List<String> customFieldsStrings = new ArrayList<>();
+        for (int i = 0; i < videoGames.size(); i++) {
+            customFieldsStrings.add(formatVideoGameRequestDto(videoGames.get(i), i == (videoGames.size() - 1)));
+        }
+        return String.format(videoGameRequestDtoArray, String.join("\n", customFieldsStrings));
+    }
+
+    private String formatVideoGameRequestDto(VideoGameRequestDto requestDto, boolean last) {
+        String videoGameRequestDtoString;
+        if (last) {
+            videoGameRequestDtoString = """
+                    {
+                        "title": "%s",
+                        "systemId": %d,
+                        "customFieldValues": %s
+                    }
+                """;
+        } else {
+            videoGameRequestDtoString = """
+                    {
+                        "title": "%s",
+                        "systemId": "%d",
+                        "customFieldValues": %s
+                    },
+                """;
+        }
+        return String.format(videoGameRequestDtoString, requestDto.title(), requestDto.systemId(), formatCustomFieldValues(requestDto.customFieldValues()));
+    }
+
+    public void validateVideoGameBoxResponseBody(ResultActions result, String expectedTitle, SystemResponseDto expectedSystem, List<SlimVideoGame> expectedVideoGames, boolean expectedPhysical,
+                                                 boolean expectedCollection, List<CustomFieldValue> customFieldValues) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data.key").value(Keychain.VIDEO_GAME_BOX_KEY),
+                jsonPath("$.data.id").isNotEmpty(),
+                jsonPath("$.data.title").value(expectedTitle),
+                jsonPath("$.data.videoGames.size()").value(expectedVideoGames.size()),
+                jsonPath("$.data.isPhysical").value(expectedPhysical),
+                jsonPath("$.data.isCollection").value(expectedCollection),
+                jsonPath("$.errors").isEmpty()
+        );
+        VideoGameBoxResponseDto responseDto = resultToVideoGameBoxResponseDto(result);
+        validateSystem(expectedSystem, responseDto.system());
+        validateSlimVideoGames(expectedVideoGames, responseDto.videoGames());
+        validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
+    }
+
+    public void validateVideoGameBoxResponseBody(ResultActions result, List<VideoGameBoxResponseDto> expectedGameBoxes) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data").exists(),
+                jsonPath("$.errors").isEmpty()
+        );
+
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, List<VideoGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        final List<VideoGameBoxResponseDto> returnedGameBoxes = body.get("data");
+        //test the order, and the deserialization
+        for (int i = 0; i < returnedGameBoxes.size(); i++) {
+            VideoGameBoxResponseDto expectedGameBox = expectedGameBoxes.get(i);
+            VideoGameBoxResponseDto returnedGameBox = returnedGameBoxes.get(i);
+            assertAll(
+                    "The response body for videoGameBoxes is not formatted correctly",
+                    () -> assertEquals(Keychain.VIDEO_GAME_BOX_KEY, returnedGameBox.key()),
+                    () -> assertEquals(expectedGameBox.id(), returnedGameBox.id()),
+                    () -> assertEquals(expectedGameBox.title(), returnedGameBox.title()),
+                    () -> validateSlimVideoGames(expectedGameBox.videoGames(), returnedGameBox.videoGames()),
+                    () -> assertEquals(expectedGameBox.isPhysical(), returnedGameBox.isPhysical()),
+                    () -> assertEquals(expectedGameBox.isCollection(), returnedGameBox.isCollection())
+            );
+            validateCustomFieldValues(expectedGameBox.customFieldValues(), returnedGameBox.customFieldValues());
+        }
     }
 
     public BoardGameBoxResponseDto postBoardGameBox() throws Exception {
@@ -418,8 +535,7 @@ public class TestFactory {
         return resultToBoardGameResponseDto(result);
     }
 
-    public ResultActions postBoardGameReturnResult(String title, List<CustomFieldValue> customFieldValues)
-            throws Exception {
+    public ResultActions postBoardGameReturnResult(String title, List<CustomFieldValue> customFieldValues) throws Exception {
         final String formattedJson = formatBoardGamePayload(title, customFieldValues);
 
         final ResultActions result = mockMvc.perform(

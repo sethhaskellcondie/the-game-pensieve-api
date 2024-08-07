@@ -40,20 +40,24 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         this.jdbcTemplate = jdbcTemplate;
         this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
         this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
-        this.baseQuery = this.getBaseQuery();
+        this.baseQuery = this.getBaseQueryExcludeDeleted();
         this.baseQueryJoinCustomFieldValues = this.getBaseQueryJoinCustomFieldValues();
-        this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereDeletedAtIsNotNull();
-        this.baseQueryIncludeDeleted = this.getBaseQueryIncludeDeleted();
+        this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereIsDeleted();
+        this.baseQueryIncludeDeleted = this.getBaseQuery();
         this.entityKey = this.getEntityKey();
         this.rowMapper = this.getRowMapper();
     }
 
     //DO NOT end the base queries with a ';' they will be appended
-    //TODO refactor base queries
     protected abstract String getBaseQuery();
+    protected String getBaseQueryExcludeDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NULL ";
+    }
+
+    protected String getBaseQueryWhereIsDeleted() {
+        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
+    }
     protected abstract String getBaseQueryJoinCustomFieldValues();
-    protected abstract String getBaseQueryWhereDeletedAtIsNotNull();
-    protected abstract String getBaseQueryIncludeDeleted();
     protected abstract String getEntityKey();
     protected abstract RowMapper<T> getRowMapper();
 
@@ -63,8 +67,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     protected abstract void updateValidation(T entity);
     protected abstract Integer insertImplementation(T entity);
     protected abstract void updateImplementation(T entity);
-
-    //public T insert (RequestDto requestDto) will need to implemented manually in each repository
 
     @Override
     public T insert(T entity) {
@@ -95,8 +97,8 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             sql = baseQueryJoinCustomFieldValues + String.join(" ", whereStatements);
         }
         List<T> entities = jdbcTemplate.query(sql, rowMapper, operands.toArray());
-        for (Entity<RequestDto, ResponseDto> entity: entities) {
-            entity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(entity.getId(), entity.getKey()));
+        for (T entity: entities) {
+            setCustomFieldsValuesForEntity(entity);
         }
         return entities;
     }
@@ -122,8 +124,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         }
 
         customFieldValueRepository.upsertValues(entity.getCustomFieldValues(), savedEntity.getId(), savedEntity.getKey());
-        savedEntity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(savedEntity.getId(), savedEntity.getKey()));
-        return savedEntity;
+        return setCustomFieldsValuesForEntity(savedEntity);
     }
 
     //public void deleteById(int id) will need to be implemented manually
@@ -138,7 +139,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         return queryById(id, baseQueryIncludeDeleted);
     }
 
-    //TODO refactor this into the other methods
     public T setCustomFieldsValuesForEntity(T entity) {
         entity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(entity.getId(), entity.getKey()));
         return entity;
@@ -157,7 +157,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(entityKey, id);
         }
-        entity.setCustomFieldValues(customFieldValueRepository.getCustomFieldValuesByEntityIdAndEntityKey(entity.getId(), entity.getKey()));
-        return entity;
+        return setCustomFieldsValuesForEntity(entity);
     }
 }
