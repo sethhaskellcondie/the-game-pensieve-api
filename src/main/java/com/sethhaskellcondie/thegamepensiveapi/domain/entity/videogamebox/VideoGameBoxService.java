@@ -77,6 +77,9 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
                 exceptionMalformedEntity.addException(e);
             }
         }
+        if (requestDto.existingVideoGameIds().isEmpty() && requestDto.newVideoGames().isEmpty()) {
+            exceptionMalformedEntity.addException("Error writing new video game box to the database, a video game box needs at least one game. Existing or new.");
+        }
         if (!exceptionMalformedEntity.isEmpty()) {
             throw exceptionMalformedEntity;
         }
@@ -97,6 +100,9 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
 
     @Transactional
     public VideoGameBox updateExisting(VideoGameBox videoGameBox, VideoGameBoxRequestDto requestDto) {
+        if (requestDto.existingVideoGameIds().isEmpty() && requestDto.newVideoGames().isEmpty()) {
+            throw new ExceptionMalformedEntity("Error updating existing video game box to the database, a video game box needs at least one game. Existing or new.");
+        }
         ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
         List<Integer> relatedGameIds = videoGameBox.getVideoGameIds();
         List<SlimVideoGame> relatedVideoGames = new ArrayList<>();

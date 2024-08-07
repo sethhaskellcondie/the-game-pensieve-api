@@ -113,7 +113,6 @@ public class VideoGameBoxTests {
         // Two errors total:
         // 1) The title cannot be blank.
         // 2) The systemId must be a valid int greater than zero.
-        // TODO test for this 3? Both video games lists are blank.
         final String jsonContent = factory.formatVideoGameBoxPayload("", -1, List.of(), List.of(), false, null);
 
         final ResultActions result = mockMvc.perform(
@@ -126,6 +125,26 @@ public class VideoGameBoxTests {
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.size()").value(2)
+        );
+    }
+
+
+    @Test
+    void postVideoGameBox_NoGamesPassedIn_ReturnBadRequest() throws Exception {
+        // Error every box must have at least one video game
+        final SystemResponseDto newRelatedSystem = factory.postSystem();
+        final String jsonContent = factory.formatVideoGameBoxPayload("Valid Title", newRelatedSystem.id(), List.of(), List.of(), false, null);
+
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
         );
     }
 
@@ -283,7 +302,6 @@ public class VideoGameBoxTests {
 
     @Test
     void updateExistingVideoGameBox_InvalidId_ReturnNotFound() throws Exception {
-
         final String jsonContent = factory.formatVideoGameBoxPayload("invalidId", 1, List.of(), List.of(), false, null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/-1")
@@ -293,6 +311,24 @@ public class VideoGameBoxTests {
 
         result.andExpectAll(
                 status().isNotFound(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
+        );
+    }
+
+    @Test
+    void updateExistingVideoGameBox_NoRelatedGames_ReturnBadRequest() throws Exception {
+        //Note: somehow include this in the title and system check
+        VideoGameBoxResponseDto responseDto = factory.postVideoGameBox();
+        final String jsonContent = factory.formatVideoGameBoxPayload(responseDto.title(), responseDto.system().id(), List.of(), List.of(), false, new ArrayList<>());
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + responseDto.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.size()").value(1)
         );
