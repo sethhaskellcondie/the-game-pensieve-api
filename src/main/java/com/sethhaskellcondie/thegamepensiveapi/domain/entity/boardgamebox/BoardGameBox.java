@@ -17,7 +17,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
     private boolean standAlone;
     private Integer baseSetId; //this is a BoardGameBox id to the base set if this box is not standAlone
     private Integer boardGameId;
-    private BoardGame boardGame; //the board game is initially set to null, but can be hydrated in the service TODO implement slim model
+    private BoardGame boardGame; //the board game is initially set to null, but can be hydrated in the service Future Update: implement slim model
 
     public BoardGameBox() {
         super();
