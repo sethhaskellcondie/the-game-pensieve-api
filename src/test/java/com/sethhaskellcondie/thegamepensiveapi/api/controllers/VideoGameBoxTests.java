@@ -6,8 +6,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldVal
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameResponseDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,9 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Video game boxes represent how the games appear in a collection, either on a shelf physically or in a launcher on a digital space.
  * Boxes can be physical, or digital, they can also be a collection of other games.
  * Because of this video games are created and deleted through the video game boxes endpoints.
+ * Video game boxes have all the basic CRUD functions.
  * Video game boxes must have a title, system, and at least one video game.
- * When a video game box is created/updated a list of video games ids, or video game data is included in the request, on create these relationships are created in the system.
- * On a PUT (overwrite) request, if there were three games in a collection and now there are only two the third entry will be deleted from the database.
  * This test suite will focus on the video game boxes, the video game functionality will be tested in the VideoGameTests suite.
  */
 
@@ -51,7 +48,6 @@ public class VideoGameBoxTests {
     private TestFactory factory;
     private final String baseUrl = "/v1/videoGameBoxes";
     private final String baseUrlSlash = "/v1/videoGameBoxes/";
-    private final String videoGameUrlSlash = "/v1/videoGames/";
 
 
     @BeforeEach
@@ -117,8 +113,7 @@ public class VideoGameBoxTests {
         // Two errors total:
         // 1) The title cannot be blank.
         // 2) The systemId must be a valid int greater than zero.
-        //TODO test for this
-        // 3? Both video games lists are blank.
+        // TODO test for this 3? Both video games lists are blank.
         final String jsonContent = factory.formatVideoGameBoxPayload("", -1, List.of(), List.of(), false, null);
 
         final ResultActions result = mockMvc.perform(
@@ -300,6 +295,21 @@ public class VideoGameBoxTests {
                 status().isNotFound(),
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.size()").value(1)
+        );
+    }
+
+    @Test
+    void deleteExistingVideoGameBox_VideoGameBoxExists_ReturnNoContent() throws Exception {
+        final VideoGameBoxResponseDto responseDto = factory.postVideoGameBox();
+
+        final ResultActions result = mockMvc.perform(
+                delete(baseUrl + "/" + responseDto.id())
+        );
+
+        result.andExpectAll(
+                status().isNoContent(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isEmpty()
         );
     }
 

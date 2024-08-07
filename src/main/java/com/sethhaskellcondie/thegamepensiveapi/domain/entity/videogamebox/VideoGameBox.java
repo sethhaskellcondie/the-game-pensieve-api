@@ -117,6 +117,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
 
     @Override
     protected VideoGameBox updateFromRequestDto(VideoGameBoxRequestDto requestDto) {
+        //the videoGames, the videoGameIds, and the System are all setup outside of this
         ExceptionMalformedEntity exception = new ExceptionMalformedEntity();
         this.title = requestDto.title();
         try {
@@ -124,13 +125,6 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         } catch (NullPointerException ignored) {
             exception.addException(new ExceptionInputValidation("Video Game Box object error, the systemId cannot be null."));
         }
-        this.system = null;
-        List<Integer> videoGameIds = new ArrayList<>();
-        videoGameIds.addAll(this.videoGameIds);
-        videoGameIds.addAll(requestDto.existingVideoGameIds());
-        this.setVideoGameIds(videoGameIds);
-        //the videoGameRequestDto objects will be validated and assigned to the video game box in the service
-        this.videoGames = new ArrayList<>();
         this.physical = requestDto.isPhysical();
         this.customFieldValues = requestDto.customFieldValues();
 

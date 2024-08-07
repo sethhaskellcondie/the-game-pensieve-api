@@ -17,7 +17,6 @@ import java.util.Map;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,10 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
  * Video games represent the games that are owned but not how they appear on the shelf in a collection.
  * If a video game appears in a collection multiple times it will only appear once in the system as a video game.
  * Because of this video games cannot be created or deleted through the videoGames endpoints instead this is done through the videoGameBox endpoints.
+ * So video games do not have a POST (Create) or a DELETE endpoints, only PUT and GET endpoints
  * Video games must include a title, a system, and include at least one video game box.
+ * When a video game box is created/updated a list of video games ids, or video game data is included in the request, on create these relationships are created in the database.
+ * On a PUT (overwrite) request for a video game box, if there were three games in a collection and now there are only two the third game will be deleted from the database.
  */
 
 @SpringBootTest
@@ -411,13 +413,15 @@ public class VideoGameTests {
         final ResultActions result = factory.postVideoGameBoxReturnResult(boxTitle, boxSystem.id(), new ArrayList<>(), List.of(newGame1, newGame2), isPhysical, new ArrayList<>());
         factory.validateVideoGameBoxResponseBody(result, boxTitle, boxSystem, expectedVideoGameResults1, isPhysical, expectedCollection, new ArrayList<>());
         final VideoGameBoxResponseDto responseDto1 = factory.resultToVideoGameBoxResponseDto(result);
+        final int game1Id = responseDto1.videoGames().get(0).id();
         final int game2Id = responseDto1.videoGames().get(1).id();
-        //any validation here?
+        //Note: should I add validation here, or update this test to work after the test that tests the post functionality.
 
         //update that video game box to have different games
         final VideoGameRequestDto newGame3 = new VideoGameRequestDto("Game 3", gameSystem.id(), new ArrayList<>());
         final VideoGameRequestDto newGame4 = new VideoGameRequestDto("Game 4", gameSystem.id(), new ArrayList<>());
         final List<SlimVideoGame> expectedVideoGameResults2 = List.of(
+                convertToExpectedSlimVideoGameResponse(newGame2, gameSystem),
                 convertToExpectedSlimVideoGameResponse(newGame3, gameSystem),
                 convertToExpectedSlimVideoGameResponse(newGame4, gameSystem)
         );
@@ -430,9 +434,16 @@ public class VideoGameTests {
         );
         factory.validateVideoGameBoxResponseBody(result2, boxTitle, boxSystem, expectedVideoGameResults2, isPhysical, expectedCollection, new ArrayList<>());
 
-        //the game2 has been removed
-        //make sure the returned object has the different games and has deleted the old video games
-        //TODO finish this
+        //make sure the returned object has the different games and has deleted the old video game
+        final ResultActions getResult = mockMvc.perform(
+                get(baseUrlSlash + game1Id)
+        );
+
+        getResult.andExpectAll(
+                status().isNotFound(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
+        );
     }
 
     private SlimVideoGame convertToExpectedSlimVideoGameResponse(VideoGameRequestDto requestDto, SystemResponseDto expectedSystem) {

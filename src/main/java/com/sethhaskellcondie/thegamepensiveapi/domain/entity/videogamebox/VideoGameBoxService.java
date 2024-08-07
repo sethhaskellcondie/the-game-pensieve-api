@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox;
 
-import com.sethhaskellcondie.thegamepensiveapi.api.controllers.VideoGameBoxController;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityServiceAbstract;
@@ -110,8 +109,6 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
                         if (videoGame.getVideoGameBoxes().size() == 1) {
                             videoGameService.deleteById(id);
                         }
-                } else {
-                    relatedVideoGames.add(videoGameService.getById(id).convertToSlimVideoGame());
                 }
             } catch (Exception e) {
                 exceptionMalformedEntity.addException("Error updating video game box: " + e.getMessage());
@@ -119,13 +116,16 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         }
 
         for (Integer id : requestDto.existingVideoGameIds()) {
+            if (!relatedGameIds.contains(id)) {
+                relatedGameIds.add(id);
+            }
+        }
+
+        for (Integer id : relatedGameIds) {
             try {
-                if (!relatedGameIds.contains(id)) {
-                    relatedGameIds.add(id);
-                    relatedVideoGames.add(videoGameService.getById(id).convertToSlimVideoGame());
-                }
+                relatedVideoGames.add(videoGameService.getById(id).convertToSlimVideoGame());
             } catch (Exception e) {
-                exceptionMalformedEntity.addException("Error updating video game box while validating video game ids: ");
+                exceptionMalformedEntity.addException("Error updating video game box: Problem validating related video game with ID - " + id + ":" + e.getMessage());
             }
         }
 
@@ -139,9 +139,9 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         if (!exceptionMalformedEntity.isEmpty()) {
             throw exceptionMalformedEntity;
         }
-        videoGameBox.setVideoGameIds(relatedGameIds);
-        //Need to hydrate the relatedGameIds and add them to the related Video Games list.
+
         videoGameBox.setVideoGames(relatedVideoGames);
+        videoGameBox.updateFromRequestDto(requestDto);
         validateSystem(videoGameBox);
         final VideoGameBox savedVideoGameBox = repository.update(videoGameBox);
         savedVideoGameBox.setSystem(videoGameBox.getSystem());
