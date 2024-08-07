@@ -96,7 +96,6 @@ public class FilterTests {
                 jsonPath("$.data.filters.pagination_fields[1]").value("offset"),
                 jsonPath("$.errors").isEmpty()
         );
-
         validateCustomFieldFilters(result);
     }
 
@@ -134,25 +133,150 @@ public class FilterTests {
                 jsonPath("$.data.filters.all_fields[1]").value("order_by_desc"),
                 jsonPath("$.data.filters.pagination_fields[0]").value("limit"),
                 jsonPath("$.data.filters.pagination_fields[1]").value("offset"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[0]").value("equals"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[1]").value("not_equals"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[2]").value("contains"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[3]").value("starts_with"),
-                jsonPath("$.data.filters." + textCustomFieldName + "[4]").value("ends_with"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[0]").value("equals"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[1]").value("not_equals"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[2]").value("greater_than"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[3]").value("greater_than_equal_to"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[4]").value("less_than"),
-                jsonPath("$.data.filters." + numberCustomFieldName + "[5]").value("less_than_equal_to"),
-                jsonPath("$.data.filters." + booleanCustomFieldName + "[0]").value("equals"),
                 jsonPath("$.errors").isEmpty()
         );
-
         validateCustomFieldFilters(result);
     }
 
-    //TODO add tests for video games and video game boxes
+    @Test
+    void getVideoGameBoxFilters_FiltersSerializedCorrectly() throws Exception {
+        addCustomFields(Keychain.VIDEO_GAME_BOX_KEY);
+
+        final ResultActions result = mockMvc.perform(get("/filters/videoGameBox"));
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$.data.type").value("videoGameBox_filters"),
+                jsonPath("$.data.fields.title").value("text"),
+                jsonPath("$.data.fields.is_physical").value("boolean"),
+                jsonPath("$.data.fields.is_collection").value("boolean"),
+                jsonPath("$.data.fields.created_at").value("time"),
+                jsonPath("$.data.fields.updated_at").value("time"),
+                jsonPath("$.data.fields.all_fields").value("sort"),
+                jsonPath("$.data.fields.pagination_fields").value("pagination"),
+                jsonPath("$.data.filters.title[0]").value("equals"),
+                jsonPath("$.data.filters.title[1]").value("not_equals"),
+                jsonPath("$.data.filters.title[2]").value("contains"),
+                jsonPath("$.data.filters.title[3]").value("starts_with"),
+                jsonPath("$.data.filters.title[4]").value("ends_with"),
+                jsonPath("$.data.filters.is_physical[0]").value("equals"),
+                jsonPath("$.data.filters.is_collection[0]").value("equals"),
+                jsonPath("$.data.filters.created_at[0]").value("since"),
+                jsonPath("$.data.filters.created_at[1]").value("before"),
+                jsonPath("$.data.filters.updated_at[0]").value("since"),
+                jsonPath("$.data.filters.updated_at[1]").value("before"),
+                jsonPath("$.data.filters.all_fields[0]").value("order_by"),
+                jsonPath("$.data.filters.all_fields[1]").value("order_by_desc"),
+                jsonPath("$.data.filters.pagination_fields[0]").value("limit"),
+                jsonPath("$.data.filters.pagination_fields[1]").value("offset"),
+                jsonPath("$.errors").isEmpty()
+        );
+        validateCustomFieldFilters(result);
+    }
+
+    @Test
+    void getVideoGameFilters_FiltersSerializedCorrectly() throws Exception {
+        addCustomFields(Keychain.VIDEO_GAME_KEY);
+
+        final ResultActions result = mockMvc.perform(get("/filters/videoGame"));
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$.data.type").value("videoGame_filters"),
+                jsonPath("$.data.fields.title").value("text"),
+                jsonPath("$.data.fields.created_at").value("time"),
+                jsonPath("$.data.fields.updated_at").value("time"),
+                jsonPath("$.data.fields.all_fields").value("sort"),
+                jsonPath("$.data.fields.pagination_fields").value("pagination"),
+                jsonPath("$.data.filters.title[0]").value("equals"),
+                jsonPath("$.data.filters.title[1]").value("not_equals"),
+                jsonPath("$.data.filters.title[2]").value("contains"),
+                jsonPath("$.data.filters.title[3]").value("starts_with"),
+                jsonPath("$.data.filters.title[4]").value("ends_with"),
+                jsonPath("$.data.filters.created_at[0]").value("since"),
+                jsonPath("$.data.filters.created_at[1]").value("before"),
+                jsonPath("$.data.filters.updated_at[0]").value("since"),
+                jsonPath("$.data.filters.updated_at[1]").value("before"),
+                jsonPath("$.data.filters.all_fields[0]").value("order_by"),
+                jsonPath("$.data.filters.all_fields[1]").value("order_by_desc"),
+                jsonPath("$.data.filters.pagination_fields[0]").value("limit"),
+                jsonPath("$.data.filters.pagination_fields[1]").value("offset"),
+                jsonPath("$.errors").isEmpty()
+        );
+        validateCustomFieldFilters(result);
+    }
+
+    @Test
+    void getBoardGameBoxFilters_FiltersSerializedCorrectly() throws Exception {
+        addCustomFields(Keychain.BOARD_GAME_BOX_KEY);
+
+        final ResultActions result = mockMvc.perform(get("/filters/boardGameBox"));
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$.data.type").value("boardGameBox_filters"),
+                jsonPath("$.data.fields.title").value("text"),
+                jsonPath("$.data.fields.is_expansion").value("boolean"),
+                jsonPath("$.data.fields.is_stand_alone").value("boolean"),
+                jsonPath("$.data.fields.created_at").value("time"),
+                jsonPath("$.data.fields.updated_at").value("time"),
+                jsonPath("$.data.fields.all_fields").value("sort"),
+                jsonPath("$.data.fields.pagination_fields").value("pagination"),
+                jsonPath("$.data.filters.title[0]").value("equals"),
+                jsonPath("$.data.filters.title[1]").value("not_equals"),
+                jsonPath("$.data.filters.title[2]").value("contains"),
+                jsonPath("$.data.filters.title[3]").value("starts_with"),
+                jsonPath("$.data.filters.title[4]").value("ends_with"),
+                jsonPath("$.data.filters.is_expansion[0]").value("equals"),
+                jsonPath("$.data.filters.is_stand_alone[0]").value("equals"),
+                jsonPath("$.data.filters.created_at[0]").value("since"),
+                jsonPath("$.data.filters.created_at[1]").value("before"),
+                jsonPath("$.data.filters.updated_at[0]").value("since"),
+                jsonPath("$.data.filters.updated_at[1]").value("before"),
+                jsonPath("$.data.filters.all_fields[0]").value("order_by"),
+                jsonPath("$.data.filters.all_fields[1]").value("order_by_desc"),
+                jsonPath("$.data.filters.pagination_fields[0]").value("limit"),
+                jsonPath("$.data.filters.pagination_fields[1]").value("offset"),
+                jsonPath("$.errors").isEmpty()
+        );
+        validateCustomFieldFilters(result);
+    }
+
+    @Test
+    void getBoardGameFilters_FiltersSerializedCorrectly() throws Exception {
+        addCustomFields(Keychain.BOARD_GAME_KEY);
+
+        final ResultActions result = mockMvc.perform(get("/filters/boardGame"));
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$.data.type").value("boardGame_filters"),
+                jsonPath("$.data.fields.title").value("text"),
+                jsonPath("$.data.fields.created_at").value("time"),
+                jsonPath("$.data.fields.updated_at").value("time"),
+                jsonPath("$.data.fields.all_fields").value("sort"),
+                jsonPath("$.data.fields.pagination_fields").value("pagination"),
+                jsonPath("$.data.filters.title[0]").value("equals"),
+                jsonPath("$.data.filters.title[1]").value("not_equals"),
+                jsonPath("$.data.filters.title[2]").value("contains"),
+                jsonPath("$.data.filters.title[3]").value("starts_with"),
+                jsonPath("$.data.filters.title[4]").value("ends_with"),
+                jsonPath("$.data.filters.created_at[0]").value("since"),
+                jsonPath("$.data.filters.created_at[1]").value("before"),
+                jsonPath("$.data.filters.updated_at[0]").value("since"),
+                jsonPath("$.data.filters.updated_at[1]").value("before"),
+                jsonPath("$.data.filters.all_fields[0]").value("order_by"),
+                jsonPath("$.data.filters.all_fields[1]").value("order_by_desc"),
+                jsonPath("$.data.filters.pagination_fields[0]").value("limit"),
+                jsonPath("$.data.filters.pagination_fields[1]").value("offset"),
+                jsonPath("$.errors").isEmpty()
+        );
+        validateCustomFieldFilters(result);
+    }
 
     private void addCustomFields(String key) throws Exception {
         String textCustomFieldType = CustomField.TYPE_TEXT;
