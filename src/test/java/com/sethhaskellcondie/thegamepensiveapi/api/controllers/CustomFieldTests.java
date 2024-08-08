@@ -227,7 +227,6 @@ public class CustomFieldTests {
         );
     }
 
-    //TODO refactor this out
     private void validateCustomFieldResponseBody(ResultActions result, CustomField customField) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.id").value(customField.id()),
