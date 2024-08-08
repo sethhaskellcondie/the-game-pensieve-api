@@ -6,8 +6,6 @@ import java.util.List;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.SlimVideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBox;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxRepository;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogamebox.VideoGameBoxService;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import org.springframework.stereotype.Service;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
@@ -17,7 +15,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemReposi
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGameRequestDto, VideoGameResponseDto>

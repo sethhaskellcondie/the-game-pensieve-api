@@ -103,12 +103,12 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         for (Integer id : relatedGameIds) {
             try {
                 if (!requestDto.existingVideoGameIds().contains(id)) {
-                        VideoGame videoGame = videoGameService.getById(id);
-                        relatedGameIds.remove(id);
-                        //if this video game is the only game associated to this video game box then delete it
-                        if (videoGame.getVideoGameBoxes().size() == 1) {
-                            videoGameService.deleteById(id);
-                        }
+                    VideoGame videoGame = videoGameService.getById(id);
+                    relatedGameIds.remove(id);
+                    //if this video game is the only game associated to this video game box then delete it
+                    if (videoGame.getVideoGameBoxes().size() == 1) {
+                        videoGameService.deleteById(id);
+                    }
                 }
             } catch (Exception e) {
                 exceptionMalformedEntity.addException("Error updating video game box: " + e.getMessage());
