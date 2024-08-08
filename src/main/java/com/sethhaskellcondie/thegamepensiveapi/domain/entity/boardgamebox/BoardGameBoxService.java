@@ -70,7 +70,9 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
     }
 
     @Override
-    public BoardGameBox updateExisting(BoardGameBox boardGameBox) {
+    public BoardGameBox updateExisting(int id, BoardGameBoxRequestDto requestDto) {
+        BoardGameBox boardGameBox = repository.getById(id);
+        boardGameBox.updateFromRequestDto(requestDto);
         if (!boardGameBox.isBoardGameValid()) {
             try {
                 BoardGame boardGame = boardGameRepository.getById(boardGameBox.getBoardGameId());

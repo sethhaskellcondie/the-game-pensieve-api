@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
+import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
@@ -37,7 +38,12 @@ public abstract class EntityServiceAbstract<T extends Entity<RequestDto, Respons
      */
 
     @Override
-    public T updateExisting(T t) {
+    public T updateExisting(int id, RequestDto requestDto) {
+        T t = repository.getById(id);
+        if (!t.isPersisted()) {
+            throw new ExceptionResourceNotFound(t.getKey(), id);
+        }
+        t.updateFromRequestDto(requestDto);
         return repository.update(t);
     }
 

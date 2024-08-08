@@ -9,7 +9,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideo
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameService;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
@@ -92,14 +91,9 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
     }
 
     @Override
-    public VideoGameBox updateExisting(VideoGameBox videoGameBox) {
-        //TODO refactor the updateExisting to pass in the requestDto to match this signature
-        throw new ExceptionInternalError("Call VideoGameBox::updateExisting(VideoGameBox videoGameBox, VideoGameBoxRequestDto requestDto) " +
-                "instead of this call VideoGameBox::updateExisting(VideoGameBox videoGameBox) the requestDto needs to be passed in separately.");
-    }
-
     @Transactional
-    public VideoGameBox updateExisting(VideoGameBox videoGameBox, VideoGameBoxRequestDto requestDto) {
+    public VideoGameBox updateExisting(int videoGameBoxId, VideoGameBoxRequestDto requestDto) {
+        VideoGameBox videoGameBox = repository.getById(videoGameBoxId);
         if (requestDto.existingVideoGameIds().isEmpty() && requestDto.newVideoGames().isEmpty()) {
             throw new ExceptionMalformedEntity("Error updating existing video game box to the database, a video game box needs at least one game. Existing or new.");
         }

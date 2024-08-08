@@ -67,7 +67,8 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
     }
 
     @Override
-    public VideoGame updateExisting(VideoGame videoGame) {
+    public VideoGame updateExisting(int id, VideoGameRequestDto requestDto) {
+        VideoGame videoGame = repository.getById(id).updateFromRequestDto(requestDto);
         VideoGame validatedVideoGame = videoGame;
         if (!videoGame.isSystemValid()) {
             validatedVideoGame = validateRelatedObjects(videoGame);

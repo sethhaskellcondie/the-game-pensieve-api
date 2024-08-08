@@ -18,7 +18,7 @@ public interface EntityService<T extends Entity<RequestDto, ResponseDto>, Reques
 
     T createNew(RequestDto requestDto);
 
-    T updateExisting(T t);
+    T updateExisting(int id, RequestDto requestDto);
 
     void deleteById(int id);
 }
