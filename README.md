@@ -53,3 +53,5 @@ Commands:
 
 ### Additional Information
 Check the Notes.md file for more information on the design and documentation of this project
+
+Note: This project uses test containers for integration tests, on some computers the tests will fail because the testcontainers are not all starting if this is the case the load can be reduced by commenting out the (GetWithFilters...Tests.java) series of tests.
