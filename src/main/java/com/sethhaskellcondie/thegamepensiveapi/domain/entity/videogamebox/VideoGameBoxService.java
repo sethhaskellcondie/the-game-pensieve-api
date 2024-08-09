@@ -98,29 +98,14 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
             throw new ExceptionMalformedEntity("Error updating existing video game box to the database, a video game box needs at least one game. Existing or new.");
         }
         ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
-        List<Integer> relatedGameIds = videoGameBox.getVideoGameIds();
+        List<Integer> relatedGameIds = new ArrayList<>();
+        try {
+            relatedGameIds = removeGamesFromExistingBox(videoGameBox, requestDto);
+        } catch (ExceptionMalformedEntity exception) {
+            exceptionMalformedEntity = exception;
+        }
+
         List<SlimVideoGame> relatedVideoGames = new ArrayList<>();
-        for (Integer id : relatedGameIds) {
-            try {
-                if (!requestDto.existingVideoGameIds().contains(id)) {
-                    VideoGame videoGame = videoGameService.getById(id);
-                    relatedGameIds.remove(id);
-                    //if this video game is the only game associated to this video game box then delete it
-                    if (videoGame.getVideoGameBoxes().size() == 1) {
-                        videoGameService.deleteById(id);
-                    }
-                }
-            } catch (Exception e) {
-                exceptionMalformedEntity.addException("Error updating video game box: " + e.getMessage());
-            }
-        }
-
-        for (Integer id : requestDto.existingVideoGameIds()) {
-            if (!relatedGameIds.contains(id)) {
-                relatedGameIds.add(id);
-            }
-        }
-
         for (Integer id : relatedGameIds) {
             try {
                 relatedVideoGames.add(videoGameService.getById(id).convertToSlimVideoGame());
@@ -147,6 +132,35 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         savedVideoGameBox.setSystem(videoGameBox.getSystem());
         savedVideoGameBox.setVideoGames(videoGameBox.getVideoGames());
         return savedVideoGameBox;
+    }
+
+    private List<Integer> removeGamesFromExistingBox(VideoGameBox videoGameBox, VideoGameBoxRequestDto requestDto) {
+        ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
+        List<Integer> relatedGameIds = videoGameBox.getVideoGameIds();
+        for (Integer id : relatedGameIds) {
+            try {
+                if (!requestDto.existingVideoGameIds().contains(id)) {
+                    VideoGame videoGame = videoGameService.getById(id);
+                    relatedGameIds.remove(id);
+                    //if this video game is the only game associated to this video game box then delete it
+                    if (videoGame.getVideoGameBoxes().size() == 1) {
+                        videoGameService.deleteById(id);
+                    }
+                }
+            } catch (Exception e) {
+                exceptionMalformedEntity.addException("Error updating video game box: " + e.getMessage());
+            }
+        }
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
+        }
+
+        for (Integer id : requestDto.existingVideoGameIds()) {
+            if (!relatedGameIds.contains(id)) {
+                relatedGameIds.add(id);
+            }
+        }
+        return relatedGameIds;
     }
 
     @Override
