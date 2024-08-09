@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.sethhaskellcondie</groupId>
 	<artifactId>the-game-pensive-api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.5.0</version>
 	<name>the-game-pensive-api</name>
 	<description>This project will store information about different games in a database along with an api to access that data.</description>
 	<properties>

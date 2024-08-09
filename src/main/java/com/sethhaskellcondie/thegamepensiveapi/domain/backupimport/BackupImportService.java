@@ -189,7 +189,7 @@ public class BackupImportService {
                 if (toyId > 0) {
                     Toy toy = toyService.getById(toyId);
                     toy.updateFromRequestDto(toyRequestDto);
-                    toyService.updateExisting(toy);
+//                    toyService.updateExisting(toy);
                     existingCount++;
                 } else {
                     toyService.createNew(toyRequestDto);
@@ -237,7 +237,7 @@ public class BackupImportService {
                 if (systemId > 0) {
                     System system = systemService.getById(systemId);
                     system.updateFromRequestDto(systemRequestDto);
-                    systemService.updateExisting(system);
+//                    systemService.updateExisting(system);
                     existingCount++;
                 } else {
                     systemService.createNew(systemRequestDto);
@@ -286,7 +286,7 @@ public class BackupImportService {
                     VideoGame videoGame = videoGameService.getById(videoGameId);
                     videoGame.updateFromRequestDto(videoGameRequestDto);
                     //call update and create from the service instead of the repository because that will include the system validation code
-                    videoGameService.updateExisting(videoGame);
+//                    videoGameService.updateExisting(videoGame);
                     existingCount++;
                 } else {
                     videoGameService.createNew(videoGameRequestDto);

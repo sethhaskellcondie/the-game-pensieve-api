@@ -4,7 +4,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterService;
 import org.springframework.stereotype.Service;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityServiceAbstract;
 
 @Service

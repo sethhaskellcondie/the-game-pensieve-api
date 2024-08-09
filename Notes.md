@@ -32,3 +32,13 @@ This project uses the diamond testing strategy, there are many integration tests
 ## Documentation
 The design notes can be found with documentation style comments on the Entity, and System classes.
 The requirements for each entity is listed on the integration tests for that entity. For example to find the requirements for the Video Game Box check the VideoGameBoxTests.java
+
+### Features and Roadmap
+- Systems, Toys and basic CRUD design (done)
+- Filters for All Entities (done)
+- Custom Fields for All Entities (done)
+- Video Games and Video Game Boxes (done)
+- Board Games and Board Game Boxes (in progress)
+- Import and Export backup data (in progress)
+- External Swagger Documentation (backlog)
+- Front End Implementation (backlog)

@@ -125,7 +125,7 @@ public class ToyTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateToyResponseBody(result, expectedDto, customFieldValues);
+        validateToyResponseBody(result, expectedDto.name(), expectedDto.set(), customFieldValues);
     }
 
     @Test
@@ -275,18 +275,6 @@ public class ToyTests {
         );
         ToyResponseDto responseDto = resultToResponseDto(result);
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
-    }
-
-    //TODO refactor this call out
-    private void validateToyResponseBody(ResultActions result, ToyResponseDto expectedResponse, List<CustomFieldValue> customFieldValues) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.key").value("toy"),
-                jsonPath("$.data.id").value(expectedResponse.id()),
-                jsonPath("$.data.name").value(expectedResponse.name()),
-                jsonPath("$.data.set").value(expectedResponse.set()),
-                jsonPath("$.errors").isEmpty()
-        );
-        factory.validateCustomFieldValues(expectedResponse.customFieldValues(), customFieldValues);
     }
 
     private void validateToyResponseBody(ResultActions result, List<ToyResponseDto> expectedToys) throws Exception {

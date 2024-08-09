@@ -3,8 +3,6 @@ package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,7 +10,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sethhaskellcondie.thegamepensiveapi.api.FormattedResponseBody;
@@ -20,7 +17,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameGateway;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameResponseDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
 

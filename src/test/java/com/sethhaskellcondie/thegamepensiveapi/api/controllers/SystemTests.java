@@ -101,7 +101,7 @@ public class SystemTests {
         );
 
         result.andExpect(status().isOk());
-        validateSystemResponseBody(result, resultToResponseDto(result), existingCustomFieldValue);
+        validateSystemResponseBody(result, updatedName, updatedGeneration, updatedHandheld, existingCustomFieldValue);
     }
 
     @Test
@@ -119,7 +119,7 @@ public class SystemTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateSystemResponseBody(result, expectedDto, customFieldValues);
+        validateSystemResponseBody(result, name, generation, handheld, customFieldValues);
     }
 
     @Test
@@ -316,19 +316,6 @@ public class SystemTests {
                 jsonPath("$.errors").isEmpty()
         );
         SystemResponseDto responseDto = resultToResponseDto(result);
-        factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
-    }
-
-    //TODO refactor this function out
-    private void validateSystemResponseBody(ResultActions result, SystemResponseDto responseDto, List<CustomFieldValue> customFieldValues) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.key").value("system"),
-                jsonPath("$.data.id").value(responseDto.id()),
-                jsonPath("$.data.name").value(responseDto.name()),
-                jsonPath("$.data.generation").value(responseDto.generation()),
-                jsonPath("$.data.handheld").value(responseDto.handheld()),
-                jsonPath("$.errors").isEmpty()
-        );
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 

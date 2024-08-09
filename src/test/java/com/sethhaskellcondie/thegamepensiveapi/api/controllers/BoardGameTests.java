@@ -278,7 +278,7 @@ public class BoardGameTests {
                 jsonPath("$.data.key").value(Keychain.BOARD_GAME_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.title").value(expectedTitle),
-                //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), TODO update this to test the board game boxes as well
+                //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), Future Update: update this to test the board game boxes as well
                 jsonPath("$.errors").isEmpty()
         );
         BoardGameResponseDto responseDto = factory.resultToBoardGameResponseDto(result);
@@ -305,7 +305,7 @@ public class BoardGameTests {
                     () -> assertEquals(Keychain.BOARD_GAME_KEY, returnedGame.key()),
                     () -> assertEquals(expectedGame.id(), returnedGame.id()),
                     () -> assertEquals(expectedGame.title(), returnedGame.title())
-                    //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), TODO update this to test the board game boxes as well
+                    //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), Future Update: update this to test the board game boxes as well
             );
             factory.validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues());
         }

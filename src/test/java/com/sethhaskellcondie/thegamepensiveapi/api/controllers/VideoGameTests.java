@@ -95,7 +95,8 @@ public class VideoGameTests {
         updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(responseDto, existingVideoGame, existingVideoGame.customFieldValues());
     }
 
-    void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(VideoGameBoxResponseDto existingVideoGameBox, SlimVideoGame existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+    void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(
+            VideoGameBoxResponseDto existingVideoGameBox, SlimVideoGame existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
         final String updatedTitle = "Mega Man 3";
         final SystemResponseDto newRelatedSystem = factory.postSystem();
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
@@ -116,7 +117,8 @@ public class VideoGameTests {
         );
 
         result.andExpect(status().isOk());
-        validateVideoGameResponseBody(result, updatedTitle, newRelatedSystem, List.of(convertToExpectedSlimVideoGameBox(existingVideoGameBox, existingVideoGameBox.system())), existingCustomFieldValue);
+        validateVideoGameResponseBody(
+                result, updatedTitle, newRelatedSystem, List.of(convertToExpectedSlimVideoGameBox(existingVideoGameBox, existingVideoGameBox.system())), existingCustomFieldValue);
     }
 
     @Test
@@ -321,7 +323,7 @@ public class VideoGameTests {
         );
 
         //The Super Mario Bros. Video Game should still exist because it also belongs to Super Mario Collection Again
-        final ResultActions getVideoGameResult = mockMvc.perform( get(baseUrlSlash + slimVideoGame.id()));
+        final ResultActions getVideoGameResult = mockMvc.perform(get(baseUrlSlash + slimVideoGame.id()));
 
         getVideoGameResult.andExpectAll(
                 status().isOk()

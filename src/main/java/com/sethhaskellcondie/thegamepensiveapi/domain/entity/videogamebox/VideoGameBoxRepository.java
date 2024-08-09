@@ -4,7 +4,6 @@ import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.SlimVideoGame;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionInternalError;
 import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.Filter;

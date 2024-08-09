@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensiveapi.domain.entity;
 
 import com.sethhaskellcondie.thegamepensiveapi.domain.filter.FilterRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
 
 import java.util.List;
 
@@ -30,12 +29,7 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
 
     @Override
     public ResponseDto updateExisting(int id, RequestDto requestDto) {
-        T t = service.getById(id);
-        if (!t.isPersisted()) {
-            throw new ExceptionResourceNotFound(t.getKey(), id);
-        }
-        t.updateFromRequestDto(requestDto);
-        return service.updateExisting(t).convertToResponseDto();
+        return service.updateExisting(id, requestDto).convertToResponseDto();
     }
 
     @Override

@@ -35,26 +35,23 @@ Commands:
 
 ### Run Locally
 Requirements:
-- Download and Install Docker (for Postgres and Flyway)
+- This project runs on java 17, download and install the SDK and JDK.
+  - https://www.oracle.com/java/technologies/downloads/
+- Then download and install docker (for Postgres and Flyway)
     - https://www.docker.com/products/docker-desktop/
 - -OR-
-- Download and Install Postgres version 15
+- Download and install Postgres version 15
   - https://www.postgresql.org/download/
-- This project runs on Java 17, download and install the SDK and JDK.
-  - https://www.oracle.com/java/technologies/downloads/
-- Clone project to local machine
+- Finally clone the project to your local machine
 
 Commands:
-- Start the postgres database, the default username is 'postgres', the default password is 'root'
-- -OR- 
-- Run the docker container for postgres
-- Run the project through your preferred IDE
-- -OR-
-- Run the maven commands to create a jar file and run it:
-  - $ mvn install -DskipTests
-  - $ java -jar /target/the_game_pensive_api.jar
+- If you installed postgres locally start the postgres database, the default username is 'postgres', the default password is 'root'
+- Else start the docker container for postgres 
+- Then run the project through your preferred IDE or follow the commands in the run in docker section above to create a jar of the project and then run it.
 - You can access the api on port 8080
 - The test endpoint localhost:8080/v1/heartbeat will return the string "thump thump" when working correctly.
 
 ### Additional Information
 Check the Notes.md file for more information on the design and documentation of this project
+
+Note: This project uses test containers for integration tests, on some computers the tests will fail because the testcontainers are not all starting if this is the case the load can be reduced by commenting out the (GetWithFilters...Tests.java) series of tests.
