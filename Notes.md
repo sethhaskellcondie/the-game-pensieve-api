@@ -17,7 +17,7 @@ The domain is the core of the system, it could be compiled on its own or transpl
 - The Keychain
 
 ## Return Body
-The body of requests was inspired by the JSON API format. Responses will have a "data" and "errors" attributes as part of the body. If the request was successful then the errors will return with a null value. Otherwise the data will be null and the errors will display one or more messages. This will illustrate when the response was intentional or not, for example a DELETE reuqest will usually not return a body in this date will be blank, and the errors will be null showing that the request was successful there was just no data to return.
+The body of requests was inspired by the JSON API format. Responses will have "data" and "errors" attributes as part of the body. If the request was successful, then the errors will return with a null value. Otherwise, the data will be null, and the errors will display one or more messages. This will illustrate when the response was intentional or not. For example, a DELETE request will usually not return a body as the data will be blank, and the errors will be null, showing that the request was successful; there was just no data to return.
 
 ## Docker Flow
 The project can be run by running the dockerfile this will spin up three containers.
