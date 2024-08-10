@@ -18,6 +18,12 @@ JDBC Template: Database connection <br>
 Docker: Run-time container
 
 ## Project Setup
+
+This project comes with a Maven wrapper so that Maven doesn't need to be installed locally, more information on that here: https://www.baeldung.com/maven-wrapper
+Maven can also be installed locally on your machine
+- On MacOS install Maven through brew: `brew install maven && echo -e "\nChecking maven version\n" && mvn -version`
+- On Windows install with these steps on the Maven website: https://maven.apache.org/install.html
+
 ### Run in Docker
 Requirements: 
 - Download and Install Docker
