@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("filters")
+@RequestMapping("v1/filters")
 public class FilterController {
     private final FilterGateway gateway;
 

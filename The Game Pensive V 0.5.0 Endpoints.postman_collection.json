@@ -1,0 +1,762 @@
+{
+	"info": {
+		"_postman_id": "b4182cfb-2b89-4b00-9593-690e2e9a5a11",
+		"name": "Version 0.5.0 Endpoints",
+		"description": "This contains a basic collection of example endpoints for The Game Pensive. This will be updated and polished up before a version 1 release.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14591034"
+	},
+	"item": [
+		{
+			"name": "heartbeat check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.api+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/heartbeat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"heartbeat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create new toy",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.api+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"toy\": {\r\n        \"name\": \"Toy Name\",\r\n        \"set\": \"Toy Set\",\r\n        \"customFieldValues\": []\r\n        }\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/toys",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"toys"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read one toy",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/toys/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"toys",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read all toys",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/toys/function/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"toys",
+						"function",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read all toys (filters example)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": [\r\n        {\r\n            \"key\": \"toy\",\r\n            \"field\": \"name\",\r\n            \"operator\": \"starts_with\",\r\n            \"operand\": \"Super\"\r\n        },\r\n        {\r\n            \"key\": \"toy\",\r\n            \"field\": \"name\",\r\n            \"operator\": \"ends_with\",\r\n            \"operand\": \"Mario\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/toys/function/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"toys",
+						"function",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update one toy",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"toy\": {\r\n        \"name\": \"New Name\",\r\n        \"set\": \"New Set\",\r\n        \"customFieldValues\": []\r\n        }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/toys/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"toys",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete one toy",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/toys/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"toys",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create new system",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"system\": {\r\n        \"name\": \"New System Name\",\r\n        \"generation\": 3,\r\n        \"handheld\": false,\r\n        \"customFieldValues\": []\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/systems",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"systems"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read one system",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/systems/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"systems",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read all systems",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/systems/function/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"systems",
+						"function",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update one system",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"system\": {\r\n        \"name\": \"Updated System Name\",\r\n        \"generation\": 3,\r\n        \"handheld\": false,\r\n        \"customFieldValues\": []\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/systems/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"systems",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete one system",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/systems/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"systems",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create video game box and video game",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"videoGameBox\": {\r\n        \"title\": \"New Video Game Box\",\r\n        \"systemId\": 1,\r\n        \"existingVideoGameIds\": [],\r\n        \"newVideoGames\": [\r\n                {\r\n                    \"title\": \"New Video Game\",\r\n                    \"systemId\": 1,\r\n                    \"customFieldValues\": []\r\n                }\r\n            ],\r\n        \"isPhysical\": true,\r\n        \"customFieldValues\": []\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGameBoxes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGameBoxes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read one video game box",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGameBoxes/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGameBoxes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read all video game boxes",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGameBoxes/function/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGameBoxes",
+						"function",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update one video game box",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"videoGameBox\": {\r\n        \"title\": \"Updated Video Game Box\",\r\n        \"systemId\": 1,\r\n        \"existingVideoGameIds\": [],\r\n        \"newVideoGames\": [\r\n                {\r\n                    \"title\": \"Another New Video Game\",\r\n                    \"systemId\": 1,\r\n                    \"customFieldValues\": []\r\n                }\r\n            ],\r\n        \"isPhysical\": true,\r\n        \"customFieldValues\": []\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGameBoxes/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGameBoxes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete one video game box",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGameBoxes/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGameBoxes",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read one video game",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGames/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGames",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read all video games",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGames/function/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGames",
+						"function",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update one video game",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"videoGame\": {\r\n        \"title\": \"Updated Video Game Title\",\r\n        \"systemId\": 1,\r\n        \"customFieldValues\": []\r\n        }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/videoGames/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"videoGames",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read filters for entity",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/filters/videoGame",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"filters",
+						"videoGame"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create new custom field",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"custom_field\": {\r\n        \"name\": \"new custom field\",\r\n        \"type\": \"text\",\r\n        \"entityKey\": \"videoGame\"\r\n        }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/custom_fields",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"custom_fields"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "read all custom fields",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/custom_fields",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"custom_fields"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch custom field name",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"updated custom field\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/custom_fields/7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"custom_fields",
+						"7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete one custom field",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/custom_fields/7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"custom_fields",
+						"7"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// test if successful",
+					"pm.test(\"Sucessful response\", function () {",
+					"    pm.response.to.be.success;",
+					"});",
+					"",
+					"",
+					"// retry if needed",
+					"var code = pm.response.code;",
+					"",
+					"var maxNumberOfRetries = 3;",
+					"var request = request.name;",
+					"",
+					"if (!pm.environment.get(\"tries\")) {",
+					"    pm.environment.set(\"tries\", 1);",
+					"}",
+					"",
+					"var tries = pm.environment.get(\"tries\");",
+					"",
+					"if (!((code == 200) || (code == 201) || (code == 204)) && (pm.environment.get(\"tries\") < maxNumberOfRetries)) {",
+					"    console.log('fail ' + tries);",
+					"    var tries = parseInt(pm.environment.get(\"tries\"), 10);",
+					"    pm.environment.set(\"tries\", tries + 1);",
+					"    postman.setNextRequest(request);",
+					"} else if (!((code == 200) || (code == 201) || (code == 204))) {",
+					"    console.log('failed ' + maxNumberOfRetries + ' times!');",
+					"    pm.environment.unset(\"tries\");",
+					"    postman.setNextRequest(null);",
+					"} else {",
+					"// \tconsole.log(\"success\"); ",
+					"\tpm.environment.unset(\"tries\");",
+					"}"
+				]
+			}
+		}
+	]
+}

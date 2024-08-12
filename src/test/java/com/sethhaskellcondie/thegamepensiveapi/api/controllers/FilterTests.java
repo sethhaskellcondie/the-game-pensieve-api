@@ -31,6 +31,7 @@ public class FilterTests {
     @Autowired
     private MockMvc mockMvc;
     private TestFactory factory;
+    private final String baseUrl = "/v1/filters/";
     //JsonPath is picky when it comes to Json with spaces in it, so we will use underscores for these names
     final String textCustomFieldName = "Text_Custom_Field";
     final String numberCustomFieldName = "Number_Custom_Field";
@@ -43,7 +44,7 @@ public class FilterTests {
 
     @Test
     void getFilters_NoFilters_ReturnEmpty() throws Exception {
-        final ResultActions result = mockMvc.perform(get("/filters/missing_entity"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "missing_entity"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -59,7 +60,7 @@ public class FilterTests {
     void getSystemFilters_FiltersSerializedCorrectly() throws Exception {
         addCustomFields(Keychain.SYSTEM_KEY);
 
-        final ResultActions result = mockMvc.perform(get("/filters/system"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "system"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -103,7 +104,7 @@ public class FilterTests {
     void getToyFilters_FiltersSerializedCorrectly() throws Exception {
         addCustomFields(Keychain.TOY_KEY);
 
-        final ResultActions result = mockMvc.perform(get("/filters/toy"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "toy"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -142,7 +143,7 @@ public class FilterTests {
     void getVideoGameBoxFilters_FiltersSerializedCorrectly() throws Exception {
         addCustomFields(Keychain.VIDEO_GAME_BOX_KEY);
 
-        final ResultActions result = mockMvc.perform(get("/filters/videoGameBox"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "videoGameBox"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -179,7 +180,7 @@ public class FilterTests {
     void getVideoGameFilters_FiltersSerializedCorrectly() throws Exception {
         addCustomFields(Keychain.VIDEO_GAME_KEY);
 
-        final ResultActions result = mockMvc.perform(get("/filters/videoGame"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "videoGame"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -212,7 +213,7 @@ public class FilterTests {
     void getBoardGameBoxFilters_FiltersSerializedCorrectly() throws Exception {
         addCustomFields(Keychain.BOARD_GAME_BOX_KEY);
 
-        final ResultActions result = mockMvc.perform(get("/filters/boardGameBox"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "boardGameBox"));
 
         result.andExpectAll(
                 status().isOk(),
@@ -249,7 +250,7 @@ public class FilterTests {
     void getBoardGameFilters_FiltersSerializedCorrectly() throws Exception {
         addCustomFields(Keychain.BOARD_GAME_KEY);
 
-        final ResultActions result = mockMvc.perform(get("/filters/boardGame"));
+        final ResultActions result = mockMvc.perform(get(baseUrl + "boardGame"));
 
         result.andExpectAll(
                 status().isOk(),

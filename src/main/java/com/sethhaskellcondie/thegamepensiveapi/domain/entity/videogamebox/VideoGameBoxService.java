@@ -150,6 +150,9 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
             } catch (Exception e) {
                 exceptionMalformedEntity.addException("Error updating video game box: " + e.getMessage());
             }
+            if (relatedGameIds.isEmpty()) {
+                break;
+            }
         }
         if (!exceptionMalformedEntity.isEmpty()) {
             throw exceptionMalformedEntity;
