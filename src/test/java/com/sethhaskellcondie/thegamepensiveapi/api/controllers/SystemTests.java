@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,7 +61,8 @@ public class SystemTests {
     }
 
     @Test
-    void postSystemWithCustomFieldValues_ValidPayload_SystemCreatedAndReturned() throws Exception {
+    void postAndPatchSystem_ValidInput_ReturnSuccess() throws Exception {
+        //test valid post, return created
         final String expectedName = "NES 2";
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
@@ -70,38 +72,38 @@ public class SystemTests {
                 new CustomFieldValue(0, "Publisher", "text", "Nintendo")
         );
 
-        final ResultActions result = factory.postSystemReturnResult(expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
+        final ResultActions postResult = factory.postSystemReturnResult(expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
-        validateSystemResponseBody(result, expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
+        //TODO the customFieldId is returning as 0?
+        postResult.andDo(print());
 
-        final SystemResponseDto responseDto = resultToResponseDto(result);
-        //Use this setup in the next test
-        updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(responseDto, responseDto.customFieldValues());
-    }
+        validateSystemResponseBody(postResult, expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
-    void updateExistingSystem_UpdateSystemAndCustomField_ReturnOk(SystemResponseDto existingSystem, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+        //test valid patch, return ok
+        final SystemResponseDto responseDto = resultToResponseDto(postResult); //use the response from the previous post
         final String updatedName = "New NES 3";
         final int updatedGeneration = 6;
         final boolean updatedHandheld = true;
-        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
-        existingCustomFieldValue.remove(0);
+        final List<CustomFieldValue> existingCustomFieldValues = responseDto.customFieldValues();
+        final CustomFieldValue customFieldValueToUpdate = responseDto.customFieldValues().get(0);
+        existingCustomFieldValues.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
-            customFieldValueToUpdate.getCustomFieldId(),
-            "Updated" + customFieldValueToUpdate.getCustomFieldName(),
-            customFieldValueToUpdate.getCustomFieldType(),
-            "false"
+                customFieldValueToUpdate.getCustomFieldId(),
+                "Updated" + customFieldValueToUpdate.getCustomFieldName(),
+                customFieldValueToUpdate.getCustomFieldType(),
+                "false"
         );
-        existingCustomFieldValue.add(updatedValue);
+        existingCustomFieldValues.add(updatedValue);
 
-        final String jsonContent = factory.formatSystemPayload(updatedName, updatedGeneration, updatedHandheld, existingCustomFieldValue);
-        final ResultActions result = mockMvc.perform(
-                put(baseUrl + "/" + existingSystem.id())
+        final String jsonContent = factory.formatSystemPayload(updatedName, updatedGeneration, updatedHandheld, existingCustomFieldValues);
+        final ResultActions patchResult = mockMvc.perform(
+                put(baseUrl + "/" + responseDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
 
-        result.andExpect(status().isOk());
-        validateSystemResponseBody(result, updatedName, updatedGeneration, updatedHandheld, existingCustomFieldValue);
+        patchResult.andExpect(status().isOk());
+        validateSystemResponseBody(patchResult, updatedName, updatedGeneration, updatedHandheld, existingCustomFieldValues);
     }
 
     @Test

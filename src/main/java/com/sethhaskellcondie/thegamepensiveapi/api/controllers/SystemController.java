@@ -54,14 +54,14 @@ public class SystemController {
 
     @ResponseBody
     @GetMapping("/{id}")
-    public Map<String, SystemResponseDto> getById(@PathVariable int id) throws ExceptionResourceNotFound {
+    public Map<String, SystemResponseDto> getById(@PathVariable int id) {
         final SystemResponseDto responseDto = gateway.getById(id);
         final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 
     /**
-     * The "Get All" endpoint is an RPC POST endpoint instead of a GET endpoint.
+     * The "Get All" endpoint is an RPC (function) POST endpoint instead of a GET endpoint.
      * This will allow the consumer to pass the filters as an object in the request body
      * instead of through many query parameters in a get request.
      */
@@ -97,28 +97,6 @@ public class SystemController {
     public Map<String, String> deleteExisting(@PathVariable int id) throws ExceptionResourceNotFound {
         gateway.deleteById(id);
         FormattedResponseBody<String> body = new FormattedResponseBody<>("");
-        return body.formatData();
-    }
-
-    //This endpoint only exists to work with the SystemTestRestTemplateTests
-    @Deprecated
-    @ResponseBody
-    @PostMapping("/testRestTemplate")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, SystemResponseDto> createNewSystem(@RequestBody SystemRequestDto system) throws ExceptionFailedDbValidation {
-        final SystemResponseDto responseDto = gateway.createNew(system);
-        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
-    }
-
-    //This endpoint only exists to work with the SystemTestRestTemplateTests
-    @Deprecated
-    @ResponseBody
-    @PutMapping("/{id}/testRestTemplate")
-    public Map<String, SystemResponseDto> updateExistingSystem(@PathVariable int id, @RequestBody SystemRequestDto system)
-            throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
-        final SystemResponseDto responseDto = gateway.updateExisting(id, system);
-        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
         return body.formatData();
     }
 }
