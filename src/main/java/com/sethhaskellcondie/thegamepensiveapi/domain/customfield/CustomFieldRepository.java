@@ -153,11 +153,11 @@ public class CustomFieldRepository {
     private void customFieldDbValidation(CustomFieldRequestDto customField) {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
-            exception.addException("Custom Field Type: " + customField.type() + " is not a valid type. " +
+            exception.addException("Custom Field Type: '" + customField.type() + "' is not a valid type. " +
                     "Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]");
         }
         if (!Keychain.getAllKeys().contains(customField.entityKey())) {
-            exception.addException("Custom Field Entity Key: " + customField.entityKey() + " is not a valid entity key. " +
+            exception.addException("Custom Field Entity Key: '" + customField.entityKey() + "' is not a valid entity key. " +
                     "Valid keys include [" + String.join(", ", Keychain.getAllKeys()) + "]");
         }
         if (!exception.getExceptions().isEmpty()) {

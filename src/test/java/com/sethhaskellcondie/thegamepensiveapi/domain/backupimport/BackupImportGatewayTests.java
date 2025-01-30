@@ -95,7 +95,6 @@ public class BackupImportGatewayTests {
         );
 
         final ImportResultsDto backupResult2 = gateway.importBackupData(expectedBackupData2);
-//        System.out.println("ImportResultsDto2: \n" + backupResult2.toString());
 
         assertAll(
                 "Unexpected result for importing custom fields with mismatched types.",
@@ -112,18 +111,57 @@ public class BackupImportGatewayTests {
         //since the import failed the expected data didn't change
         validateBackupData(expectedBackupData1, gateway.getBackupData());
 
-        //call the rest of the tests in order
-//        testImportCustomFields_ValidFieldsAndInvalidTypeAndKey_ReturnSuccessAndErrors();
+
+        //Test 3: given valid custom fields and invalid custom fields, return some successes and some errors
+        final BackupDataDto backupData3 = new BackupDataDto(
+                //The toyCustomField will work but the invalidCustomField will throw an error preventing the rest of the import from completing.
+                List.of(initialCustomField, toyCustomField, new CustomField(42, "Valid Name", "Invalid Type", "Invalid Key")),
+                List.of(new ToyRequestDto("Will Be Skipped", "Ignored", new ArrayList<>())),
+                List.of(new SystemRequestDto("Will Be Skipped", 3, false, new ArrayList<>())),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of()
+        );
+        final BackupDataDto expectedBackupData3 = new BackupDataDto(
+                List.of(initialCustomField, toyCustomField),
+                List.of(initialToy),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of()
+        );
+
+        final ImportResultsDto backupResult3 = gateway.importBackupData(backupData3);
+        System.out.println("ImportResultsDto3: \n" + backupResult3.toString());
+
+        assertAll(
+                "Unexpected results for successfully importing some custom fields while others return errors.",
+                () -> assertEquals(1, backupResult3.createdCustomFields()),
+                () -> assertEquals(1, backupResult3.existingCustomFields()),
+                () -> assertEquals(0, backupResult3.createdToys()),
+                () -> assertEquals(0, backupResult3.existingToys()),
+                () -> assertEquals(0, backupResult3.createdSystems()),
+                () -> assertEquals(0, backupResult3.existingSystems()),
+                () -> assertEquals(0, backupResult3.existingVideoGames()),
+                () -> assertEquals(0, backupResult3.createdVideoGames()),
+                () -> assertEquals(2, backupResult3.exceptionBackupImport().getExceptions().size())
+        );
+        validateBackupData(expectedBackupData3, gateway.getBackupData());
+
 //        testImportToys_MissingCustomField_ReturnSuccessAndErrors();
 //        testImportSystems_MissingCustomField_ReturnSuccessAndErrors();
 //        testImportSystems_SomeExistingSomeNew_ReturnSuccess();
 //        testImportVideoGames_MissingCustomField_ReturnSuccessAndErrors();
 //        testImportVideoGames_SomeExistingSomeNew_ReturnSuccess();
 
+
         //Test Last: Make sure that if the backupData is taken from the system and loaded back into the system that no new entries are found, and all are accounted for
         final BackupDataDto backupDataFromSystem = gateway.getBackupData();
+        //---- This will likely need to be updated if any of the previous tests are updated to add more data ----
         final BackupDataDto lastExpectedBackupData = new BackupDataDto(
-                List.of(initialCustomField),
+                List.of(initialCustomField, toyCustomField),
                 List.of(initialToy),
                 List.of(),
                 List.of(),
@@ -138,54 +176,16 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Unexpected errors when checking to see that the import process is idempotent.",
                 () -> assertEquals(0, backupDataResult.createdCustomFields()),
-                () -> assertEquals(1, backupDataResult.existingCustomFields()),
+                () -> assertEquals(lastExpectedBackupData.customFields().size(), backupDataResult.existingCustomFields()),
                 () -> assertEquals(0, backupDataResult.createdToys()),
-                () -> assertEquals(1, backupDataResult.existingToys()),
+                () -> assertEquals(lastExpectedBackupData.toys().size(), backupDataResult.existingToys()),
                 () -> assertEquals(0, backupDataResult.createdSystems()),
-                () -> assertEquals(0, backupDataResult.existingSystems()),
+                () -> assertEquals(lastExpectedBackupData.systems().size(), backupDataResult.existingSystems()),
                 () -> assertEquals(0, backupDataResult.createdVideoGames()),
-                () -> assertEquals(0, backupDataResult.existingVideoGames()),
+                () -> assertEquals(lastExpectedBackupData.videoGames().size(), backupDataResult.existingVideoGames()),
                 () -> assertEquals(0, backupDataResult.exceptionBackupImport().getExceptions().size())
         );
         validateBackupData(lastExpectedBackupData, gateway.getBackupData());
-    }
-
-    void testImportCustomFields_ValidFieldsAndInvalidTypeAndKey_ReturnSuccessAndErrors() {
-        final BackupDataDto backupData = new BackupDataDto(
-                //The toyCustomField will work but the invalidCustomField will throw an error preventing the rest of the import from completing.
-                List.of(initialCustomField, toyCustomField, new CustomField(42, "Valid Name", "Invalid Type", "Invalid Key")),
-                List.of(new ToyRequestDto("Will Be Skipped", "Ignored", new ArrayList<>())),
-                List.of(new SystemRequestDto("Will Be Skipped", 3, false, new ArrayList<>())),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of()
-        );
-        final BackupDataDto expectedBackupData = new BackupDataDto(
-                List.of(initialCustomField, toyCustomField),
-                List.of(initialToy),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of()
-        );
-
-        final ImportResultsDto results = gateway.importBackupData(backupData);
-
-        assertAll(
-                "Unexpected results for importing some custom fields while others return errors.",
-                () -> assertEquals(1, results.createdCustomFields()),
-                () -> assertEquals(1, results.existingCustomFields()),
-                () -> assertEquals(0, results.createdToys()),
-                () -> assertEquals(0, results.existingToys()),
-                () -> assertEquals(0, results.createdSystems()),
-                () -> assertEquals(0, results.existingSystems()),
-                () -> assertEquals(0, results.existingVideoGames()),
-                () -> assertEquals(0, results.createdVideoGames()),
-                () -> assertEquals(2, results.exceptionBackupImport().getExceptions().size())
-        );
-        validateBackupData(expectedBackupData, gateway.getBackupData());
     }
 
     void testImportToys_MissingCustomField_ReturnSuccessAndErrors() {
