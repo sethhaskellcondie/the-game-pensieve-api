@@ -174,21 +174,60 @@ public class BackupImportGatewayTests {
                 List.of()
         );
 
-        final ImportResultsDto results = gateway.importBackupData(backupData4);
+        final ImportResultsDto results4 = gateway.importBackupData(backupData4);
 
         assertAll(
                 "Error on test " + testNumber + ": Unexpected results for importing some toys while others return errors.",
-                () -> assertEquals(0, results.createdCustomFields()),
-                () -> assertEquals(2, results.existingCustomFields()),
-                () -> assertEquals(1, results.createdToys()),
-                () -> assertEquals(1, results.existingToys()),
-                () -> assertEquals(0, results.createdSystems()),
-                () -> assertEquals(0, results.existingSystems()),
-                () -> assertEquals(0, results.existingVideoGames()),
-                () -> assertEquals(0, results.createdVideoGames()),
-                () -> assertEquals(2, results.exceptionBackupImport().getExceptions().size())
+                () -> assertEquals(0, results4.createdCustomFields()),
+                () -> assertEquals(2, results4.existingCustomFields()),
+                () -> assertEquals(1, results4.createdToys()),
+                () -> assertEquals(1, results4.existingToys()),
+                () -> assertEquals(0, results4.createdSystems()),
+                () -> assertEquals(0, results4.existingSystems()),
+                () -> assertEquals(0, results4.existingVideoGames()),
+                () -> assertEquals(0, results4.createdVideoGames()),
+                () -> assertEquals(2, results4.exceptionBackupImport().getExceptions().size())
         );
         validateBackupData(expectedBackupData4, gateway.getBackupData(), testNumber);
+
+
+        //Test 5: if a system to be imported has a custom field value but is missing a matching custom field in the import that system will be skipped
+        testNumber = "5";
+        final SystemRequestDto skippedSystem = new SystemRequestDto("Valid Name", 4, false, List.of(new CustomFieldValue(0, "Missing Name", CustomField.TYPE_TEXT, "Value")));
+        final BackupDataDto backupData5 = new BackupDataDto(
+                List.of(initialCustomField, toyCustomField),
+                List.of(initialToy, secondToy),
+                List.of(initialSystem, skippedSystem),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of()
+        );
+        final BackupDataDto expectedBackupData5 = new BackupDataDto(
+                List.of(initialCustomField, toyCustomField),
+                List.of(initialToy, secondToy),
+                List.of(initialSystem),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of()
+        );
+
+        final ImportResultsDto results5 = gateway.importBackupData(backupData5);
+
+        assertAll(
+                "Error in test 5: Unexpected results for importing some systems successfully and others with missing custom fields.",
+                () -> assertEquals(0, results5.createdCustomFields()),
+                () -> assertEquals(2, results5.existingCustomFields()),
+                () -> assertEquals(0, results5.createdToys()),
+                () -> assertEquals(2, results5.existingToys()),
+                () -> assertEquals(1, results5.createdSystems()),
+                () -> assertEquals(0, results5.existingSystems()),
+                () -> assertEquals(0, results5.existingVideoGames()),
+                () -> assertEquals(0, results5.createdVideoGames()),
+                () -> assertEquals(2, results5.exceptionBackupImport().getExceptions().size())
+        );
+        validateBackupData(expectedBackupData5, gateway.getBackupData(), testNumber);
 
 //        testImportSystems_MissingCustomField_ReturnSuccessAndErrors();
 //        testImportSystems_SomeExistingSomeNew_ReturnSuccess();
@@ -197,12 +236,13 @@ public class BackupImportGatewayTests {
 
 
         //Test Last: Make sure that if the backupData is taken from the system and loaded back into the system that no new entries are found, and all are accounted for
+        testNumber = "last";
         final BackupDataDto backupDataFromSystem = gateway.getBackupData();
         //---- This will likely need to be updated if any of the previous tests are updated to add more data ----
         final BackupDataDto lastExpectedBackupData = new BackupDataDto(
                 List.of(initialCustomField, toyCustomField),
                 List.of(initialToy, secondToy),
-                List.of(),
+                List.of(initialSystem),
                 List.of(),
                 List.of(),
                 List.of(),
@@ -228,42 +268,6 @@ public class BackupImportGatewayTests {
     }
 
     void testImportSystems_MissingCustomField_ReturnSuccessAndErrors() {
-        //if a system to be imported has a custom field value but is missing a matching custom field in the import that system will be skipped
-        final SystemRequestDto skippedSystem = new SystemRequestDto("Valid Name", 4, false, List.of(new CustomFieldValue(0, "Missing Name", CustomField.TYPE_TEXT, "Value")));
-        final BackupDataDto backupData = new BackupDataDto(
-                List.of(initialCustomField, toyCustomField),
-                List.of(initialToy, secondToy),
-                List.of(initialSystem, skippedSystem),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of()
-        );
-        final BackupDataDto expectedBackupData = new BackupDataDto(
-                List.of(initialCustomField, toyCustomField),
-                List.of(initialToy, secondToy),
-                List.of(initialSystem),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of()
-        );
-
-        final ImportResultsDto results = gateway.importBackupData(backupData);
-
-        assertAll(
-                "Unexpected results for importing some systems successfully and others with missing custom fields.",
-                () -> assertEquals(0, results.createdCustomFields()),
-                () -> assertEquals(2, results.existingCustomFields()),
-                () -> assertEquals(0, results.createdToys()),
-                () -> assertEquals(2, results.existingToys()),
-                () -> assertEquals(1, results.createdSystems()),
-                () -> assertEquals(0, results.existingSystems()),
-                () -> assertEquals(0, results.existingVideoGames()),
-                () -> assertEquals(0, results.createdVideoGames()),
-                () -> assertEquals(2, results.exceptionBackupImport().getExceptions().size())
-        );
-        validateBackupData(expectedBackupData, gateway.getBackupData(), "1");
     }
 
     void testImportSystems_SomeExistingSomeNew_ReturnSuccess() {
@@ -422,13 +426,13 @@ public class BackupImportGatewayTests {
         final List<SystemRequestDto> actualSystems = actualData.systems();
         if (null == expectedSystems || null == actualSystems) {
             assertAll(
-                    "If the expected systems are null then the actual should be as well.",
+                    "Error in test " + testNumber + ": If the expected systems are null then the actual should be as well.",
                     () -> assertNull(expectedSystems),
                     () -> assertNull(actualSystems)
             );
             return;
         }
-        assertEquals(expectedSystems.size(), actualSystems.size(), "Unexpected number of system results returned in BackupDataDto");
+        assertEquals(expectedSystems.size(), actualSystems.size(), "Error in test " + testNumber + ": Unexpected number of system results returned in BackupDataDto");
         for (int i = 0; i < expectedSystems.size(); i++) {
             final SystemRequestDto expectedSystem = expectedSystems.get(i);
             final SystemRequestDto actualSystem = actualSystems.get(i);
