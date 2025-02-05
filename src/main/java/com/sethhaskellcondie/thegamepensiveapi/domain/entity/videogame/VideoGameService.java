@@ -94,12 +94,12 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
             System system = systemRepository.getByIdIncludeDeleted(videoGame.getSystemId());
             videoGame.setSystem(system);
         } catch (Exception e) {
-            exceptionMalformedEntity.addException(new Exception("Error - Problem getting video games from the database, video game with title: '"
+            exceptionMalformedEntity.addException(new Exception("Problem getting video games from the database, video game with title: '"
                     + videoGame.getTitle() + "' had systemId: " + videoGame.getSystemId() + " but couldn't get a valid system from the database with that id. Message: "
                     + e.getMessage()));
         }
         if (videoGame.getVideoGameBoxIds().isEmpty()) {
-            exceptionMalformedEntity.addException("Error - Problem getting video game with title " + videoGame.getTitle()
+            exceptionMalformedEntity.addException("Problem getting video game with title " + videoGame.getTitle()
                     + " from the database, no related video game box objects found in the database.");
             throw exceptionMalformedEntity;
         }
@@ -110,7 +110,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
                 videoGameBox.setSystem(systemRepository.getById(videoGameBox.getSystemId()));
                 videoGameBoxes.add(videoGameBox.convertToSlimVideoGameBox());
             } catch (Exception e) {
-                exceptionMalformedEntity.addException("Error - Problem getting video game with title " + videoGame.getTitle()
+                exceptionMalformedEntity.addException("Problem getting video game with title " + videoGame.getTitle()
                     + " from the database, related video game box with id " + videoGameBoxId
                     + " failed when trying to retrieve a video game box with that id from the database.");
             }

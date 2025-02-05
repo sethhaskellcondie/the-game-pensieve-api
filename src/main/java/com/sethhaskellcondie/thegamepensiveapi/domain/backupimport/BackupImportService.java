@@ -70,7 +70,7 @@ public class BackupImportService {
         final Map<String, Integer> customFieldIds;
         final ImportCustomFieldsResults customFieldResults;
         customFieldResults = importCustomFields(backupDataDto);
-        if (customFieldResults.exceptionBackupImport().getExceptions().size() > 0) {
+        if (!customFieldResults.exceptionBackupImport().getExceptions().isEmpty()) {
             ExceptionBackupImport customFieldsException = new ExceptionBackupImport("There were errors importing Custom Fields. No additional data imported.");
             customFieldsException.appendExceptions(customFieldResults.exceptionBackupImport().getExceptions());
             return new ImportResultsDto(customFieldResults.existingCount(), customFieldResults.createdCount(), customFieldsException);
@@ -80,12 +80,12 @@ public class BackupImportService {
         ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
 
         ImportEntityResults toyResults = importToys(backupDataDto, customFieldIds);
-        if (toyResults.exceptionBackupImport().getExceptions().size() > 0) {
+        if (!toyResults.exceptionBackupImport().getExceptions().isEmpty()) {
             exceptionBackupImport.appendExceptions(toyResults.exceptionBackupImport().getExceptions());
         }
 
         ImportEntityResults systemResults = importSystems(backupDataDto, customFieldIds);
-        if (systemResults.exceptionBackupImport().getExceptions().size() > 0) {
+        if (!systemResults.exceptionBackupImport().getExceptions().isEmpty()) {
             exceptionBackupImport.appendExceptions(systemResults.exceptionBackupImport().getExceptions());
         }
 
@@ -94,7 +94,7 @@ public class BackupImportService {
             exceptionBackupImport.appendExceptions(videoGameResults.exceptionBackupImport().getExceptions());
         }
 
-        if (exceptionBackupImport.getExceptions().size() > 0) {
+        if (!exceptionBackupImport.getExceptions().isEmpty()) {
             ExceptionBackupImport importException = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
             importException.appendExceptions(exceptionBackupImport.getExceptions());
             exceptionBackupImport = importException;
@@ -285,8 +285,7 @@ public class BackupImportService {
                 if (videoGameId > 0) {
                     VideoGame videoGame = videoGameService.getById(videoGameId);
                     videoGame.updateFromRequestDto(videoGameRequestDto);
-                    //call update and create from the service instead of the repository because that will include the system validation code
-//                    videoGameService.updateExisting(videoGame);
+                    videoGameService.updateExisting(videoGameId, videoGameRequestDto);
                     existingCount++;
                 } else {
                     videoGameService.createNew(videoGameRequestDto);
