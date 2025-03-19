@@ -17,6 +17,9 @@ Flyway: Database migrations <br>
 JDBC Template: Database connection <br>
 Docker: Run-time container
 
+## Project Presentation
+This presentation explains the system design, and test strategy for this project: https://youtu.be/24g4e8enVwQ
+
 ## Project Setup
 
 This project comes with a Maven wrapper so that Maven doesn't need to be installed locally, more information on that here: https://www.baeldung.com/maven-wrapper
