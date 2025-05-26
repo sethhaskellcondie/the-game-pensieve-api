@@ -1,8 +1,8 @@
-package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
+package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 
-import com.sethhaskellcondie.thegamepensiveapi.TestFactory;
-import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
+import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

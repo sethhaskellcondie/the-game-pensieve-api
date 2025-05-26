@@ -1,12 +1,12 @@
-package com.sethhaskellcondie.thegamepensiveapi.api.controllers;
+package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensiveapi.TestFactory;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldGateway;
-import com.sethhaskellcondie.thegamepensiveapi.domain.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldGateway;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

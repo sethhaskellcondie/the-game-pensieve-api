@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.backupimport;
+package com.sethhaskellcondie.thegamepensieveapi.domain.backupimport;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,17 +7,17 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.videogame.VideoGameRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensiveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRequestDto;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.toy.ToyRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyRequestDto;
 
 /**
  * This test suite is a little different it simulates the likely situation of updating and importing a single file
