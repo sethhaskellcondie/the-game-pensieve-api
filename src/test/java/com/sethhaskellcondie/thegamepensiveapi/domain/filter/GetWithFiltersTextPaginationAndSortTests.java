@@ -1,8 +1,8 @@
-package com.sethhaskellcondie.thegamepensiveapi.domain.filter;
+package com.sethhaskellcondie.thegamepensieveapi.domain.filter;
 
-import com.sethhaskellcondie.thegamepensiveapi.domain.Keychain;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.System;
-import com.sethhaskellcondie.thegamepensiveapi.domain.entity.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

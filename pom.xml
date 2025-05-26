@@ -8,9 +8,9 @@
 		<version>3.1.4</version>
 	</parent>
 	<groupId>com.sethhaskellcondie</groupId>
-	<artifactId>the-game-pensive-api</artifactId>
+	<artifactId>the-game-pensieve-api</artifactId>
 	<version>0.5.0</version>
-	<name>the-game-pensive-api</name>
+	<name>the-game-pensieve-api</name>
 	<description>This project will store information about different games in a database along with an api to access that data.</description>
 	<properties>
 		<java.version>17</java.version>
@@ -21,7 +21,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<finalName>the_game_pensive_api</finalName>
+					<finalName>the_game_pensieve_api</finalName>
 				</configuration>
 			</plugin>
 		</plugins>
