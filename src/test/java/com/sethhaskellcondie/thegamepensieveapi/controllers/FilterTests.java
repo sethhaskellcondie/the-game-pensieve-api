@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
+package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;

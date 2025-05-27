@@ -216,7 +216,7 @@ public class BackupImportGatewayTests {
         final ImportResultsDto results5 = gateway.importBackupData(backupData5);
 
         assertAll(
-                "Error in test 5: Unexpected results for importing some systems successfully and others with missing custom fields.",
+                "Error in test " + testNumber + ": Unexpected results for importing some systems successfully and others with missing custom fields.",
                 () -> assertEquals(0, results5.createdCustomFields()),
                 () -> assertEquals(2, results5.existingCustomFields()),
                 () -> assertEquals(0, results5.createdToys()),

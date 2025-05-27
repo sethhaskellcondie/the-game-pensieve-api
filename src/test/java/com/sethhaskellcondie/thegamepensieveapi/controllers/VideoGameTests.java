@@ -1,4 +1,4 @@
-package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
+package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
