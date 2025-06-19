@@ -1,7 +1,5 @@
 .idea
 target
-#TODO remove unused log path
-game_pensive_log.log
 game_pensieve_log.log
 
 CLAUDE.md
