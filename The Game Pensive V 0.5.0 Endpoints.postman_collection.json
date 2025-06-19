@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "b4182cfb-2b89-4b00-9593-690e2e9a5a11",
 		"name": "Version 0.5.0 Endpoints",
-		"description": "This contains a basic collection of example endpoints for The Game Pensive. This will be updated and polished up before a version 1 release.",
+		"description": "This contains a basic collection of example endpoints for The Game Pensieve. This will be updated and polished up before a version 1 release.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14591034"
 	},

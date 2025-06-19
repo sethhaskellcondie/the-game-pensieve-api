@@ -55,6 +55,7 @@ public class BackupImportService {
     }
 
     protected BackupDataDto getBackupData() {
+        //TODO update the backup to be responses, not requests
         List<CustomField> customFields = customFieldRepository.getAllCustomFields();
         List<ToyRequestDto> toys = toyService.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToRequestDto).toList();
         List<SystemRequestDto> systems = systemService.getWithFilters(new ArrayList<>()).stream().map(System::convertToRequestDto).toList();
@@ -113,8 +114,9 @@ public class BackupImportService {
         final ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         int existingCount = 0;
         int createdCount = 0;
-
+        //TODO validate that the incoming custom fields have an ID on the import data
         final List<CustomField> customFields = backupDataDto.customFields();
+        //TODO update this to use the importId, and the databaseId instead of the combo key
         final Map<String, Integer> customFieldIds = new HashMap<>(customFields.size());
 
         for (CustomField customField : customFields) {
@@ -147,10 +149,12 @@ public class BackupImportService {
         return new ImportCustomFieldsResults(customFieldIds, existingCount, createdCount, exceptionBackupImport);
     }
 
+    //TODO remove the combo key (use the importID instead)
     private String customFieldComboKey(CustomField customField) {
         return customField.entityKey() + "-" + customField.name();
     }
 
+    //TODO remove the combo key (use the importID instead)
     private String customFieldComboKey(String entityKey, CustomFieldValue value) {
         return entityKey + "-" + value.getCustomFieldName();
     }
@@ -168,6 +172,7 @@ public class BackupImportService {
         for (ToyRequestDto toyRequestDto: toyRequestsToBeUpdated) {
             boolean skipped = false;
             for (CustomFieldValue value: toyRequestDto.customFieldValues()) {
+                //TODO remove the combo key (use the importId instead)
                 Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.TOY_KEY, value));
                 if (null == customFieldId) {
                     skipped = true;
@@ -186,6 +191,7 @@ public class BackupImportService {
         for (ToyRequestDto toyRequestDto: toyRequestsReady) {
             try {
                 int toyId = toyService.getIdByNameAndSet(toyRequestDto.name(), toyRequestDto.set());
+                //TODO if found, skip (NO UPDATE FUNCTIONALITY)
                 if (toyId > 0) {
                     Toy toy = toyService.getById(toyId);
                     toy.updateFromRequestDto(toyRequestDto);
@@ -235,6 +241,7 @@ public class BackupImportService {
             try {
                 int systemId = systemService.getIdByName(systemRequestDto.name());
                 if (systemId > 0) {
+                    //TODO if found, skip (NO UPDATE FUNCTIONALITY)
                     System system = systemService.getById(systemId);
                     system.updateFromRequestDto(systemRequestDto);
 //                    systemService.updateExisting(system);

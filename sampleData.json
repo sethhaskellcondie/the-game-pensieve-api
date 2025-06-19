@@ -20,7 +20,7 @@
     },
     {
       "id": 4,
-      "name": "Set",
+      "name": "Line",
       "type": "text",
       "entityKey": "toy"
     },
@@ -44,7 +44,7 @@
       "customFieldValues": [
         {
           "customFieldId": 4,
-          "customFieldName": "Set",
+          "customFieldName": "Line",
           "customFieldType": "text",
           "value": "Super Mario"
         },
@@ -68,7 +68,7 @@
       "customFieldValues": [
         {
           "customFieldId": 4,
-          "customFieldName": "Set",
+          "customFieldName": "Line",
           "customFieldType": "text",
           "value": "Smash Bros"
         },
@@ -92,7 +92,7 @@
       "customFieldValues": [
         {
           "customFieldId": 4,
-          "customFieldName": "Set",
+          "customFieldName": "Line",
           "customFieldType": "text",
           "value": "Star Wars"
         },
@@ -116,7 +116,7 @@
       "customFieldValues": [
         {
           "customFieldId": 4,
-          "customFieldName": "Set",
+          "customFieldName": "Line",
           "customFieldType": "text",
           "value": "Marvel"
         },
@@ -140,7 +140,7 @@
       "customFieldValues": [
         {
           "customFieldId": 4,
-          "customFieldName": "Set",
+          "customFieldName": "Line",
           "customFieldType": "text",
           "value": "Marvel"
         },
@@ -164,7 +164,7 @@
       "customFieldValues": [
         {
           "customFieldId": 4,
-          "customFieldName": "Set",
+          "customFieldName": "Line",
           "customFieldType": "text",
           "value": "Super Mario"
         },
@@ -188,7 +188,7 @@
       "customFieldValues": [
         {
           "customFieldId": 4,
-          "customFieldName": "Set",
+          "customFieldName": "Line",
           "customFieldType": "text",
           "value": "Smash Bros"
         },
