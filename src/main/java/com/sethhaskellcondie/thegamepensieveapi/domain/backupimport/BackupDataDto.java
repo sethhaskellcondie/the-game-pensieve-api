@@ -1,12 +1,11 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.backupimport;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRequestDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyRequestDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 
 import java.util.List;
 
@@ -15,11 +14,11 @@ import java.util.List;
  * or returned in a request.
  */
 public record BackupDataDto(List<CustomField> customFields,
-                            List<ToyRequestDto> toys,
-                            List<SystemRequestDto> systems,
-                            List<VideoGameRequestDto> videoGames,
-                            List<VideoGameBoxRequestDto> videoGameBoxes,
-                            List<BoardGameRequestDto> boardGames,
-                            List<BoardGameBoxRequestDto> boardGameBoxes
+                            List<com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto> toys,
+                            List<SystemResponseDto> systems,
+                            List<VideoGameResponseDto> videoGames,
+                            List<VideoGameBoxResponseDto> videoGameBoxes,
+                            List<BoardGameResponseDto> boardGames,
+                            List<BoardGameBoxResponseDto> boardGameBoxes
 ) {
 }

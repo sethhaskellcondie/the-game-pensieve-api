@@ -7,21 +7,27 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRe
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.Toy;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -55,14 +61,13 @@ public class BackupImportService {
     }
 
     protected BackupDataDto getBackupData() {
-        //TODO update the backup to be responses, not requests
         List<CustomField> customFields = customFieldRepository.getAllCustomFields();
-        List<ToyRequestDto> toys = toyService.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToRequestDto).toList();
-        List<SystemRequestDto> systems = systemService.getWithFilters(new ArrayList<>()).stream().map(System::convertToRequestDto).toList();
-        List<VideoGameRequestDto> videoGames = videoGameService.getWithFilters(new ArrayList<>()).stream().map(VideoGame::convertToRequestDto).toList();
-        List<VideoGameBoxRequestDto> videoGameBoxes = videoGameBoxService.getWithFilters(new ArrayList<>()).stream().map(VideoGameBox::convertToRequestDto).toList();
-        List<BoardGameRequestDto> boardGames = boardGameService.getWithFilters(new ArrayList<>()).stream().map(BoardGame::convertToRequestDto).toList();
-        List<BoardGameBoxRequestDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToRequestDto).toList();
+        List<ToyResponseDto> toys = toyService.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToResponseDto).toList();
+        List<SystemResponseDto> systems = systemService.getWithFilters(new ArrayList<>()).stream().map(System::convertToResponseDto).toList();
+        List<VideoGameResponseDto> videoGames = videoGameService.getWithFilters(new ArrayList<>()).stream().map(VideoGame::convertToRequestDto).toList();
+        List<VideoGameBoxResponseDto> videoGameBoxes = videoGameBoxService.getWithFilters(new ArrayList<>()).stream().map(VideoGameBox::convertToRequestDto).toList();
+        List<BoardGameResponseDto> boardGames = boardGameService.getWithFilters(new ArrayList<>()).stream().map(BoardGame::convertToRequestDto).toList();
+        List<BoardGameBoxResponseDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToRequestDto).toList();
 
         return new BackupDataDto(customFields, toys, systems, videoGames, videoGameBoxes, boardGames, boardGameBoxes);
     }
