@@ -140,7 +140,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     }
 
     @Override
-    protected VideoGameBoxResponseDto convertToResponseDto() {
+    public VideoGameBoxResponseDto convertToResponseDto() {
         SystemResponseDto systemResponseDto = null;
         if (isSystemValid()) {
             systemResponseDto = this.system.convertToResponseDto();
