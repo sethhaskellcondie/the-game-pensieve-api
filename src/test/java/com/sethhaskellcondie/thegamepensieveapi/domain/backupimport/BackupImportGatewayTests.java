@@ -41,34 +41,38 @@ public class BackupImportGatewayTests {
 
     @Test
     void validImportData_CustomFieldToyAndCustomFieldData_ReturnSuccess() {
-        final BackupDataDto backupDataDto = gateway.getBackupData();
+        final BackupDataDto existingBackupData = gateway.getBackupData();
 
-        final CustomField initialCustomField = new CustomField(0, "Initial Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
-        final ToyRequestDto initialToy = new ToyRequestDto("Initial Toy", "Initial Set", new ArrayList<>());
+        final CustomField initialCustomField = new CustomField(100, "Initial Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final ToyResponseDto initialToy = new ToyResponseDto(Keychain.TOY_KEY, 101, "Initial Toy", "Initial Set", null, null, null, new ArrayList<>());
 
+        List<CustomField> customFieldsList = new ArrayList<>(existingBackupData.customFields());
+        customFieldsList.add(initialCustomField);
+        List<ToyResponseDto> toysList = new ArrayList<>(existingBackupData.toys());
+        toysList.add(initialToy);
         final BackupDataDto expectedBackupData = new BackupDataDto(
-                List.of(initialCustomField),
-                List.of(initialToy),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of(),
-                List.of()
+                customFieldsList,
+                toysList,
+                existingBackupData.systems(),
+                existingBackupData.videoGames(),
+                existingBackupData.videoGameBoxes(),
+                existingBackupData.boardGames(),
+                existingBackupData.boardGameBoxes()
         );
 
-        final ImportResultsDto backupResult1 = gateway.importBackupData(expectedBackupData);
+        final ImportResultsDto backupResult = gateway.importBackupData(expectedBackupData);
 
         assertAll(
                 "Error on importing valid toy and custom field data.",
-                () -> assertEquals(1, backupResult1.createdCustomFields()),
-                () -> assertEquals(0, backupResult1.existingCustomFields()),
-                () -> assertEquals(1, backupResult1.createdToys()),
-                () -> assertEquals(0, backupResult1.existingToys()),
-                () -> assertEquals(0, backupResult1.createdSystems()),
-                () -> assertEquals(0, backupResult1.existingSystems()),
-                () -> assertEquals(0, backupResult1.existingVideoGames()),
-                () -> assertEquals(0, backupResult1.createdVideoGames()),
-                () -> assertEquals(0, backupResult1.exceptionBackupImport().getExceptions().size())
+                () -> assertEquals(1, backupResult.createdCustomFields()),
+                () -> assertEquals(0, backupResult.existingCustomFields()),
+                () -> assertEquals(1, backupResult.createdToys()),
+                () -> assertEquals(0, backupResult.existingToys()),
+                () -> assertEquals(0, backupResult.createdSystems()),
+                () -> assertEquals(0, backupResult.existingSystems()),
+                () -> assertEquals(0, backupResult.existingVideoGames()),
+                () -> assertEquals(0, backupResult.createdVideoGames()),
+                () -> assertEquals(0, backupResult.exceptionBackupImport().getExceptions().size())
         );
         validateBackupData(expectedBackupData, gateway.getBackupData());
     }

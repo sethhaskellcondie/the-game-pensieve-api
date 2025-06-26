@@ -170,7 +170,6 @@ public class BackupImportService {
             return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
         }
 
-        //validate toys to be imported, including custom field relationships
         List<ToyResponseDto> toyRequestsReady = new ArrayList<>(toysToBeImported.size());
         for (ToyResponseDto toyResponseDto : toysToBeImported) {
             boolean skipped = false;
@@ -190,7 +189,6 @@ public class BackupImportService {
             }
         }
 
-        //import toys data, if existing toy found (by name and set) skip, otherwise create new data
         for (ToyResponseDto toyResponseDto: toyRequestsReady) {
             try {
                 int toyId = toyService.getIdByNameAndSet(toyResponseDto.name(), toyResponseDto.set());
@@ -223,7 +221,6 @@ public class BackupImportService {
             return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
         }
 
-        //validate systems data, including custom field relationships
         List<SystemResponseDto> systemRequestsReady = new ArrayList<>(systemRequestToBeUpdated.size());
         for (SystemResponseDto systemResponseDto: systemRequestToBeUpdated) {
             boolean skipped = false;
@@ -243,7 +240,6 @@ public class BackupImportService {
             }
         }
 
-        //import systems data, if existing system found (by name) skip, otherwise create new data
         for (SystemResponseDto systemResponseDto: systemRequestsReady) {
             try {
                 int systemId = systemService.getIdByName(systemResponseDto.name());
