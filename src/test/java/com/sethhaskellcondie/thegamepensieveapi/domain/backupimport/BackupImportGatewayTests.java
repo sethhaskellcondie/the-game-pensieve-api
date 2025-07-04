@@ -240,9 +240,60 @@ public class BackupImportGatewayTests {
         );
     }
 
-    //TODO validate that toys with an existing name and set combination are NOT imported OR updated, they are returned as existing toy counts
+    @Test
+    void toyCustomFieldValidation_ThreeToysWithDifferentCustomFieldIssues_ReturnOneSuccessAndTwoErrors() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
 
-    //TODO validate that a toy with an invalid custom field ID (not found in the imports, OR not found in the database) return errors
+        // Create one valid custom field for the import
+        final CustomField validCustomField = new CustomField(600, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.TOY_KEY);
+        List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
+        customFieldsList.add(validCustomField);
+
+        // Create three toys with different custom field relationship issues
+        // 1. Valid toy with valid custom field relationship
+        final CustomFieldValue validCustomFieldValue = new CustomFieldValue(600, "Valid Custom Field", CustomField.TYPE_TEXT, "Valid Value");
+        final ToyResponseDto validToy = new ToyResponseDto(Keychain.TOY_KEY, 700, "Valid Toy", "Valid Set", null, null, null, List.of(validCustomFieldValue));
+
+        // 2. Toy referencing a custom field not included in the import (missing from import)
+        final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
+        final ToyResponseDto toyWithMissingCustomField = new ToyResponseDto(Keychain.TOY_KEY, 701, "Toy Missing Custom Field", "Missing Set", null, null, null, List.of(missingCustomFieldValue));
+
+        // 3. Toy with invalid custom field ID (-1)
+        final CustomFieldValue invalidCustomFieldValue = new CustomFieldValue(-1, "Invalid Custom Field", CustomField.TYPE_BOOLEAN, "true");
+        final ToyResponseDto toyWithInvalidCustomField = new ToyResponseDto(Keychain.TOY_KEY, 702, "Toy Invalid Custom Field", "Invalid Set", null, null, null, List.of(invalidCustomFieldValue));
+
+        List<ToyResponseDto> toysList = new ArrayList<>(initialBackupData.toys());
+        toysList.add(validToy);
+        toysList.add(toyWithMissingCustomField);
+        toysList.add(toyWithInvalidCustomField);
+
+        final BackupDataDto importData = new BackupDataDto(
+                customFieldsList,
+                toysList,
+                initialBackupData.systems(),
+                initialBackupData.videoGames(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGames(),
+                initialBackupData.boardGameBoxes()
+        );
+
+        // Perform import
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        // Verify results: 1 custom field created, 1 toy created, 2 toy errors
+        assertAll(
+                "Error on toy import with custom field validation issues.",
+                () -> assertEquals(1, importResult.createdCustomFields()),
+                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(1, importResult.createdToys()),
+                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(0, importResult.existingSystems()),
+                () -> assertEquals(0, importResult.existingVideoGames()),
+                () -> assertEquals(0, importResult.createdVideoGames()),
+                () -> assertEquals(2, importResult.exceptionBackupImport().getExceptions().size())
+        );
+    }
 
     // ====================================== Private Validation Methods ======================================
 
