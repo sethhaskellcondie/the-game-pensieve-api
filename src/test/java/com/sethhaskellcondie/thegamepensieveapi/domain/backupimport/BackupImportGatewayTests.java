@@ -178,7 +178,67 @@ public class BackupImportGatewayTests {
         );
     }
 
-    //TODO The ID's on Toys are meaningless, validate that toys with a unique name and set combination are created in the database
+    @Test
+    void existingToy_ImportSameToyTwice_ReturnExistingToy() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        // First import - create a new toy
+        final ToyResponseDto newToy = new ToyResponseDto(Keychain.TOY_KEY, 400, "Duplicate Test Toy", "Test Set Alpha", null, null, null, new ArrayList<>());
+        List<ToyResponseDto> toysList = new ArrayList<>(initialBackupData.toys());
+        toysList.add(newToy);
+        
+        final BackupDataDto firstImportData = new BackupDataDto(
+                initialBackupData.customFields(),
+                toysList,
+                initialBackupData.systems(),
+                initialBackupData.videoGames(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGames(),
+                initialBackupData.boardGameBoxes()
+        );
+
+        // Perform first import
+        final ImportResultsDto firstImportResult = gateway.importBackupData(firstImportData);
+        
+        // Verify first import was successful
+        assertAll(
+                "Error on first import of toy.",
+                () -> assertEquals(0, firstImportResult.createdCustomFields()),
+                () -> assertEquals(0, firstImportResult.existingCustomFields()),
+                () -> assertEquals(1, firstImportResult.createdToys()),
+                () -> assertEquals(0, firstImportResult.existingToys()),
+                () -> assertEquals(0, firstImportResult.exceptionBackupImport().getExceptions().size())
+        );
+
+        // Second import - try to import the same toy again (same name and set, different ID)
+        final BackupDataDto currentBackupData = gateway.getBackupData();
+        final ToyResponseDto duplicateToy = new ToyResponseDto(Keychain.TOY_KEY, 500, "Duplicate Test Toy", "Test Set Alpha", null, null, null, new ArrayList<>());
+        List<ToyResponseDto> secondToysList = new ArrayList<>(currentBackupData.toys());
+        secondToysList.add(duplicateToy);
+        
+        final BackupDataDto secondImportData = new BackupDataDto(
+                currentBackupData.customFields(),
+                secondToysList,
+                currentBackupData.systems(),
+                currentBackupData.videoGames(),
+                currentBackupData.videoGameBoxes(),
+                currentBackupData.boardGames(),
+                currentBackupData.boardGameBoxes()
+        );
+
+        // Perform second import
+        final ImportResultsDto secondImportResult = gateway.importBackupData(secondImportData);
+
+        // Verify second import recognizes existing toy
+        assertAll(
+                "Error on second import of same toy.",
+                () -> assertEquals(0, secondImportResult.createdCustomFields()),
+                () -> assertEquals(0, secondImportResult.existingCustomFields()),
+                () -> assertEquals(0, secondImportResult.createdToys()),
+                () -> assertEquals(2, secondImportResult.existingToys()),
+                () -> assertEquals(0, secondImportResult.exceptionBackupImport().getExceptions().size())
+        );
+    }
 
     //TODO validate that toys with an existing name and set combination are NOT imported OR updated, they are returned as existing toy counts
 
