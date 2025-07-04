@@ -28,6 +28,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.Video
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.MultiException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -120,8 +121,8 @@ public class BackupImportService {
 
         try {
             validateCustomFieldIds(backupDataDto);
-        } catch (Exception exception) {
-            exceptionBackupImport.addException(exception);
+        } catch (MultiException multiException) {
+            exceptionBackupImport.appendExceptions(multiException.getExceptions());
         }
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
             return new ImportCustomFieldsResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
@@ -310,27 +311,33 @@ public class BackupImportService {
 //        return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
 //    }
 
-    private void validateCustomFieldIds(BackupDataDto backupDataDto) throws Exception {
+    private void validateCustomFieldIds(BackupDataDto backupDataDto) throws MultiException {
         final List<CustomField> customFields = backupDataDto.customFields();
         if (null == customFields || customFields.isEmpty()) {
             return;
         }
 
+        MultiException multiException = new MultiException();
         List<Integer> seenIds = new ArrayList<>();
+        
         for (CustomField customField : customFields) {
             int customFieldId = customField.id();
 
             if (customFieldId <= 0) {
-                throw new Exception("Error Importing Custom Field Data: Custom field with name '" + customField.name() 
+                multiException.addException("Error Importing Custom Field Data: Custom field with name '" + customField.name() 
                         + "' and entity key '" + customField.entityKey() + "' has an invalid ID. ID must be a positive integer, but was: " + customFieldId);
             }
 
             if (seenIds.contains(customFieldId)) {
-                throw new Exception("Error Importing Custom Field Data: Duplicate custom field ID found: " + customFieldId 
+                multiException.addException("Error Importing Custom Field Data: Duplicate custom field ID found: " + customFieldId 
                         + ". Each custom field must have a unique ID in the import data.");
             }
             
             seenIds.add(customFieldId);
+        }
+        
+        if (!multiException.isEmpty()) {
+            throw multiException;
         }
     }
 }

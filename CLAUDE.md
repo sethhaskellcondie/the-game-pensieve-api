@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Building and Running
 - Build jar file: `mvn install -DskipTests`
-- Run with Docker: `docker-compose up` (starts API, database, and Flyway migrations)
+- Run with Docker: `docker compose up` (starts API, database, and Flyway migrations)
 - Run locally: Start PostgreSQL, then run via IDE or `java -jar target/the_game_pensieve_api.jar`
 - Test endpoint: `localhost:8080/v1/heartbeat` should return "thump thump"
 
@@ -73,6 +73,13 @@ Powerful filtering with operators like equals, not equals, contains, greater tha
 - Multiple filters can be combined
 - SQL generation uses table aliases from Keychain
 
+#### Backup Import System
+Comprehensive import functionality for collection data:
+- Imports entity data with preserved relationships and custom field values
+- Uses response DTOs (with database IDs) rather than request DTOs for import format
+- Maintains referential integrity during import process
+- Located in `/src/main/java/com/sethhaskellcondie/thegamepensieveapi/domain/backupimport/`
+
 ### Testing Patterns
 
 #### TestFactory (`/src/test/java/com/sethhaskellcondie/thegamepensieveapi/TestFactory.java`)
@@ -102,5 +109,6 @@ Central factory for creating test data and validation. Provides:
 - Extensive use of records for DTOs
 - Exception handling through custom exception hierarchy
 - Maven wrapper available (`./mvnw`) but Maven can be used directly
+- Use `./mvnw` instead of `mvn` if Maven is not installed locally
 - No JPA/Hibernate - uses JDBC Template for database access
 - Custom field aliases: `fields` table, `values` table for custom field values

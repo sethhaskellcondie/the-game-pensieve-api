@@ -39,6 +39,8 @@ public class BackupImportGatewayTests {
     @Autowired
     private BackupImportGateway gateway;
 
+    //TODO go back and test these function with data already in the system.
+
     @Test
     void validImportData_CustomFieldToyAndCustomFieldData_ReturnSuccess() {
         final BackupDataDto existingBackupData = gateway.getBackupData();
@@ -77,9 +79,104 @@ public class BackupImportGatewayTests {
         validateBackupData(expectedBackupData, gateway.getBackupData());
     }
 
-    //TODO Test invalid custom field ID's (ID's that are not a positive integer, and duplicate ID's)
+    @Test
+    void invalidCustomFieldIds_CustomFieldsWithZeroNegativeAndDuplicateIds_ReturnErrors() {
+        final BackupDataDto existingBackupData = gateway.getBackupData();
 
-    //TODO Test that custom fields that were already imported (checked by the name, and key) are not imported again and are instead returned as existingCustomFields
+        final CustomField zeroIdCustomField = new CustomField(0, "Zero ID Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final CustomField negativeIdCustomField = new CustomField(-1, "Negative ID Custom Field", CustomField.TYPE_NUMBER, Keychain.TOY_KEY);
+        final CustomField duplicateIdCustomField1 = new CustomField(100, "Duplicate ID Custom Field 1", CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY);
+        final CustomField duplicateIdCustomField2 = new CustomField(100, "Duplicate ID Custom Field 2", CustomField.TYPE_TEXT, Keychain.TOY_KEY);
+
+        List<CustomField> customFieldsList = new ArrayList<>(existingBackupData.customFields());
+        customFieldsList.add(zeroIdCustomField);
+        customFieldsList.add(negativeIdCustomField);
+        customFieldsList.add(duplicateIdCustomField1);
+        customFieldsList.add(duplicateIdCustomField2);
+
+        final BackupDataDto backupDataWithInvalidIds = new BackupDataDto(
+                customFieldsList,
+                existingBackupData.toys(),
+                existingBackupData.systems(),
+                existingBackupData.videoGames(),
+                existingBackupData.videoGameBoxes(),
+                existingBackupData.boardGames(),
+                existingBackupData.boardGameBoxes()
+        );
+
+        final ImportResultsDto backupResult = gateway.importBackupData(backupDataWithInvalidIds);
+
+        assertAll(
+                "Error importing custom fields with invalid ID's.",
+                () -> assertEquals(0, backupResult.createdCustomFields()),
+                () -> assertEquals(0, backupResult.existingCustomFields()),
+                () -> assertEquals(0, backupResult.createdToys()),
+                () -> assertEquals(0, backupResult.existingToys()),
+                () -> assertEquals(0, backupResult.createdSystems()),
+                () -> assertEquals(0, backupResult.existingSystems()),
+                () -> assertEquals(0, backupResult.existingVideoGames()),
+                () -> assertEquals(0, backupResult.createdVideoGames()),
+                () -> assertEquals(4, backupResult.exceptionBackupImport().getExceptions().size())
+        );
+    }
+
+    @Test
+    void existingCustomField_ImportSameCustomFieldTwice_ReturnExistingCustomField() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        // First import - create a new custom field
+        final CustomField newCustomField = new CustomField(200, "Duplicate Test Field", CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY);
+        List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
+        customFieldsList.add(newCustomField);
+        
+        final BackupDataDto firstImportData = new BackupDataDto(
+                customFieldsList,
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGames(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGames(),
+                initialBackupData.boardGameBoxes()
+        );
+
+        // Perform first import
+        final ImportResultsDto firstImportResult = gateway.importBackupData(firstImportData);
+        
+        // Verify first import was successful
+        assertAll(
+                "Error on first import of custom field.",
+                () -> assertEquals(1, firstImportResult.createdCustomFields()),
+                () -> assertEquals(0, firstImportResult.existingCustomFields()),
+                () -> assertEquals(0, firstImportResult.exceptionBackupImport().getExceptions().size())
+        );
+
+        // Second import - try to import the same custom field again (same name and entityKey)
+        final BackupDataDto currentBackupData = gateway.getBackupData();
+        final CustomField duplicateCustomField = new CustomField(300, "Duplicate Test Field", CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY);
+        List<CustomField> secondCustomFieldsList = new ArrayList<>(currentBackupData.customFields());
+        secondCustomFieldsList.add(duplicateCustomField);
+        
+        final BackupDataDto secondImportData = new BackupDataDto(
+                secondCustomFieldsList, //two existing results, one for the custom field 200, and another for custom field 300
+                currentBackupData.toys(),
+                currentBackupData.systems(),
+                currentBackupData.videoGames(),
+                currentBackupData.videoGameBoxes(),
+                currentBackupData.boardGames(),
+                currentBackupData.boardGameBoxes()
+        );
+
+        // Perform second import
+        final ImportResultsDto secondImportResult = gateway.importBackupData(secondImportData);
+
+        // Verify second import recognizes existing custom field
+        assertAll(
+                "Error on second import of same custom field.",
+                () -> assertEquals(0, secondImportResult.createdCustomFields()),
+                () -> assertEquals(2, secondImportResult.existingCustomFields()),
+                () -> assertEquals(0, secondImportResult.exceptionBackupImport().getExceptions().size())
+        );
+    }
 
     //TODO The ID's on Toys are meaningless, validate that toys with a unique name and set combination are created in the database
 
