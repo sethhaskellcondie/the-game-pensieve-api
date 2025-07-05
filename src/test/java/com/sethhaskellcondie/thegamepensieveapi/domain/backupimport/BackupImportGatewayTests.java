@@ -42,7 +42,7 @@ public class BackupImportGatewayTests {
     //TODO go back and test these function with data already in the system.
 
     @Test
-    void customFieldImport_InvalidCustomFields_ReturnErrors() {
+    void customFieldImport_InvalidCustomFields_NoDataImported() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
         //Arrange
@@ -81,7 +81,7 @@ public class BackupImportGatewayTests {
 
 
     @Test
-    void customFieldImport_ValidAndDuplicateCustomFields_ReturnSuccessAndErrors() {
+    void customFieldImport_ValidAndDuplicateCustomFields_ValidDataImportedErrorsReturned() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
         //Arrange
@@ -121,20 +121,69 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(0, importResult.existingToys()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
-
         final BackupDataDto resultsBackupData = gateway.getBackupData();
         validateBackupData(expectedResult, resultsBackupData);
     }
 
     @Test
-    void existingToy_ImportSameToyTwice_ReturnExistingToy() {
+    void toyImport_InvalidData_ErrorsReturned() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
-        // First import - create a new toy
-        final ToyResponseDto newToy = new ToyResponseDto(Keychain.TOY_KEY, 400, "Duplicate Test Toy", "Test Set Alpha", null, null, null, new ArrayList<>());
+        //Arrange
+        final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
+        final ToyResponseDto toyWithMissingCustomField = new ToyResponseDto(Keychain.TOY_KEY, 701, "Toy Missing Custom Field", "Missing Set", null, null, null, List.of(missingCustomFieldValue));
+        final CustomFieldValue invalidCustomFieldValue = new CustomFieldValue(-1, "Invalid Custom Field", CustomField.TYPE_BOOLEAN, "true");
+        final ToyResponseDto toyWithInvalidCustomField = new ToyResponseDto(Keychain.TOY_KEY, 702, "Toy Invalid Custom Field", "Invalid Set", null, null, null, List.of(invalidCustomFieldValue));
         List<ToyResponseDto> toysList = new ArrayList<>(initialBackupData.toys());
-        toysList.add(newToy);
-        
+        toysList.add(toyWithMissingCustomField); //return error custom field not included on the import
+        toysList.add(toyWithInvalidCustomField); //return error invalid custom field ID
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                toysList,
+                initialBackupData.systems(),
+                initialBackupData.videoGames(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGames(),
+                initialBackupData.boardGameBoxes()
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error on toy import with custom field validation issues.",
+                () -> assertEquals(0, importResult.createdCustomFields()),
+                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(0, importResult.existingSystems()),
+                () -> assertEquals(0, importResult.existingVideoGames()),
+                () -> assertEquals(0, importResult.createdVideoGames()),
+                () -> assertEquals(2, importResult.exceptionBackupImport().getExceptions().size())
+        );
+    }
+
+    @Test
+    void toyImport_ValidAndDuplicateData_ErrorsReturned() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final ToyResponseDto newToy = new ToyResponseDto(Keychain.TOY_KEY, 400, "Duplicate Test Toy", "Test Set Alpha", null, null, null, new ArrayList<>());
+        final ToyResponseDto duplicateToy = new ToyResponseDto(Keychain.TOY_KEY, 500, "Duplicate Test Toy", "Test Set Alpha", null, null, null, new ArrayList<>());
+        List<ToyResponseDto> toysList = new ArrayList<>(initialBackupData.toys());
+        toysList.add(newToy); //successful import
+        final BackupDataDto expectedResult = new BackupDataDto(
+                initialBackupData.customFields(),
+                new ArrayList<>(toysList),
+                initialBackupData.systems(),
+                initialBackupData.videoGames(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGames(),
+                initialBackupData.boardGameBoxes()
+        );
+        toysList.add(duplicateToy); //import skipped returned as existing toy
         final BackupDataDto firstImportData = new BackupDataDto(
                 initialBackupData.customFields(),
                 toysList,
@@ -145,103 +194,22 @@ public class BackupImportGatewayTests {
                 initialBackupData.boardGameBoxes()
         );
 
-        // Perform first import
-        final ImportResultsDto firstImportResult = gateway.importBackupData(firstImportData);
-        
-        // Verify first import was successful
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(firstImportData);
+
+        //Assert
         assertAll(
-                "Error on first import of toy.",
-                () -> assertEquals(0, firstImportResult.createdCustomFields()),
-                () -> assertEquals(0, firstImportResult.existingCustomFields()),
-                () -> assertEquals(1, firstImportResult.createdToys()),
-                () -> assertEquals(0, firstImportResult.existingToys()),
-                () -> assertEquals(0, firstImportResult.exceptionBackupImport().getExceptions().size())
-        );
-
-        // Second import - try to import the same toy again (same name and set, different ID)
-        final BackupDataDto currentBackupData = gateway.getBackupData();
-        final ToyResponseDto duplicateToy = new ToyResponseDto(Keychain.TOY_KEY, 500, "Duplicate Test Toy", "Test Set Alpha", null, null, null, new ArrayList<>());
-        List<ToyResponseDto> secondToysList = new ArrayList<>(currentBackupData.toys());
-        secondToysList.add(duplicateToy);
-        
-        final BackupDataDto secondImportData = new BackupDataDto(
-                currentBackupData.customFields(),
-                secondToysList,
-                currentBackupData.systems(),
-                currentBackupData.videoGames(),
-                currentBackupData.videoGameBoxes(),
-                currentBackupData.boardGames(),
-                currentBackupData.boardGameBoxes()
-        );
-
-        // Perform second import
-        final ImportResultsDto secondImportResult = gateway.importBackupData(secondImportData);
-
-        // Verify second import recognizes existing toy
-        assertAll(
-                "Error on second import of same toy.",
-                () -> assertEquals(0, secondImportResult.createdCustomFields()),
-                () -> assertEquals(0, secondImportResult.existingCustomFields()),
-                () -> assertEquals(0, secondImportResult.createdToys()),
-                () -> assertEquals(2, secondImportResult.existingToys()),
-                () -> assertEquals(0, secondImportResult.exceptionBackupImport().getExceptions().size())
-        );
-    }
-
-    @Test
-    void toyCustomFieldValidation_ThreeToysWithDifferentCustomFieldIssues_ReturnOneSuccessAndTwoErrors() {
-        final BackupDataDto initialBackupData = gateway.getBackupData();
-
-        // Create one valid custom field for the import
-        final CustomField validCustomField = new CustomField(600, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.TOY_KEY);
-        List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
-        customFieldsList.add(validCustomField);
-
-        // Create three toys with different custom field relationship issues
-        // 1. Valid toy with valid custom field relationship
-        final CustomFieldValue validCustomFieldValue = new CustomFieldValue(600, "Valid Custom Field", CustomField.TYPE_TEXT, "Valid Value");
-        final ToyResponseDto validToy = new ToyResponseDto(Keychain.TOY_KEY, 700, "Valid Toy", "Valid Set", null, null, null, List.of(validCustomFieldValue));
-
-        // 2. Toy referencing a custom field not included in the import (missing from import)
-        final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
-        final ToyResponseDto toyWithMissingCustomField = new ToyResponseDto(Keychain.TOY_KEY, 701, "Toy Missing Custom Field", "Missing Set", null, null, null, List.of(missingCustomFieldValue));
-
-        // 3. Toy with invalid custom field ID (-1)
-        final CustomFieldValue invalidCustomFieldValue = new CustomFieldValue(-1, "Invalid Custom Field", CustomField.TYPE_BOOLEAN, "true");
-        final ToyResponseDto toyWithInvalidCustomField = new ToyResponseDto(Keychain.TOY_KEY, 702, "Toy Invalid Custom Field", "Invalid Set", null, null, null, List.of(invalidCustomFieldValue));
-
-        List<ToyResponseDto> toysList = new ArrayList<>(initialBackupData.toys());
-        toysList.add(validToy);
-        toysList.add(toyWithMissingCustomField);
-        toysList.add(toyWithInvalidCustomField);
-
-        final BackupDataDto importData = new BackupDataDto(
-                customFieldsList,
-                toysList,
-                initialBackupData.systems(),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
-        );
-
-        // Perform import
-        final ImportResultsDto importResult = gateway.importBackupData(importData);
-
-        // Verify results: 1 custom field created, 1 toy created, 2 toy errors
-        assertAll(
-                "Error on toy import with custom field validation issues.",
-                () -> assertEquals(1, importResult.createdCustomFields()),
+                "Error on duplicate toy import.",
+                () -> assertEquals(0, importResult.createdCustomFields()),
                 () -> assertEquals(0, importResult.existingCustomFields()),
                 () -> assertEquals(1, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
-                () -> assertEquals(0, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGames()),
-                () -> assertEquals(0, importResult.createdVideoGames()),
-                () -> assertEquals(2, importResult.exceptionBackupImport().getExceptions().size())
+                () -> assertEquals(1, importResult.existingToys()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        validateBackupData(expectedResult, resultsBackupData);
     }
+
 
     //TODO include tests for system imports
 
