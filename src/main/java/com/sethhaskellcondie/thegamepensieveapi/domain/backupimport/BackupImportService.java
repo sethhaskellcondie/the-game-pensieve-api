@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.backupimport;
 
-import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
@@ -20,7 +19,6 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGame;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBox;
@@ -67,12 +65,12 @@ public class BackupImportService {
         List<BoardGameResponseDto> boardGames = boardGameService.getWithFilters(new ArrayList<>()).stream().map(BoardGame::convertToResponseDto).toList();
         List<BoardGameBoxResponseDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToResponseDto).toList();
 
-        return new BackupDataDto(customFields, toys, systems, videoGames, videoGameBoxes, boardGames, boardGameBoxes);
+        return new BackupDataDto(customFields, toys, systems, videoGameBoxes);
     }
 
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
         final Map<Integer, Integer> customFieldIds;
-        final ImportCustomFieldsResults customFieldResults;
+        final ImportEntityResults customFieldResults;
         customFieldResults = importCustomFields(backupDataDto);
         if (!customFieldResults.exceptionBackupImport().getExceptions().isEmpty()) {
             ExceptionBackupImport customFieldsException = new ExceptionBackupImport("There were errors importing Custom Fields. No additional data imported.");
@@ -80,7 +78,7 @@ public class BackupImportService {
             return new ImportResultsDto(customFieldResults.existingCount(), customFieldResults.createdCount(), customFieldsException);
         }
 
-        customFieldIds = customFieldResults.customFieldIds();
+        customFieldIds = customFieldResults.entityIds();
         ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
 
         ImportEntityResults toyResults = importToys(backupDataDto, customFieldIds);
@@ -93,28 +91,27 @@ public class BackupImportService {
             exceptionBackupImport.appendExceptions(systemResults.exceptionBackupImport().getExceptions());
         }
 
-//        ImportEntityResults videoGameResults = importVideoGames(backupDataDto, customFieldIds);
-//        if (!videoGameResults.exceptionBackupImport().isEmpty()) {
-//            exceptionBackupImport.appendExceptions(videoGameResults.exceptionBackupImport().getExceptions());
-//        }
-//
-//        if (!exceptionBackupImport.getExceptions().isEmpty()) {
-//            ExceptionBackupImport importException = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
-//            importException.appendExceptions(exceptionBackupImport.getExceptions());
-//            exceptionBackupImport = importException;
-//        }
+        ImportEntityResults videoGameResults = importVideoGameBoxes(backupDataDto, customFieldIds, systemResults.entityIds());
+        if (!videoGameResults.exceptionBackupImport().isEmpty()) {
+            exceptionBackupImport.appendExceptions(videoGameResults.exceptionBackupImport().getExceptions());
+        }
+
+        if (!exceptionBackupImport.getExceptions().isEmpty()) {
+            ExceptionBackupImport importException = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
+            importException.appendExceptions(exceptionBackupImport.getExceptions());
+            exceptionBackupImport = importException;
+        }
 
         return new ImportResultsDto(
                 customFieldResults.existingCount(), customFieldResults.createdCount(),
                 toyResults.existingCount(), toyResults.createdCount(),
                 systemResults.existingCount(), systemResults.createdCount(),
-//                videoGameResults.existingCount(), videoGameResults.createdCount(),
-                0, 0,
+                videoGameResults.existingCount(), videoGameResults.createdCount(),
                 exceptionBackupImport
         );
     }
 
-    private ImportCustomFieldsResults importCustomFields(BackupDataDto backupDataDto) {
+    private ImportEntityResults importCustomFields(BackupDataDto backupDataDto) {
         final ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         int existingCount = 0;
         int createdCount = 0;
@@ -125,7 +122,7 @@ public class BackupImportService {
             exceptionBackupImport.appendExceptions(multiException.getExceptions());
         }
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
-            return new ImportCustomFieldsResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
         }
         
         final List<CustomField> customFields = backupDataDto.customFields();
@@ -159,17 +156,48 @@ public class BackupImportService {
                 customFieldIds.put(customField.id(), savedCustomField.id());
             }
         }
-        return new ImportCustomFieldsResults(customFieldIds, existingCount, createdCount, exceptionBackupImport);
+        return new ImportEntityResults(customFieldIds, existingCount, createdCount, exceptionBackupImport);
+    }
+
+    private void validateCustomFieldIds(BackupDataDto backupDataDto) throws MultiException {
+        final List<CustomField> customFields = backupDataDto.customFields();
+        if (null == customFields || customFields.isEmpty()) {
+            return;
+        }
+
+        MultiException multiException = new MultiException();
+        List<Integer> seenIds = new ArrayList<>();
+
+        for (CustomField customField : customFields) {
+            int customFieldId = customField.id();
+
+            if (customFieldId <= 0) {
+                multiException.addException("Error Importing Custom Field Data: Custom field with name '" + customField.name()
+                        + "' and entity key '" + customField.entityKey() + "' has an invalid ID. ID must be a positive integer, but was: " + customFieldId);
+            }
+
+            if (seenIds.contains(customFieldId)) {
+                multiException.addException("Error Importing Custom Field Data: Duplicate custom field ID found: " + customFieldId
+                        + ". Each custom field must have a unique ID in the import data.");
+            }
+
+            seenIds.add(customFieldId);
+        }
+
+        if (!multiException.isEmpty()) {
+            throw multiException;
+        }
     }
 
     private ImportEntityResults importToys(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds) {
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         int existingCount = 0;
         int createdCount = 0;
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         List<ToyResponseDto> toysToBeImported = backupDataDto.toys();
         if (null == toysToBeImported) {
-            return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
         }
+        Map<Integer, Integer> toyIds = new HashMap<>(backupDataDto.toys().size());
 
         List<ToyResponseDto> toyRequestsReady = new ArrayList<>(toysToBeImported.size());
         for (ToyResponseDto toyResponseDto : toysToBeImported) {
@@ -196,7 +224,7 @@ public class BackupImportService {
                 if (toyId > 0) {
                     existingCount++;
                 } else {
-                    toyService.createNew(
+                    Toy createdToy = toyService.createNew(
                             new ToyRequestDto(
                                     toyResponseDto.name(),
                                     toyResponseDto.set(),
@@ -204,26 +232,28 @@ public class BackupImportService {
                             )
                     );
                     createdCount++;
+                    toyIds.put(toyResponseDto.id(), createdToy.getId());
                 }
             } catch (Exception exception) {
                 exceptionBackupImport.addException(new Exception("Error importing toy data with name: '" + toyResponseDto.name()
                         + "' and set '" + toyResponseDto.set() + "' " + exception.getMessage()));
             }
         }
-        return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
+        return new ImportEntityResults(toyIds, existingCount, createdCount, exceptionBackupImport);
     }
 
     private ImportEntityResults importSystems(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds) {
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         int existingCount = 0;
         int createdCount = 0;
-        List<SystemResponseDto> systemRequestToBeUpdated = backupDataDto.systems();
-        if (null == systemRequestToBeUpdated) {
-            return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
+        List<SystemResponseDto> systemRequestToBeImported = backupDataDto.systems();
+        if (null == systemRequestToBeImported) {
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
         }
+        Map<Integer, Integer> systemIds = new HashMap<>(backupDataDto.systems().size());
 
-        List<SystemResponseDto> systemRequestsReady = new ArrayList<>(systemRequestToBeUpdated.size());
-        for (SystemResponseDto systemResponseDto: systemRequestToBeUpdated) {
+        List<SystemResponseDto> systemRequestsReady = new ArrayList<>(systemRequestToBeImported.size());
+        for (SystemResponseDto systemResponseDto: systemRequestToBeImported) {
             boolean skipped = false;
             for (CustomFieldValue value: systemResponseDto.customFieldValues()) {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
@@ -247,101 +277,38 @@ public class BackupImportService {
                 if (systemId > 0) {
                     existingCount++;
                 } else {
-                    systemService.createNew(new SystemRequestDto(
+                    System createdSystem = systemService.createNew(new SystemRequestDto(
                             systemResponseDto.name(),
                             systemResponseDto.generation(),
                             systemResponseDto.handheld(),
                             systemResponseDto.customFieldValues()
                     ));
                     createdCount++;
+                    systemIds.put(systemResponseDto.id(), createdSystem.getId());
                 }
             } catch (Exception exception) {
                 exceptionBackupImport.addException(new Exception("Error importing system data with name: '" + systemResponseDto.name()
                         + "' " + exception.getMessage()));
             }
         }
-        return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
+        return new ImportEntityResults(systemIds, existingCount, createdCount, exceptionBackupImport);
     }
 
-//    private ImportEntityResults importVideoGames(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds) {
-//        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
-//        int existingCount = 0;
-//        int createdCount = 0;
-//
-//        List<VideoGameRequestDto> videoGameData = backupDataDto.videoGames();
-//        if (null == videoGameData) {
-//            return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
-//        }
-//        List<VideoGameRequestDto> videoGamesToBeImported = new ArrayList<>(videoGameData.size());
-//        for (VideoGameRequestDto videoGameRequestDto: videoGameData) {
-//            boolean skipped = false;
-//            for (CustomFieldValue value: videoGameRequestDto.customFieldValues()) {
-//                Integer customFieldId = customFieldIds.get(customFieldComboKey(Keychain.VIDEO_GAME_KEY, value));
-//                if (null == customFieldId) {
-//                    skipped = true;
-//                    exceptionBackupImport.addException(new Exception("Error importing video game data: Imported Custom Field not found but expected for video game with title: '"
-//                            + videoGameRequestDto.title() + "' with custom field value named '" + value.getCustomFieldName()
-//                            + "' The custom field must be included on the import and not just existing in the database."));
-//                } else {
-//                    value.setCustomFieldId(customFieldId);
-//                }
-//            }
-//            if (!skipped) {
-//                videoGamesToBeImported.add(videoGameRequestDto);
-//            }
-//        }
-//
-//        for (VideoGameRequestDto videoGameRequestDto: videoGamesToBeImported) {
-//            try {
-//                int videoGameId = videoGameService.getIdByTitleAndSystem(videoGameRequestDto.title(), videoGameRequestDto.systemId());
-//                if (videoGameId > 0) {
-//                    VideoGame videoGame = videoGameService.getById(videoGameId);
-//                    videoGame.updateFromRequestDto(videoGameRequestDto);
-//                    videoGameService.updateExisting(videoGameId, videoGameRequestDto);
-//                    existingCount++;
-//                } else {
-//                    videoGameService.createNew(videoGameRequestDto);
-//                    createdCount++;
-//                }
-//            } catch (Exception exception) {
-//                exceptionBackupImport.addException(new Exception("Error importing video game data with title: '" + videoGameRequestDto.title()
-//                        + "' " + exception.getMessage()));
-//            }
-//        }
-//        return new ImportEntityResults(existingCount, createdCount, exceptionBackupImport);
-//    }
-
-    private void validateCustomFieldIds(BackupDataDto backupDataDto) throws MultiException {
-        final List<CustomField> customFields = backupDataDto.customFields();
-        if (null == customFields || customFields.isEmpty()) {
-            return;
+    private ImportEntityResults importVideoGameBoxes(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds) {
+        int existingCount = 0;
+        int createdCount = 0;
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
+        List<VideoGameBoxResponseDto> videoGameBoxToBeImported = backupDataDto.videoGameBoxes();
+        if (null == videoGameBoxToBeImported) {
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
         }
+        Map<Integer, Integer> videoGameBoxIds = new HashMap<>(backupDataDto.systems().size());
+        //create function to validate the video game boxes
 
-        MultiException multiException = new MultiException();
-        List<Integer> seenIds = new ArrayList<>();
-        
-        for (CustomField customField : customFields) {
-            int customFieldId = customField.id();
-
-            if (customFieldId <= 0) {
-                multiException.addException("Error Importing Custom Field Data: Custom field with name '" + customField.name() 
-                        + "' and entity key '" + customField.entityKey() + "' has an invalid ID. ID must be a positive integer, but was: " + customFieldId);
-            }
-
-            if (seenIds.contains(customFieldId)) {
-                multiException.addException("Error Importing Custom Field Data: Duplicate custom field ID found: " + customFieldId 
-                        + ". Each custom field must have a unique ID in the import data.");
-            }
-            
-            seenIds.add(customFieldId);
-        }
-        
-        if (!multiException.isEmpty()) {
-            throw multiException;
-        }
+        //create function import the video game box data, knowing which games are existing and which are new
+        return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
     }
 }
 
-record ImportCustomFieldsResults(Map<Integer, Integer> customFieldIds, int existingCount, int createdCount, ExceptionBackupImport exceptionBackupImport) { }
-record ImportEntityResults(int existingCount, int createdCount, ExceptionBackupImport exceptionBackupImport) { }
+record ImportEntityResults(Map<Integer, Integer> entityIds, int existingCount, int createdCount, ExceptionBackupImport exceptionBackupImport) { }
 

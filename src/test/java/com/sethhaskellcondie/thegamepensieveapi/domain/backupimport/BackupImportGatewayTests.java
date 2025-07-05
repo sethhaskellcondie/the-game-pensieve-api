@@ -10,6 +10,7 @@ import java.util.List;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +19,6 @@ import org.springframework.test.context.ActiveProfiles;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyRequestDto;
 
 /**
  * When exporting a backup ALL the data in the database will be exported into a massive JSON object and output to a backup.json file.
@@ -59,10 +59,7 @@ public class BackupImportGatewayTests {
                 customFieldsList,
                 initialBackupData.toys(),
                 initialBackupData.systems(),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
 
         //Act
@@ -93,20 +90,14 @@ public class BackupImportGatewayTests {
                 new ArrayList<>(customFieldsList),
                 initialBackupData.toys(),
                 initialBackupData.systems(),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
         customFieldsList.add(duplicateValidCustomField); //return as existing, no data is created or updated
         final BackupDataDto duplicateImportData = new BackupDataDto(
                 customFieldsList,
                 initialBackupData.toys(),
                 initialBackupData.systems(),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
 
         //Act
@@ -141,10 +132,7 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 toysList,
                 initialBackupData.systems(),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
 
         //Act
@@ -178,20 +166,14 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 new ArrayList<>(toysList),
                 initialBackupData.systems(),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
         toysList.add(duplicateToy); //import skipped returned as existing toy
         final BackupDataDto firstImportData = new BackupDataDto(
                 initialBackupData.customFields(),
                 toysList,
                 initialBackupData.systems(),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
 
         //Act
@@ -226,10 +208,7 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 initialBackupData.toys(),
                 systemsList,
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
 
         //Act
@@ -263,20 +242,14 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 initialBackupData.toys(),
                 new ArrayList<>(systemsList),
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
         systemsList.add(duplicateSystem); //import skipped returned as existing system (same name)
         final BackupDataDto importData = new BackupDataDto(
                 initialBackupData.customFields(),
                 initialBackupData.toys(),
                 systemsList,
-                initialBackupData.videoGames(),
-                initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGames(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.videoGameBoxes()
         );
 
         //Act
@@ -384,8 +357,8 @@ public class BackupImportGatewayTests {
     }
 
     private void validateVideoGameBackupData(BackupDataDto expectedData, BackupDataDto actualData) {
-        final List<VideoGameResponseDto> expectedVideoGames = expectedData.videoGames();
-        final List<VideoGameResponseDto> actualVideoGames = actualData.videoGames();
+        final List<VideoGameBoxResponseDto> expectedVideoGames = expectedData.videoGameBoxes();
+        final List<VideoGameBoxResponseDto> actualVideoGames = actualData.videoGameBoxes();
         if (null == expectedVideoGames || null == actualVideoGames) {
             assertAll(
                     "If the expected video games are null then the actual should be as well.",
@@ -394,14 +367,15 @@ public class BackupImportGatewayTests {
             );
             return;
         }
-        assertEquals(expectedVideoGames.size(), actualVideoGames.size(), "Unexpected number of system results returned in BackupDataDto");
+        assertEquals(expectedVideoGames.size(), actualVideoGames.size(), "Unexpected number of video game box results returned in BackupDataDto");
         for (int i = 0; i < expectedVideoGames.size(); i++) {
-            final VideoGameResponseDto expectedVideoGame = expectedVideoGames.get(i);
-            final VideoGameResponseDto actualVideoGame = actualVideoGames.get(i);
+            final VideoGameBoxResponseDto expectedVideoGame = expectedVideoGames.get(i);
+            final VideoGameBoxResponseDto actualVideoGame = actualVideoGames.get(i);
             assertAll(
                     "Mismatched video game data returned in BackupDataDto.",
                     () -> assertEquals(expectedVideoGame.title(), actualVideoGame.title()),
                     () -> assertEquals(expectedVideoGame.system().id(), actualVideoGame.system().id())
+                    //TODO assert the rest
             );
             validateCustomFieldValues(expectedVideoGame.customFieldValues(), actualVideoGame.customFieldValues(), Keychain.VIDEO_GAME_KEY, actualVideoGame.title());
         }
