@@ -9,6 +9,8 @@ import java.util.List;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ public class BackupImportGatewayTests {
     private BackupImportGateway gateway;
 
     //TODO go back and test these function with data already in the system.
+    //TODO refactor these tests to test for specific exceptions. (refactor the results to pass back systemExceptions, videoGameExceptions, etc.)
 
     @Test
     void customFieldImport_InvalidCustomFields_NoDataImported() {
@@ -270,6 +273,106 @@ public class BackupImportGatewayTests {
     }
 
     //TODO include tests for video game imports
+    //validation tests
+    //video game box with incorrect/missing system id
+    //video game box with incorrect/missing custom field id
+    //video game with incorrect/missing system id
+    //video game with incorrect/missing custom field id
+
+
+    @Test
+    void videoGameBoxImport_InvalidBoxData_ErrorsReturned() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
+        final SystemResponseDto missingSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 99,  "Missing Test System", 7, false, null, null, null, new ArrayList<>());
+        final VideoGameBoxResponseDto videoGameBoxWithMissingInformation = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810, "Box With Missing Information", missingSystem, new ArrayList<>(), true, false, null, null, null, List.of(missingCustomFieldValue));
+        List<VideoGameBoxResponseDto> videoGameBoxes = new ArrayList<>(initialBackupData.videoGameBoxes().size() + 1);
+        videoGameBoxes.add(videoGameBoxWithMissingInformation);
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                //Will return four total errors
+                //one error stating that there were errors
+                //one for the missing custom field
+                //one for the missing system
+                //one for no video games being included in this video game box
+                videoGameBoxes
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error on system import with custom field validation issues.",
+                () -> assertEquals(0, importResult.createdCustomFields()),
+                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(0, importResult.existingSystems()),
+                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(4, importResult.exceptionBackupImport().getExceptions().size())
+        );
+    }
+
+    @Test
+    void videoGameBoxImport_InvalidVideoGameData_ErrorsReturned() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final int validCustomFieldBoxCustomFieldId = 987;
+        final CustomField validVideoGameBoxCustomField = new CustomField(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, Keychain.VIDEO_GAME_BOX_KEY);
+        final CustomFieldValue validCustomFieldValue = new CustomFieldValue(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, "123");
+        final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
+        final SystemResponseDto validSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 98,  "Valid", 7, false, null, null, null, new ArrayList<>());
+        final SystemResponseDto missingSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 99,  "Missing Test System", 7, false, null, null, null, new ArrayList<>());
+        final SlimVideoGame invalidGame = new SlimVideoGame(234, "Game With Missing Information", missingSystem, null, null, null, List.of(missingCustomFieldValue));
+        final VideoGameBoxResponseDto validVideoGameBox = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810, "Valid Box With Invalid Game", validSystem, List.of(invalidGame), true, false, null, null, null, List.of(validCustomFieldValue));
+        List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
+        customFieldsList.add(validVideoGameBoxCustomField);
+        List<SystemResponseDto> systemsList = new ArrayList<>(initialBackupData.systems());
+        systemsList.add(validSystem);
+        List<VideoGameBoxResponseDto> videoGameBoxes = new ArrayList<>(initialBackupData.videoGameBoxes().size() + 1);
+        videoGameBoxes.add(validVideoGameBox);
+        final BackupDataDto importData = new BackupDataDto(
+                customFieldsList,
+                initialBackupData.toys(),
+                systemsList,
+                //Will return four total errors
+                //one error stating that there were errors
+                //one for the missing custom field on the video game (not the box)
+                //one for the missing system on the video game (not the box)
+                //one for no video valid games being included in this video game box
+                videoGameBoxes
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error on system import with custom field validation issues.",
+                () -> assertEquals(1, importResult.createdCustomFields()),
+                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(1, importResult.createdSystems()),
+                () -> assertEquals(0, importResult.existingSystems()),
+                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(4, importResult.exceptionBackupImport().getExceptions().size())
+        );
+    }
+    
+    //success and duplication tests
+    //valid video game box import with multiple video games with multiple custom fields
+    //duplicate video game box is skipped
+    //duplicate video game is skipped but still attached to the proper video game box
 
     //TODO include tests for board game imports
 

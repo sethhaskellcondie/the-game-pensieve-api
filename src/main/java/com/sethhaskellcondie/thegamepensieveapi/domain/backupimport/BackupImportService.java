@@ -4,11 +4,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGame;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameService;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBox;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRequestDto;
@@ -59,10 +55,7 @@ public class BackupImportService {
         List<CustomField> customFields = customFieldRepository.getAllCustomFields();
         List<ToyResponseDto> toys = toyService.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToResponseDto).toList();
         List<SystemResponseDto> systems = systemService.getWithFilters(new ArrayList<>()).stream().map(System::convertToResponseDto).toList();
-        List<VideoGameResponseDto> videoGames = videoGameService.getWithFilters(new ArrayList<>()).stream().map(VideoGame::convertToResponseDto).toList();
         List<VideoGameBoxResponseDto> videoGameBoxes = videoGameBoxService.getWithFilters(new ArrayList<>()).stream().map(VideoGameBox::convertToResponseDto).toList();
-        List<BoardGameResponseDto> boardGames = boardGameService.getWithFilters(new ArrayList<>()).stream().map(BoardGame::convertToResponseDto).toList();
-        List<BoardGameBoxResponseDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToResponseDto).toList();
 
         return new BackupDataDto(customFields, toys, systems, videoGameBoxes);
     }
@@ -311,6 +304,11 @@ public class BackupImportService {
                     existingCount++;
                 } else {
                     List<Integer> existingGameIds = importVideoGames(videoGameBoxResponseDto.videoGames(), customFieldIds, systemIds, exceptionBackupImport);
+                    if (existingGameIds.isEmpty()) {
+                        exceptionBackupImport.addException(new Exception("Error importing video game box data: Video Game Box with title: '"
+                                + videoGameBoxResponseDto.title() + "' had no valid Video Games included with the import data. Video Game Boxes must include at least one valid video game."));
+                        continue;
+                    }
                     VideoGameBox createdGameBox = videoGameBoxService.createNew(new VideoGameBoxRequestDto(
                         videoGameBoxResponseDto.title(),
                         videoGameBoxResponseDto.system().id(),
@@ -379,6 +377,12 @@ public class BackupImportService {
                     value.setCustomFieldId(customFieldId);
                 }
             }
+
+            if (videoGameBox.videoGames().isEmpty()) {
+                skipped = true;
+                exceptionBackupImport.addException(new Exception("Error import video game box data: Imported video game box with title: '"
+                + videoGameBox.title() + "' had no included video games, video game boxes must include at least one video game."));
+            }
             
             if (!skipped) {
                 validatedBoxes.add(videoGameBox);
@@ -398,7 +402,7 @@ public class BackupImportService {
                 Integer systemId = systemIds.get(slimVideoGame.system().id());
                 if (null == systemId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing video game box data: Imported System not found but expected for video game box titled: '"
+                    exceptionBackupImport.addException(new Exception("Error importing video game data: Imported System not found but expected for video game titled: '"
                             + slimVideoGame.title() + "' with system ID '" + slimVideoGame.system().id() + "'. The system must be included on the import and not just existing in the database."));
                 } else {
                     //Since records are immutable we need to create a new dto with the proper relationship
