@@ -5,7 +5,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBacku
 public record ImportResultsDto(int existingCustomFields, int createdCustomFields,
                                int existingToys, int createdToys,
                                int existingSystems, int createdSystems,
-                               int existingVideoGames, int createdVideoGames,
+                               int existingVideoGamesBoxes, int createdVideoGamesBoxes,
                                ExceptionBackupImport exceptionBackupImport
 ) {
     ImportResultsDto(int existingCustomFields, int createdCustomFields, ExceptionBackupImport exceptionBackupImport) {
@@ -22,8 +22,8 @@ public record ImportResultsDto(int existingCustomFields, int createdCustomFields
                     createdToys: %d,
                     existingSystems: %d,
                     createdSystems: %d,
-                    existingVideoGames: %d,
-                    createdVideoGames: %d,
+                    existingVideoGamesBoxes: %d,
+                    createdVideoGamesBoxes: %d,
                     exceptions: %d
                     exceptionMessages: %s
                 }
@@ -36,8 +36,8 @@ public record ImportResultsDto(int existingCustomFields, int createdCustomFields
                 this.createdToys,
                 this.existingSystems,
                 this.createdSystems,
-                this.existingVideoGames,
-                this.createdVideoGames,
+                this.existingVideoGamesBoxes,
+                this.createdVideoGamesBoxes,
                 this.exceptionBackupImport.getExceptions().size(),
                 " \n - " + String.join(" \n - ", this.exceptionBackupImport.getMessages())
         );

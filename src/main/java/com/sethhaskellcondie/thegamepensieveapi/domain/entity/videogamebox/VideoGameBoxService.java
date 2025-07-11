@@ -223,4 +223,9 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         videoGameBox.setVideoGames(videoGames);
         return videoGameBox;
     }
+
+    public int getIdByTitleAndSystemId(String title, int systemId) {
+        VideoGameBoxRepository videoGameBoxRepository = (VideoGameBoxRepository) repository;
+        return videoGameBoxRepository.getIdByTitleAndSystem(title, systemId);
+    }
 }

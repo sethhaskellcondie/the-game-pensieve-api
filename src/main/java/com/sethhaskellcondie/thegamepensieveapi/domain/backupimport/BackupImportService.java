@@ -18,10 +18,9 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.Toy;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyService;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGame;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.*;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBox;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBackupImport;
@@ -91,9 +90,9 @@ public class BackupImportService {
             exceptionBackupImport.appendExceptions(systemResults.exceptionBackupImport().getExceptions());
         }
 
-        ImportEntityResults videoGameResults = importVideoGameBoxes(backupDataDto, customFieldIds, systemResults.entityIds());
-        if (!videoGameResults.exceptionBackupImport().isEmpty()) {
-            exceptionBackupImport.appendExceptions(videoGameResults.exceptionBackupImport().getExceptions());
+        ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto, customFieldIds, systemResults.entityIds());
+        if (!videoGameBoxResults.exceptionBackupImport().isEmpty()) {
+            exceptionBackupImport.appendExceptions(videoGameBoxResults.exceptionBackupImport().getExceptions());
         }
 
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
@@ -106,7 +105,7 @@ public class BackupImportService {
                 customFieldResults.existingCount(), customFieldResults.createdCount(),
                 toyResults.existingCount(), toyResults.createdCount(),
                 systemResults.existingCount(), systemResults.createdCount(),
-                videoGameResults.existingCount(), videoGameResults.createdCount(),
+                videoGameBoxResults.existingCount(), videoGameBoxResults.createdCount(),
                 exceptionBackupImport
         );
     }
@@ -302,13 +301,168 @@ public class BackupImportService {
         if (null == videoGameBoxToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
         }
-        Map<Integer, Integer> videoGameBoxIds = new HashMap<>(backupDataDto.systems().size());
-        //create function to validate the video game boxes
+        Map<Integer, Integer> videoGameBoxIds = new HashMap<>(videoGameBoxToBeImported.size());
+        List<VideoGameBoxResponseDto> validatedBoxes = validateVideoGameBoxes(videoGameBoxToBeImported, customFieldIds, systemIds, exceptionBackupImport);
 
-        //create function import the video game box data, knowing which games are existing and which are new
-        return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
+        for (VideoGameBoxResponseDto videoGameBoxResponseDto: validatedBoxes) {
+            try {
+                int boxId = videoGameBoxService.getIdByTitleAndSystemId(videoGameBoxResponseDto.title(), videoGameBoxResponseDto.system().id());
+                if (boxId > 0) {
+                    existingCount++;
+                } else {
+                    List<Integer> existingGameIds = importVideoGames(videoGameBoxResponseDto.videoGames(), customFieldIds, systemIds, exceptionBackupImport);
+                    VideoGameBox createdGameBox = videoGameBoxService.createNew(new VideoGameBoxRequestDto(
+                        videoGameBoxResponseDto.title(),
+                        videoGameBoxResponseDto.system().id(),
+                        existingGameIds,
+                        new ArrayList<>(),
+                        videoGameBoxResponseDto.isPhysical(),
+                        videoGameBoxResponseDto.customFieldValues()
+                    ));
+                    createdCount++;
+                    videoGameBoxIds.put(videoGameBoxResponseDto.id(), createdGameBox.getId());
+                }
+            } catch (Exception exception) {
+                exceptionBackupImport.addException(new Exception("Error importing video game box data with title: '" + videoGameBoxResponseDto.title()
+                        + "' " + exception.getMessage()));
+            }
+        }
+        return new ImportEntityResults(videoGameBoxIds, existingCount, createdCount, exceptionBackupImport);
+    }
+
+    private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
+        List<VideoGameBoxResponseDto> validatedBoxes = new ArrayList<>(videoGameBoxes.size());
+        
+        for (VideoGameBoxResponseDto videoGameBox : videoGameBoxes) {
+            boolean skipped = false;
+            Integer systemId = systemIds.get(videoGameBox.system().id());
+            if (null == systemId) {
+                skipped = true;
+                exceptionBackupImport.addException(new Exception("Error importing video game box data: Imported System not found but expected for video game box titled: '"
+                    + videoGameBox.title() + "' with system ID '" + videoGameBox.system().id() + "'. The system must be included on the import and not just existing in the database."));
+            } else {
+                //Since records are immutable we need to create a new dto with the proper relationship
+                SystemResponseDto updatedSystem = new SystemResponseDto(
+                    videoGameBox.system().key(),
+                    systemId,
+                    videoGameBox.system().name(),
+                    videoGameBox.system().generation(),
+                    videoGameBox.system().handheld(),
+                    videoGameBox.system().createdAt(),
+                    videoGameBox.system().updatedAt(),
+                    videoGameBox.system().deletedAt(),
+                    videoGameBox.system().customFieldValues()
+                );
+                videoGameBox = new VideoGameBoxResponseDto(
+                    videoGameBox.key(),
+                    videoGameBox.id(),
+                    videoGameBox.title(),
+                    updatedSystem,
+                    videoGameBox.videoGames(),
+                    videoGameBox.isPhysical(),
+                    videoGameBox.isCollection(),
+                    videoGameBox.createdAt(),
+                    videoGameBox.updatedAt(),
+                    videoGameBox.deletedAt(),
+                    videoGameBox.customFieldValues()
+                );
+            }
+
+            for (CustomFieldValue value : videoGameBox.customFieldValues()) {
+                Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
+                if (null == customFieldId) {
+                    skipped = true;
+                    exceptionBackupImport.addException(new Exception("Error importing video game box data: Imported Custom Field not found but expected for video game box titled: '"
+                        + videoGameBox.title() + "' with custom field value named '" + value.getCustomFieldName()
+                        + "' The custom field must be included on the import and not just existing in the database."));
+                } else {
+                    value.setCustomFieldId(customFieldId);
+                }
+            }
+            
+            if (!skipped) {
+                validatedBoxes.add(videoGameBox);
+            }
+        }
+        
+        return validatedBoxes;
+    }
+
+    private List<Integer> importVideoGames(List<SlimVideoGame> videoGamesToImport, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
+
+        List<SlimVideoGame> validatedVideoGames = new ArrayList<>(videoGamesToImport.size());
+        for (SlimVideoGame slimVideoGame : videoGamesToImport) {
+            try {
+                //Validate the system information
+                boolean skipped = false;
+                Integer systemId = systemIds.get(slimVideoGame.system().id());
+                if (null == systemId) {
+                    skipped = true;
+                    exceptionBackupImport.addException(new Exception("Error importing video game box data: Imported System not found but expected for video game box titled: '"
+                            + slimVideoGame.title() + "' with system ID '" + slimVideoGame.system().id() + "'. The system must be included on the import and not just existing in the database."));
+                } else {
+                    //Since records are immutable we need to create a new dto with the proper relationship
+                    SystemResponseDto updatedSystem = new SystemResponseDto(
+                            slimVideoGame.system().key(),
+                            systemId,
+                            slimVideoGame.system().name(),
+                            slimVideoGame.system().generation(),
+                            slimVideoGame.system().handheld(),
+                            slimVideoGame.system().createdAt(),
+                            slimVideoGame.system().updatedAt(),
+                            slimVideoGame.system().deletedAt(),
+                            slimVideoGame.system().customFieldValues()
+                    );
+                    slimVideoGame = new SlimVideoGame(
+                            slimVideoGame.id(),
+                            slimVideoGame.title(),
+                            updatedSystem,
+                            slimVideoGame.createdAt(),
+                            slimVideoGame.updatedAt(),
+                            slimVideoGame.deletedAt(),
+                            slimVideoGame.system().customFieldValues()
+                    );
+                }
+
+                // Validate custom field values
+                List<CustomFieldValue> validatedCustomFieldValues = new ArrayList<>();
+                for (CustomFieldValue value : slimVideoGame.customFieldValues()) {
+                    Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
+                    if (null == customFieldId) {
+                        skipped = true;
+                        exceptionBackupImport.addException(new Exception("Error importing video game data: Imported Custom Field not found but expected for video game titled: '"
+                            + slimVideoGame.title() + "' with custom field value named '" + value.getCustomFieldName()
+                            + "' The custom field must be included on the import and not just existing in the database."));
+                    } else {
+                        value.setCustomFieldId(customFieldId);
+                    }
+                }
+
+                if (!skipped) {
+                    validatedVideoGames.add(slimVideoGame);
+                }
+            } catch (Exception exception) {
+                exceptionBackupImport.addException(exception);
+            }
+        }
+
+        List<Integer> importedVideoGamesIds = new ArrayList<>(validatedVideoGames.size());
+        for (SlimVideoGame slimVideoGame : validatedVideoGames) {
+            int existingGameId = videoGameService.getIdByTitleAndSystem(slimVideoGame.title(), slimVideoGame.system().id());
+            if (existingGameId > 0) {
+                importedVideoGamesIds.add(existingGameId);
+            } else {
+                VideoGame createdVideoGame = videoGameService.createNew(new VideoGameRequestDto(
+                        slimVideoGame.title(),
+                        slimVideoGame.system().id(),
+                        slimVideoGame.customFieldValues()
+                ));
+                importedVideoGamesIds.add(createdVideoGame.getId());
+            }
+        }
+        
+        return importedVideoGamesIds;
     }
 }
 
 record ImportEntityResults(Map<Integer, Integer> entityIds, int existingCount, int createdCount, ExceptionBackupImport exceptionBackupImport) { }
-

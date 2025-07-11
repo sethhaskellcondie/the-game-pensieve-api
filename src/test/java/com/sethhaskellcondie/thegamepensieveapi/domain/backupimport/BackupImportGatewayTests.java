@@ -9,7 +9,6 @@ import java.util.List;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,8 +146,8 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(0, importResult.existingToys()),
                 () -> assertEquals(0, importResult.createdSystems()),
                 () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGames()),
-                () -> assertEquals(0, importResult.createdVideoGames()),
+                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(2, importResult.exceptionBackupImport().getExceptions().size())
         );
     }
@@ -223,8 +222,8 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(0, importResult.existingToys()),
                 () -> assertEquals(0, importResult.createdSystems()),
                 () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGames()),
-                () -> assertEquals(0, importResult.createdVideoGames()),
+                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(2, importResult.exceptionBackupImport().getExceptions().size())
         );
     }
