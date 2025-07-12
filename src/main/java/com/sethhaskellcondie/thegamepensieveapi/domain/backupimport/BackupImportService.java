@@ -268,6 +268,7 @@ public class BackupImportService {
                 int systemId = systemService.getIdByName(systemResponseDto.name());
                 if (systemId > 0) {
                     existingCount++;
+                    systemIds.put(systemResponseDto.id(), systemId);
                 } else {
                     System createdSystem = systemService.createNew(new SystemRequestDto(
                             systemResponseDto.name(),

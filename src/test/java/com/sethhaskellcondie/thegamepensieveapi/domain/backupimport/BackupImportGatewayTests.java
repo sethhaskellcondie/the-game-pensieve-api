@@ -10,7 +10,6 @@ import java.util.List;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +68,7 @@ public class BackupImportGatewayTests {
 
         //Assert
         assertAll(
-                "Unexpected error when importing invalid custom fields.",
+                "Unexpected error when importing invalid custom fields.", //No data will be imported when there are errors with custom fields
                 () -> assertEquals(0, importResult.createdCustomFields()),
                 () -> assertEquals(0, importResult.existingCustomFields()),
                 () -> assertEquals(0, importResult.createdToys()),
@@ -78,6 +77,7 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(0, importResult.existingSystems()),
                 () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(4, importResult.exceptionBackupImport().getExceptions().size())
         );
     }
@@ -113,12 +113,12 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on duplicate custom field import.",
                 () -> assertEquals(1, importResult.createdCustomFields()),
-                () -> assertEquals(1, importResult.existingCustomFields()), // Both existing custom fields
+                () -> assertEquals(initialBackupData.customFields().size() + 1, importResult.existingCustomFields()), // Both existing custom fields
                 () -> assertEquals(0, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
                 () -> assertEquals(0, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
@@ -136,6 +136,7 @@ public class BackupImportGatewayTests {
         final CustomFieldValue invalidCustomFieldValue = new CustomFieldValue(-1, "Invalid Custom Field", CustomField.TYPE_BOOLEAN, "true");
         final ToyResponseDto toyWithInvalidCustomField = new ToyResponseDto(Keychain.TOY_KEY, 702, "Toy Invalid Custom Field", "Invalid Set", null, null, null, List.of(invalidCustomFieldValue));
         List<ToyResponseDto> toysList = new ArrayList<>(initialBackupData.toys());
+        //three total errors, one as a header stating that there were errors
         toysList.add(toyWithMissingCustomField); //return error custom field not included on the import
         toysList.add(toyWithInvalidCustomField); //return error invalid custom field ID
         final BackupDataDto importData = new BackupDataDto(
@@ -152,14 +153,14 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on toy import with custom field validation issues.",
                 () -> assertEquals(0, importResult.createdCustomFields()),
-                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
                 () -> assertEquals(0, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
                 () -> assertEquals(0, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
-                () -> assertEquals(2, importResult.exceptionBackupImport().getExceptions().size())
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(3, importResult.exceptionBackupImport().getExceptions().size())
         );
     }
 
@@ -193,12 +194,12 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on duplicate toy import.",
                 () -> assertEquals(0, importResult.createdCustomFields()),
-                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
                 () -> assertEquals(1, importResult.createdToys()),
-                () -> assertEquals(1, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size() + 1, importResult.existingToys()),
                 () -> assertEquals(0, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
@@ -216,6 +217,7 @@ public class BackupImportGatewayTests {
         final CustomFieldValue invalidCustomFieldValue = new CustomFieldValue(-1, "Invalid Custom Field", CustomField.TYPE_BOOLEAN, "true");
         final SystemResponseDto systemWithInvalidCustomField = new SystemResponseDto(Keychain.SYSTEM_KEY, 802, "System Invalid Custom Field", 6, true, null, null, null, List.of(invalidCustomFieldValue));
         List<SystemResponseDto> systemsList = new ArrayList<>(initialBackupData.systems());
+        //three total errors for this test, one detailing that errors have happened
         systemsList.add(systemWithMissingCustomField); //return error custom field not included on the import
         systemsList.add(systemWithInvalidCustomField); //return error invalid custom field ID
         final BackupDataDto importData = new BackupDataDto(
@@ -232,14 +234,14 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on system import with custom field validation issues.",
                 () -> assertEquals(0, importResult.createdCustomFields()),
-                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
                 () -> assertEquals(0, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
                 () -> assertEquals(0, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
-                () -> assertEquals(2, importResult.exceptionBackupImport().getExceptions().size())
+                () -> assertEquals(3, importResult.exceptionBackupImport().getExceptions().size())
         );
     }
 
@@ -273,12 +275,12 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on duplicate system import.",
                 () -> assertEquals(0, importResult.createdCustomFields()),
-                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
                 () -> assertEquals(0, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
                 () -> assertEquals(1, importResult.createdSystems()),
-                () -> assertEquals(1, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.systems().size() + 1, importResult.existingSystems()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
@@ -294,7 +296,7 @@ public class BackupImportGatewayTests {
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
         final SystemResponseDto missingSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 99,  "Missing Test System", 7, false, null, null, null, new ArrayList<>());
         final VideoGameBoxResponseDto videoGameBoxWithMissingInformation = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810, "Box With Missing Information", missingSystem, new ArrayList<>(), true, false, null, null, null, List.of(missingCustomFieldValue));
-        List<VideoGameBoxResponseDto> videoGameBoxes = new ArrayList<>(initialBackupData.videoGameBoxes().size() + 1);
+        List<VideoGameBoxResponseDto> videoGameBoxes = new ArrayList<>(initialBackupData.videoGameBoxes());
         videoGameBoxes.add(videoGameBoxWithMissingInformation);
         final BackupDataDto importData = new BackupDataDto(
                 initialBackupData.customFields(),
@@ -315,12 +317,12 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on video game box import with custom field validation issues.",
                 () -> assertEquals(0, importResult.createdCustomFields()),
-                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
                 () -> assertEquals(0, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
                 () -> assertEquals(0, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(4, importResult.exceptionBackupImport().getExceptions().size())
         );
@@ -364,17 +366,16 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on system import with custom field validation issues.",
                 () -> assertEquals(1, importResult.createdCustomFields()),
-                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
                 () -> assertEquals(0, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
                 () -> assertEquals(1, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(4, importResult.exceptionBackupImport().getExceptions().size())
         );
     }
-
 
 
     @Test
@@ -424,17 +425,44 @@ public class BackupImportGatewayTests {
         assertAll(
                 "Error on duplicate video game box import.",
                 () -> assertEquals(2, importResult.createdCustomFields()),
-                () -> assertEquals(0, importResult.existingCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
                 () -> assertEquals(0, importResult.createdToys()),
-                () -> assertEquals(0, importResult.existingToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
                 () -> assertEquals(1, importResult.createdSystems()),
-                () -> assertEquals(0, importResult.existingSystems()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
                 () -> assertEquals(2, importResult.createdVideoGamesBoxes()),
-                () -> assertEquals(1, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size() + 1, importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
         final BackupDataDto resultsBackupData = gateway.getBackupData();
         validateBackupData(expectedResult, resultsBackupData);
+    }
+
+
+    @Test
+    void exportData_ImportSameData_NoNewDataImported() {
+
+        //Arrange
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(initialBackupData);
+
+        //Assert
+        assertAll(
+                "Error on idempotent test.",
+                () -> assertEquals(0, importResult.createdCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
+        );
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        validateBackupData(initialBackupData, resultsBackupData);
     }
 
     //TODO include tests for board game imports
