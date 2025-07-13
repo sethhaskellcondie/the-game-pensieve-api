@@ -54,17 +54,17 @@ public class BackupImportService {
 
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
         final Map<Integer, Integer> customFieldIds;
-        final ImportEntityResults customFieldResults;
         ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
-        customFieldResults = importCustomFields(backupDataDto, exceptionBackupImport);
+
+        final ImportEntityResults customFieldResults = importCustomFields(backupDataDto.customFields(), exceptionBackupImport);
+        //There is no point trying to import the rest of the data if the custom fields are broken, if any error are detected then return early importing no data.
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
             exceptionBackupImport.setHeader("There were errors importing Custom Fields. No additional data imported.");
             return new ImportResultsDto(customFieldResults.existingCount(), customFieldResults.createdCount(), exceptionBackupImport);
         }
-
         customFieldIds = customFieldResults.entityIds();
 
-        ImportEntityResults toyResults = importToys(backupDataDto, customFieldIds, exceptionBackupImport);
+        ImportEntityResults toyResults = importToys(backupDataDto.toys(), customFieldIds, exceptionBackupImport);
 
         ImportEntityResults systemResults = importSystems(backupDataDto, customFieldIds, exceptionBackupImport);
 
@@ -83,22 +83,16 @@ public class BackupImportService {
         );
     }
 
-    private ImportEntityResults importCustomFields(BackupDataDto backupDataDto, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importCustomFields(final List<CustomField> customFields, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
 
-        try {
-            validateCustomFieldIds(backupDataDto);
-        } catch (MultiException multiException) {
-            exceptionBackupImport.addCustomFieldExceptions(multiException.getExceptions());
-        }
+        validateCustomFieldIds(customFields, exceptionBackupImport);
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
-        
-        final List<CustomField> customFields = backupDataDto.customFields();
-        final Map<Integer, Integer> customFieldIds = new HashMap<>(customFields.size());
 
+        final Map<Integer, Integer> customFieldIds = new HashMap<>(customFields.size());
         for (CustomField customField : customFields) {
             CustomField savedCustomField;
             try {
@@ -130,83 +124,76 @@ public class BackupImportService {
         return new ImportEntityResults(customFieldIds, existingCount, createdCount);
     }
 
-    private void validateCustomFieldIds(BackupDataDto backupDataDto) throws MultiException {
-        final List<CustomField> customFields = backupDataDto.customFields();
+    private void validateCustomFieldIds(final List<CustomField> customFields, ExceptionBackupImport exceptionBackupImport) {
         if (null == customFields || customFields.isEmpty()) {
             return;
         }
 
-        MultiException multiException = new MultiException();
         List<Integer> seenIds = new ArrayList<>();
-
         for (CustomField customField : customFields) {
             int customFieldId = customField.id();
 
             if (customFieldId <= 0) {
-                multiException.addException("Error Importing Custom Field Data: Custom field with name '" + customField.name()
+                exceptionBackupImport.addCustomFieldException("Error Importing Custom Field Data: Custom field with name '" + customField.name()
                         + "' and entity key '" + customField.entityKey() + "' has an invalid ID. ID must be a positive integer, but was: " + customFieldId);
             }
 
             if (seenIds.contains(customFieldId)) {
-                multiException.addException("Error Importing Custom Field Data: Duplicate custom field ID found: " + customFieldId
+                exceptionBackupImport.addCustomFieldException("Error Importing Custom Field Data: Duplicate custom field ID found: " + customFieldId
                         + ". Each custom field must have a unique ID in the import data.");
             }
 
             seenIds.add(customFieldId);
         }
-
-        if (!multiException.isEmpty()) {
-            throw multiException;
-        }
     }
 
-    private ImportEntityResults importToys(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importToys(List<ToyResponseDto> toysToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
-        List<ToyResponseDto> toysToBeImported = backupDataDto.toys();
         if (null == toysToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
-        Map<Integer, Integer> toyIds = new HashMap<>(backupDataDto.toys().size());
+        Map<Integer, Integer> toyIds = new HashMap<>(toysToBeImported.size());
 
-        List<ToyResponseDto> toyRequestsReady = new ArrayList<>(toysToBeImported.size());
-        for (ToyResponseDto toyResponseDto : toysToBeImported) {
+        List<ToyResponseDto> validatedToys = new ArrayList<>(toysToBeImported.size());
+        for (ToyResponseDto validatingToy : toysToBeImported) {
             boolean skipped = false;
-            for (CustomFieldValue value: toyResponseDto.customFieldValues()) {
+            for (CustomFieldValue value: validatingToy.customFieldValues()) {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                 if (null == customFieldId) {
                     skipped = true;
                     exceptionBackupImport.addToyException(new Exception("Error Importing Toy Data: Custom field relationships not found but expected for toy with name: '"
-                        + toyResponseDto.name() + "' and set '" + toyResponseDto.set() + "' with custom field value named '" + value.getCustomFieldName()
+                        + validatingToy.name() + "' and set '" + validatingToy.set() + "' with custom field value named '" + value.getCustomFieldName()
                         + "' and custom field ID provided on the toy as '" + value.getCustomFieldId() + "'."));
                 } else {
                     value.setCustomFieldId(customFieldId);
                 }
             }
             if (!skipped) {
-                toyRequestsReady.add(toyResponseDto);
+                validatedToys.add(validatingToy);
             }
         }
 
-        for (ToyResponseDto toyResponseDto: toyRequestsReady) {
+        for (ToyResponseDto importToy: validatedToys) {
             try {
-                int toyId = toyService.getIdByNameAndSet(toyResponseDto.name(), toyResponseDto.set());
+                int toyId = toyService.getIdByNameAndSet(importToy.name(), importToy.set());
                 if (toyId > 0) {
                     existingCount++;
+                    toyIds.put(importToy.id(), toyId);
                 } else {
                     Toy createdToy = toyService.createNew(
                             new ToyRequestDto(
-                                    toyResponseDto.name(),
-                                    toyResponseDto.set(),
-                                    toyResponseDto.customFieldValues()
+                                    importToy.name(),
+                                    importToy.set(),
+                                    importToy.customFieldValues()
                             )
                     );
                     createdCount++;
-                    toyIds.put(toyResponseDto.id(), createdToy.getId());
+                    toyIds.put(importToy.id(), createdToy.getId());
                 }
             } catch (Exception exception) {
-                exceptionBackupImport.addToyException(new Exception("Error importing toy data with name: '" + toyResponseDto.name()
-                        + "' and set '" + toyResponseDto.set() + "' " + exception.getMessage()));
+                exceptionBackupImport.addToyException(new Exception("Error importing toy data with name: '" + importToy.name()
+                        + "' and set '" + importToy.set() + "' " + exception.getMessage()));
             }
         }
         return new ImportEntityResults(toyIds, existingCount, createdCount);
