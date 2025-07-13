@@ -4,8 +4,6 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameService;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
@@ -35,20 +33,14 @@ public class BackupImportService {
     private final CustomFieldRepository customFieldRepository;
     private final SystemService systemService;
     private final ToyService toyService;
-    private final VideoGameService videoGameService;
     private final VideoGameBoxService videoGameBoxService;
-    private final BoardGameService boardGameService;
-    private final BoardGameBoxService boardGameBoxService;
 
-    protected BackupImportService(CustomFieldRepository customFieldRepository, SystemService systemService, ToyService toyService, VideoGameService videoGameService,
-                                  VideoGameBoxService videoGameBoxService, BoardGameService boardGameService, BoardGameBoxService boardGameBoxService) {
+    protected BackupImportService(CustomFieldRepository customFieldRepository, SystemService systemService, ToyService toyService,
+                                  VideoGameBoxService videoGameBoxService) {
         this.customFieldRepository = customFieldRepository;
         this.systemService = systemService;
         this.toyService = toyService;
-        this.videoGameService = videoGameService;
         this.videoGameBoxService = videoGameBoxService;
-        this.boardGameService = boardGameService;
-        this.boardGameBoxService = boardGameBoxService;
     }
 
     protected BackupDataDto getBackupData() {
