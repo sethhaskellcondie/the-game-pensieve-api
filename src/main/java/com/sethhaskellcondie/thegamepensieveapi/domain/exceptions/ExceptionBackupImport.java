@@ -5,7 +5,9 @@ import java.util.List;
 
 public class ExceptionBackupImport extends MultiException {
 
+    private String header;
     private final MultiException customFieldExceptions;
+    private final MultiException toyExceptions;
     private final MultiException systemExceptions;
     private final MultiException videoGameBoxExceptions;
     private final MultiException videoGameExceptions;
@@ -13,7 +15,9 @@ public class ExceptionBackupImport extends MultiException {
     public ExceptionBackupImport() {
         super();
         this.messagePrefix = "Backup/Import Error - ";
+        this.header = "Unexpected Error on Backup/Import";
         this.customFieldExceptions = new MultiException();
+        this.toyExceptions = new MultiException();
         this.systemExceptions = new MultiException();
         this.videoGameBoxExceptions = new MultiException();
         this.videoGameExceptions = new MultiException();
@@ -22,21 +26,20 @@ public class ExceptionBackupImport extends MultiException {
     public ExceptionBackupImport(String message) {
         super();
         this.messagePrefix = "Backup/Import Error - ";
+        this.header = "Unexpected Error on Backup/Import";
         this.customFieldExceptions = new MultiException();
+        this.toyExceptions = new MultiException();
         this.systemExceptions = new MultiException();
         this.videoGameBoxExceptions = new MultiException();
         this.videoGameExceptions = new MultiException();
-        exceptions.add(new Exception(message));
     }
 
-    public ExceptionBackupImport(List<Exception> exceptions) {
-        super();
-        this.messagePrefix = "Backup/Import Error - ";
-        this.customFieldExceptions = new MultiException();
-        this.systemExceptions = new MultiException();
-        this.videoGameBoxExceptions = new MultiException();
-        this.videoGameExceptions = new MultiException();
-        this.exceptions = exceptions;
+    public String getHeader() {
+        return header;
+    }
+
+    public void setHeader(String header) {
+        this.header = header;
     }
 
     public MultiException getCustomFieldExceptions() {
@@ -53,6 +56,23 @@ public class ExceptionBackupImport extends MultiException {
 
     public void addCustomFieldExceptions(List<Exception> exceptions) {
         customFieldExceptions.appendExceptions(exceptions);
+    }
+
+    // Toy Exception Methods
+    public MultiException getToyExceptions() {
+        return toyExceptions;
+    }
+
+    public void addToyException(String message) {
+        toyExceptions.addException(message);
+    }
+
+    public void addToyException(Exception exception) {
+        toyExceptions.addException(exception);
+    }
+
+    public void addToyExceptions(List<Exception> exceptions) {
+        toyExceptions.appendExceptions(exceptions);
     }
 
     public MultiException getSystemExceptions() {
@@ -118,6 +138,13 @@ public class ExceptionBackupImport extends MultiException {
             messageBuilder.append(customFieldExceptions.getMessage());
         }
         
+        if (!toyExceptions.isEmpty()) {
+            if (!messageBuilder.isEmpty()) {
+                messageBuilder.append(" ");
+            }
+            messageBuilder.append(toyExceptions.getMessage());
+        }
+        
         if (!systemExceptions.isEmpty()) {
             if (!messageBuilder.isEmpty()) {
                 messageBuilder.append(" ");
@@ -154,6 +181,10 @@ public class ExceptionBackupImport extends MultiException {
             allMessages.addAll(customFieldExceptions.getMessages());
         }
         
+        if (!toyExceptions.isEmpty()) {
+            allMessages.addAll(toyExceptions.getMessages());
+        }
+        
         if (!systemExceptions.isEmpty()) {
             allMessages.addAll(systemExceptions.getMessages());
         }
@@ -181,6 +212,10 @@ public class ExceptionBackupImport extends MultiException {
             allExceptions.addAll(customFieldExceptions.getExceptions());
         }
         
+        if (!toyExceptions.isEmpty()) {
+            allExceptions.addAll(toyExceptions.getExceptions());
+        }
+        
         if (!systemExceptions.isEmpty()) {
             allExceptions.addAll(systemExceptions.getExceptions());
         }
@@ -194,5 +229,15 @@ public class ExceptionBackupImport extends MultiException {
         }
         
         return allExceptions;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return super.isEmpty() && 
+               customFieldExceptions.isEmpty() && 
+               toyExceptions.isEmpty() && 
+               systemExceptions.isEmpty() && 
+               videoGameBoxExceptions.isEmpty() && 
+               videoGameExceptions.isEmpty();
     }
 }

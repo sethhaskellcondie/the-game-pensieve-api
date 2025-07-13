@@ -55,35 +55,23 @@ public class BackupImportService {
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
         final Map<Integer, Integer> customFieldIds;
         final ImportEntityResults customFieldResults;
-        customFieldResults = importCustomFields(backupDataDto);
-        if (!customFieldResults.exceptionBackupImport().getExceptions().isEmpty()) {
-            ExceptionBackupImport customFieldsException = new ExceptionBackupImport("There were errors importing Custom Fields. No additional data imported.");
-            customFieldsException.appendExceptions(customFieldResults.exceptionBackupImport().getExceptions());
-            return new ImportResultsDto(customFieldResults.existingCount(), customFieldResults.createdCount(), customFieldsException);
+        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
+        customFieldResults = importCustomFields(backupDataDto, exceptionBackupImport);
+        if (!exceptionBackupImport.getExceptions().isEmpty()) {
+            exceptionBackupImport.setHeader("There were errors importing Custom Fields. No additional data imported.");
+            return new ImportResultsDto(customFieldResults.existingCount(), customFieldResults.createdCount(), exceptionBackupImport);
         }
 
         customFieldIds = customFieldResults.entityIds();
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
 
-        ImportEntityResults toyResults = importToys(backupDataDto, customFieldIds);
-        if (!toyResults.exceptionBackupImport().getExceptions().isEmpty()) {
-            exceptionBackupImport.appendExceptions(toyResults.exceptionBackupImport().getExceptions());
-        }
+        ImportEntityResults toyResults = importToys(backupDataDto, customFieldIds, exceptionBackupImport);
 
-        ImportEntityResults systemResults = importSystems(backupDataDto, customFieldIds);
-        if (!systemResults.exceptionBackupImport().getExceptions().isEmpty()) {
-            exceptionBackupImport.appendExceptions(systemResults.exceptionBackupImport().getExceptions());
-        }
+        ImportEntityResults systemResults = importSystems(backupDataDto, customFieldIds, exceptionBackupImport);
 
-        ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto, customFieldIds, systemResults.entityIds());
-        if (!videoGameBoxResults.exceptionBackupImport().isEmpty()) {
-            exceptionBackupImport.appendExceptions(videoGameBoxResults.exceptionBackupImport().getExceptions());
-        }
+        ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto, customFieldIds, systemResults.entityIds(), exceptionBackupImport);
 
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
-            ExceptionBackupImport importException = new ExceptionBackupImport("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
-            importException.appendExceptions(exceptionBackupImport.getExceptions());
-            exceptionBackupImport = importException;
+            exceptionBackupImport.setHeader("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
         }
 
         return new ImportResultsDto(
@@ -95,18 +83,17 @@ public class BackupImportService {
         );
     }
 
-    private ImportEntityResults importCustomFields(BackupDataDto backupDataDto) {
-        final ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
+    private ImportEntityResults importCustomFields(BackupDataDto backupDataDto, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
 
         try {
             validateCustomFieldIds(backupDataDto);
         } catch (MultiException multiException) {
-            exceptionBackupImport.appendExceptions(multiException.getExceptions());
+            exceptionBackupImport.addCustomFieldExceptions(multiException.getExceptions());
         }
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
-            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
         
         final List<CustomField> customFields = backupDataDto.customFields();
@@ -117,7 +104,7 @@ public class BackupImportService {
             try {
                 savedCustomField = customFieldRepository.getByKeyAndName(customField.entityKey(), customField.name());
                 if (!Objects.equals(savedCustomField.type(), customField.type())) {
-                    exceptionBackupImport.addException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"
+                    exceptionBackupImport.addCustomFieldException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"
                             + customField.name() + "' and key: '" + customField.entityKey() + "' had a type mismatch with the existing custom field in the database. Provided type: '"
                             + customField.type() + "' existing (correct) type: '" + savedCustomField.type() + "'"));
                 } else {
@@ -131,7 +118,7 @@ public class BackupImportService {
                     savedCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customField.name(), customField.type(), customField.entityKey()));
                     createdCount++;
                 } catch (Exception exception) {
-                    exceptionBackupImport.addException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"
+                    exceptionBackupImport.addCustomFieldException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"
                             + customField.name() + "' Message: " + exception.getMessage()));
                 }
             }
@@ -140,7 +127,7 @@ public class BackupImportService {
                 customFieldIds.put(customField.id(), savedCustomField.id());
             }
         }
-        return new ImportEntityResults(customFieldIds, existingCount, createdCount, exceptionBackupImport);
+        return new ImportEntityResults(customFieldIds, existingCount, createdCount);
     }
 
     private void validateCustomFieldIds(BackupDataDto backupDataDto) throws MultiException {
@@ -173,13 +160,12 @@ public class BackupImportService {
         }
     }
 
-    private ImportEntityResults importToys(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds) {
+    private ImportEntityResults importToys(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         List<ToyResponseDto> toysToBeImported = backupDataDto.toys();
         if (null == toysToBeImported) {
-            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
         Map<Integer, Integer> toyIds = new HashMap<>(backupDataDto.toys().size());
 
@@ -190,7 +176,7 @@ public class BackupImportService {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error Importing Toy Data: Custom field relationships not found but expected for toy with name: '"
+                    exceptionBackupImport.addToyException(new Exception("Error Importing Toy Data: Custom field relationships not found but expected for toy with name: '"
                         + toyResponseDto.name() + "' and set '" + toyResponseDto.set() + "' with custom field value named '" + value.getCustomFieldName()
                         + "' and custom field ID provided on the toy as '" + value.getCustomFieldId() + "'."));
                 } else {
@@ -219,20 +205,19 @@ public class BackupImportService {
                     toyIds.put(toyResponseDto.id(), createdToy.getId());
                 }
             } catch (Exception exception) {
-                exceptionBackupImport.addException(new Exception("Error importing toy data with name: '" + toyResponseDto.name()
+                exceptionBackupImport.addToyException(new Exception("Error importing toy data with name: '" + toyResponseDto.name()
                         + "' and set '" + toyResponseDto.set() + "' " + exception.getMessage()));
             }
         }
-        return new ImportEntityResults(toyIds, existingCount, createdCount, exceptionBackupImport);
+        return new ImportEntityResults(toyIds, existingCount, createdCount);
     }
 
-    private ImportEntityResults importSystems(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds) {
+    private ImportEntityResults importSystems(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         List<SystemResponseDto> systemRequestToBeImported = backupDataDto.systems();
         if (null == systemRequestToBeImported) {
-            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
         Map<Integer, Integer> systemIds = new HashMap<>(backupDataDto.systems().size());
 
@@ -243,7 +228,7 @@ public class BackupImportService {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing system data: Imported Custom Field not found but expected for system named: '"
+                    exceptionBackupImport.addSystemException(new Exception("Error importing system data: Imported Custom Field not found but expected for system named: '"
                         + systemResponseDto.name() + "' with custom field value named '" + value.getCustomFieldName()
                         + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
@@ -272,20 +257,19 @@ public class BackupImportService {
                     systemIds.put(systemResponseDto.id(), createdSystem.getId());
                 }
             } catch (Exception exception) {
-                exceptionBackupImport.addException(new Exception("Error importing system data with name: '" + systemResponseDto.name()
+                exceptionBackupImport.addSystemException(new Exception("Error importing system data with name: '" + systemResponseDto.name()
                         + "' " + exception.getMessage()));
             }
         }
-        return new ImportEntityResults(systemIds, existingCount, createdCount, exceptionBackupImport);
+        return new ImportEntityResults(systemIds, existingCount, createdCount);
     }
 
-    private ImportEntityResults importVideoGameBoxes(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds) {
+    private ImportEntityResults importVideoGameBoxes(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
-        ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
         List<VideoGameBoxResponseDto> videoGameBoxToBeImported = backupDataDto.videoGameBoxes();
         if (null == videoGameBoxToBeImported) {
-            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount, exceptionBackupImport);
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
         Map<Integer, Integer> videoGameBoxIds = new HashMap<>(videoGameBoxToBeImported.size());
         List<VideoGameBoxResponseDto> validatedBoxes = validateVideoGameBoxes(videoGameBoxToBeImported, customFieldIds, systemIds, exceptionBackupImport);
@@ -299,7 +283,7 @@ public class BackupImportService {
                 } else {
                     ValidatedVideoGameResults validatedVideoGameResults = validateVideoGames(videoGameBoxResponseDto.videoGames(), customFieldIds, systemIds, videoGameIds, exceptionBackupImport);
                     if (validatedVideoGameResults.newGames().isEmpty() && validatedVideoGameResults.existingIds().isEmpty()) {
-                        exceptionBackupImport.addException(new Exception("Error importing video game box data: Video Game Box with title: '"
+                        exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: Video Game Box with title: '"
                                 + videoGameBoxResponseDto.title() + "' had no valid Video Games included with the import data. Video Game Boxes must include at least one valid video game."));
                         continue;
                     }
@@ -327,11 +311,11 @@ public class BackupImportService {
                     videoGameBoxIds.put(videoGameBoxResponseDto.id(), createdGameBox.getId());
                 }
             } catch (Exception exception) {
-                exceptionBackupImport.addException(new Exception("Error importing video game box data with title: '" + videoGameBoxResponseDto.title()
+                exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data with title: '" + videoGameBoxResponseDto.title()
                         + "' " + exception.getMessage()));
             }
         }
-        return new ImportEntityResults(videoGameBoxIds, existingCount, createdCount, exceptionBackupImport);
+        return new ImportEntityResults(videoGameBoxIds, existingCount, createdCount);
     }
 
     private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
@@ -342,7 +326,7 @@ public class BackupImportService {
             Integer systemId = systemIds.get(videoGameBox.system().id());
             if (null == systemId) {
                 skipped = true;
-                exceptionBackupImport.addException(new Exception("Error importing video game box data: Imported System not found but expected for video game box titled: '"
+                exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: Imported System not found but expected for video game box titled: '"
                     + videoGameBox.title() + "' with system ID '" + videoGameBox.system().id() + "'. The system must be included on the import and not just existing in the database."));
             } else {
                 //Since records are immutable we need to create a new dto with the proper relationship
@@ -376,7 +360,7 @@ public class BackupImportService {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                 if (null == customFieldId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing video game box data: Imported Custom Field not found but expected for video game box titled: '"
+                    exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: Imported Custom Field not found but expected for video game box titled: '"
                         + videoGameBox.title() + "' with custom field value named '" + value.getCustomFieldName()
                         + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
@@ -386,7 +370,7 @@ public class BackupImportService {
 
             if (videoGameBox.videoGames().isEmpty()) {
                 skipped = true;
-                exceptionBackupImport.addException(new Exception("Error import video game box data: Imported video game box with title: '"
+                exceptionBackupImport.addVideoGameBoxException(new Exception("Error import video game box data: Imported video game box with title: '"
                 + videoGameBox.title() + "' had no included video games, video game boxes must include at least one video game."));
             }
             
@@ -408,7 +392,7 @@ public class BackupImportService {
                 Integer systemId = systemIds.get(slimVideoGame.system().id());
                 if (null == systemId) {
                     skipped = true;
-                    exceptionBackupImport.addException(new Exception("Error importing video game data: Imported System not found but expected for video game titled: '"
+                    exceptionBackupImport.addVideoGameException(new Exception("Error importing video game data: Imported System not found but expected for video game titled: '"
                             + slimVideoGame.title() + "' with system ID '" + slimVideoGame.system().id() + "'. The system must be included on the import and not just existing in the database."));
                 } else {
                     //Since records are immutable we need to create a new dto with the proper relationship
@@ -439,7 +423,7 @@ public class BackupImportService {
                     Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                     if (null == customFieldId) {
                         skipped = true;
-                        exceptionBackupImport.addException(new Exception("Error importing video game data: Imported Custom Field not found but expected for video game titled: '"
+                        exceptionBackupImport.addVideoGameException(new Exception("Error importing video game data: Imported Custom Field not found but expected for video game titled: '"
                             + slimVideoGame.title() + "' with custom field value named '" + value.getCustomFieldName()
                             + "' The custom field must be included on the import and not just existing in the database."));
                     } else {
@@ -451,7 +435,7 @@ public class BackupImportService {
                     validatedVideoGames.add(slimVideoGame);
                 }
             } catch (Exception exception) {
-                exceptionBackupImport.addException(exception);
+                exceptionBackupImport.addVideoGameException(exception);
             }
         }
 
@@ -475,5 +459,5 @@ public class BackupImportService {
     }
 }
 
-record ImportEntityResults(Map<Integer, Integer> entityIds, int existingCount, int createdCount, ExceptionBackupImport exceptionBackupImport) { }
+record ImportEntityResults(Map<Integer, Integer> entityIds, int existingCount, int createdCount) { }
 record ValidatedVideoGameResults(List<Integer> existingIds, Map<Integer, VideoGameRequestDto> newGames ) { }
