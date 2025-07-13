@@ -384,10 +384,20 @@ public class BackupImportService {
 
     private ValidatedVideoGameResults validateVideoGames(List<SlimVideoGame> videoGamesToImport, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, Map<Integer, Integer> videoGameIds, ExceptionBackupImport exceptionBackupImport) {
 
-        List<SlimVideoGame> validatedVideoGames = new ArrayList<>(videoGamesToImport.size());
+        List<Integer> importedVideoGamesIds = new ArrayList<>(videoGamesToImport.size());
+        List<SlimVideoGame> gamesToValidate = new ArrayList<>(videoGamesToImport.size());
+        Map<Integer, VideoGameRequestDto> newGames = new HashMap<>(videoGamesToImport.size());
         for (SlimVideoGame slimVideoGame : videoGamesToImport) {
+            Integer existingGameId = videoGameIds.get(slimVideoGame.id());
+            if (null != existingGameId) {
+                importedVideoGamesIds.add(existingGameId);
+            } else {
+                gamesToValidate.add(slimVideoGame);
+            }
+        }
+
+        for (SlimVideoGame slimVideoGame : gamesToValidate) {
             try {
-                //Validate the system information
                 boolean skipped = false;
                 Integer systemId = systemIds.get(slimVideoGame.system().id());
                 if (null == systemId) {
@@ -414,11 +424,10 @@ public class BackupImportService {
                             slimVideoGame.createdAt(),
                             slimVideoGame.updatedAt(),
                             slimVideoGame.deletedAt(),
-                            slimVideoGame.system().customFieldValues()
+                            slimVideoGame.customFieldValues()
                     );
                 }
 
-                // Validate custom field values
                 for (CustomFieldValue value : slimVideoGame.customFieldValues()) {
                     Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                     if (null == customFieldId) {
@@ -432,26 +441,15 @@ public class BackupImportService {
                 }
 
                 if (!skipped) {
-                    validatedVideoGames.add(slimVideoGame);
+                    VideoGameRequestDto gameToBeCreated = new VideoGameRequestDto(
+                            slimVideoGame.title(),
+                            slimVideoGame.system().id(),
+                            slimVideoGame.customFieldValues()
+                    );
+                    newGames.put(slimVideoGame.id(), gameToBeCreated);
                 }
             } catch (Exception exception) {
                 exceptionBackupImport.addVideoGameException(exception);
-            }
-        }
-
-        List<Integer> importedVideoGamesIds = new ArrayList<>(validatedVideoGames.size());
-        Map<Integer, VideoGameRequestDto> newGames = new HashMap<>(validatedVideoGames.size());
-        for (SlimVideoGame slimVideoGame : validatedVideoGames) {
-            Integer existingGameId = videoGameIds.get(slimVideoGame.id());
-            if (null != existingGameId) {
-                importedVideoGamesIds.add(existingGameId);
-            } else {
-                VideoGameRequestDto gameToBeCreated = new VideoGameRequestDto(
-                        slimVideoGame.title(),
-                        slimVideoGame.system().id(),
-                        slimVideoGame.customFieldValues()
-                );
-                newGames.put(slimVideoGame.id(), gameToBeCreated);
             }
         }
         

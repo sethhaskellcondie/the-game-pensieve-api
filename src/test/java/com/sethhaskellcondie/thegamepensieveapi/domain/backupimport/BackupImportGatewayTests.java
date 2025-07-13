@@ -420,13 +420,14 @@ public class BackupImportGatewayTests {
         final int validVideoGameCustomFieldId = 556;
         final String validVideoGameCustomFieldName = "Valid For Game";
         final CustomField validVideoGameCustomField = new CustomField(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, Keychain.VIDEO_GAME_KEY);
+
         final CustomFieldValue validBoxCustomFieldValue1 = new CustomFieldValue(validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "123");
         final CustomFieldValue validBoxCustomFieldValue2 = new CustomFieldValue(validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "1234");
-        final CustomFieldValue validGameCustomFieldValue = new CustomFieldValue(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, "ABC");
+        final CustomFieldValue validGameCustomFieldValue1 = new CustomFieldValue(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, "ABC");
+        final CustomFieldValue validGameCustomFieldValue2 = new CustomFieldValue(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, "ABCD");
         final SystemResponseDto validSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 78,  "Valid System", 7, false, null, null, null, new ArrayList<>());
-
-        final SlimVideoGame validGame1 = new SlimVideoGame(111, "Valid Game 1", validSystem, null, null, null, List.of(validGameCustomFieldValue));
-        final SlimVideoGame validGame2 = new SlimVideoGame(112, "Valid Game 2", validSystem, null, null, null, List.of(validGameCustomFieldValue));
+        final SlimVideoGame validGame1 = new SlimVideoGame(111, "Valid Game 1", validSystem, null, null, null, List.of(validGameCustomFieldValue1));
+        final SlimVideoGame validGame2 = new SlimVideoGame(112, "Valid Game 2", validSystem, null, null, null, List.of(validGameCustomFieldValue2));
         final VideoGameBoxResponseDto validVideoGameBox1 = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810, "Valid Single Game Box", validSystem, List.of(validGame1), true, false, null, null, null, List.of(validBoxCustomFieldValue1));
         final VideoGameBoxResponseDto validVideoGameBox2 = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 811, "Valid Collection Box", validSystem, List.of(validGame1, validGame2), true, true, null, null, null, List.of(validBoxCustomFieldValue2));
         final VideoGameBoxResponseDto duplicateVideoGameBox = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 812, "Valid Collection Box", validSystem, List.of(validGame1, validGame2), true, true, null, null, null, List.of());
@@ -503,8 +504,6 @@ public class BackupImportGatewayTests {
         final BackupDataDto resultsBackupData = gateway.getBackupData();
         validateBackupData(initialBackupData, resultsBackupData);
     }
-
-    //TODO include tests for board game imports (After Board Games are implemented)
 
     // ====================================== Private Validation Methods ======================================
 
@@ -604,12 +603,33 @@ public class BackupImportGatewayTests {
             final VideoGameBoxResponseDto expectedVideoGame = expectedVideoGames.get(i);
             final VideoGameBoxResponseDto actualVideoGame = actualVideoGames.get(i);
             assertAll(
-                    "Mismatched video game data returned in BackupDataDto.",
-                    () -> assertEquals(expectedVideoGame.title(), actualVideoGame.title())
-//                    () -> assertEquals(expectedVideoGame.system().id(), actualVideoGame.system().id()) //this line is comparing the original id with the inserted id they will not match...
-                    //TODO assert the rest
+                    "Mismatched video game box data returned in BackupDataDto.",
+                    () -> assertEquals(expectedVideoGame.title(), actualVideoGame.title()),
+                    () -> assertEquals(expectedVideoGame.isPhysical(), actualVideoGame.isPhysical()),
+                    () -> assertEquals(expectedVideoGame.isCollection(), actualVideoGame.isCollection()),
+                    () -> assertEquals(expectedVideoGame.system().name(), actualVideoGame.system().name()),
+                    () -> assertEquals(expectedVideoGame.system().generation(), actualVideoGame.system().generation()),
+                    () -> assertEquals(expectedVideoGame.system().handheld(), actualVideoGame.system().handheld()),
+                    () -> assertEquals(expectedVideoGame.videoGames().size(), actualVideoGame.videoGames().size())
             );
-            validateCustomFieldValues(expectedVideoGame.customFieldValues(), actualVideoGame.customFieldValues(), Keychain.VIDEO_GAME_KEY, actualVideoGame.title());
+            validateVideoGames(expectedVideoGame.videoGames(), actualVideoGame.videoGames(), expectedVideoGame.title());
+            validateCustomFieldValues(expectedVideoGame.customFieldValues(), actualVideoGame.customFieldValues(), Keychain.VIDEO_GAME_BOX_KEY, actualVideoGame.title());
+        }
+    }
+
+    private void validateVideoGames(List<SlimVideoGame> expectedVideoGames, List<SlimVideoGame> actualVideoGames, String expectedTitle) {
+        assertEquals(expectedVideoGames.size(), actualVideoGames.size(), "Unexpected number of video games in video game box");
+        for (int i = 0; i < expectedVideoGames.size(); i++) {
+            final SlimVideoGame expectedGame = expectedVideoGames.get(i);
+            final SlimVideoGame actualGame = actualVideoGames.get(i);
+            assertAll(
+                    "Mismatched video game data in video game box with title '" + expectedTitle + "'.",
+                    () -> assertEquals(expectedGame.title(), actualGame.title()),
+                    () -> assertEquals(expectedGame.system().name(), actualGame.system().name()),
+                    () -> assertEquals(expectedGame.system().generation(), actualGame.system().generation()),
+                    () -> assertEquals(expectedGame.system().handheld(), actualGame.system().handheld())
+            );
+            validateCustomFieldValues(expectedGame.customFieldValues(), actualGame.customFieldValues(), Keychain.VIDEO_GAME_KEY, actualGame.title());
         }
     }
 
