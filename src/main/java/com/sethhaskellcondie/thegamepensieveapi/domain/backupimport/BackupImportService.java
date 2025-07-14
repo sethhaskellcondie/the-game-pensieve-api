@@ -68,7 +68,7 @@ public class BackupImportService {
 
         ImportEntityResults systemResults = importSystems(backupDataDto.systems(), customFieldIds, exceptionBackupImport);
 
-        ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto, customFieldIds, systemResults.entityIds(), exceptionBackupImport);
+        ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto.videoGameBoxes(), customFieldIds, systemResults.entityIds(), exceptionBackupImport);
 
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
             exceptionBackupImport.setHeader("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
@@ -250,58 +250,62 @@ public class BackupImportService {
         return new ImportEntityResults(systemIds, existingCount, createdCount);
     }
 
-    private ImportEntityResults importVideoGameBoxes(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxToBeImported, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
-        List<VideoGameBoxResponseDto> videoGameBoxToBeImported = backupDataDto.videoGameBoxes();
         if (null == videoGameBoxToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
-        Map<Integer, Integer> videoGameBoxIds = new HashMap<>(videoGameBoxToBeImported.size());
+        Map<Integer, Integer> boxIds = new HashMap<>(videoGameBoxToBeImported.size());
         List<VideoGameBoxResponseDto> validatedBoxes = validateVideoGameBoxes(videoGameBoxToBeImported, customFieldIds, systemIds, exceptionBackupImport);
-        Map<Integer, Integer> videoGameIds = new HashMap<>(videoGameBoxToBeImported.size());
+        Map<Integer, Integer> gameIds = new HashMap<>(videoGameBoxToBeImported.size());
 
-        for (VideoGameBoxResponseDto videoGameBoxResponseDto: validatedBoxes) {
+        for (VideoGameBoxResponseDto importBox: validatedBoxes) {
             try {
-                int boxId = videoGameBoxService.getIdByTitleAndSystemId(videoGameBoxResponseDto.title(), videoGameBoxResponseDto.system().id());
+                int boxId = videoGameBoxService.getIdByTitleAndSystemId(importBox.title(), importBox.system().id());
                 if (boxId > 0) {
                     existingCount++;
-                } else {
-                    ValidatedVideoGameResults validatedVideoGameResults = validateVideoGames(videoGameBoxResponseDto.videoGames(), customFieldIds, systemIds, videoGameIds, exceptionBackupImport);
-                    if (validatedVideoGameResults.newGames().isEmpty() && validatedVideoGameResults.existingIds().isEmpty()) {
-                        exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: Video Game Box with title: '"
-                                + videoGameBoxResponseDto.title() + "' had no valid Video Games included with the import data. Video Game Boxes must include at least one valid video game."));
-                        continue;
-                    }
-                    VideoGameBox createdGameBox = videoGameBoxService.createNew(new VideoGameBoxRequestDto(
-                        videoGameBoxResponseDto.title(),
-                        videoGameBoxResponseDto.system().id(),
-                        validatedVideoGameResults.existingIds(),
-                        validatedVideoGameResults.newGames().values().stream().toList(),
-                        videoGameBoxResponseDto.isPhysical(),
-                        videoGameBoxResponseDto.customFieldValues()
-                    ));
-                    createdCount++;
-                    //Assuming that games in the same collection do NOT have the same name AND system
-                    for (Map.Entry<Integer, VideoGameRequestDto> entry : validatedVideoGameResults.newGames().entrySet()) {
-                        int originalSlimVideoGameId = entry.getKey();
-                        VideoGameRequestDto gameRequest = entry.getValue();
-                        for (SlimVideoGame createdGame : createdGameBox.getVideoGames()) {
-                            if (createdGame.title().equals(gameRequest.title()) && createdGame.system().id() == gameRequest.systemId()) {
-                                videoGameIds.put(originalSlimVideoGameId, createdGame.id());
-                                break;
-                            }
+                    boxIds.put(importBox.id(), boxId);
+                    continue;
+                }
+
+                ValidatedVideoGameResults validatedVideoGameResults = validateVideoGames(importBox.videoGames(), customFieldIds, systemIds, gameIds, exceptionBackupImport);
+                if (validatedVideoGameResults.newGames().isEmpty() && validatedVideoGameResults.existingIds().isEmpty()) {
+                    exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: Video Game Box with title: '"
+                            + importBox.title() + "' had no valid Video Games included with the import data. Video Game Boxes must include at least one valid video game."));
+                    continue;
+                }
+
+                VideoGameBox createdGameBox = videoGameBoxService.createNew(new VideoGameBoxRequestDto(
+                    importBox.title(),
+                    importBox.system().id(),
+                    validatedVideoGameResults.existingIds(),
+                    validatedVideoGameResults.newGames().values().stream().toList(),
+                    importBox.isPhysical(),
+                    importBox.customFieldValues()
+                ));
+                createdCount++;
+
+                //Assuming that games in the same collection do NOT have the same name AND system
+                for (Map.Entry<Integer, VideoGameRequestDto> entry : validatedVideoGameResults.newGames().entrySet()) {
+                    int originalSlimVideoGameId = entry.getKey();
+                    VideoGameRequestDto gameRequest = entry.getValue();
+                    for (SlimVideoGame createdGame : createdGameBox.getVideoGames()) {
+                        if (createdGame.title().equals(gameRequest.title()) && createdGame.system().id() == gameRequest.systemId()) {
+                            gameIds.put(originalSlimVideoGameId, createdGame.id());
+                            break;
                         }
                     }
-
-                    videoGameBoxIds.put(videoGameBoxResponseDto.id(), createdGameBox.getId());
                 }
+
+                boxIds.put(importBox.id(), createdGameBox.getId());
+
             } catch (Exception exception) {
-                exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data with title: '" + videoGameBoxResponseDto.title()
+                exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data with title: '" + importBox.title()
                         + "' " + exception.getMessage()));
             }
         }
-        return new ImportEntityResults(videoGameBoxIds, existingCount, createdCount);
+        return new ImportEntityResults(boxIds, existingCount, createdCount);
     }
 
     private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
