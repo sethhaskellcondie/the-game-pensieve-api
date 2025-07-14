@@ -62,7 +62,7 @@ public class SystemTests {
 
     @Test
     void postAndPatchSystem_ValidInput_ReturnSuccess() throws Exception {
-        //test valid post, return created
+        //test 1 - when valid post sent, then 201 (created) returned
         final String expectedName = "NES 2";
         final int expectedGeneration = 3;
         final boolean expectedHandheld = false;
@@ -74,12 +74,10 @@ public class SystemTests {
 
         final ResultActions postResult = factory.postSystemReturnResult(expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
-        //TODO the customFieldId is returning as 0?
-        postResult.andDo(print());
-
         validateSystemResponseBody(postResult, expectedName, expectedGeneration, expectedHandheld, expectedCustomFieldValues);
 
-        //test valid patch, return ok
+
+        //test 2 - when valid patch sent, then ok (200) returned
         final SystemResponseDto responseDto = resultToResponseDto(postResult); //use the response from the previous post
         final String updatedName = "New NES 3";
         final int updatedGeneration = 6;
@@ -136,7 +134,8 @@ public class SystemTests {
     }
 
     @Test
-    void getAllSystems_StartsWithNotCustomFilterNotCustom_SystemListReturned() throws Exception {
+    void getAllSystems_WithFilters_SubsetOfSystemsReturned() throws Exception {
+        //test 1 - when getting all systems with a filter, only a subset of the systems are returned
         final String customFieldName = "Custom";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.SYSTEM_KEY;
@@ -177,25 +176,22 @@ public class SystemTests {
         );
         validateSystemResponseBody(result, List.of(responseDto1, responseDto2));
 
-        //Use this setup for the next test
+
+        //test 2 - when getting all systems with a custom field filters, only a subset of the systems are returned
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-        getAllSystems_GreaterThanCustomFilter_SystemListReturned(customFilter, List.of(responseDto3));
-    }
 
-    void getAllSystems_GreaterThanCustomFilter_SystemListReturned(Filter filter, List<SystemResponseDto> expectedSystems) throws Exception {
+        final String jsonContent2 = factory.formatFiltersPayload(customFilter);
 
-        final String jsonContent = factory.formatFiltersPayload(filter);
-
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+        final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent)
+                .content(jsonContent2)
         );
 
         result.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateSystemResponseBody(result, expectedSystems);
+        validateSystemResponseBody(resultActions, List.of(responseDto3));
     }
 
     @Test
@@ -303,6 +299,8 @@ public class SystemTests {
                 jsonPath("$.errors.length()").value(1)
         );
     }
+
+    // ------------------------- Private Helper Methods ------------------------------
 
     private SystemResponseDto resultToResponseDto(ResultActions result) throws Exception {
         return factory.resultToSystemResponseDto(result);
