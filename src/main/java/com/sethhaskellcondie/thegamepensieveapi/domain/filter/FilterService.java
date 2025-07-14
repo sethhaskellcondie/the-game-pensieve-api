@@ -403,7 +403,7 @@ public class FilterService {
                 try {
                     return parseInt(filter.getOperand());
                 } catch (NumberFormatException exception) {
-                    throw new ExceptionInternalError("Filters not validated before casting operands, call validateAndOrderFilters() before calling formatOperands()");
+                    throw new ExceptionInternalError("Filters not validated before casting operands, call validateAndOrderFilters() before calling formatOperands()", exception);
                 }
             }
             case FIELD_TYPE_BOOLEAN -> {
