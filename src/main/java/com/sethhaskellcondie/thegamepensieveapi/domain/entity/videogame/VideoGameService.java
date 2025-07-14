@@ -82,8 +82,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
             videoGame.setSystem(system);
         } catch (Exception e) {
             throw new ExceptionMalformedEntity("Error - Problem getting video games from the database, video game with title: '"
-                    + videoGame.getTitle() + "' had systemId: " + videoGame.getSystemId() + " but couldn't get a valid system from the database with that id. Message: "
-                    + e.getMessage());
+                    + videoGame.getTitle() + "' had systemId: " + videoGame.getSystemId() + " but couldn't get a valid system from the database with that id.", e);
         }
         return videoGame;
     }

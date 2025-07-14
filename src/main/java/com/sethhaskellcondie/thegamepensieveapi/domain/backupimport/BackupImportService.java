@@ -19,7 +19,6 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.Video
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
-import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.MultiException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

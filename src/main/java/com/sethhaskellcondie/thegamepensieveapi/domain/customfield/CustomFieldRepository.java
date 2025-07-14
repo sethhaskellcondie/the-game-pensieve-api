@@ -59,7 +59,7 @@ public class CustomFieldRepository {
             return getById(generatedId);
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             logger.error(ErrorLogs.InsertThenRetrieveError("custom_fields", generatedId));
-            throw new ExceptionInternalCatastrophe("custom_fields", generatedId);
+            throw new ExceptionInternalCatastrophe("custom_fields", generatedId, e);
         }
     }
 
@@ -74,7 +74,7 @@ public class CustomFieldRepository {
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionResourceNotFound("custom_fields", id);
+            throw new ExceptionResourceNotFound("custom_fields", id, exception);
         }
         return customField;
     }
@@ -90,7 +90,7 @@ public class CustomFieldRepository {
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionResourceNotFound("custom_fields (include deleted)", id);
+            throw new ExceptionResourceNotFound("custom_fields (include deleted)", id, exception);
         }
         return customField;
     }
@@ -107,7 +107,7 @@ public class CustomFieldRepository {
             );
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound("Custom Field (deleted = false) not found with given entity key and name. entity_key: " + entityKey
-                    + " name: " + customFieldName + ".");
+                    + " name: " + customFieldName + ".", exception);
         }
         return customField;
     }

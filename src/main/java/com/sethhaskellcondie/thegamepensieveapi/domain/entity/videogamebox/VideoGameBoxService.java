@@ -194,9 +194,8 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
             System system = systemRepository.getByIdIncludeDeleted(videoGameBox.getSystemId());
             videoGameBox.setSystem(system);
         } catch (Exception e) {
-            throw new ExceptionMalformedEntity(List.of(new Exception("Error - Problem getting video game box from the database, video game box with title: '"
-                    + videoGameBox.getTitle() + "' had systemId: " + videoGameBox.getSystemId() + " but couldn't get a valid system from the database with that id. Message: "
-                    + e.getMessage())));
+            throw new ExceptionMalformedEntity("Error - Problem getting video game box from the database, video game box with title: '"
+                    + videoGameBox.getTitle() + "' had systemId: " + videoGameBox.getSystemId() + " but couldn't get a valid system from the database with that id.", e);
         }
         return videoGameBox;
     }

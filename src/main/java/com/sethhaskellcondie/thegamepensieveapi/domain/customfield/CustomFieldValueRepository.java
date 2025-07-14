@@ -98,7 +98,7 @@ public class CustomFieldValueRepository {
             try {
                 return customFieldRepository.insertCustomField(new CustomFieldRequestDto(value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
             } catch (ExceptionFailedDbValidation exception) {
-                throw new ExceptionCustomFieldValue("Cannot create new custom field needed to insert a new value: " + exception.getMessage());
+                throw new ExceptionCustomFieldValue("Cannot create new custom field needed to insert a new value: " + exception.getMessage(), exception);
             }
         }
 
@@ -106,7 +106,7 @@ public class CustomFieldValueRepository {
         try {
             customField = customFieldRepository.getById(value.getCustomFieldId());
         } catch (ExceptionResourceNotFound e) {
-            throw new ExceptionCustomFieldValue("Invalid CustomFieldId: " + value.getCustomFieldId() + " on provided CustomFieldValue with entityKey: " + entityKey);
+            throw new ExceptionCustomFieldValue("Invalid CustomFieldId: " + value.getCustomFieldId() + " on provided CustomFieldValue with entityKey: " + entityKey, e);
         }
         if (!Objects.equals(customField.type(), value.getCustomFieldType())) {
             throw new ExceptionCustomFieldValue("Custom field retrieved from the database with provided id: " + value.getCustomFieldId() + " has type: " + customField.type() +
@@ -118,7 +118,7 @@ public class CustomFieldValueRepository {
             } catch (ExceptionResourceNotFound exception) {
                 //We should never hit this code because we just did a get by id.
                 logger.error(ErrorLogs.InsertThenRetrieveError("Custom Field", customField.id()));
-                throw new ExceptionInternalCatastrophe("Custom Field", customField.id());
+                throw new ExceptionInternalCatastrophe("Custom Field", customField.id(), exception);
             }
         }
         return customField;
@@ -137,7 +137,7 @@ public class CustomFieldValueRepository {
         } catch (EmptyResultDataAccessException exception) {
             if (justInserted) {
                 throw new ExceptionCustomFieldValue("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId +
-                        "AND entity_id: " + entityId + ".");
+                        "AND entity_id: " + entityId + ".", exception);
             }
         }
         return valueDao;
@@ -152,7 +152,7 @@ public class CustomFieldValueRepository {
                 try {
                     return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, null, Integer.parseInt(customFieldValue.getValue()));
                 } catch (NumberFormatException exception) {
-                    throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is number the value must be a valid Integer.")));
+                    throw new ExceptionMalformedEntity("Malformed Custom Field Value: if the Custom Field Type is number the value must be a valid Integer.", exception);
                 }
             }
             case CustomField.TYPE_BOOLEAN -> {

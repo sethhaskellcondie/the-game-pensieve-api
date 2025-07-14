@@ -61,7 +61,7 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
                 newBoardGameBox.setBoardGame(boardGame);
             } catch (ExceptionResourceNotFound exception) {
                 throw new ExceptionMalformedEntity("Cannot create new BoardGameBox, the provided boardGameId: " + boardGameId
-                        + " is not a valid boardGameId. Provide 'null' as the boardGameId to create a new Board Game");
+                        + " is not a valid boardGameId. Provide 'null' as the boardGameId to create a new Board Game", exception);
             }
         }
         final BoardGameBox insertedBoardGameBox = repository.insert(newBoardGameBox);
@@ -79,7 +79,7 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
                 boardGameBox.setBoardGame(boardGame);
             } catch (ExceptionResourceNotFound exception) {
                 throw new ExceptionMalformedEntity("Cannot update BoardGameBox, the provided boardGameId: " + boardGameBox.getBoardGameId()
-                        + " is not a valid boardGameId.");
+                        + " is not a valid boardGameId.", exception);
             }
         }
         final BoardGameBox updatedBoardGameBox = repository.update(boardGameBox);

@@ -80,7 +80,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             //we shouldn't ever reach this block because the database is managing the ID's
             logger.error(ErrorLogs.InsertThenRetrieveError(entityKey, id));
-            throw new ExceptionInternalCatastrophe(entityKey, id);
+            throw new ExceptionInternalCatastrophe(entityKey, id, e);
         }
         savedEntity.setCustomFieldValues(customFieldValueRepository.upsertValues(entity.getCustomFieldValues(), savedEntity.getId(), savedEntity.getKey()));
         return savedEntity;
@@ -120,7 +120,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             //we shouldn't ever reach this block because the database is managing the ID's
             logger.error(ErrorLogs.InsertThenRetrieveError(entityKey, entity.getId()));
-            throw new ExceptionInternalCatastrophe(entityKey, entity.getId());
+            throw new ExceptionInternalCatastrophe(entityKey, entity.getId(), e);
         }
 
         customFieldValueRepository.upsertValues(entity.getCustomFieldValues(), savedEntity.getId(), savedEntity.getKey());
@@ -155,7 +155,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionResourceNotFound(entityKey, id);
+            throw new ExceptionResourceNotFound(entityKey, id, exception);
         }
         return setCustomFieldsValuesForEntity(entity);
     }

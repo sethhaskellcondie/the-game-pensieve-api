@@ -20,4 +20,10 @@ public class ExceptionMalformedEntity extends MultiException {
         this.messagePrefix = "Malformed Entity Error - ";
         this.exceptions = exceptions;
     }
+
+    public ExceptionMalformedEntity(String message, Throwable cause) {
+        super();
+        this.messagePrefix = "Malformed Entity Error - ";
+        exceptions.add(new Exception(messagePrefix + message, cause));
+    }
 }

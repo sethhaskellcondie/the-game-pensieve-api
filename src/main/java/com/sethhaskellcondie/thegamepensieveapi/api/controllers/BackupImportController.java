@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensieveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupDataDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupImportGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.ImportResultsDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInternalError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +38,7 @@ public class BackupImportController {
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, backupDataDto);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ExceptionInternalError("Failed to write backup data to file: " + backupDataPath, e);
         }
 
         final FormattedResponseBody<BackupDataDto> body = new FormattedResponseBody<>(backupDataDto);
@@ -52,7 +53,7 @@ public class BackupImportController {
             final ObjectMapper objectMapper = new ObjectMapper();
             backupData = objectMapper.readValue(fileData, BackupDataDto.class);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ExceptionInternalError("Failed to read backup data from file: " + backupDataPath, e);
         }
 
         final ImportResultsDto importResults = gateway.importBackupData(backupData);
@@ -79,7 +80,7 @@ public class BackupImportController {
             final ObjectMapper objectMapper = new ObjectMapper();
             sampleData = objectMapper.readValue(fileData, BackupDataDto.class);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ExceptionInternalError("Failed to read sample data from file: sampleData.json", e);
         }
 
         final ImportResultsDto importResults = gateway.importBackupData(sampleData);
@@ -96,7 +97,7 @@ public class BackupImportController {
             final ObjectMapper objectMapper = new ObjectMapper();
             myCollectionData = objectMapper.readValue(fileData, BackupDataDto.class);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ExceptionInternalError("Failed to read collection data from file: myCollection.json", e);
         }
 
         final ImportResultsDto importResults = gateway.importBackupData(myCollectionData);
