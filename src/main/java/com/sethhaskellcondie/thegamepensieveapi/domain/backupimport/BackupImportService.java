@@ -309,8 +309,8 @@ public class BackupImportService {
     }
 
     private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
+
         List<VideoGameBoxResponseDto> validatedBoxes = new ArrayList<>(videoGameBoxes.size());
-        
         for (VideoGameBoxResponseDto videoGameBox : videoGameBoxes) {
             boolean skipped = false;
             Integer systemId = systemIds.get(videoGameBox.system().id());
@@ -373,10 +373,10 @@ public class BackupImportService {
     }
 
     private ValidatedVideoGameResults validateVideoGames(List<SlimVideoGame> videoGamesToImport, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, Map<Integer, Integer> videoGameIds, ExceptionBackupImport exceptionBackupImport) {
-
         List<Integer> importedVideoGamesIds = new ArrayList<>(videoGamesToImport.size());
         List<SlimVideoGame> gamesToValidate = new ArrayList<>(videoGamesToImport.size());
         Map<Integer, VideoGameRequestDto> newGames = new HashMap<>(videoGamesToImport.size());
+
         for (SlimVideoGame slimVideoGame : videoGamesToImport) {
             Integer existingGameId = videoGameIds.get(slimVideoGame.id());
             if (null != existingGameId) {
@@ -386,44 +386,44 @@ public class BackupImportService {
             }
         }
 
-        for (SlimVideoGame slimVideoGame : gamesToValidate) {
+        for (SlimVideoGame validatingGame : gamesToValidate) {
             try {
                 boolean skipped = false;
-                Integer systemId = systemIds.get(slimVideoGame.system().id());
+                Integer systemId = systemIds.get(validatingGame.system().id());
                 if (null == systemId) {
                     skipped = true;
                     exceptionBackupImport.addVideoGameException(new Exception("Error importing video game data: Imported System not found but expected for video game titled: '"
-                            + slimVideoGame.title() + "' with system ID '" + slimVideoGame.system().id() + "'. The system must be included on the import and not just existing in the database."));
+                            + validatingGame.title() + "' with system ID '" + validatingGame.system().id() + "'. The system must be included on the import and not just existing in the database."));
                 } else {
                     //Since records are immutable we need to create a new dto with the proper relationship
                     SystemResponseDto updatedSystem = new SystemResponseDto(
-                            slimVideoGame.system().key(),
+                            validatingGame.system().key(),
                             systemId,
-                            slimVideoGame.system().name(),
-                            slimVideoGame.system().generation(),
-                            slimVideoGame.system().handheld(),
-                            slimVideoGame.system().createdAt(),
-                            slimVideoGame.system().updatedAt(),
-                            slimVideoGame.system().deletedAt(),
-                            slimVideoGame.system().customFieldValues()
+                            validatingGame.system().name(),
+                            validatingGame.system().generation(),
+                            validatingGame.system().handheld(),
+                            validatingGame.system().createdAt(),
+                            validatingGame.system().updatedAt(),
+                            validatingGame.system().deletedAt(),
+                            validatingGame.system().customFieldValues()
                     );
-                    slimVideoGame = new SlimVideoGame(
-                            slimVideoGame.id(),
-                            slimVideoGame.title(),
+                    validatingGame = new SlimVideoGame(
+                            validatingGame.id(),
+                            validatingGame.title(),
                             updatedSystem,
-                            slimVideoGame.createdAt(),
-                            slimVideoGame.updatedAt(),
-                            slimVideoGame.deletedAt(),
-                            slimVideoGame.customFieldValues()
+                            validatingGame.createdAt(),
+                            validatingGame.updatedAt(),
+                            validatingGame.deletedAt(),
+                            validatingGame.customFieldValues()
                     );
                 }
 
-                for (CustomFieldValue value : slimVideoGame.customFieldValues()) {
+                for (CustomFieldValue value : validatingGame.customFieldValues()) {
                     Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                     if (null == customFieldId) {
                         skipped = true;
                         exceptionBackupImport.addVideoGameException(new Exception("Error importing video game data: Imported Custom Field not found but expected for video game titled: '"
-                            + slimVideoGame.title() + "' with custom field value named '" + value.getCustomFieldName()
+                            + validatingGame.title() + "' with custom field value named '" + value.getCustomFieldName()
                             + "' The custom field must be included on the import and not just existing in the database."));
                     } else {
                         value.setCustomFieldId(customFieldId);
@@ -432,11 +432,11 @@ public class BackupImportService {
 
                 if (!skipped) {
                     VideoGameRequestDto gameToBeCreated = new VideoGameRequestDto(
-                            slimVideoGame.title(),
-                            slimVideoGame.system().id(),
-                            slimVideoGame.customFieldValues()
+                            validatingGame.title(),
+                            validatingGame.system().id(),
+                            validatingGame.customFieldValues()
                     );
-                    newGames.put(slimVideoGame.id(), gameToBeCreated);
+                    newGames.put(validatingGame.id(), gameToBeCreated);
                 }
             } catch (Exception exception) {
                 exceptionBackupImport.addVideoGameException(exception);
