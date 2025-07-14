@@ -74,7 +74,7 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
 
     protected Integer insertImplementation(Toy toy) {
         final String sql = """
-                			INSERT INTO toys(name, set, created_at, updated_at) VALUES (?, ?, ?, ?);
+                            INSERT INTO toys(name, set, created_at, updated_at) VALUES (?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -93,7 +93,7 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
 
     protected void updateImplementation(Toy toy) {
         String sql = """
-                			UPDATE toys SET name = ?, set = ?, updated_at = ? WHERE id = ?;
+                            UPDATE toys SET name = ?, set = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(
                 sql,
@@ -107,7 +107,7 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
     @Override
     public void deleteById(int id) {
         String sql = """
-                			UPDATE toys SET deleted_at = ? WHERE id = ?;
+                            UPDATE toys SET deleted_at = ? WHERE id = ?;
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, Timestamp.from(Instant.now()), id);
         if (rowsUpdated < 1) {

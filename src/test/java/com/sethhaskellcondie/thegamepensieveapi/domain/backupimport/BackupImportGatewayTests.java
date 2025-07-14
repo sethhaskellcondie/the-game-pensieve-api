@@ -226,9 +226,11 @@ public class BackupImportGatewayTests {
 
         //Arrange
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
-        final SystemResponseDto systemWithMissingCustomField = new SystemResponseDto(Keychain.SYSTEM_KEY, 801, "System Missing Custom Field", 5, false, null, null, null, List.of(missingCustomFieldValue));
+        final SystemResponseDto systemWithMissingCustomField = new SystemResponseDto(Keychain.SYSTEM_KEY, 801,
+                "System Missing Custom Field", 5, false, null, null, null, List.of(missingCustomFieldValue));
         final CustomFieldValue invalidCustomFieldValue = new CustomFieldValue(-1, "Invalid Custom Field", CustomField.TYPE_BOOLEAN, "true");
-        final SystemResponseDto systemWithInvalidCustomField = new SystemResponseDto(Keychain.SYSTEM_KEY, 802, "System Invalid Custom Field", 6, true, null, null, null, List.of(invalidCustomFieldValue));
+        final SystemResponseDto systemWithInvalidCustomField = new SystemResponseDto(Keychain.SYSTEM_KEY, 802,
+                "System Invalid Custom Field", 6, true, null, null, null, List.of(invalidCustomFieldValue));
         List<SystemResponseDto> systemsList = new ArrayList<>(initialBackupData.systems());
         final int systemErrors = 2;
         systemsList.add(systemWithMissingCustomField); //return error custom field not included on the import
@@ -315,7 +317,8 @@ public class BackupImportGatewayTests {
         //Arrange
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
         final SystemResponseDto missingSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 99,  "Missing Test System", 7, false, null, null, null, new ArrayList<>());
-        final VideoGameBoxResponseDto videoGameBoxWithMissingInformation = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810, "Box With Missing Information", missingSystem, new ArrayList<>(), true, false, null, null, null, List.of(missingCustomFieldValue));
+        final VideoGameBoxResponseDto videoGameBoxWithMissingInformation = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810,
+                "Box With Missing Information", missingSystem, new ArrayList<>(), true, false, null, null, null, List.of(missingCustomFieldValue));
         List<VideoGameBoxResponseDto> videoGameBoxes = new ArrayList<>(initialBackupData.videoGameBoxes());
         final int expectedVideoGameBoxErrors = 3;
         //one for the missing custom field
@@ -363,8 +366,10 @@ public class BackupImportGatewayTests {
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
         final SystemResponseDto validSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 98,  "Valid", 7, false, null, null, null, new ArrayList<>());
         final SystemResponseDto missingSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 99,  "Missing Test System", 7, false, null, null, null, new ArrayList<>());
-        final SlimVideoGame invalidGame = new SlimVideoGame(234, "Game With Missing Information", missingSystem, null, null, null, List.of(missingCustomFieldValue));
-        final VideoGameBoxResponseDto validVideoGameBoxWithInvalidGame = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810, "Valid Box With Invalid Game", validSystem, List.of(invalidGame), true, false, null, null, null, List.of(validCustomFieldValue));
+        final SlimVideoGame invalidGame = new SlimVideoGame(234, "Game With Missing Information", missingSystem, null, null, null,
+                List.of(missingCustomFieldValue));
+        final VideoGameBoxResponseDto validVideoGameBoxWithInvalidGame = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810,
+                "Valid Box With Invalid Game", validSystem, List.of(invalidGame), true, false, null, null, null, List.of(validCustomFieldValue));
         List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
         final int expectedCustomFieldsCreated = 1;
         customFieldsList.add(validVideoGameBoxCustomField);
@@ -423,14 +428,21 @@ public class BackupImportGatewayTests {
 
         final CustomFieldValue validBoxCustomFieldValue1 = new CustomFieldValue(validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "123");
         final CustomFieldValue validBoxCustomFieldValue2 = new CustomFieldValue(validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "1234");
-        final CustomFieldValue validGameCustomFieldValue1 = new CustomFieldValue(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, "ABC");
-        final CustomFieldValue validGameCustomFieldValue2 = new CustomFieldValue(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, "ABCD");
+        final CustomFieldValue validGameCustomFieldValue1 = new CustomFieldValue(validVideoGameCustomFieldId,
+                validVideoGameCustomFieldName, CustomField.TYPE_TEXT, "ABC");
+        final CustomFieldValue validGameCustomFieldValue2 = new CustomFieldValue(validVideoGameCustomFieldId,
+                validVideoGameCustomFieldName, CustomField.TYPE_TEXT, "ABCD");
         final SystemResponseDto validSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 78,  "Valid System", 7, false, null, null, null, new ArrayList<>());
-        final SlimVideoGame validGame1 = new SlimVideoGame(111, "Valid Game 1", validSystem, null, null, null, List.of(validGameCustomFieldValue1));
-        final SlimVideoGame validGame2 = new SlimVideoGame(112, "Valid Game 2", validSystem, null, null, null, List.of(validGameCustomFieldValue2));
-        final VideoGameBoxResponseDto validVideoGameBox1 = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810, "Valid Single Game Box", validSystem, List.of(validGame1), true, false, null, null, null, List.of(validBoxCustomFieldValue1));
-        final VideoGameBoxResponseDto validVideoGameBox2 = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 811, "Valid Collection Box", validSystem, List.of(validGame1, validGame2), true, true, null, null, null, List.of(validBoxCustomFieldValue2));
-        final VideoGameBoxResponseDto duplicateVideoGameBox = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 812, "Valid Collection Box", validSystem, List.of(validGame1, validGame2), true, true, null, null, null, List.of());
+        final SlimVideoGame validGame1 = new SlimVideoGame(111, "Valid Game 1", validSystem, null, null, null,
+                List.of(validGameCustomFieldValue1));
+        final SlimVideoGame validGame2 = new SlimVideoGame(112, "Valid Game 2", validSystem, null, null, null,
+                List.of(validGameCustomFieldValue2));
+        final VideoGameBoxResponseDto validVideoGameBox1 = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 810,
+                "Valid Single Game Box", validSystem, List.of(validGame1), true, false, null, null, null, List.of(validBoxCustomFieldValue1));
+        final VideoGameBoxResponseDto validVideoGameBox2 = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 811,
+                "Valid Collection Box", validSystem, List.of(validGame1, validGame2), true, true, null, null, null, List.of(validBoxCustomFieldValue2));
+        final VideoGameBoxResponseDto duplicateVideoGameBox = new VideoGameBoxResponseDto(Keychain.VIDEO_GAME_BOX_KEY, 812,
+                "Valid Collection Box", validSystem, List.of(validGame1, validGame2), true, true, null, null, null, List.of());
 
         List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
         final int createdCustomFields = 2;

@@ -5,7 +5,11 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class FilterEntity {
+public final class FilterEntity {
+
+    private FilterEntity() {
+        // Private constructor to prevent instantiation
+    }
 
     public static Map<String, String> getNonCustomFieldFiltersByKey(String key) {
         //Using a LinkedHashMap to preserve the order of the elements as they are added to the Map.

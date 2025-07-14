@@ -150,20 +150,20 @@ public class ToyTests {
 
         final String name1 = "Something MegaMan";
         final String set1 = "Amiibo";
-        final List<CustomFieldValue> CustomFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postToyReturnResult(name1, set1, CustomFieldValues1);
+        final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
+        final ResultActions result1 = factory.postToyReturnResult(name1, set1, customFieldValues1);
         final ToyResponseDto toyDto1 = resultToResponseDto(result1);
 
         final String name2 = "Something Goofy";
         final String set2 = "Disney Infinity";
-        final List<CustomFieldValue> CustomFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postToyReturnResult(name2, set2, CustomFieldValues2);
+        final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
+        final ResultActions result2 = factory.postToyReturnResult(name2, set2, customFieldValues2);
         final ToyResponseDto toyDto2 = resultToResponseDto(result2);
 
         final String name3 = "Regular Goofy";
         final String set3 = "Disney Infinity";
-        final List<CustomFieldValue> CustomFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postToyReturnResult(name3, set3, CustomFieldValues3);
+        final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
+        final ResultActions result3 = factory.postToyReturnResult(name3, set3, customFieldValues3);
         final ToyResponseDto toyDto3 = resultToResponseDto(result3);
 
         final Filter filter = new Filter("toy", "text", "name", Filter.OPERATOR_STARTS_WITH, "Something ", false);

@@ -44,8 +44,8 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
                        video_games.created_at, video_games.updated_at, video_games.deleted_at
                         FROM video_games
                         JOIN custom_field_values as values ON video_games.id = values.entity_id
-                	  	JOIN custom_fields as fields ON values.custom_field_id = fields.id
-                               	WHERE video_games.deleted_at IS NULL
+                          JOIN custom_fields as fields ON values.custom_field_id = fields.id
+                                   WHERE video_games.deleted_at IS NULL
                                  AND values.entity_key = 'video_game'
                 """;
     }
@@ -71,7 +71,7 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
     @Override
     public void deleteById(int id) {
         final String sql = """
-                			UPDATE video_games SET deleted_at = ? WHERE id = ?;
+                            UPDATE video_games SET deleted_at = ? WHERE id = ?;
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, Timestamp.from(Instant.now()), id);
         if (rowsUpdated < 1) {
@@ -100,23 +100,23 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
     @Override
     protected void insertValidation(VideoGame entity) {
         if (!entity.isSystemValid()) {
-            throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before inserting data into the database. " +
-                    "Call createNew from the VideoGameService instead of calling insert() directly on the repository");
+            throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before inserting data into the database. "
+                    + "Call createNew from the VideoGameService instead of calling insert() directly on the repository");
         }
     }
 
     @Override
     protected void updateValidation(VideoGame entity) {
         if (!entity.isSystemValid()) {
-            throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before updating the database. " +
-                    "Call updateExisting from the VideoGameService instead of calling update() directly on the repository");
+            throw new ExceptionInternalError("Error Saving Video Game Entity: the system id was not validated before updating the database. "
+                    + "Call updateExisting from the VideoGameService instead of calling update() directly on the repository");
         }
     }
 
     @Override
     protected Integer insertImplementation(VideoGame entity) {
         final String sql = """
-                			INSERT INTO video_games(title, system_id, created_at, updated_at) VALUES (?, ?, ?, ?);
+                            INSERT INTO video_games(title, system_id, created_at, updated_at) VALUES (?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(

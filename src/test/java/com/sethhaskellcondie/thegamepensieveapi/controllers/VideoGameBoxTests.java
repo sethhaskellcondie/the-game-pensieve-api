@@ -233,22 +233,22 @@ public class VideoGameBoxTests {
         final String title1 = "NES Mega Man";
         final SystemResponseDto relatedSystem1 = factory.postSystem();
         final VideoGameRequestDto relatedGame1 = new VideoGameRequestDto(title1, relatedSystem1.id(), new ArrayList<>());
-        final List<CustomFieldValue> CustomFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postVideoGameBoxReturnResult(title1, relatedSystem1.id(), List.of(), List.of(relatedGame1), false, CustomFieldValues1);
+        final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
+        final ResultActions result1 = factory.postVideoGameBoxReturnResult(title1, relatedSystem1.id(), List.of(), List.of(relatedGame1), false, customFieldValues1);
         final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToVideoGameBoxResponseDto(result1);
 
         final String title2 = "NES Mega Man 2";
         final SystemResponseDto relatedSystem2 = factory.postSystem();
         final VideoGameRequestDto relatedGame2 = new VideoGameRequestDto(title2, relatedSystem2.id(), new ArrayList<>());
-        final List<CustomFieldValue> CustomFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postVideoGameBoxReturnResult(title2, relatedSystem2.id(), List.of(), List.of(relatedGame2), false, CustomFieldValues2);
+        final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
+        final ResultActions result2 = factory.postVideoGameBoxReturnResult(title2, relatedSystem2.id(), List.of(), List.of(relatedGame2), false, customFieldValues2);
         final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToVideoGameBoxResponseDto(result2);
 
         final String title3 = "SNES Mega Man 7";
         final SystemResponseDto relatedSystem3 = factory.postSystem();
         final VideoGameRequestDto relatedGame3 = new VideoGameRequestDto(title3, relatedSystem3.id(), new ArrayList<>());
-        final List<CustomFieldValue> CustomFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postVideoGameBoxReturnResult(title3, relatedSystem3.id(), List.of(), List.of(relatedGame3), false, CustomFieldValues3);
+        final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
+        final ResultActions result3 = factory.postVideoGameBoxReturnResult(title3, relatedSystem3.id(), List.of(), List.of(relatedGame3), false, customFieldValues3);
         final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToVideoGameBoxResponseDto(result3);
 
         final Filter filter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "NES ", false);

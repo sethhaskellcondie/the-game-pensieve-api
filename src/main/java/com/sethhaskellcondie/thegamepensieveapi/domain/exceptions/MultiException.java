@@ -35,8 +35,8 @@ public class MultiException extends RuntimeException {
         exceptions.add(new Exception(messagePrefix + message));
     }
 
-    public void appendExceptions(List<Exception> exceptions) {
-        this.exceptions.addAll(exceptions);
+    public void appendExceptions(List<Exception> exceptionList) {
+        this.exceptions.addAll(exceptionList);
     }
 
     public void addException(Exception e) {

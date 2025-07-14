@@ -233,11 +233,11 @@ public class ExceptionBackupImport extends MultiException {
 
     @Override
     public boolean isEmpty() {
-        return super.isEmpty() && 
-               customFieldExceptions.isEmpty() && 
-               toyExceptions.isEmpty() && 
-               systemExceptions.isEmpty() && 
-               videoGameBoxExceptions.isEmpty() && 
-               videoGameExceptions.isEmpty();
+        return super.isEmpty()
+               && customFieldExceptions.isEmpty()
+               && toyExceptions.isEmpty()
+               && systemExceptions.isEmpty()
+               && videoGameBoxExceptions.isEmpty()
+               && videoGameExceptions.isEmpty();
     }
 }

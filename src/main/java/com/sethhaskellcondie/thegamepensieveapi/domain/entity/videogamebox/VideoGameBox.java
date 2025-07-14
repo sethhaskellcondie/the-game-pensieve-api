@@ -152,11 +152,11 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
 
     @Override
     public VideoGameBoxRequestDto convertToRequestDto() {
-        List<VideoGameRequestDto> videoGames = new ArrayList<>();
+        List<VideoGameRequestDto> videoGameRequests = new ArrayList<>();
         for (SlimVideoGame videoGame : this.videoGames) {
-            videoGames.add(new VideoGameRequestDto(videoGame.title(), videoGame.system().id(), videoGame.customFieldValues()));
+            videoGameRequests.add(new VideoGameRequestDto(videoGame.title(), videoGame.system().id(), videoGame.customFieldValues()));
         }
-        return new VideoGameBoxRequestDto(this.title, this.systemId, this.videoGameIds, videoGames, this.physical, this.customFieldValues);
+        return new VideoGameBoxRequestDto(this.title, this.systemId, this.videoGameIds, videoGameRequests, this.physical, this.customFieldValues);
     }
 
     @Override

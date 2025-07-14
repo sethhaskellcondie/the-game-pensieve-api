@@ -98,11 +98,11 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
 
     @Override
     public BoardGameBoxResponseDto convertToResponseDto() {
-        BoardGameResponseDto boardGame = null;
+        BoardGameResponseDto boardGameDto = null;
         if (this.boardGame != null) {
-            boardGame = this.boardGame.convertToResponseDto();
+            boardGameDto = this.boardGame.convertToResponseDto();
         }
-        return new BoardGameBoxResponseDto(this.getKey(), this.id, this.title, this.expansion, this.standAlone, this.baseSetId, boardGame,
+        return new BoardGameBoxResponseDto(this.getKey(), this.id, this.title, this.expansion, this.standAlone, this.baseSetId, boardGameDto,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 

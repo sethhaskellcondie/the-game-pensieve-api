@@ -12,7 +12,8 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.Toy;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyService;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.*;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
@@ -249,7 +250,9 @@ public class BackupImportService {
         return new ImportEntityResults(systemIds, existingCount, createdCount);
     }
 
-    private ImportEntityResults importVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxToBeImported, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxToBeImported,
+                                                     Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds,
+                                                     ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
         if (null == videoGameBoxToBeImported) {
@@ -307,7 +310,9 @@ public class BackupImportService {
         return new ImportEntityResults(boxIds, existingCount, createdCount);
     }
 
-    private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, ExceptionBackupImport exceptionBackupImport) {
+    private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes,
+                                                                 Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds,
+                                                                 ExceptionBackupImport exceptionBackupImport) {
 
         List<VideoGameBoxResponseDto> validatedBoxes = new ArrayList<>(videoGameBoxes.size());
         for (VideoGameBoxResponseDto videoGameBox : videoGameBoxes) {
@@ -371,7 +376,9 @@ public class BackupImportService {
         return validatedBoxes;
     }
 
-    private ValidatedVideoGameResults validateVideoGames(List<SlimVideoGame> videoGamesToImport, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds, Map<Integer, Integer> videoGameIds, ExceptionBackupImport exceptionBackupImport) {
+    private ValidatedVideoGameResults validateVideoGames(List<SlimVideoGame> videoGamesToImport, Map<Integer, Integer> customFieldIds,
+                                                         Map<Integer, Integer> systemIds, Map<Integer, Integer> videoGameIds,
+                                                         ExceptionBackupImport exceptionBackupImport) {
         List<Integer> importedVideoGamesIds = new ArrayList<>(videoGamesToImport.size());
         List<SlimVideoGame> gamesToValidate = new ArrayList<>(videoGamesToImport.size());
         Map<Integer, VideoGameRequestDto> newGames = new HashMap<>(videoGamesToImport.size());
@@ -447,4 +454,4 @@ public class BackupImportService {
 }
 
 record ImportEntityResults(Map<Integer, Integer> entityIds, int existingCount, int createdCount) { }
-record ValidatedVideoGameResults(List<Integer> existingIds, Map<Integer, VideoGameRequestDto> newGames ) { }
+record ValidatedVideoGameResults(List<Integer> existingIds, Map<Integer, VideoGameRequestDto> newGames) { }

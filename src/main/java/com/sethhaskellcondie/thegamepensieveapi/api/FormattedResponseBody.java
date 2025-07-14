@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class FormattedResponseBody<T> {
 
-    public T data;
+    private T data;
 
     public FormattedResponseBody(T data) {
         this.data = data;
