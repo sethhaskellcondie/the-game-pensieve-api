@@ -57,6 +57,7 @@ public class VideoGameBoxTests {
 
     @Test
     void postVideoGameBoxWithCustomFieldValues_ValidPayload_VideoGameBoxCreatedAndReturned() throws Exception {
+        //test 1 - when valid post send, then 201 (created) returned
         final String expectedTitle = "Princess Peach Showtime";
         final SystemResponseDto relatedSystem = factory.postSystem();
         final VideoGameRequestDto relatedVideoGame = new VideoGameRequestDto(expectedTitle, relatedSystem.id(), new ArrayList<>());
@@ -74,37 +75,38 @@ public class VideoGameBoxTests {
         factory.validateVideoGameBoxResponseBody(result, expectedTitle, relatedSystem, expectedVideoGameResults, isPhysical, isCollection, expectedCustomFieldValues);
 
         final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
-        updateExistingVideoGameBox_UpdateVideoGameBoxAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
-    }
 
-    void updateExistingVideoGameBox_UpdateVideoGameBoxAndCustomFieldValue_ReturnOk(VideoGameBoxResponseDto existingVideoGameBox, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+
+        //test 2 - when valid patch sent, then ok (200) returned
+        List<CustomFieldValue> existingCustomFieldValues = responseDto.customFieldValues();
+
         final String updatedTitle = "Super Princess Peach";
         final SystemResponseDto newRelatedSystem = factory.postSystem();
         List<Integer> existingVideoGameIds = new ArrayList<>();
-        for (SlimVideoGame existingVideoGame : existingVideoGameBox.videoGames()) {
+        for (SlimVideoGame existingVideoGame : responseDto.videoGames()) {
             existingVideoGameIds.add(existingVideoGame.id());
         }
         final boolean newPhysical = false;
         final boolean newCollection = false;
-        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
-        existingCustomFieldValue.remove(0);
+        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValues.get(0);
+        existingCustomFieldValues.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
                 customFieldValueToUpdate.getCustomFieldId(),
                 "Updated" + customFieldValueToUpdate.getCustomFieldName(),
                 customFieldValueToUpdate.getCustomFieldType(),
                 "false"
         );
-        existingCustomFieldValue.add(updatedValue);
+        existingCustomFieldValues.add(updatedValue);
 
-        final String jsonContent = factory.formatVideoGameBoxPayload(updatedTitle, newRelatedSystem.id(), existingVideoGameIds, new ArrayList<>(), newPhysical, existingCustomFieldValue);
-        final ResultActions result = mockMvc.perform(
-                put(baseUrlSlash + existingVideoGameBox.id())
+        final String jsonContent = factory.formatVideoGameBoxPayload(updatedTitle, newRelatedSystem.id(), existingVideoGameIds, new ArrayList<>(), newPhysical, existingCustomFieldValues);
+        final ResultActions resultActions = mockMvc.perform(
+                put(baseUrlSlash + responseDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
 
-        result.andExpect(status().isOk());
-        factory.validateVideoGameBoxResponseBody(result, updatedTitle, newRelatedSystem, existingVideoGameBox.videoGames(), newPhysical, newCollection, existingCustomFieldValue);
+        resultActions.andExpect(status().isOk());
+        factory.validateVideoGameBoxResponseBody(resultActions, updatedTitle, newRelatedSystem, responseDto.videoGames(), newPhysical, newCollection, existingCustomFieldValues);
     }
 
 
@@ -168,25 +170,25 @@ public class VideoGameBoxTests {
         );
     }
 
-//    @Test
-//    void postVideoGameBox_VideoGameIdInvalid_ReturnBadRequest() throws Exception {
-//        //This test is a little different from the last one, in this one we are passing in a valid int for the video game box systemId
-//        //but one of the video game ids that is passed it is invalid.
-//        final SystemResponseDto existingSystem = factory.postSystem();
-//        final String jsonContent = factory.formatVideoGameBoxPayload("Valid Title", existingSystem.id(), List.of(Integer.MAX_VALUE), List.of(), false, null);
-//
-//        final ResultActions result = mockMvc.perform(
-//                post(baseUrl)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(jsonContent)
-//        );
-//
-//        result.andExpectAll(
-//                status().isBadRequest(),
-//                jsonPath("$.data").isEmpty(),
-//                jsonPath("$.errors.size()").value(1)
-//        );
-//    }
+    @Test
+    void postVideoGameBox_VideoGameIdInvalid_ReturnNotFound() throws Exception {
+        //This test is a little different from the last one, in this one we are passing in a valid int for the video game box systemId
+        //but one of the video game ids that is not related to an existing video game.
+        final SystemResponseDto existingSystem = factory.postSystem();
+        final String jsonContent = factory.formatVideoGameBoxPayload("Valid Title", existingSystem.id(), List.of(Integer.MAX_VALUE), List.of(), false, null);
+
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isNotFound(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
+        );
+    }
 
     @Test
     void getOneVideoGameBox_GameBoxExists_VideoGameBoxSerializedCorrectly() throws Exception {
@@ -221,8 +223,8 @@ public class VideoGameBoxTests {
     }
 
     @Test
-    void getAllVideoGameBoxes_StartsWithFilter_VideoGameBoxListReturned() throws Exception {
-        //This is used in the following test
+    void getAllVideoGameBoxes_WithFilters_VideoGameBoxSubsetListReturned() throws Exception {
+        //test 1 - when getting all video game boxes with a filter, only a subset of the video game boxes are returned
         final String customFieldName = "Custom";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.VIDEO_GAME_BOX_KEY;
@@ -264,23 +266,21 @@ public class VideoGameBoxTests {
         factory.validateVideoGameBoxResponseBody(result, List.of(gameBoxDto1, gameBoxDto2));
 
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-        getWithFilters_GreaterThanCustomFilter_VideoGameBoxListReturned(customFilter, List.of(gameBoxDto3));
-    }
 
-    void getWithFilters_GreaterThanCustomFilter_VideoGameBoxListReturned(Filter filter, List<VideoGameBoxResponseDto> expectedGames) throws Exception {
 
-        final String jsonContent = factory.formatFiltersPayload(filter);
+        //test 2 - when getting all video games boxes with a custom field filter, only a subset of the video game boxes are returned
+        final String jsonContent = factory.formatFiltersPayload(customFilter);
 
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+        final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
 
-        result.andExpectAll(
+        resultActions.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        factory.validateVideoGameBoxResponseBody(result, expectedGames);
+        factory.validateVideoGameBoxResponseBody(resultActions, List.of(gameBoxDto3));
     }
 
     @Test
@@ -361,6 +361,8 @@ public class VideoGameBoxTests {
                 jsonPath("$.errors.size()").value(1)
         );
     }
+
+    // ------------------------- Private Helper Methods ------------------------------
 
     private SlimVideoGame convertToExpectedSlimVideoGameResponse(VideoGameRequestDto requestDto, SystemResponseDto expectedSystem) {
         return new SlimVideoGame(0, requestDto.title(), expectedSystem, null, null, null, requestDto.customFieldValues());
