@@ -257,6 +257,8 @@ public class SystemTests {
         );
     }
 
+    // ------------------------- System Unique Tests ------------------------------
+
     @Test
     void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
         final String jsonContent = factory.formatSystemPayload(
