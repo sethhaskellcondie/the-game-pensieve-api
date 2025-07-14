@@ -66,7 +66,7 @@ public class BackupImportService {
 
         ImportEntityResults toyResults = importToys(backupDataDto.toys(), customFieldIds, exceptionBackupImport);
 
-        ImportEntityResults systemResults = importSystems(backupDataDto, customFieldIds, exceptionBackupImport);
+        ImportEntityResults systemResults = importSystems(backupDataDto.systems(), customFieldIds, exceptionBackupImport);
 
         ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto, customFieldIds, systemResults.entityIds(), exceptionBackupImport);
 
@@ -199,52 +199,51 @@ public class BackupImportService {
         return new ImportEntityResults(toyIds, existingCount, createdCount);
     }
 
-    private ImportEntityResults importSystems(BackupDataDto backupDataDto, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importSystems(List<SystemResponseDto> systemsToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
-        List<SystemResponseDto> systemRequestToBeImported = backupDataDto.systems();
-        if (null == systemRequestToBeImported) {
+        if (null == systemsToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
-        Map<Integer, Integer> systemIds = new HashMap<>(backupDataDto.systems().size());
+        Map<Integer, Integer> systemIds = new HashMap<>(systemsToBeImported.size());
 
-        List<SystemResponseDto> systemRequestsReady = new ArrayList<>(systemRequestToBeImported.size());
-        for (SystemResponseDto systemResponseDto: systemRequestToBeImported) {
+        List<SystemResponseDto> validatedSystems = new ArrayList<>(systemsToBeImported.size());
+        for (SystemResponseDto validatingSystem: systemsToBeImported) {
             boolean skipped = false;
-            for (CustomFieldValue value: systemResponseDto.customFieldValues()) {
+            for (CustomFieldValue value: validatingSystem.customFieldValues()) {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                 if (null == customFieldId) {
                     skipped = true;
                     exceptionBackupImport.addSystemException(new Exception("Error importing system data: Imported Custom Field not found but expected for system named: '"
-                        + systemResponseDto.name() + "' with custom field value named '" + value.getCustomFieldName()
+                        + validatingSystem.name() + "' with custom field value named '" + value.getCustomFieldName()
                         + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
                     value.setCustomFieldId(customFieldId);
                 }
             }
             if (!skipped) {
-                systemRequestsReady.add(systemResponseDto);
+                validatedSystems.add(validatingSystem);
             }
         }
 
-        for (SystemResponseDto systemResponseDto: systemRequestsReady) {
+        for (SystemResponseDto importSystem: validatedSystems) {
             try {
-                int systemId = systemService.getIdByName(systemResponseDto.name());
+                int systemId = systemService.getIdByName(importSystem.name());
                 if (systemId > 0) {
                     existingCount++;
-                    systemIds.put(systemResponseDto.id(), systemId);
+                    systemIds.put(importSystem.id(), systemId);
                 } else {
                     System createdSystem = systemService.createNew(new SystemRequestDto(
-                            systemResponseDto.name(),
-                            systemResponseDto.generation(),
-                            systemResponseDto.handheld(),
-                            systemResponseDto.customFieldValues()
+                            importSystem.name(),
+                            importSystem.generation(),
+                            importSystem.handheld(),
+                            importSystem.customFieldValues()
                     ));
                     createdCount++;
-                    systemIds.put(systemResponseDto.id(), createdSystem.getId());
+                    systemIds.put(importSystem.id(), createdSystem.getId());
                 }
             } catch (Exception exception) {
-                exceptionBackupImport.addSystemException(new Exception("Error importing system data with name: '" + systemResponseDto.name()
+                exceptionBackupImport.addSystemException(new Exception("Error importing system data with name: '" + importSystem.name()
                         + "' " + exception.getMessage()));
             }
         }
