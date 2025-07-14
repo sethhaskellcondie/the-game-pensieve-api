@@ -1,6 +1,6 @@
-# the-game-pensive-api
-A Pensive in the Harry Potter series is a basin where wizards can store thoughts and memories outside themselves.
-This project is like a pensive but just for information on games in a collection.
+# the-game-pensieve-api
+A Pensieve in the Harry Potter series is a basin where wizards can store thoughts and memories outside themselves.
+This project is like a pensieve but just for information on games in a collection.
 
 ## API Design
 This api is a combination of REST and RPC endpoint design. All the CRUD endpoints are implemented with a rest design.

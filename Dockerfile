@@ -12,7 +12,7 @@ COPY ${JAR_FILE} app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]
 
 # run in the terminal (in this directory) with the command
-# docker build -t pensive-api .
+# docker build -t pensieve-api .
 # docker : build : -t (create the image with this tag name) : <tag-name> : . (directory of Dockerfile, here)
 # -----or run this with a compose.yaml file-----
 

@@ -33,4 +33,4 @@ services:
     environment:
       POSTGRES_USERNAME: postgres
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: pensive-db
+      POSTGRES_DB: pensieve-db

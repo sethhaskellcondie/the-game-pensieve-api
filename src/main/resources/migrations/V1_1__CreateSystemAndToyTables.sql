@@ -1,4 +1,4 @@
--- CREATE DATABASE "pensive-db"
+-- CREATE DATABASE "pensieve-db"
 --     WITH
 --     OWNER = postgres
 --     ENCODING = 'UTF8'
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS toys (
 );
 
 -- Undo
--- I had this in it's own migration file but I now know that is only a feature in the paid version of flyway (Flyway Teams)
+-- I had this in its own migration file, but I now know that is only a feature in the paid version of flyway (Flyway Teams)
 --
 -- DROP TABLE toys;
 --

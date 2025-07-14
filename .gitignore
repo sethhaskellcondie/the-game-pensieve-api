@@ -1,6 +1,6 @@
 .idea
 target
-game_pensive_log.log
+game_pensieve_log.log
 
 backup.json
 *.iml
