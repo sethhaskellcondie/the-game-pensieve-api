@@ -54,7 +54,8 @@ public class ToyTests {
     }
 
     @Test
-    void postToyWithCustomFieldValues_ValidPayload_ToyCreatedAndReturned() throws Exception {
+    void postAndPatchToy_ValidPayload_ReturnSuccess() throws Exception {
+        //test 1 = when valid post sent, then 201 (created) returned
         final String expectedName = "Sora";
         final String expectedSet = "Disney Infinity";
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
@@ -67,31 +68,31 @@ public class ToyTests {
 
         final ToyResponseDto responseDto = resultToResponseDto(result);
         validateToyResponseBody(result, expectedName, expectedSet, expectedCustomFieldValues);
-        updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
-    }
 
-    void updateExistingToy_UpdateToyAndCustomFieldValue_ReturnOk(ToyResponseDto existingToy, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+
+        //test 2 - when valid patch sent, then ok (200) returned
+        List<CustomFieldValue> existingCustomFieldValues = responseDto.customFieldValues();
         final String updatedName = "Donald Duck";
         final String updatedSet = "Updated Disney Infinity";
-        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
-        existingCustomFieldValue.remove(0);
+        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValues.get(0);
+        existingCustomFieldValues.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
-            customFieldValueToUpdate.getCustomFieldId(),
-            "Updated" + customFieldValueToUpdate.getCustomFieldName(),
-            customFieldValueToUpdate.getCustomFieldType(),
-            "false"
+                customFieldValueToUpdate.getCustomFieldId(),
+                "Updated" + customFieldValueToUpdate.getCustomFieldName(),
+                customFieldValueToUpdate.getCustomFieldType(),
+                "false"
         );
-        existingCustomFieldValue.add(updatedValue);
+        existingCustomFieldValues.add(updatedValue);
 
-        final String jsonContent = factory.formatToyPayload(updatedName, updatedSet, existingCustomFieldValue);
-        final ResultActions result = mockMvc.perform(
-                put(baseUrlSlash + existingToy.id())
+        final String jsonContent = factory.formatToyPayload(updatedName, updatedSet, existingCustomFieldValues);
+        final ResultActions resultActions = mockMvc.perform(
+                put(baseUrlSlash + responseDto.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
 
-        result.andExpect(status().isOk());
-        validateToyResponseBody(result, updatedName, updatedSet, existingCustomFieldValue);
+        resultActions.andExpect(status().isOk());
+        validateToyResponseBody(resultActions, updatedName, updatedSet, existingCustomFieldValues);
     }
 
     @Test
@@ -140,7 +141,8 @@ public class ToyTests {
     }
 
     @Test
-    void getAllToys_StartsWithFilter_ToyListReturned() throws Exception {
+    void getAllToys_WithFilters_SubsetToyListReturned() throws Exception {
+        //test 1 - when getting all toys with a filter, only a subset of the toys are returned
         final String customFieldName = "Custom";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.TOY_KEY;
@@ -178,24 +180,22 @@ public class ToyTests {
         );
         validateToyResponseBody(result, List.of(toyDto1, toyDto2));
 
+
+        //test 2 - when getting all toys with a custom field filter, only a subset of the toys are returned
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-        getAllToys_GreaterThanCustomFilter_ToyListReturned(customFilter, List.of(toyDto3));
-    }
 
-    void getAllToys_GreaterThanCustomFilter_ToyListReturned(Filter filter, List<ToyResponseDto> expectedToys) throws Exception {
+        final String jsonContent = factory.formatFiltersPayload(customFilter);
 
-        final String jsonContent = factory.formatFiltersPayload(filter);
-
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+        final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
 
-        result.andExpectAll(
+        resultActions.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateToyResponseBody(result, expectedToys);
+        validateToyResponseBody(resultActions, List.of(toyDto3));
     }
 
     @Test
@@ -260,6 +260,8 @@ public class ToyTests {
                 jsonPath("$.errors").isNotEmpty()
         );
     }
+
+    // ------------------------- Private Helper Methods ------------------------------
 
     private ToyResponseDto resultToResponseDto(ResultActions result) throws Exception {
         return factory.resultToToyResponseDto(result);

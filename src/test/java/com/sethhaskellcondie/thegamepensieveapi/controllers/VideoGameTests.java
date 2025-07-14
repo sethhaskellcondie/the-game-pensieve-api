@@ -42,6 +42,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
  * Video games represent the games that are owned but not how they appear on the shelf in a collection.
  * If a video game appears in a collection multiple times it will only appear once in the system as a video game.
  * Because of this video games cannot be created or deleted through the videoGames endpoints instead this is done through the videoGameBox endpoints.
+ * <p>
  * So video games do not have a POST (Create) or a DELETE endpoints, only PUT and GET endpoints
  * Video games must include a title, a system, and include at least one video game box.
  * When a video game box is created/updated a list of video games ids, or video game data is included in the request, on create these relationships are created in the database.
@@ -68,7 +69,8 @@ public class VideoGameTests {
     }
 
     @Test
-    void postVideoGameWithCustomFieldValuesInVideoGameBox_ValidPayload_VideoGameCreatedAndReturned() throws Exception {
+    void postAndPatchVideoGameWithCustomFieldValuesInVideoGameBox_ValidPayload_ReturnSuccess() throws Exception {
+        //test 1 - when valid post sent, then 201 (created) returned
         final String boxTitle = "Mega Man Legacy Collection";
         final SystemResponseDto boxSystem = factory.postSystem();
         final SystemResponseDto gameSystem = factory.postSystem();
@@ -92,41 +94,39 @@ public class VideoGameTests {
 
         final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
         final SlimVideoGame existingVideoGame = responseDto.videoGames().get(0);
-        updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(responseDto, existingVideoGame, existingVideoGame.customFieldValues());
-    }
 
-    void updateExistingVideoGame_UpdateVideoGameAndCustomFieldValue_ReturnOk(
-            VideoGameBoxResponseDto existingVideoGameBox, SlimVideoGame existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+
+        //test 2 - when valid patch sent, then ok (200) returned
+        List<CustomFieldValue> existingCustomFieldValues = existingVideoGame.customFieldValues();
         final String updatedTitle = "Mega Man 3";
         final SystemResponseDto newRelatedSystem = factory.postSystem();
-        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
-        existingCustomFieldValue.remove(0);
+        final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValues.get(0);
+        existingCustomFieldValues.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
                 customFieldValueToUpdate.getCustomFieldId(),
                 "Updated" + customFieldValueToUpdate.getCustomFieldName(),
                 customFieldValueToUpdate.getCustomFieldType(),
                 "false"
         );
-        existingCustomFieldValue.add(updatedValue);
+        existingCustomFieldValues.add(updatedValue);
 
-        final String jsonContent = factory.formatVideoGamePayload(updatedTitle, newRelatedSystem.id(), existingCustomFieldValue);
-        final ResultActions result = mockMvc.perform(
+        final String jsonContent = factory.formatVideoGamePayload(updatedTitle, newRelatedSystem.id(), existingCustomFieldValues);
+        final ResultActions resultActions = mockMvc.perform(
                 put(baseUrlSlash + existingVideoGame.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
 
-        result.andExpect(status().isOk());
-        validateVideoGameResponseBody(
-                result, updatedTitle, newRelatedSystem, List.of(convertToExpectedSlimVideoGameBox(existingVideoGameBox, existingVideoGameBox.system())), existingCustomFieldValue);
+        resultActions.andExpect(status().isOk());
+        validateVideoGameResponseBody(resultActions, updatedTitle, newRelatedSystem, List.of(convertToExpectedSlimVideoGameBox(responseDto, responseDto.system())), existingCustomFieldValues);
+
     }
 
     @Test
     void postVideoGameInVideoGameBox_TitleBlankInvalidSystemId_ReturnBadRequest() throws Exception {
         final String boxTitle = "Valid Title";
         final SystemResponseDto boxSystem = factory.postSystem();
-        //Note: This should be returned as two errors
-        //Two problems returned as one error: the title cannot be blank, the systemId must be a valid int
+        //Note: This should be returned as two errors, the title cannot be blank, the systemId must be a valid int
         final VideoGameRequestDto newGame = new VideoGameRequestDto("", -1, new ArrayList<>());
 
         final String jsonContent = factory.formatVideoGameBoxPayload(boxTitle, boxSystem.id(), null, List.of(newGame), false, new ArrayList<>());
@@ -139,7 +139,7 @@ public class VideoGameTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors.size()").value(1)
+                jsonPath("$.errors.size()").value(2)
         );
     }
 
@@ -222,8 +222,8 @@ public class VideoGameTests {
     }
 
     @Test
-    void getAllVideoGames_StartsWithFilter_VideoGameListReturned() throws Exception {
-        //This is used in the following test
+    void getAllVideoGames_WithFilters_SubsetOfVideoGamesReturned() throws Exception {
+        //test 1 - when getting all video games with a filter, only a subset of the video games are returned
         final String customFieldName = "Custom";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.VIDEO_GAME_KEY;
@@ -276,23 +276,21 @@ public class VideoGameTests {
         validateVideoGameResponseBody(result, expectedResponse);
 
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-        getWithFilters_GreaterThanCustomFilter_VideoGameListReturned(customFilter, List.of(convertToVideoGameResponseDto(slimVideoGame3, List.of(responseDto3))));
-    }
 
-    void getWithFilters_GreaterThanCustomFilter_VideoGameListReturned(Filter filter, List<VideoGameResponseDto> expectedGames) throws Exception {
 
-        final String jsonContent = factory.formatFiltersPayload(filter);
+        //test 2 - when getting all video games with a custom field filters, only a subset of the video games are returned
+        final String jsonContent = factory.formatFiltersPayload(customFilter);
 
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+        final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
 
-        result.andExpectAll(
+        resultActions.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateVideoGameResponseBody(result, expectedGames);
+        validateVideoGameResponseBody(resultActions, List.of(convertToVideoGameResponseDto(slimVideoGame3, List.of(responseDto3))));
     }
 
     @Test
@@ -447,6 +445,8 @@ public class VideoGameTests {
                 jsonPath("$.errors.size()").value(1)
         );
     }
+
+    // ------------------------- Private Helper Methods ------------------------------
 
     private SlimVideoGame convertToExpectedSlimVideoGameResponse(VideoGameRequestDto requestDto, SystemResponseDto expectedSystem) {
         return new SlimVideoGame(0, requestDto.title(), expectedSystem, null, null, null, requestDto.customFieldValues());
