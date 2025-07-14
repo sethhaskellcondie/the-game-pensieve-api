@@ -37,7 +37,7 @@ public class ApiControllerAdvice {
         return body.formatError();
     }
 
-    //----Handle System Specific Errors----
+    //----Handle Entity Specific Errors----
     @ExceptionHandler(value = {ExceptionCustomFieldValue.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody

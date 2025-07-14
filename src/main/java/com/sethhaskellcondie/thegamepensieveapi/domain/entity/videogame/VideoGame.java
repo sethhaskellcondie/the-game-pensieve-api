@@ -85,22 +85,22 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
 
     @Override
     public VideoGame updateFromRequestDto(VideoGameRequestDto requestDto) {
-        List<Exception> exceptions = new ArrayList<>();
+        ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
         this.title = requestDto.title();
         try {
             this.systemId = requestDto.systemId();
         } catch (NullPointerException e) {
-            exceptions.add(new ExceptionInputValidation("Video Game object error, the systemId cannot be null."));
+            exceptionMalformedEntity.addException(new ExceptionInputValidation("Video Game object error, the systemId cannot be null."));
         }
         this.system = null;
         setCustomFieldValues(requestDto.customFieldValues());
         try {
             this.validate();
         } catch (ExceptionMalformedEntity e) {
-            exceptions.addAll(e.getExceptions());
+            exceptionMalformedEntity.appendExceptions(e.getExceptions());
         }
-        if (!exceptions.isEmpty()) {
-            throw new ExceptionMalformedEntity(exceptions);
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
         }
         return this;
     }
@@ -135,15 +135,15 @@ public class VideoGame extends Entity<VideoGameRequestDto, VideoGameResponseDto>
     }
 
     private void validate() throws ExceptionMalformedEntity {
-        List<Exception> exceptions = new ArrayList<>();
+        ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
         if (null == this.title || this.title.isBlank()) {
-            exceptions.add(new ExceptionInputValidation("Video Game object error, title cannot be blank"));
+            exceptionMalformedEntity.addException(new ExceptionInputValidation("Video Game object error, title cannot be blank"));
         }
         if (this.systemId <= 0) {
-            exceptions.add(new ExceptionInputValidation("Video Game Object error, invalid systemId."));
+            exceptionMalformedEntity.addException(new ExceptionInputValidation("Video Game Object error, invalid systemId."));
         }
-        if (!exceptions.isEmpty()) {
-            throw new ExceptionMalformedEntity(exceptions);
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
         }
     }
 }

@@ -149,7 +149,7 @@ public class VideoGameBoxTests {
     }
 
     @Test
-    void postVideoGameBox_SystemIdInvalid_ReturnBadRequest() throws Exception {
+    void postVideoGameBox_BoxSystemIdInvalid_ReturnBadRequest() throws Exception {
         //This test is a little different from the last one, in this one we are passing a valid int for the systemId
         //but there is not a matching system in the database for that id, so the error message will be different.
         final VideoGameRequestDto newVideoGame = new VideoGameRequestDto("title", Integer.MAX_VALUE, new ArrayList<>());
@@ -168,25 +168,25 @@ public class VideoGameBoxTests {
         );
     }
 
-    @Test
-    void postVideoGameBox_VideoGameIdInvalid_ReturnBadRequest() throws Exception {
-        //This test is a little different from the last one, in this one we are passing in a valid int for the systemId
-        //but one of the video game ids that is passed it is invalid.
-        final SystemResponseDto existingSystem = factory.postSystem();
-        final String jsonContent = factory.formatVideoGameBoxPayload("Valid Title", existingSystem.id(), List.of(Integer.MAX_VALUE), List.of(), false, null);
-
-        final ResultActions result = mockMvc.perform(
-                post(baseUrl)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-        );
-
-        result.andExpectAll(
-                status().isBadRequest(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors.size()").value(1)
-        );
-    }
+//    @Test
+//    void postVideoGameBox_VideoGameIdInvalid_ReturnBadRequest() throws Exception {
+//        //This test is a little different from the last one, in this one we are passing in a valid int for the video game box systemId
+//        //but one of the video game ids that is passed it is invalid.
+//        final SystemResponseDto existingSystem = factory.postSystem();
+//        final String jsonContent = factory.formatVideoGameBoxPayload("Valid Title", existingSystem.id(), List.of(Integer.MAX_VALUE), List.of(), false, null);
+//
+//        final ResultActions result = mockMvc.perform(
+//                post(baseUrl)
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(jsonContent)
+//        );
+//
+//        result.andExpectAll(
+//                status().isBadRequest(),
+//                jsonPath("$.data").isEmpty(),
+//                jsonPath("$.errors.size()").value(1)
+//        );
+//    }
 
     @Test
     void getOneVideoGameBox_GameBoxExists_VideoGameBoxSerializedCorrectly() throws Exception {

@@ -65,15 +65,15 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         for (Integer videoGameId : requestDto.existingVideoGameIds()) {
             try {
                 relatedVideoGames.add(videoGameService.getById(videoGameId).convertToSlimVideoGame());
-            } catch (Exception e) {
-                exceptionMalformedEntity.addException(e);
+            } catch (ExceptionMalformedEntity videoGameMalformedException) {
+                exceptionMalformedEntity.appendExceptions(videoGameMalformedException.getExceptions());
             }
         }
         for (VideoGameRequestDto videoGameRequestDto : requestDto.newVideoGames()) {
             try {
                 relatedVideoGames.add(videoGameService.createNew(videoGameRequestDto).convertToSlimVideoGame());
-            } catch (Exception e) {
-                exceptionMalformedEntity.addException(e);
+            } catch (ExceptionMalformedEntity videoGameMalformedException) {
+                exceptionMalformedEntity.appendExceptions(videoGameMalformedException.getExceptions());
             }
         }
         if (requestDto.existingVideoGameIds().isEmpty() && requestDto.newVideoGames().isEmpty()) {
