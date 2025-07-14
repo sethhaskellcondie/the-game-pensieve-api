@@ -14,6 +14,7 @@
 	<description>This project will store information about different games in a database along with an api to access that data.</description>
 	<properties>
 		<java.version>17</java.version>
+		<checkstyle.version>10.15.0</checkstyle.version>
 	</properties>
 	<build>
 		<plugins>
@@ -23,6 +24,36 @@
 				<configuration>
 					<finalName>the_game_pensieve_api</finalName>
 				</configuration>
+			</plugin>
+			
+			<!-- Checkstyle Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.3.1</version>
+				<configuration>
+					<configLocation>checkstyle.xml</configLocation>
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>true</failsOnError>
+					<violationSeverity>warning</violationSeverity>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>${checkstyle.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

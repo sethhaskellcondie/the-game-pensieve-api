@@ -163,18 +163,18 @@ public class BoardGameTests {
         final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
 
         final String title1 = "Mega Man the Board Game";
-        final List<CustomFieldValue> CustomFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postBoardGameReturnResult(title1, CustomFieldValues1);
+        final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
+        final ResultActions result1 = factory.postBoardGameReturnResult(title1, customFieldValues1);
         final BoardGameResponseDto gameDto1 = factory.resultToBoardGameResponseDto(result1);
 
         final String title2 = "Mega Man the Deckbuilding Game";
-        final List<CustomFieldValue> CustomFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postBoardGameReturnResult(title2, CustomFieldValues2);
+        final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
+        final ResultActions result2 = factory.postBoardGameReturnResult(title2, customFieldValues2);
         final BoardGameResponseDto gameDto2 = factory.resultToBoardGameResponseDto(result2);
 
         final String title3 = "Power Rangers the Deckbuilding Game";
-        final List<CustomFieldValue> CustomFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postBoardGameReturnResult(title3, CustomFieldValues3);
+        final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
+        final ResultActions result3 = factory.postBoardGameReturnResult(title3, customFieldValues3);
         final BoardGameResponseDto gameDto3 = factory.resultToBoardGameResponseDto(result3);
 
         final Filter filter = new Filter(Keychain.BOARD_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Mega Man", false);

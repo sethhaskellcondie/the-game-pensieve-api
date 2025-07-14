@@ -79,7 +79,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             savedEntity = getById(id);
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             //we shouldn't ever reach this block because the database is managing the ID's
-            logger.error(ErrorLogs.InsertThenRetrieveError(entityKey, id));
+            logger.error(ErrorLogs.insertThenRetrieveError(entityKey, id));
             throw new ExceptionInternalCatastrophe(entityKey, id, e);
         }
         savedEntity.setCustomFieldValues(customFieldValueRepository.upsertValues(entity.getCustomFieldValues(), savedEntity.getId(), savedEntity.getKey()));
@@ -119,7 +119,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             savedEntity = getById(entity.getId());
         } catch (ExceptionResourceNotFound | NullPointerException e) {
             //we shouldn't ever reach this block because the database is managing the ID's
-            logger.error(ErrorLogs.InsertThenRetrieveError(entityKey, entity.getId()));
+            logger.error(ErrorLogs.insertThenRetrieveError(entityKey, entity.getId()));
             throw new ExceptionInternalCatastrophe(entityKey, entity.getId(), e);
         }
 

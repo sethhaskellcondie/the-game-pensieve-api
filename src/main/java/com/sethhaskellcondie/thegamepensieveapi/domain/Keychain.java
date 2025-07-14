@@ -13,7 +13,12 @@ import java.util.List;
  * <p>
  * Keys will be singular and initial Camel Case.
  */
-public class Keychain {
+public final class Keychain {
+    
+    private Keychain() {
+        // Private constructor to prevent instantiation
+    }
+    
     public static final String SYSTEM_KEY = "system";
     public static final String TOY_KEY = "toy";
     public static final String VIDEO_GAME_KEY = "videoGame";

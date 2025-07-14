@@ -116,11 +116,11 @@ public class TestFactory {
     public String formatCustomFieldPayload(String name, String type, String entityKey) {
         final String json = """
                 {
-                	"custom_field": {
-                	    "name": "%s",
-                	    "type": "%s",
-                	    "entityKey": "%s"
-                	    }
+                    "custom_field": {
+                        "name": "%s",
+                        "type": "%s",
+                        "entityKey": "%s"
+                        }
                 }
                 """;
         return String.format(json, name, type, entityKey);
@@ -281,11 +281,11 @@ public class TestFactory {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
                 {
-                	"toy": {
-                	    "name": "%s",
-                	    "set": "%s",
+                    "toy": {
+                        "name": "%s",
+                        "set": "%s",
                         "customFieldValues": %s
-                	    }
+                        }
                 }
                 """;
         return String.format(json, name, set, customFieldValuesString);
@@ -301,11 +301,11 @@ public class TestFactory {
     public String formatVideoGamePayload(String title, int systemId, List<CustomFieldValue> customFieldValues) {
         final String json = """
                 {
-                	"videoGame": {
-                	    "title": "%s",
-                	    "systemId": %d,
+                    "videoGame": {
+                        "title": "%s",
+                        "systemId": %d,
                         "customFieldValues": %s
-                	    }
+                        }
                 }
                 """;
         return String.format(json, title, systemId, formatCustomFieldValues(customFieldValues));
@@ -377,14 +377,14 @@ public class TestFactory {
 
         final String json = """
                 {
-                	"videoGameBox": {
-                	    "title": "%s",
-                	    "systemId": %d,
-                	    "existingVideoGameIds": %s,
-                	    "newVideoGames": %s,
+                    "videoGameBox": {
+                        "title": "%s",
+                        "systemId": %d,
+                        "existingVideoGameIds": %s,
+                        "newVideoGames": %s,
                         "isPhysical": %b,
                         "customFieldValues": %s
-                	    }
+                        }
                 }
                 """;
         return String.format(json, title, systemId, videoGameIdsString, formatVideoGameRequestDtoArray(newVideoGames), isPhysical, formatCustomFieldValues(customFieldValues));
@@ -515,14 +515,14 @@ public class TestFactory {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
                 {
-                	"boardGameBox": {
-                	    "title": "%s",
-                	    "isExpansion": "%b",
-                	    "isStandAlone": %b,
+                    "boardGameBox": {
+                        "title": "%s",
+                        "isExpansion": "%b",
+                        "isStandAlone": %b,
                         "baseSetId": %d,
                         "boardGameId": %d,
                         "customFieldValues": %s
-                	    }
+                        }
                 }
                 """;
         return String.format(json, title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValuesString);
@@ -558,10 +558,10 @@ public class TestFactory {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String json = """
                 {
-                	"boardGame": {
-                	    "title": "%s",
+                    "boardGame": {
+                        "title": "%s",
                         "customFieldValues": %s
-                	    }
+                        }
                 }
                 """;
         return String.format(json, title, customFieldValuesString);

@@ -6,12 +6,12 @@ public class ExceptionInternalCatastrophe extends RuntimeException {
     }
 
     public ExceptionInternalCatastrophe(String entityName, int id) {
-        super("Internal Catastrophe: Just inserted/updated a(n) " + entityName +
-                " with the id " + id + " and couldn't immediately retrieve it.");
+        super("Internal Catastrophe: Just inserted/updated a(n) " + entityName
+                + " with the id " + id + " and couldn't immediately retrieve it.");
     }
 
     public ExceptionInternalCatastrophe(String entityName, int id, Throwable cause) {
-        super("Internal Catastrophe: Just inserted/updated a(n) " + entityName +
-                " with the id " + id + " and couldn't immediately retrieve it.", cause);
+        super("Internal Catastrophe: Just inserted/updated a(n) " + entityName
+                + " with the id " + id + " and couldn't immediately retrieve it.", cause);
     }
 }

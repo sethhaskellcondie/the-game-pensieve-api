@@ -37,8 +37,8 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
                 SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
                 FROM board_games
                 JOIN custom_field_values as values ON board_games.id = values.entity_id
-                	  	JOIN custom_fields as fields ON values.custom_field_id = fields.id
-                               	WHERE board_games.deleted_at IS NULL
+                          JOIN custom_fields as fields ON values.custom_field_id = fields.id
+                                   WHERE board_games.deleted_at IS NULL
                                  AND values.entity_key = 'board_game'
                 """;
     }
@@ -46,7 +46,7 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
     @Override
     public void deleteById(int id) {
         final String sql = """
-                			UPDATE board_games SET deleted_at = ? WHERE id = ?;
+                            UPDATE board_games SET deleted_at = ? WHERE id = ?;
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, Timestamp.from(Instant.now()), id);
         if (rowsUpdated < 1) {
@@ -84,7 +84,7 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
     @Override
     protected Integer insertImplementation(BoardGame entity) {
         final String sql = """
-                			INSERT INTO board_games(title, created_at, updated_at) VALUES (?, ?, ?);
+                            INSERT INTO board_games(title, created_at, updated_at) VALUES (?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(

@@ -102,7 +102,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
 
     protected Integer insertImplementation(System system) {
         final String sql = """
-                			INSERT INTO systems(name, generation, handheld, created_at, updated_at) VALUES (?, ?, ?, ?, ?);
+                            INSERT INTO systems(name, generation, handheld, created_at, updated_at) VALUES (?, ?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -127,7 +127,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
 
     protected void updateImplementation(System system) {
         final String sql = """
-                			UPDATE systems SET name = ?, generation = ?, handheld = ?, updated_at = ? WHERE id = ?;
+                            UPDATE systems SET name = ?, generation = ?, handheld = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(
                 sql,
@@ -142,7 +142,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
     @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
         final String sql = """
-                			UPDATE systems SET deleted_at = ? WHERE id = ?;
+                            UPDATE systems SET deleted_at = ? WHERE id = ?;
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, Timestamp.from(Instant.now()), id);
         if (rowsUpdated < 1) {

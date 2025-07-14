@@ -185,18 +185,18 @@ public class BoardGameBoxTests {
         final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
 
         final String title1 = "King of Tokyo";
-        final List<CustomFieldValue> CustomFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, CustomFieldValues1);
+        final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
+        final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, customFieldValues1);
         final BoardGameBoxResponseDto boardGameBoxDto1 = factory.resultToBoardGameBoxResponseDto(result1);
 
         final String title2 = "King of New York";
-        final List<CustomFieldValue> CustomFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, CustomFieldValues2);
+        final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
+        final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, customFieldValues2);
         final BoardGameBoxResponseDto boardGameBoxDto2 = factory.resultToBoardGameBoxResponseDto(result2);
 
         final String title3 = "Forgotten Waters";
-        final List<CustomFieldValue> CustomFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, CustomFieldValues3);
+        final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
+        final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, customFieldValues3);
         final BoardGameBoxResponseDto boardGameBoxDto3 = factory.resultToBoardGameBoxResponseDto(result3);
 
         final Filter filter = new Filter(Keychain.BOARD_GAME_BOX_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "King of ", false);

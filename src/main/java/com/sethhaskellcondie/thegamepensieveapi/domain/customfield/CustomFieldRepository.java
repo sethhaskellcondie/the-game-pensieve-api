@@ -40,7 +40,7 @@ public class CustomFieldRepository {
     public CustomField insertCustomField(CustomFieldRequestDto customField) {
         customFieldDbValidation(customField);
         final String sql = """
-                			INSERT INTO custom_fields(name, type, entity_key) VALUES (?, ?, ?);
+                            INSERT INTO custom_fields(name, type, entity_key) VALUES (?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -58,7 +58,7 @@ public class CustomFieldRepository {
         try {
             return getById(generatedId);
         } catch (ExceptionResourceNotFound | NullPointerException e) {
-            logger.error(ErrorLogs.InsertThenRetrieveError("custom_fields", generatedId));
+            logger.error(ErrorLogs.insertThenRetrieveError("custom_fields", generatedId));
             throw new ExceptionInternalCatastrophe("custom_fields", generatedId, e);
         }
     }
@@ -134,7 +134,7 @@ public class CustomFieldRepository {
 
     public CustomField updateName(int id, String newName) {
         final String sql = """
-                			UPDATE custom_fields SET name = ? WHERE id = ?;
+                            UPDATE custom_fields SET name = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, newName, id);
         return getById(id);
@@ -142,7 +142,7 @@ public class CustomFieldRepository {
 
     public void deleteById(int id) {
         final String sql = """
-                			UPDATE custom_fields SET deleted = true WHERE id = ?;
+                            UPDATE custom_fields SET deleted = true WHERE id = ?;
                 """;
         int rowsUpdated = jdbcTemplate.update(sql, id);
         if (rowsUpdated < 1) {
@@ -153,12 +153,12 @@ public class CustomFieldRepository {
     private void customFieldDbValidation(CustomFieldRequestDto customField) {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
-            exception.addException("Custom Field Type: '" + customField.type() + "' is not a valid type. " +
-                    "Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]");
+            exception.addException("Custom Field Type: '" + customField.type() + "' is not a valid type. "
+                    + "Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]");
         }
         if (!Keychain.getAllKeys().contains(customField.entityKey())) {
-            exception.addException("Custom Field Entity Key: '" + customField.entityKey() + "' is not a valid entity key. " +
-                    "Valid keys include [" + String.join(", ", Keychain.getAllKeys()) + "]");
+            exception.addException("Custom Field Entity Key: '" + customField.entityKey() + "' is not a valid entity key. "
+                    + "Valid keys include [" + String.join(", ", Keychain.getAllKeys()) + "]");
         }
         if (!exception.getExceptions().isEmpty()) {
             throw exception;

@@ -18,6 +18,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Tests use testcontainers for integration testing with PostgreSQL
 - Integration tests follow diamond testing strategy with MockMvc
 
+### Code Quality
+- **Checkstyle**: `mvn checkstyle:check` - Checks code style and formatting
+- **Generate Checkstyle report**: `mvn checkstyle:checkstyle` - Generates HTML report in target/site/checkstyle.html
+- **Run Checkstyle automatically**: Runs during `mvn validate` phase
+- **Skip Checkstyle**: Add `-Dcheckstyle.skip=true` to any Maven command
+
 ### Database
 - Database migrations are managed by Flyway in `/src/main/resources/migrations/`
 - Test profiles use separate application properties files (e.g., `application-test-container.properties`)

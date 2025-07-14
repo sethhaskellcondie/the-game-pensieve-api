@@ -8,14 +8,14 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRespo
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.SlimVideoGameBox;
 
 public record VideoGameResponseDto(
-	String key,
-	int id,
-	String title,
-	SystemResponseDto system,
-	List<SlimVideoGameBox> videoGameBoxes,
-	Timestamp createdAt,
-	Timestamp updatedAt,
-	Timestamp deletedAt,
-	List<CustomFieldValue> customFieldValues
+    String key,
+    int id,
+    String title,
+    SystemResponseDto system,
+    List<SlimVideoGameBox> videoGameBoxes,
+    Timestamp createdAt,
+    Timestamp updatedAt,
+    Timestamp deletedAt,
+    List<CustomFieldValue> customFieldValues
 ) {
 }

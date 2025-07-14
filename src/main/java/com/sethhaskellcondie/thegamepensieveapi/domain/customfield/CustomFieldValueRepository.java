@@ -77,7 +77,7 @@ public class CustomFieldValueRepository {
         }
 
         final String sql = """
-                			UPDATE custom_field_values SET value_text = ?, value_number = ? WHERE custom_field_id = ? AND entity_id = ?;
+                            UPDATE custom_field_values SET value_text = ?, value_number = ? WHERE custom_field_id = ? AND entity_id = ?;
                 """;
         jdbcTemplate.update(sql, valueDao.valueText(), valueDao.valueNumber(), valueDao.customFieldId(), valueDao.entityId());
         return value;
@@ -85,7 +85,7 @@ public class CustomFieldValueRepository {
 
     private CustomFieldValueDao insertDao(CustomFieldValueDao valueDao) {
         final String sql = """
-                			INSERT INTO custom_field_values(custom_field_id, entity_id, entity_key, value_text, value_number) VALUES (?, ?, ?, ?, ?);
+                            INSERT INTO custom_field_values(custom_field_id, entity_id, entity_key, value_text, value_number) VALUES (?, ?, ?, ?, ?);
                 """;
         jdbcTemplate.update(sql, valueDao.customFieldId(), valueDao.entityId(), valueDao.entityKey(), valueDao.valueText(), valueDao.valueNumber());
 
@@ -109,15 +109,15 @@ public class CustomFieldValueRepository {
             throw new ExceptionCustomFieldValue("Invalid CustomFieldId: " + value.getCustomFieldId() + " on provided CustomFieldValue with entityKey: " + entityKey, e);
         }
         if (!Objects.equals(customField.type(), value.getCustomFieldType())) {
-            throw new ExceptionCustomFieldValue("Custom field retrieved from the database with provided id: " + value.getCustomFieldId() + " has type: " + customField.type() +
-                    " provided type on custom field value did not match. Value custom field type: " + value.getCustomFieldType() + ".");
+            throw new ExceptionCustomFieldValue("Custom field retrieved from the database with provided id: " + value.getCustomFieldId() + " has type: " + customField.type()
+                    + " provided type on custom field value did not match. Value custom field type: " + value.getCustomFieldType() + ".");
         }
         if (!Objects.equals(customField.name(), value.getCustomFieldName())) {
             try {
                 customField = customFieldRepository.updateName(customField.id(), value.getCustomFieldName());
             } catch (ExceptionResourceNotFound exception) {
                 //We should never hit this code because we just did a get by id.
-                logger.error(ErrorLogs.InsertThenRetrieveError("Custom Field", customField.id()));
+                logger.error(ErrorLogs.insertThenRetrieveError("Custom Field", customField.id()));
                 throw new ExceptionInternalCatastrophe("Custom Field", customField.id(), exception);
             }
         }
@@ -136,8 +136,8 @@ public class CustomFieldValueRepository {
             );
         } catch (EmptyResultDataAccessException exception) {
             if (justInserted) {
-                throw new ExceptionCustomFieldValue("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId +
-                        "AND entity_id: " + entityId + ".", exception);
+                throw new ExceptionCustomFieldValue("Custom Field Value not found in database RIGHT AFTER INSERT with custom_field_id: " + customFieldId
+                        + "AND entity_id: " + entityId + ".", exception);
             }
         }
         return valueDao;
@@ -163,8 +163,8 @@ public class CustomFieldValueRepository {
             }
             default -> {
                 //This is just a sanity check the type will have been matched against the found CustomField earlier in the process
-                throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: unknown Custom Field Type provided: " + customFieldValue.getCustomFieldType() +
-                        ". Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]")));
+                throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: unknown Custom Field Type provided: " + customFieldValue.getCustomFieldType()
+                        + ". Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]")));
             }
         }
     }
