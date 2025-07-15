@@ -58,7 +58,7 @@ public class BackupImportController {
 
         final ImportResultsDto importResults = gateway.importBackupData(backupData);
         final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems());
+                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
         return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
     }
 
@@ -68,7 +68,7 @@ public class BackupImportController {
 
         final ImportResultsDto importResults = gateway.importBackupData(backupData);
         final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems());
+                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
         return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
     }
 
@@ -85,7 +85,7 @@ public class BackupImportController {
 
         final ImportResultsDto importResults = gateway.importBackupData(sampleData);
         final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems());
+                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
         return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
     }
 
@@ -102,12 +102,13 @@ public class BackupImportController {
 
         final ImportResultsDto importResults = gateway.importBackupData(myCollectionData);
         final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems());
+                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
         return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
     }
 }
 
-record FormattedImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys, int existingSystems, int createdSystems) {
+record FormattedImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys,
+                                  int existingSystems, int createdSystems, int existingVideoGameBoxes, int createdVideoGameBoxes) {
 }
 
 record FormattedImportResults(FormattedImportResultsData data, List<String> errors) {

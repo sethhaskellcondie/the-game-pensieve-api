@@ -40,7 +40,7 @@ Commands:
   - $ docker-compose up
 - This will start three docker containers, one for the api, one for the flyway migrations, and one for the database.
 - You can access the api on port 8080
-- The test endpoint localhost:8080/heartbeat will return the string "thump thump" when working correctly.
+- The test endpoint localhost:8080/v1/heartbeat will return the string "thump thump" when working correctly.
 
 ### Run Locally
 Requirements:
