@@ -1,161 +1,256 @@
 {
-  "data": {
-    "customFields": [
-      {
-        "id": 1,
-        "name": "Broken",
-        "type": "boolean",
-        "entityKey": "toy"
-      },
-      {
-        "id": 2,
-        "name": "Release Year",
-        "type": "number",
-        "entityKey": "system"
-      },
-      {
-        "id": 3,
-        "name": "Developer",
-        "type": "text",
-        "entityKey": "videoGameBox"
-      },
-      {
-        "id": 4,
-        "name": "Publisher",
-        "type": "text",
-        "entityKey": "videoGameBox"
-      },
-      {
-        "id": 6,
-        "name": "Notes",
-        "type": "text",
-        "entityKey": "videoGameBox"
-      },
-      {
-        "id": 5,
-        "name": "Release Year",
-        "type": "number",
-        "entityKey": "videoGameBox"
-      },
-      {
-        "id": 7,
-        "name": "notes",
-        "type": "text",
-        "entityKey": "videoGame"
-      },
-      {
-        "id": 8,
-        "name": "enhanced_port",
-        "type": "boolean",
-        "entityKey": "videoGame"
-      }
-    ],
-    "toys": [
-      {
-        "key": "toy",
-        "id": 1,
-        "name": "Darkwing Duck",
-        "set": "Misc",
-        "createdAt": "2025-07-15T16:33:36.948+00:00",
-        "updatedAt": "2025-07-15T16:33:36.948+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 1,
-            "customFieldName": "Broken",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
-      },
-      {
-        "key": "toy",
-        "id": 2,
-        "name": "Iron Man",
-        "set": "Disney Infinity",
-        "createdAt": "2025-07-15T16:33:54.485+00:00",
-        "updatedAt": "2025-07-15T16:33:54.485+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 1,
-            "customFieldName": "Broken",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
-      },
-      {
-        "key": "toy",
-        "id": 3,
-        "name": "Mickey Mouse",
-        "set": "Disney Infinity",
-        "createdAt": "2025-07-15T16:34:08.960+00:00",
-        "updatedAt": "2025-07-15T16:34:08.960+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 1,
-            "customFieldName": "Broken",
-            "customFieldType": "boolean",
-            "value": "false"
-          }
-        ]
-      },
-      {
-        "key": "toy",
-        "id": 4,
-        "name": "Minnie Mouse",
-        "set": "Disney Infinity",
-        "createdAt": "2025-07-15T16:34:16.880+00:00",
-        "updatedAt": "2025-07-15T16:34:16.881+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 1,
-            "customFieldName": "Broken",
-            "customFieldType": "boolean",
-            "value": "false"
-          }
-        ]
-      },
-      {
-        "key": "toy",
-        "id": 5,
-        "name": "Super Mario",
-        "set": "Amiibo",
-        "createdAt": "2025-07-15T16:34:32.252+00:00",
-        "updatedAt": "2025-07-15T16:34:32.252+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 1,
-            "customFieldName": "Broken",
-            "customFieldType": "boolean",
-            "value": "false"
-          }
-        ]
-      },
-      {
-        "key": "toy",
-        "id": 6,
-        "name": "Shovel Knight",
-        "set": "Amiibo",
-        "createdAt": "2025-07-15T16:34:46.292+00:00",
-        "updatedAt": "2025-07-15T16:34:46.293+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 1,
-            "customFieldName": "Broken",
-            "customFieldType": "boolean",
-            "value": "false"
-          }
-        ]
-      }
-    ],
-    "systems": [
-      {
+  "customFields": [
+    {
+      "id": 1,
+      "name": "Broken",
+      "type": "boolean",
+      "entityKey": "toy"
+    },
+    {
+      "id": 2,
+      "name": "Release Year",
+      "type": "number",
+      "entityKey": "system"
+    },
+    {
+      "id": 3,
+      "name": "Developer",
+      "type": "text",
+      "entityKey": "videoGameBox"
+    },
+    {
+      "id": 4,
+      "name": "Publisher",
+      "type": "text",
+      "entityKey": "videoGameBox"
+    },
+    {
+      "id": 6,
+      "name": "Notes",
+      "type": "text",
+      "entityKey": "videoGameBox"
+    },
+    {
+      "id": 5,
+      "name": "Release Year",
+      "type": "number",
+      "entityKey": "videoGameBox"
+    },
+    {
+      "id": 7,
+      "name": "notes",
+      "type": "text",
+      "entityKey": "videoGame"
+    },
+    {
+      "id": 8,
+      "name": "enhanced_port",
+      "type": "boolean",
+      "entityKey": "videoGame"
+    }
+  ],
+  "toys": [
+    {
+      "key": "toy",
+      "id": 1,
+      "name": "Darkwing Duck",
+      "set": "Misc",
+      "createdAt": "2025-07-15T16:33:36.948+00:00",
+      "updatedAt": "2025-07-15T16:33:36.948+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "key": "toy",
+      "id": 2,
+      "name": "Iron Man",
+      "set": "Disney Infinity",
+      "createdAt": "2025-07-15T16:33:54.485+00:00",
+      "updatedAt": "2025-07-15T16:33:54.485+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "key": "toy",
+      "id": 3,
+      "name": "Mickey Mouse",
+      "set": "Disney Infinity",
+      "createdAt": "2025-07-15T16:34:08.960+00:00",
+      "updatedAt": "2025-07-15T16:34:08.960+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "key": "toy",
+      "id": 4,
+      "name": "Minnie Mouse",
+      "set": "Disney Infinity",
+      "createdAt": "2025-07-15T16:34:16.880+00:00",
+      "updatedAt": "2025-07-15T16:34:16.881+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "key": "toy",
+      "id": 5,
+      "name": "Super Mario",
+      "set": "Amiibo",
+      "createdAt": "2025-07-15T16:34:32.252+00:00",
+      "updatedAt": "2025-07-15T16:34:32.252+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "key": "toy",
+      "id": 6,
+      "name": "Shovel Knight",
+      "set": "Amiibo",
+      "createdAt": "2025-07-15T16:34:46.292+00:00",
+      "updatedAt": "2025-07-15T16:34:46.293+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 1,
+          "customFieldName": "Broken",
+          "customFieldType": "boolean",
+          "value": "false"
+        }
+      ]
+    }
+  ],
+  "systems": [
+    {
+      "key": "system",
+      "id": 1,
+      "name": "NES",
+      "generation": 3,
+      "handheld": false,
+      "createdAt": "2025-07-15T16:51:53.372+00:00",
+      "updatedAt": "2025-07-15T16:51:53.372+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 2,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "1986"
+        }
+      ]
+    },
+    {
+      "key": "system",
+      "id": 2,
+      "name": "SNES",
+      "generation": 4,
+      "handheld": false,
+      "createdAt": "2025-07-15T16:54:02.498+00:00",
+      "updatedAt": "2025-07-15T16:54:02.498+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 2,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "1991"
+        }
+      ]
+    },
+    {
+      "key": "system",
+      "id": 3,
+      "name": "Wii",
+      "generation": 7,
+      "handheld": false,
+      "createdAt": "2025-07-15T16:55:07.624+00:00",
+      "updatedAt": "2025-07-15T16:55:07.624+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 2,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "2006"
+        }
+      ]
+    },
+    {
+      "key": "system",
+      "id": 4,
+      "name": "Switch",
+      "generation": 9,
+      "handheld": true,
+      "createdAt": "2025-07-15T16:55:53.764+00:00",
+      "updatedAt": "2025-07-15T16:55:53.764+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 2,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "2017"
+        }
+      ]
+    },
+    {
+      "key": "system",
+      "id": 5,
+      "name": "Game Boy",
+      "generation": 3,
+      "handheld": true,
+      "createdAt": "2025-07-15T17:35:31.307+00:00",
+      "updatedAt": "2025-07-15T17:35:31.307+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 2,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "1989"
+        }
+      ]
+    }
+  ],
+  "videoGameBoxes": [
+    {
+      "key": "videoGameBox",
+      "id": 2,
+      "title": "Super Mario Bros. / Duck Hunt",
+      "system": {
         "key": "system",
         "id": 1,
         "name": "NES",
@@ -173,7 +268,123 @@
           }
         ]
       },
-      {
+      "videoGames": [
+        {
+          "id": 3,
+          "title": "Super Mario Bros.",
+          "system": {
+            "key": "system",
+            "id": 1,
+            "name": "NES",
+            "generation": 3,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:51:53.372+00:00",
+            "updatedAt": "2025-07-15T16:51:53.372+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1986"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T17:42:28.590+00:00",
+          "updatedAt": "2025-07-15T17:42:28.590+00:00",
+          "deletedAt": null,
+          "customFieldValues": [
+            {
+              "customFieldId": 7,
+              "customFieldName": "notes",
+              "customFieldType": "text",
+              "value": ""
+            },
+            {
+              "customFieldId": 8,
+              "customFieldName": "enhanced_port",
+              "customFieldType": "boolean",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Duck Hunt",
+          "system": {
+            "key": "system",
+            "id": 1,
+            "name": "NES",
+            "generation": 3,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:51:53.372+00:00",
+            "updatedAt": "2025-07-15T16:51:53.372+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1986"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T17:42:28.609+00:00",
+          "updatedAt": "2025-07-15T17:42:28.609+00:00",
+          "deletedAt": null,
+          "customFieldValues": [
+            {
+              "customFieldId": 7,
+              "customFieldName": "notes",
+              "customFieldType": "text",
+              "value": "Requires the Zapper"
+            },
+            {
+              "customFieldId": 8,
+              "customFieldName": "enhanced_port",
+              "customFieldType": "boolean",
+              "value": "false"
+            }
+          ]
+        }
+      ],
+      "isPhysical": true,
+      "isCollection": true,
+      "createdAt": "2025-07-15T17:42:28.618+00:00",
+      "updatedAt": "2025-07-15T17:42:28.618+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 3,
+          "customFieldName": "Developer",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 4,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "1985"
+        },
+        {
+          "customFieldId": 6,
+          "customFieldName": "Notes",
+          "customFieldType": "text",
+          "value": "My first video game!"
+        }
+      ]
+    },
+    {
+      "key": "videoGameBox",
+      "id": 3,
+      "title": "Secret of Mana",
+      "system": {
         "key": "system",
         "id": 2,
         "name": "SNES",
@@ -191,7 +402,328 @@
           }
         ]
       },
-      {
+      "videoGames": [
+        {
+          "id": 5,
+          "title": "Secret of Mana",
+          "system": {
+            "key": "system",
+            "id": 2,
+            "name": "SNES",
+            "generation": 4,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:54:02.498+00:00",
+            "updatedAt": "2025-07-15T16:54:02.498+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1991"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T17:53:25.542+00:00",
+          "updatedAt": "2025-07-15T17:53:25.542+00:00",
+          "deletedAt": null,
+          "customFieldValues": [
+            {
+              "customFieldId": 7,
+              "customFieldName": "notes",
+              "customFieldType": "text",
+              "value": ""
+            },
+            {
+              "customFieldId": 8,
+              "customFieldName": "enhanced_port",
+              "customFieldType": "boolean",
+              "value": "false"
+            }
+          ]
+        }
+      ],
+      "isPhysical": true,
+      "isCollection": false,
+      "createdAt": "2025-07-15T17:53:25.554+00:00",
+      "updatedAt": "2025-07-15T17:53:25.554+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 3,
+          "customFieldName": "Developer",
+          "customFieldType": "text",
+          "value": "Square"
+        },
+        {
+          "customFieldId": 4,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Square"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "1993"
+        }
+      ]
+    },
+    {
+      "key": "videoGameBox",
+      "id": 4,
+      "title": "Secret of Mana 2",
+      "system": {
+        "key": "system",
+        "id": 2,
+        "name": "SNES",
+        "generation": 4,
+        "handheld": false,
+        "createdAt": "2025-07-15T16:54:02.498+00:00",
+        "updatedAt": "2025-07-15T16:54:02.498+00:00",
+        "deletedAt": null,
+        "customFieldValues": [
+          {
+            "customFieldId": 2,
+            "customFieldName": "Release Year",
+            "customFieldType": "number",
+            "value": "1991"
+          }
+        ]
+      },
+      "videoGames": [
+        {
+          "id": 6,
+          "title": "Trials of Mana",
+          "system": {
+            "key": "system",
+            "id": 2,
+            "name": "SNES",
+            "generation": 4,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:54:02.498+00:00",
+            "updatedAt": "2025-07-15T16:54:02.498+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1991"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T17:56:23.162+00:00",
+          "updatedAt": "2025-07-15T17:56:23.162+00:00",
+          "deletedAt": null,
+          "customFieldValues": [
+            {
+              "customFieldId": 7,
+              "customFieldName": "notes",
+              "customFieldType": "text",
+              "value": "I got this as a reproduction cart"
+            }
+          ]
+        }
+      ],
+      "isPhysical": true,
+      "isCollection": false,
+      "createdAt": "2025-07-15T17:56:23.169+00:00",
+      "updatedAt": "2025-07-15T17:56:23.169+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 3,
+          "customFieldName": "Developer",
+          "customFieldType": "text",
+          "value": "Square"
+        },
+        {
+          "customFieldId": 4,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Square"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "key": "videoGameBox",
+      "id": 5,
+      "title": "Super Mario All-Stars",
+      "system": {
+        "key": "system",
+        "id": 2,
+        "name": "SNES",
+        "generation": 4,
+        "handheld": false,
+        "createdAt": "2025-07-15T16:54:02.498+00:00",
+        "updatedAt": "2025-07-15T16:54:02.498+00:00",
+        "deletedAt": null,
+        "customFieldValues": [
+          {
+            "customFieldId": 2,
+            "customFieldName": "Release Year",
+            "customFieldType": "number",
+            "value": "1991"
+          }
+        ]
+      },
+      "videoGames": [
+        {
+          "id": 3,
+          "title": "Super Mario Bros.",
+          "system": {
+            "key": "system",
+            "id": 1,
+            "name": "NES",
+            "generation": 3,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:51:53.372+00:00",
+            "updatedAt": "2025-07-15T16:51:53.372+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1986"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T17:42:28.590+00:00",
+          "updatedAt": "2025-07-15T17:42:28.590+00:00",
+          "deletedAt": null,
+          "customFieldValues": [
+            {
+              "customFieldId": 7,
+              "customFieldName": "notes",
+              "customFieldType": "text",
+              "value": ""
+            },
+            {
+              "customFieldId": 8,
+              "customFieldName": "enhanced_port",
+              "customFieldType": "boolean",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "Super Mario Bros. 2",
+          "system": {
+            "key": "system",
+            "id": 1,
+            "name": "NES",
+            "generation": 3,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:51:53.372+00:00",
+            "updatedAt": "2025-07-15T16:51:53.372+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1986"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T18:08:49.398+00:00",
+          "updatedAt": "2025-07-15T18:08:49.398+00:00",
+          "deletedAt": null,
+          "customFieldValues": []
+        },
+        {
+          "id": 8,
+          "title": "Super Mario Bros. 3",
+          "system": {
+            "key": "system",
+            "id": 1,
+            "name": "NES",
+            "generation": 3,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:51:53.372+00:00",
+            "updatedAt": "2025-07-15T16:51:53.372+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1986"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T18:08:49.415+00:00",
+          "updatedAt": "2025-07-15T18:08:49.415+00:00",
+          "deletedAt": null,
+          "customFieldValues": []
+        },
+        {
+          "id": 9,
+          "title": "Super Mario Bros. The Lost Levels",
+          "system": {
+            "key": "system",
+            "id": 2,
+            "name": "SNES",
+            "generation": 4,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:54:02.498+00:00",
+            "updatedAt": "2025-07-15T16:54:02.498+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1991"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T18:08:49.417+00:00",
+          "updatedAt": "2025-07-15T18:08:49.417+00:00",
+          "deletedAt": null,
+          "customFieldValues": []
+        }
+      ],
+      "isPhysical": true,
+      "isCollection": true,
+      "createdAt": "2025-07-15T18:08:49.420+00:00",
+      "updatedAt": "2025-07-15T18:08:49.420+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 3,
+          "customFieldName": "Developer",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 4,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "1993"
+        }
+      ]
+    },
+    {
+      "key": "videoGameBox",
+      "id": 6,
+      "title": "Kirby's Return to Dream Land",
+      "system": {
         "key": "system",
         "id": 3,
         "name": "Wii",
@@ -209,7 +741,65 @@
           }
         ]
       },
-      {
+      "videoGames": [
+        {
+          "id": 10,
+          "title": "Kirby's Return to Dream Land",
+          "system": {
+            "key": "system",
+            "id": 3,
+            "name": "Wii",
+            "generation": 7,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:55:07.624+00:00",
+            "updatedAt": "2025-07-15T16:55:07.624+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "2006"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T18:42:19.700+00:00",
+          "updatedAt": "2025-07-15T18:42:19.700+00:00",
+          "deletedAt": null,
+          "customFieldValues": []
+        }
+      ],
+      "isPhysical": true,
+      "isCollection": false,
+      "createdAt": "2025-07-15T18:42:19.706+00:00",
+      "updatedAt": "2025-07-15T18:42:19.706+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 3,
+          "customFieldName": "Developer",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 4,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "2011"
+        }
+      ]
+    },
+    {
+      "key": "videoGameBox",
+      "id": 7,
+      "title": "Kirby's Return to Dream Land Deluxe",
+      "system": {
         "key": "system",
         "id": 4,
         "name": "Switch",
@@ -227,800 +817,207 @@
           }
         ]
       },
-      {
+      "videoGames": [
+        {
+          "id": 10,
+          "title": "Kirby's Return to Dream Land",
+          "system": {
+            "key": "system",
+            "id": 3,
+            "name": "Wii",
+            "generation": 7,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:55:07.624+00:00",
+            "updatedAt": "2025-07-15T16:55:07.624+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "2006"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T18:42:19.700+00:00",
+          "updatedAt": "2025-07-15T18:42:19.700+00:00",
+          "deletedAt": null,
+          "customFieldValues": []
+        }
+      ],
+      "isPhysical": true,
+      "isCollection": false,
+      "createdAt": "2025-07-15T18:43:40.110+00:00",
+      "updatedAt": "2025-07-15T18:43:40.110+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 3,
+          "customFieldName": "Developer",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 4,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "Nintendo"
+        },
+        {
+          "customFieldId": 5,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "2023"
+        }
+      ]
+    },
+    {
+      "key": "videoGameBox",
+      "id": 8,
+      "title": "Collection of Mana",
+      "system": {
         "key": "system",
-        "id": 5,
-        "name": "Game Boy",
-        "generation": 3,
+        "id": 4,
+        "name": "Switch",
+        "generation": 9,
         "handheld": true,
-        "createdAt": "2025-07-15T17:35:31.307+00:00",
-        "updatedAt": "2025-07-15T17:35:31.307+00:00",
+        "createdAt": "2025-07-15T16:55:53.764+00:00",
+        "updatedAt": "2025-07-15T16:55:53.764+00:00",
         "deletedAt": null,
         "customFieldValues": [
           {
             "customFieldId": 2,
             "customFieldName": "Release Year",
             "customFieldType": "number",
-            "value": "1989"
-          }
-        ]
-      }
-    ],
-    "videoGameBoxes": [
-      {
-        "key": "videoGameBox",
-        "id": 2,
-        "title": "Super Mario Bros. / Duck Hunt",
-        "system": {
-          "key": "system",
-          "id": 1,
-          "name": "NES",
-          "generation": 3,
-          "handheld": false,
-          "createdAt": "2025-07-15T16:51:53.372+00:00",
-          "updatedAt": "2025-07-15T16:51:53.372+00:00",
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 2,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1986"
-            }
-          ]
-        },
-        "videoGames": [
-          {
-            "id": 3,
-            "title": "Super Mario Bros.",
-            "system": {
-              "key": "system",
-              "id": 1,
-              "name": "NES",
-              "generation": 3,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:51:53.372+00:00",
-              "updatedAt": "2025-07-15T16:51:53.372+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1986"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T17:42:28.590+00:00",
-            "updatedAt": "2025-07-15T17:42:28.590+00:00",
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 7,
-                "customFieldName": "notes",
-                "customFieldType": "text",
-                "value": ""
-              },
-              {
-                "customFieldId": 8,
-                "customFieldName": "enhanced_port",
-                "customFieldType": "boolean",
-                "value": "false"
-              }
-            ]
-          },
-          {
-            "id": 4,
-            "title": "Duck Hunt",
-            "system": {
-              "key": "system",
-              "id": 1,
-              "name": "NES",
-              "generation": 3,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:51:53.372+00:00",
-              "updatedAt": "2025-07-15T16:51:53.372+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1986"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T17:42:28.609+00:00",
-            "updatedAt": "2025-07-15T17:42:28.609+00:00",
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 7,
-                "customFieldName": "notes",
-                "customFieldType": "text",
-                "value": "Requires the Zapper"
-              },
-              {
-                "customFieldId": 8,
-                "customFieldName": "enhanced_port",
-                "customFieldType": "boolean",
-                "value": "false"
-              }
-            ]
-          }
-        ],
-        "isPhysical": true,
-        "isCollection": true,
-        "createdAt": "2025-07-15T17:42:28.618+00:00",
-        "updatedAt": "2025-07-15T17:42:28.618+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Developer",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 4,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 5,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1985"
-          },
-          {
-            "customFieldId": 6,
-            "customFieldName": "Notes",
-            "customFieldType": "text",
-            "value": "My first video game!"
+            "value": "2017"
           }
         ]
       },
-      {
-        "key": "videoGameBox",
-        "id": 3,
-        "title": "Secret of Mana",
-        "system": {
-          "key": "system",
-          "id": 2,
-          "name": "SNES",
-          "generation": 4,
-          "handheld": false,
-          "createdAt": "2025-07-15T16:54:02.498+00:00",
-          "updatedAt": "2025-07-15T16:54:02.498+00:00",
+      "videoGames": [
+        {
+          "id": 5,
+          "title": "Secret of Mana",
+          "system": {
+            "key": "system",
+            "id": 2,
+            "name": "SNES",
+            "generation": 4,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:54:02.498+00:00",
+            "updatedAt": "2025-07-15T16:54:02.498+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1991"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T17:53:25.542+00:00",
+          "updatedAt": "2025-07-15T17:53:25.542+00:00",
           "deletedAt": null,
           "customFieldValues": [
             {
-              "customFieldId": 2,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1991"
+              "customFieldId": 7,
+              "customFieldName": "notes",
+              "customFieldType": "text",
+              "value": ""
+            },
+            {
+              "customFieldId": 8,
+              "customFieldName": "enhanced_port",
+              "customFieldType": "boolean",
+              "value": "false"
             }
           ]
         },
-        "videoGames": [
-          {
+        {
+          "id": 6,
+          "title": "Trials of Mana",
+          "system": {
+            "key": "system",
+            "id": 2,
+            "name": "SNES",
+            "generation": 4,
+            "handheld": false,
+            "createdAt": "2025-07-15T16:54:02.498+00:00",
+            "updatedAt": "2025-07-15T16:54:02.498+00:00",
+            "deletedAt": null,
+            "customFieldValues": [
+              {
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1991"
+              }
+            ]
+          },
+          "createdAt": "2025-07-15T17:56:23.162+00:00",
+          "updatedAt": "2025-07-15T17:56:23.162+00:00",
+          "deletedAt": null,
+          "customFieldValues": [
+            {
+              "customFieldId": 7,
+              "customFieldName": "notes",
+              "customFieldType": "text",
+              "value": "I got this as a reproduction cart"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "title": "Final Fantasy Adventure",
+          "system": {
+            "key": "system",
             "id": 5,
-            "title": "Secret of Mana",
-            "system": {
-              "key": "system",
-              "id": 2,
-              "name": "SNES",
-              "generation": 4,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:54:02.498+00:00",
-              "updatedAt": "2025-07-15T16:54:02.498+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1991"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T17:53:25.542+00:00",
-            "updatedAt": "2025-07-15T17:53:25.542+00:00",
+            "name": "Game Boy",
+            "generation": 3,
+            "handheld": true,
+            "createdAt": "2025-07-15T17:35:31.307+00:00",
+            "updatedAt": "2025-07-15T17:35:31.307+00:00",
             "deletedAt": null,
             "customFieldValues": [
               {
-                "customFieldId": 7,
-                "customFieldName": "notes",
-                "customFieldType": "text",
-                "value": ""
-              },
-              {
-                "customFieldId": 8,
-                "customFieldName": "enhanced_port",
-                "customFieldType": "boolean",
-                "value": "false"
-              }
-            ]
-          }
-        ],
-        "isPhysical": true,
-        "isCollection": false,
-        "createdAt": "2025-07-15T17:53:25.554+00:00",
-        "updatedAt": "2025-07-15T17:53:25.554+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Developer",
-            "customFieldType": "text",
-            "value": "Square"
-          },
-          {
-            "customFieldId": 4,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Square"
-          },
-          {
-            "customFieldId": 5,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1993"
-          }
-        ]
-      },
-      {
-        "key": "videoGameBox",
-        "id": 4,
-        "title": "Secret of Mana 2",
-        "system": {
-          "key": "system",
-          "id": 2,
-          "name": "SNES",
-          "generation": 4,
-          "handheld": false,
-          "createdAt": "2025-07-15T16:54:02.498+00:00",
-          "updatedAt": "2025-07-15T16:54:02.498+00:00",
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 2,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1991"
-            }
-          ]
-        },
-        "videoGames": [
-          {
-            "id": 6,
-            "title": "Trials of Mana",
-            "system": {
-              "key": "system",
-              "id": 2,
-              "name": "SNES",
-              "generation": 4,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:54:02.498+00:00",
-              "updatedAt": "2025-07-15T16:54:02.498+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1991"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T17:56:23.162+00:00",
-            "updatedAt": "2025-07-15T17:56:23.162+00:00",
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 7,
-                "customFieldName": "notes",
-                "customFieldType": "text",
-                "value": "I got this as a reproduction cart"
-              }
-            ]
-          }
-        ],
-        "isPhysical": true,
-        "isCollection": false,
-        "createdAt": "2025-07-15T17:56:23.169+00:00",
-        "updatedAt": "2025-07-15T17:56:23.169+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Developer",
-            "customFieldType": "text",
-            "value": "Square"
-          },
-          {
-            "customFieldId": 4,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Square"
-          },
-          {
-            "customFieldId": 5,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "0"
-          }
-        ]
-      },
-      {
-        "key": "videoGameBox",
-        "id": 5,
-        "title": "Super Mario All-Stars",
-        "system": {
-          "key": "system",
-          "id": 2,
-          "name": "SNES",
-          "generation": 4,
-          "handheld": false,
-          "createdAt": "2025-07-15T16:54:02.498+00:00",
-          "updatedAt": "2025-07-15T16:54:02.498+00:00",
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 2,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1991"
-            }
-          ]
-        },
-        "videoGames": [
-          {
-            "id": 3,
-            "title": "Super Mario Bros.",
-            "system": {
-              "key": "system",
-              "id": 1,
-              "name": "NES",
-              "generation": 3,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:51:53.372+00:00",
-              "updatedAt": "2025-07-15T16:51:53.372+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1986"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T17:42:28.590+00:00",
-            "updatedAt": "2025-07-15T17:42:28.590+00:00",
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 7,
-                "customFieldName": "notes",
-                "customFieldType": "text",
-                "value": ""
-              },
-              {
-                "customFieldId": 8,
-                "customFieldName": "enhanced_port",
-                "customFieldType": "boolean",
-                "value": "false"
+                "customFieldId": 2,
+                "customFieldName": "Release Year",
+                "customFieldType": "number",
+                "value": "1989"
               }
             ]
           },
-          {
-            "id": 7,
-            "title": "Super Mario Bros. 2",
-            "system": {
-              "key": "system",
-              "id": 1,
-              "name": "NES",
-              "generation": 3,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:51:53.372+00:00",
-              "updatedAt": "2025-07-15T16:51:53.372+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1986"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T18:08:49.398+00:00",
-            "updatedAt": "2025-07-15T18:08:49.398+00:00",
-            "deletedAt": null,
-            "customFieldValues": []
-          },
-          {
-            "id": 8,
-            "title": "Super Mario Bros. 3",
-            "system": {
-              "key": "system",
-              "id": 1,
-              "name": "NES",
-              "generation": 3,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:51:53.372+00:00",
-              "updatedAt": "2025-07-15T16:51:53.372+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1986"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T18:08:49.415+00:00",
-            "updatedAt": "2025-07-15T18:08:49.415+00:00",
-            "deletedAt": null,
-            "customFieldValues": []
-          },
-          {
-            "id": 9,
-            "title": "Super Mario Bros. The Lost Levels",
-            "system": {
-              "key": "system",
-              "id": 2,
-              "name": "SNES",
-              "generation": 4,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:54:02.498+00:00",
-              "updatedAt": "2025-07-15T16:54:02.498+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1991"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T18:08:49.417+00:00",
-            "updatedAt": "2025-07-15T18:08:49.417+00:00",
-            "deletedAt": null,
-            "customFieldValues": []
-          }
-        ],
-        "isPhysical": true,
-        "isCollection": true,
-        "createdAt": "2025-07-15T18:08:49.420+00:00",
-        "updatedAt": "2025-07-15T18:08:49.420+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Developer",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 4,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 5,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1993"
-          }
-        ]
-      },
-      {
-        "key": "videoGameBox",
-        "id": 6,
-        "title": "Kirby's Return to Dream Land",
-        "system": {
-          "key": "system",
-          "id": 3,
-          "name": "Wii",
-          "generation": 7,
-          "handheld": false,
-          "createdAt": "2025-07-15T16:55:07.624+00:00",
-          "updatedAt": "2025-07-15T16:55:07.624+00:00",
+          "createdAt": "2025-07-15T18:46:48.245+00:00",
+          "updatedAt": "2025-07-15T18:46:48.245+00:00",
           "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 2,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2006"
-            }
-          ]
+          "customFieldValues": []
+        }
+      ],
+      "isPhysical": true,
+      "isCollection": true,
+      "createdAt": "2025-07-15T18:46:48.247+00:00",
+      "updatedAt": "2025-07-15T18:46:48.247+00:00",
+      "deletedAt": null,
+      "customFieldValues": [
+        {
+          "customFieldId": 3,
+          "customFieldName": "Developer",
+          "customFieldType": "text",
+          "value": "SquareEnix"
         },
-        "videoGames": [
-          {
-            "id": 10,
-            "title": "Kirby's Return to Dream Land",
-            "system": {
-              "key": "system",
-              "id": 3,
-              "name": "Wii",
-              "generation": 7,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:55:07.624+00:00",
-              "updatedAt": "2025-07-15T16:55:07.624+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "2006"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T18:42:19.700+00:00",
-            "updatedAt": "2025-07-15T18:42:19.700+00:00",
-            "deletedAt": null,
-            "customFieldValues": []
-          }
-        ],
-        "isPhysical": true,
-        "isCollection": false,
-        "createdAt": "2025-07-15T18:42:19.706+00:00",
-        "updatedAt": "2025-07-15T18:42:19.706+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Developer",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 4,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 5,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2011"
-          }
-        ]
-      },
-      {
-        "key": "videoGameBox",
-        "id": 7,
-        "title": "Kirby's Return to Dream Land Deluxe",
-        "system": {
-          "key": "system",
-          "id": 4,
-          "name": "Switch",
-          "generation": 9,
-          "handheld": true,
-          "createdAt": "2025-07-15T16:55:53.764+00:00",
-          "updatedAt": "2025-07-15T16:55:53.764+00:00",
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 2,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2017"
-            }
-          ]
+        {
+          "customFieldId": 4,
+          "customFieldName": "Publisher",
+          "customFieldType": "text",
+          "value": "SquareEnix"
         },
-        "videoGames": [
-          {
-            "id": 10,
-            "title": "Kirby's Return to Dream Land",
-            "system": {
-              "key": "system",
-              "id": 3,
-              "name": "Wii",
-              "generation": 7,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:55:07.624+00:00",
-              "updatedAt": "2025-07-15T16:55:07.624+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "2006"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T18:42:19.700+00:00",
-            "updatedAt": "2025-07-15T18:42:19.700+00:00",
-            "deletedAt": null,
-            "customFieldValues": []
-          }
-        ],
-        "isPhysical": true,
-        "isCollection": false,
-        "createdAt": "2025-07-15T18:43:40.110+00:00",
-        "updatedAt": "2025-07-15T18:43:40.110+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Developer",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 4,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 5,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2023"
-          }
-        ]
-      },
-      {
-        "key": "videoGameBox",
-        "id": 8,
-        "title": "Collection of Mana",
-        "system": {
-          "key": "system",
-          "id": 4,
-          "name": "Switch",
-          "generation": 9,
-          "handheld": true,
-          "createdAt": "2025-07-15T16:55:53.764+00:00",
-          "updatedAt": "2025-07-15T16:55:53.764+00:00",
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 2,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2017"
-            }
-          ]
-        },
-        "videoGames": [
-          {
-            "id": 5,
-            "title": "Secret of Mana",
-            "system": {
-              "key": "system",
-              "id": 2,
-              "name": "SNES",
-              "generation": 4,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:54:02.498+00:00",
-              "updatedAt": "2025-07-15T16:54:02.498+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1991"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T17:53:25.542+00:00",
-            "updatedAt": "2025-07-15T17:53:25.542+00:00",
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 7,
-                "customFieldName": "notes",
-                "customFieldType": "text",
-                "value": ""
-              },
-              {
-                "customFieldId": 8,
-                "customFieldName": "enhanced_port",
-                "customFieldType": "boolean",
-                "value": "false"
-              }
-            ]
-          },
-          {
-            "id": 6,
-            "title": "Trials of Mana",
-            "system": {
-              "key": "system",
-              "id": 2,
-              "name": "SNES",
-              "generation": 4,
-              "handheld": false,
-              "createdAt": "2025-07-15T16:54:02.498+00:00",
-              "updatedAt": "2025-07-15T16:54:02.498+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1991"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T17:56:23.162+00:00",
-            "updatedAt": "2025-07-15T17:56:23.162+00:00",
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 7,
-                "customFieldName": "notes",
-                "customFieldType": "text",
-                "value": "I got this as a reproduction cart"
-              }
-            ]
-          },
-          {
-            "id": 11,
-            "title": "Final Fantasy Adventure",
-            "system": {
-              "key": "system",
-              "id": 5,
-              "name": "Game Boy",
-              "generation": 3,
-              "handheld": true,
-              "createdAt": "2025-07-15T17:35:31.307+00:00",
-              "updatedAt": "2025-07-15T17:35:31.307+00:00",
-              "deletedAt": null,
-              "customFieldValues": [
-                {
-                  "customFieldId": 2,
-                  "customFieldName": "Release Year",
-                  "customFieldType": "number",
-                  "value": "1989"
-                }
-              ]
-            },
-            "createdAt": "2025-07-15T18:46:48.245+00:00",
-            "updatedAt": "2025-07-15T18:46:48.245+00:00",
-            "deletedAt": null,
-            "customFieldValues": []
-          }
-        ],
-        "isPhysical": true,
-        "isCollection": true,
-        "createdAt": "2025-07-15T18:46:48.247+00:00",
-        "updatedAt": "2025-07-15T18:46:48.247+00:00",
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Developer",
-            "customFieldType": "text",
-            "value": "SquareEnix"
-          },
-          {
-            "customFieldId": 4,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "SquareEnix"
-          },
-          {
-            "customFieldId": 5,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2019"
-          }
-        ]
-      }
-    ]
-  },
-  "errors": null
+        {
+          "customFieldId": 5,
+          "customFieldName": "Release Year",
+          "customFieldType": "number",
+          "value": "2019"
+        }
+      ]
+    }
+  ]
 }

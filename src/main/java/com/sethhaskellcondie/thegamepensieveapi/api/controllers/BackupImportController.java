@@ -80,7 +80,7 @@ public class BackupImportController {
             final ObjectMapper objectMapper = new ObjectMapper();
             sampleData = objectMapper.readValue(fileData, BackupDataDto.class);
         } catch (IOException e) {
-            throw new ExceptionInternalError("Failed to read sample data from file: sampleData.json", e);
+            throw new ExceptionInternalError("Failed to read sample data from file sampleData.json: " + e.getMessage(), e);
         }
 
         final ImportResultsDto importResults = gateway.importBackupData(sampleData);
