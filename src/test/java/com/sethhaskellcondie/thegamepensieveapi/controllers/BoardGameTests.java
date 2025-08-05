@@ -34,6 +34,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Board games represent a list of games, and are similar to video games boxes this is how the board games appear on a shelf.
+ * The relationship is different from video games and video game boxes. While video games and video game boxes are many to many,
+ * board games and board game boxes are one to many with a parent board game.
+ * Board games contain one or more board game boxes. For example Villainous is a single board game but there are many different boxes for that single game.
+ * Because of this board game boxes must be created and deleted through the parent board game.
+ * Board games must contain a title. They can be expansions, and they can also be stand-alone games.
+ * This test suite will focus on teh board games, the board game boxes will be tested in the BoardGameTests suite.
+ */
+
 @SpringBootTest
 @ActiveProfiles("test-container")
 @AutoConfigureMockMvc
@@ -53,6 +63,7 @@ public class BoardGameTests {
 
     @Test
     void postBoardGameWithCustomFieldValues_ValidPayload_BoardGameCreatedAndReturned() throws Exception {
+        //test 1 - when valid post send, then 201 (created) returned
         final String expectedTitle = "Mega Man The Board Game";
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
                 new CustomFieldValue(0, "Owned", "boolean", "true"),
@@ -64,11 +75,11 @@ public class BoardGameTests {
 
         validateBoardGameResponseBody(result, expectedTitle, new ArrayList<>(), expectedCustomFieldValues);
 
-        final BoardGameResponseDto responseDto = factory.resultToBoardGameResponseDto(result);
-        updateExistingBoardGame_UpdateBoardGameAndCustomFieldValue_ReturnOk(responseDto, responseDto.customFieldValues());
-    }
+        final BoardGameResponseDto existingVideoGame = factory.resultToBoardGameResponseDto(result);
 
-    void updateExistingBoardGame_UpdateBoardGameAndCustomFieldValue_ReturnOk(BoardGameResponseDto existingVideoGame, List<CustomFieldValue> existingCustomFieldValue) throws Exception {
+
+        //test 2 - when valid patch send, then ok (200) returned
+        final List<CustomFieldValue> existingCustomFieldValue = existingVideoGame.customFieldValues();
         final String updatedTitle = "Power Rangers The Deckbuilding Game";
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
         existingCustomFieldValue.remove(0);
@@ -81,19 +92,19 @@ public class BoardGameTests {
         existingCustomFieldValue.add(updatedValue);
 
         final String jsonContent = factory.formatBoardGamePayload(updatedTitle, existingCustomFieldValue);
-        final ResultActions result = mockMvc.perform(
+        final ResultActions result2 = mockMvc.perform(
                 put(baseUrlSlash + existingVideoGame.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
 
-        result.andExpect(status().isOk());
-        validateBoardGameResponseBody(result, updatedTitle, new ArrayList<>(), existingCustomFieldValue);
+        result2.andExpect(status().isOk());
+        validateBoardGameResponseBody(result2, updatedTitle, new ArrayList<>(), existingCustomFieldValue);
     }
 
     @Test
     void postBoardGame_TitleBlank_ReturnBadRequest() throws Exception {
-        //Two errors the title cannot be blank
+        //One error: the title cannot be blank
         final String jsonContent = factory.formatBoardGamePayload("", null);
 
         final ResultActions result = mockMvc.perform(
@@ -110,7 +121,27 @@ public class BoardGameTests {
     }
 
     @Test
+    void postBoardGameBox_InvalidBoardGameId_ReturnBadRequest() throws Exception {
+        // Error: board game box must have a valid parent board game ID
+        final String title = "Test Board Game Box";
+        final String jsonContent = factory.formatBoardGameBoxPayload(title, false, false, null, Integer.MAX_VALUE, null);
+
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
+        );
+    }
+
+    @Test
     void getOneBoardGame_GameExists_BoardGameSerializedCorrectly() throws Exception {
+        // test 1: get one board game, happy path response shape correctly
         final String title = "Pandemic";
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
         ResultActions postResult = factory.postBoardGameReturnResult(title, customFieldValues);
@@ -124,23 +155,21 @@ public class BoardGameTests {
         );
         validateBoardGameResponseBody(result, expectedDto.title(), expectedDto.boardGameBoxes(), customFieldValues);
 
-        final BoardGameResponseDto responseDto = factory.resultToBoardGameResponseDto(result);
-        getOneBoardGame_AfterAddingOTwoBoardGameBoxes_BoardGameSerializedCorrectly(responseDto);
-    }
+        final BoardGameResponseDto existingBoardGame = factory.resultToBoardGameResponseDto(result);
 
-    void getOneBoardGame_AfterAddingOTwoBoardGameBoxes_BoardGameSerializedCorrectly(BoardGameResponseDto existingBoardGame) throws Exception {
+        // test 2: get one board game after adding two boxes, happy path response shaped correctly
         BoardGameBoxResponseDto boardGameBoxResponse1 = factory.postBoardGameBox(existingBoardGame.id());
         SlimBoardGameBox slimBoardGameBox1 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxResponse1);
         BoardGameBoxResponseDto boardGameBoxResponse2 = factory.postBoardGameBox(existingBoardGame.id());
         SlimBoardGameBox slimBoardGameBox2 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxResponse2);
 
-        final ResultActions result = mockMvc.perform(get(baseUrlSlash + existingBoardGame.id()));
+        final ResultActions result2 = mockMvc.perform(get(baseUrlSlash + existingBoardGame.id()));
 
-        result.andExpectAll(
+        result2.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameResponseBody(result, existingBoardGame.title(), List.of(slimBoardGameBox1, slimBoardGameBox2), existingBoardGame.customFieldValues());
+        validateBoardGameResponseBody(result2, existingBoardGame.title(), List.of(slimBoardGameBox1, slimBoardGameBox2), existingBoardGame.customFieldValues());
     }
 
     @Test
@@ -156,7 +185,6 @@ public class BoardGameTests {
 
     @Test
     void getAllBoardGames_StartsWithFilter_BoardGameListReturned() throws Exception {
-        //This is used in the following test
         final String customFieldName = "Custom";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.BOARD_GAME_KEY;
@@ -180,35 +208,32 @@ public class BoardGameTests {
         final Filter filter = new Filter(Keychain.BOARD_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Mega Man", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
 
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+        final ResultActions result4 = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(formattedJson)
         );
 
-        result.andExpectAll(
+        result4.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameResponseBody(result, List.of(gameDto1, gameDto2));
+        validateBoardGameResponseBody(result4, List.of(gameDto1, gameDto2));
 
+
+        //test 2: when getting all board game boxes with a custom field filter, only a subset of the games are returned
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-        getWithFilters_GreaterThanCustomFilter_BoardGameListReturned(customFilter, List.of(gameDto3));
-    }
+        final String jsonContent = factory.formatFiltersPayload(customFilter);
 
-    void getWithFilters_GreaterThanCustomFilter_BoardGameListReturned(Filter filter, List<BoardGameResponseDto> expectedGames) throws Exception {
-
-        final String jsonContent = factory.formatFiltersPayload(filter);
-
-        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+        final ResultActions result5 = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
         );
 
-        result.andExpectAll(
+        result5.andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameResponseBody(result, expectedGames);
+        validateBoardGameResponseBody(result5, List.of(gameDto3));
     }
 
     @Test
@@ -230,7 +255,6 @@ public class BoardGameTests {
 
     @Test
     void updateExistingBoardGame_InvalidId_ReturnNotFound() throws Exception {
-
         final String jsonContent = factory.formatBoardGamePayload("invalidId", null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/-1")
@@ -240,6 +264,33 @@ public class BoardGameTests {
 
         result.andExpectAll(
                 status().isNotFound(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
+        );
+    }
+
+    @Test
+    void putBoardGameBox_InvalidBoardGameId_ReturnBadRequest() throws Exception {
+        BoardGameResponseDto boardGame = factory.postBoardGame();
+        BoardGameBoxResponseDto boardGameBox = factory.postBoardGameBox(boardGame.id());
+
+        final String jsonContent = factory.formatBoardGameBoxPayload(
+                boardGameBox.title(), 
+                boardGameBox.isExpansion(), 
+                boardGameBox.isStandAlone(), 
+                boardGameBox.baseSetId(), 
+                Integer.MAX_VALUE, // Invalid board game ID
+                new ArrayList<>()
+        );
+        
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + boardGame.id() + "/boxes/" + boardGameBox.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.size()").value(1)
         );
@@ -261,7 +312,7 @@ public class BoardGameTests {
     }
 
     @Test
-    void deleteExistingToy_InvalidId_ReturnNotFound() throws Exception {
+    void deleteExistingBoardGame_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
                 delete(baseUrl + "/-1")
         );
@@ -278,7 +329,7 @@ public class BoardGameTests {
                 jsonPath("$.data.key").value(Keychain.BOARD_GAME_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.title").value(expectedTitle),
-                //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), Future Update: update this to test the board game boxes as well
+                //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), TODO Future Update: update this to test the board game boxes as well
                 jsonPath("$.errors").isEmpty()
         );
         BoardGameResponseDto responseDto = factory.resultToBoardGameResponseDto(result);
@@ -305,7 +356,7 @@ public class BoardGameTests {
                     () -> assertEquals(Keychain.BOARD_GAME_KEY, returnedGame.key()),
                     () -> assertEquals(expectedGame.id(), returnedGame.id()),
                     () -> assertEquals(expectedGame.title(), returnedGame.title())
-                    //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), Future Update: update this to test the board game boxes as well
+                    //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), TODO Future Update: update this to test the board game boxes as well
             );
             factory.validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues());
         }
