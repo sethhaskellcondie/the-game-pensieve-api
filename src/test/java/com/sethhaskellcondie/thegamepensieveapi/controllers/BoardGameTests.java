@@ -35,13 +35,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Board games represent a list of games, and are similar to video games boxes this is how the board games appear on a shelf.
+ * Board games are similar to video games they represent games in the collection but not how they appear on the shelf.
  * The relationship is different from video games and video game boxes. While video games and video game boxes are many to many,
  * board games and board game boxes are one to many with a parent board game.
  * Board games contain one or more board game boxes. For example Villainous is a single board game but there are many different boxes for that single game.
- * Because of this board game boxes must be created and deleted through the parent board game.
- * Board games must contain a title. They can be expansions, and they can also be stand-alone games.
- * This test suite will focus on teh board games, the board game boxes will be tested in the BoardGameTests suite.
+ * This test suite will focus on the board games, the board game boxes will be tested in the BoardGameBoxTests suite.
  */
 
 @SpringBootTest
