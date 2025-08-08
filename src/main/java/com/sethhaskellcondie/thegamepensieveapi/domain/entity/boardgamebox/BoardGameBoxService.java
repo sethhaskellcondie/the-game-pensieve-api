@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstr
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.MultiException;
@@ -23,10 +24,13 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
         implements EntityService<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto> {
 
     private final BoardGameRepository boardGameRepository;
+    private final BoardGameService boardGameService;
 
-    public BoardGameBoxService(EntityRepository<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto> repository, FilterService filterService, BoardGameRepository boardGameRepository) {
+    public BoardGameBoxService(EntityRepository<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto> repository,
+                               FilterService filterService, BoardGameRepository boardGameRepository, BoardGameService boardGameService) {
         super(repository, filterService);
         this.boardGameRepository = boardGameRepository;
+        this.boardGameService = boardGameService;
     }
 
     @Override
@@ -89,8 +93,8 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
     @Transactional
     public BoardGameBox updateExisting(int id, BoardGameBoxRequestDto requestDto) {
         BoardGameBox boardGameBox = repository.getById(id);
-        if (!Objects.equals(boardGameBox.getBoardGame().getId(), requestDto.boardGameId())) {
-            deleteParentBoardGameIfNeeded(boardGameBox.getBoardGame());
+        if (!Objects.equals(boardGameBox.getBoardGameId(), requestDto.boardGameId())) {
+            deleteParentBoardGameIfNeeded(boardGameBox.getBoardGameId());
         }
         boardGameBox.updateFromRequestDto(requestDto);
         if (!boardGameBox.isBoardGameValid()) {
@@ -111,13 +115,14 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
     @Transactional
     public void deleteById(int id) {
         BoardGameBox boardGameBox = repository.getById(id);
-        deleteParentBoardGameIfNeeded(boardGameBox.getBoardGame());
+        deleteParentBoardGameIfNeeded(boardGameBox.getBoardGameId());
         repository.deleteById(id);
     }
 
-    public void deleteParentBoardGameIfNeeded(BoardGame boardGame) {
+    public void deleteParentBoardGameIfNeeded(int boardGameId) {
+        BoardGame boardGame = boardGameService.getById(boardGameId);
         if (boardGame.getBoardGameBoxes().size() == 1) {
-            boardGameRepository.deleteById(boardGame.getId());
+            boardGameRepository.deleteById(boardGameId);
         }
     }
 }

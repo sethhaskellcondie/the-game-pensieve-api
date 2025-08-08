@@ -110,9 +110,6 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
         if (null == this.title || this.title.isBlank()) {
             throw new ExceptionMalformedEntity("Board Game Box object error, title cannot be blank");
         }
-        if (null == this.boardGameId || this.boardGameId <= 0) {
-            throw new ExceptionMalformedEntity("Board Game Box object error, boardGameId must be set and valid");
-        }
     }
 
     public SlimBoardGameBox convertToSlimBoardGameBox() {

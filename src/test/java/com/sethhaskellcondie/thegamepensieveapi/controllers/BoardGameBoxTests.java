@@ -83,7 +83,7 @@ public class BoardGameBoxTests {
         existingCustomFieldValue.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
                 customFieldValueToUpdate.getCustomFieldId(),
-                "Updated" + customFieldValueToUpdate.getCustomFieldName(),
+                "Updated " + customFieldValueToUpdate.getCustomFieldName(),
                 customFieldValueToUpdate.getCustomFieldType(),
                 "false"
         );
@@ -103,11 +103,9 @@ public class BoardGameBoxTests {
     }
 
     @Test
-    void postBoardGameBox_TitleBlankVideoGameMissing_ReturnBadRequest() throws Exception {
-        // Two errors total:
-        // 1. The title cannot be blank
-        // 2. The video game id is invalid
-        final String jsonContent = factory.formatBoardGameBoxPayload("", false, false, 0, -1, null);
+    void postBoardGameBox_TitleBlank_ReturnBadRequest() throws Exception {
+        // The title cannot be blank
+        final String jsonContent = factory.formatBoardGameBoxPayload("", false, false, 0, null, null);
 
         final ResultActions result = mockMvc.perform(
                 post(baseUrl)
@@ -118,7 +116,7 @@ public class BoardGameBoxTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors.size()").value(2)
+                jsonPath("$.errors.size()").value(1)
         );
     }
 
@@ -226,7 +224,7 @@ public class BoardGameBoxTests {
 
 
         // test 2 - when getting all board game boxes with a custom field filter, only a subset of the board game boxes is returned
-        final String jsonContent = factory.formatFiltersPayload(filter);
+        final String jsonContent = factory.formatFiltersPayload(customFilter);
 
         final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -273,11 +271,44 @@ public class BoardGameBoxTests {
         );
     }
 
-    //TODO update a board game box to a different board game, if that board game is now no longer a parent board game (has no boxes) that board game is deleted
+    @Test
+    void updateExistingBoardGameBox_ParentBoardGameHasNoOtherChildren_ParentBoardGameDeleted() throws Exception {
+        final BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
+        final int parentBoardGameId = existingBoardGameBox.boardGame().id();
+        final BoardGameBoxResponseDto existingBoardGameBox2 = factory.postBoardGameBox();
+        final int parentBoardGameId2 = existingBoardGameBox2.boardGame().id();
+        final String jsonContent = factory.formatBoardGameBoxPayload(
+                existingBoardGameBox.title(),
+                existingBoardGameBox.isExpansion(),
+                existingBoardGameBox.isStandAlone(),
+                existingBoardGameBox.baseSetId(),
+                parentBoardGameId2, //Update the parentBoardGame to a different parentBoardGame (2) this should delete parentBoardGame
+                new ArrayList<>()
+        );
+
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + existingBoardGameBox.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+        result.andExpectAll(
+                status().isOk(),
+                jsonPath("$.data.size()").value(11),
+                jsonPath("$.errors.size()").isEmpty()
+        );
+
+        mockMvc.perform(get("/v1/boardGames/" + parentBoardGameId))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.data").isEmpty(),
+                        jsonPath("$.errors.size()").value(1)
+                );
+    }
 
     @Test
-    void deleteExistingBoardGameBox_BoxExists_ReturnNoContent() throws Exception {
-        BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
+    void deleteBoardGameBox_ParentBoardGameHasNoOtherChildren_ParentBoardGameAlsoDeleted() throws Exception {
+        final BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
+        final int parentBoardGameId = existingBoardGameBox.boardGame().id();
 
         final ResultActions result = mockMvc.perform(
                 delete(baseUrlSlash + existingBoardGameBox.id())
@@ -288,6 +319,13 @@ public class BoardGameBoxTests {
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors").isEmpty()
         );
+
+        mockMvc.perform(get("/v1/boardGames/" + parentBoardGameId))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.data").isEmpty(),
+                        jsonPath("$.errors.size()").value(1)
+                );
     }
 
     @Test
