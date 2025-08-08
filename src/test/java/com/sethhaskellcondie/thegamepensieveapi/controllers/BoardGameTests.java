@@ -39,7 +39,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * The relationship is different from video games and video game boxes. While video games and video game boxes are many to many,
  * board games and board game boxes are one to many with a parent board game.
  * Board games contain one or more board game boxes. For example Villainous is a single board game but there are many different boxes for that single game.
- * This test suite will focus on the board games, the board game boxes will be tested in the BoardGameBoxTests suite.
+ * <p>
+ * Board games do not have a POST (create) or DELETE endpoints, only PUT and GET endpoints.
+ * Board games must include a title, and will be included as a parent game of a board game box.
+ * Because of this, board games cannot be created or deleted through the boardGames endpoints instead this is done through the boardGameBox endpoints.
+ * This test suite will focus on the board games, but some tests must interact with board game boxes to test the board game functionality.
  */
 
 @SpringBootTest
@@ -60,7 +64,7 @@ public class BoardGameTests {
 
 
     @Test
-    void postBoardGameWithCustomFieldValues_ValidPayload_BoardGameCreatedAndReturned() throws Exception {
+    void postAndPatchBoardGameWithCustomFieldValuesInBoardGameBox_ValidPayload_BoardGameCreatedAndReturned() throws Exception {
         //test 1 - when valid post send, then 201 (created) returned
         final String expectedTitle = "Mega Man The Board Game";
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
@@ -69,15 +73,19 @@ public class BoardGameTests {
                 new CustomFieldValue(0, "Publisher", "text", "Jasco")
         );
 
-        final ResultActions result = factory.postBoardGameReturnResult(expectedTitle, expectedCustomFieldValues);
+        final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, false, false, null, null, expectedCustomFieldValues);
+        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(result);
+        final BoardGameResponseDto boardGameDto = boardGameBoxDto.boardGame();
 
-        validateBoardGameResponseBody(result, expectedTitle, new ArrayList<>(), expectedCustomFieldValues);
+        final ResultActions getBoardGameResult = mockMvc.perform(get(baseUrlSlash + boardGameDto.id()));
+        getBoardGameResult.andExpect(status().isOk());
+        validateBoardGameResponseBody(getBoardGameResult, expectedTitle, new ArrayList<>(), expectedCustomFieldValues);
 
-        final BoardGameResponseDto existingVideoGame = factory.resultToBoardGameResponseDto(result);
+        final BoardGameResponseDto existingBoardGame = boardGameBoxDto.boardGame();
 
 
         //test 2 - when valid patch send, then ok (200) returned
-        final List<CustomFieldValue> existingCustomFieldValue = existingVideoGame.customFieldValues();
+        final List<CustomFieldValue> existingCustomFieldValue = existingBoardGame.customFieldValues();
         final String updatedTitle = "Power Rangers The Deckbuilding Game";
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
         existingCustomFieldValue.remove(0);
@@ -91,7 +99,7 @@ public class BoardGameTests {
 
         final String jsonContent = factory.formatBoardGamePayload(updatedTitle, existingCustomFieldValue);
         final ResultActions result2 = mockMvc.perform(
-                put(baseUrlSlash + existingVideoGame.id())
+                put(baseUrlSlash + existingBoardGame.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -101,12 +109,12 @@ public class BoardGameTests {
     }
 
     @Test
-    void postBoardGame_TitleBlank_ReturnBadRequest() throws Exception {
+    void postBoardGameBoxWithBlankTitle_ReturnBadRequest() throws Exception {
         //One error: the title cannot be blank
-        final String jsonContent = factory.formatBoardGamePayload("", null);
+        final String jsonContent = factory.formatBoardGameBoxPayload("", false, false, null, null, null);
 
         final ResultActions result = mockMvc.perform(
-                post(baseUrl)
+                post("/v1/boardGameBoxes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -125,7 +133,7 @@ public class BoardGameTests {
         final String jsonContent = factory.formatBoardGameBoxPayload(title, false, false, null, Integer.MAX_VALUE, null);
 
         final ResultActions result = mockMvc.perform(
-                post(baseUrl)
+                post("/v1/boardGameBoxes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -142,8 +150,9 @@ public class BoardGameTests {
         // test 1: get one board game, happy path response shape correctly
         final String title = "Pandemic";
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
-        ResultActions postResult = factory.postBoardGameReturnResult(title, customFieldValues);
-        final BoardGameResponseDto expectedDto = factory.resultToBoardGameResponseDto(postResult);
+        ResultActions postResult = factory.postBoardGameBoxReturnResult(title, false, false, null, null, customFieldValues);
+        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(postResult);
+        final BoardGameResponseDto expectedDto = boardGameBoxDto.boardGame();
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
 
@@ -190,18 +199,18 @@ public class BoardGameTests {
 
         final String title1 = "Mega Man the Board Game";
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postBoardGameReturnResult(title1, customFieldValues1);
-        final BoardGameResponseDto gameDto1 = factory.resultToBoardGameResponseDto(result1);
+        final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, customFieldValues1);
+        final BoardGameResponseDto gameDto1 = factory.resultToBoardGameBoxResponseDto(result1).boardGame();
 
         final String title2 = "Mega Man the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postBoardGameReturnResult(title2, customFieldValues2);
-        final BoardGameResponseDto gameDto2 = factory.resultToBoardGameResponseDto(result2);
+        final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, customFieldValues2);
+        final BoardGameResponseDto gameDto2 = factory.resultToBoardGameBoxResponseDto(result2).boardGame();
 
         final String title3 = "Power Rangers the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postBoardGameReturnResult(title3, customFieldValues3);
-        final BoardGameResponseDto gameDto3 = factory.resultToBoardGameResponseDto(result3);
+        final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, customFieldValues3);
+        final BoardGameResponseDto gameDto3 = factory.resultToBoardGameBoxResponseDto(result3).boardGame();
 
         final Filter filter = new Filter(Keychain.BOARD_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Mega Man", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
@@ -269,8 +278,7 @@ public class BoardGameTests {
 
     @Test
     void putBoardGameBox_InvalidBoardGameId_ReturnBadRequest() throws Exception {
-        BoardGameResponseDto boardGame = factory.postBoardGame();
-        BoardGameBoxResponseDto boardGameBox = factory.postBoardGameBox(boardGame.id());
+        BoardGameBoxResponseDto boardGameBox = factory.postBoardGameBox();
 
         final String jsonContent = factory.formatBoardGameBoxPayload(
                 boardGameBox.title(), 
@@ -282,7 +290,7 @@ public class BoardGameTests {
         );
         
         final ResultActions result = mockMvc.perform(
-                put(baseUrlSlash + boardGame.id() + "/boxes/" + boardGameBox.id())
+                put("/v1/boardGameBoxes/" + boardGameBox.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent)
         );
@@ -295,11 +303,68 @@ public class BoardGameTests {
     }
 
     @Test
-    void deleteExistingBoardGame_GameExists_ReturnNoContent() throws Exception {
-        BoardGameResponseDto existingVideoGame = factory.postBoardGame();
+    void updateExistingBoardGameBox_ParentBoardGameHasNoOtherChildren_ParentBoardGameDeleted() throws Exception {
+        final BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
+        final int parentBoardGameId = existingBoardGameBox.boardGame().id();
+        final BoardGameBoxResponseDto existingBoardGameBox2 = factory.postBoardGameBox();
+        final int parentBoardGameId2 = existingBoardGameBox2.boardGame().id();
+        final String jsonContent = factory.formatBoardGameBoxPayload(
+                existingBoardGameBox.title(),
+                existingBoardGameBox.isExpansion(),
+                existingBoardGameBox.isStandAlone(),
+                existingBoardGameBox.baseSetId(),
+                parentBoardGameId2, //Update the parentBoardGame to a different parentBoardGame (2) this should delete parentBoardGame
+                new ArrayList<>()
+        );
 
         final ResultActions result = mockMvc.perform(
-                delete(baseUrlSlash + existingVideoGame.id())
+                put("/v1/boardGameBoxes/" + existingBoardGameBox.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+        result.andExpectAll(
+                status().isOk(),
+                jsonPath("$.data").exists(),
+                jsonPath("$.errors").isEmpty()
+        );
+
+        mockMvc.perform(get(baseUrlSlash + parentBoardGameId))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.data").isEmpty(),
+                        jsonPath("$.errors.size()").value(1)
+                );
+    }
+
+    @Test
+    void deleteBoardGameBox_ParentBoardGameHasNoOtherChildren_ParentBoardGameAlsoDeleted() throws Exception {
+        final BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
+        final int parentBoardGameId = existingBoardGameBox.boardGame().id();
+
+        final ResultActions result = mockMvc.perform(
+                delete("/v1/boardGameBoxes/" + existingBoardGameBox.id())
+        );
+
+        result.andExpectAll(
+                status().isNoContent(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isEmpty()
+        );
+
+        mockMvc.perform(get(baseUrlSlash + parentBoardGameId))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.data").isEmpty(),
+                        jsonPath("$.errors.size()").value(1)
+                );
+    }
+
+    @Test
+    void deleteExistingBoardGameBox_GameExists_ReturnNoContent() throws Exception {
+        BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
+
+        final ResultActions result = mockMvc.perform(
+                delete("/v1/boardGameBoxes/" + existingBoardGameBox.id())
         );
 
         result.andExpectAll(
@@ -310,9 +375,9 @@ public class BoardGameTests {
     }
 
     @Test
-    void deleteExistingBoardGame_InvalidId_ReturnNotFound() throws Exception {
+    void deleteExistingBoardGameBox_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
-                delete(baseUrl + "/-1")
+                delete("/v1/boardGameBoxes/-1")
         );
 
         result.andExpectAll(

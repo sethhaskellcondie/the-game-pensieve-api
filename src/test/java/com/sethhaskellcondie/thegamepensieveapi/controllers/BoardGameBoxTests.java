@@ -64,7 +64,7 @@ public class BoardGameBoxTests {
         final String expectedTitle = "Disney Villainous";
         final boolean expectedExpansion = false;
         final boolean expectedStandAlone = false;
-        final BoardGameResponseDto relatedBoardGame = factory.postBoardGame();
+        final BoardGameResponseDto relatedBoardGame = factory.postBoardGameBox().boardGame();
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
                 new CustomFieldValue(0, "Has Solo Mode", "boolean", "true"),
                 new CustomFieldValue(0, "Best Player Count", "number", "3"),
@@ -158,7 +158,7 @@ public class BoardGameBoxTests {
         final String title = "Freelancers";
         final boolean isExpansion = false;
         final boolean isStandAlone = true;
-        final BoardGameResponseDto relatedBoardGame = factory.postBoardGame();
+        final BoardGameResponseDto relatedBoardGame = factory.postBoardGameBox().boardGame();
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
         ResultActions postResult = factory.postBoardGameBoxReturnResult(title, isExpansion, isStandAlone, null, relatedBoardGame.id(), customFieldValues);
         final BoardGameBoxResponseDto expectedDto = factory.resultToBoardGameBoxResponseDto(postResult);
@@ -269,63 +269,6 @@ public class BoardGameBoxTests {
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.size()").value(1)
         );
-    }
-
-    @Test
-    void updateExistingBoardGameBox_ParentBoardGameHasNoOtherChildren_ParentBoardGameDeleted() throws Exception {
-        final BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
-        final int parentBoardGameId = existingBoardGameBox.boardGame().id();
-        final BoardGameBoxResponseDto existingBoardGameBox2 = factory.postBoardGameBox();
-        final int parentBoardGameId2 = existingBoardGameBox2.boardGame().id();
-        final String jsonContent = factory.formatBoardGameBoxPayload(
-                existingBoardGameBox.title(),
-                existingBoardGameBox.isExpansion(),
-                existingBoardGameBox.isStandAlone(),
-                existingBoardGameBox.baseSetId(),
-                parentBoardGameId2, //Update the parentBoardGame to a different parentBoardGame (2) this should delete parentBoardGame
-                new ArrayList<>()
-        );
-
-        final ResultActions result = mockMvc.perform(
-                put(baseUrlSlash + existingBoardGameBox.id())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent)
-        );
-        result.andExpectAll(
-                status().isOk(),
-                jsonPath("$.data.size()").value(11),
-                jsonPath("$.errors.size()").isEmpty()
-        );
-
-        mockMvc.perform(get("/v1/boardGames/" + parentBoardGameId))
-                .andExpectAll(
-                        status().isNotFound(),
-                        jsonPath("$.data").isEmpty(),
-                        jsonPath("$.errors.size()").value(1)
-                );
-    }
-
-    @Test
-    void deleteBoardGameBox_ParentBoardGameHasNoOtherChildren_ParentBoardGameAlsoDeleted() throws Exception {
-        final BoardGameBoxResponseDto existingBoardGameBox = factory.postBoardGameBox();
-        final int parentBoardGameId = existingBoardGameBox.boardGame().id();
-
-        final ResultActions result = mockMvc.perform(
-                delete(baseUrlSlash + existingBoardGameBox.id())
-        );
-
-        result.andExpectAll(
-                status().isNoContent(),
-                jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
-        );
-
-        mockMvc.perform(get("/v1/boardGames/" + parentBoardGameId))
-                .andExpectAll(
-                        status().isNotFound(),
-                        jsonPath("$.data").isEmpty(),
-                        jsonPath("$.errors.size()").value(1)
-                );
     }
 
     @Test

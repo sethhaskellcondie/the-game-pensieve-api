@@ -528,25 +528,6 @@ public class TestFactory {
         return String.format(json, title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValuesString);
     }
 
-    public BoardGameResponseDto postBoardGame() throws Exception {
-        final String title = "TestBoardGame-" + randomString(4);
-        final ResultActions result = postBoardGameReturnResult(title, null);
-        return resultToBoardGameResponseDto(result);
-    }
-
-    public ResultActions postBoardGameReturnResult(String title, List<CustomFieldValue> customFieldValues) throws Exception {
-        final String formattedJson = formatBoardGamePayload(title, customFieldValues);
-
-        final ResultActions result = mockMvc.perform(
-                post("/v1/boardGames")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(formattedJson)
-        );
-
-        result.andExpect(status().isCreated());
-        return result;
-    }
-
     public BoardGameResponseDto resultToBoardGameResponseDto(ResultActions result) throws Exception {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
