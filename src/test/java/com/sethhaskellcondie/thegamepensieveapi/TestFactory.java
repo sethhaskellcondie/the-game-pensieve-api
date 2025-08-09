@@ -490,8 +490,8 @@ public class TestFactory {
                 responseDto.createdAt(), responseDto.updatedAt(), responseDto.deletedAt(), responseDto.customFieldValues());
     }
 
-    public ResultActions postBoardGameBoxReturnResult(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId, List<CustomFieldValue> customFieldValues)
-            throws Exception {
+    public ResultActions postBoardGameBoxReturnResult(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId,
+                                                      List<CustomFieldValue> customFieldValues) throws Exception {
         final String formattedJson = formatBoardGameBoxPayload(title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValues);
 
         final ResultActions result = mockMvc.perform(

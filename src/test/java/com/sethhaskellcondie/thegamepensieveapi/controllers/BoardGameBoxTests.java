@@ -148,7 +148,7 @@ public class BoardGameBoxTests {
         final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, expectedExpansion, expectedStandAlone, null, null, null);
         final BoardGameBoxResponseDto boxResponseDto = factory.resultToBoardGameBoxResponseDto(result);
         //This is only used as the expected result only testing the key, id, and title
-        final BoardGameResponseDto boardGameResponseDto = new BoardGameResponseDto(Keychain.BOARD_GAME_BOX_KEY, boxResponseDto.id(), expectedTitle, null, null, null, null, null);
+        final BoardGameResponseDto boardGameResponseDto = new BoardGameResponseDto(Keychain.BOARD_GAME_BOX_KEY, boxResponseDto.boardGame().id(), expectedTitle, null, null, null, null, null);
 
         validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, boardGameResponseDto, new ArrayList<>());
     }

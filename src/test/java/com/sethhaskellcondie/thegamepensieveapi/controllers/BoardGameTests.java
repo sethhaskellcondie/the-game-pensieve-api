@@ -67,6 +67,7 @@ public class BoardGameTests {
     void postAndPatchBoardGameWithCustomFieldValuesInBoardGameBox_ValidPayload_BoardGameCreatedAndReturned() throws Exception {
         //test 1 - when valid post send, then 201 (created) returned
         final String expectedTitle = "Mega Man The Board Game";
+        //TODO update the custom fields to be applied to the board game not the board game box
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
                 new CustomFieldValue(0, "Owned", "boolean", "true"),
                 new CustomFieldValue(0, "Best Player Count", "number", "3"),
