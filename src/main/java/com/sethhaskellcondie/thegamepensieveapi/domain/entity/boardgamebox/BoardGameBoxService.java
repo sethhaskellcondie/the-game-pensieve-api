@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstract;
@@ -72,7 +73,17 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
         }
         if (boardGameId == 0) {
             BoardGame boardGame = new BoardGame();
-            boardGame.updateFromRequestDto(new BoardGameRequestDto(requestDto.title(), new ArrayList<>()));
+            List<CustomFieldValue> boardGameCustomFields = new ArrayList<>();
+            String boardGameTitle = requestDto.title();
+            
+            if (requestDto.boardGame() != null) {
+                boardGameTitle = requestDto.boardGame().title();
+                if (requestDto.boardGame().customFieldValues() != null) {
+                    boardGameCustomFields = requestDto.boardGame().customFieldValues();
+                }
+            }
+            
+            boardGame.updateFromRequestDto(new BoardGameRequestDto(boardGameTitle, boardGameCustomFields));
             boardGame = boardGameRepository.insert(boardGame);
             newBoardGameBox.setBoardGame(boardGame);
         } else {

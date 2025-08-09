@@ -504,6 +504,20 @@ public class TestFactory {
         return result;
     }
 
+    public ResultActions postBoardGameBoxReturnResult(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId,
+                                                      BoardGameResponseDto boardGame, List<CustomFieldValue> customFieldValues) throws Exception {
+        final String formattedJson = formatBoardGameBoxPayload(title, isExpansion, isStandAlone, baseSetId, boardGameId, boardGame, customFieldValues);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/boardGameBoxes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
     public BoardGameBoxResponseDto resultToBoardGameBoxResponseDto(ResultActions result) throws Exception {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
@@ -521,11 +535,43 @@ public class TestFactory {
                         "isStandAlone": %b,
                         "baseSetId": %d,
                         "boardGameId": %d,
+                        "boardGame": null,
                         "customFieldValues": %s
                         }
                 }
                 """;
         return String.format(json, title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValuesString);
+    }
+
+    public String formatBoardGameBoxPayload(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId, 
+                                            BoardGameResponseDto boardGame, List<CustomFieldValue> customFieldValues) {
+        final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
+        final String boardGameString = boardGame != null ? formatBoardGameForPayload(boardGame) : "null";
+        final String json = """
+                {
+                    "boardGameBox": {
+                        "title": "%s",
+                        "isExpansion": "%b",
+                        "isStandAlone": %b,
+                        "baseSetId": %d,
+                        "boardGameId": %d,
+                        "boardGame": %s,
+                        "customFieldValues": %s
+                        }
+                }
+                """;
+        return String.format(json, title, isExpansion, isStandAlone, baseSetId, boardGameId, boardGameString, customFieldValuesString);
+    }
+
+    private String formatBoardGameForPayload(BoardGameResponseDto boardGame) {
+        final String customFieldValuesString = formatCustomFieldValues(boardGame.customFieldValues());
+        final String json = """
+                {
+                    "title": "%s",
+                    "customFieldValues": %s
+                }
+                """;
+        return String.format(json, boardGame.title(), customFieldValuesString);
     }
 
     public BoardGameResponseDto resultToBoardGameResponseDto(ResultActions result) throws Exception {

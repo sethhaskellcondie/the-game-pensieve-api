@@ -67,14 +67,14 @@ public class BoardGameTests {
     void postAndPatchBoardGameWithCustomFieldValuesInBoardGameBox_ValidPayload_BoardGameCreatedAndReturned() throws Exception {
         //test 1 - when valid post send, then 201 (created) returned
         final String expectedTitle = "Mega Man The Board Game";
-        //TODO update the custom fields to be applied to the board game not the board game box
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
                 new CustomFieldValue(0, "Owned", "boolean", "true"),
                 new CustomFieldValue(0, "Best Player Count", "number", "3"),
                 new CustomFieldValue(0, "Publisher", "text", "Jasco")
         );
+        final BoardGameResponseDto newBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, expectedTitle, null, null, null, null, expectedCustomFieldValues);
 
-        final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, false, false, null, null, expectedCustomFieldValues);
+        final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, false, false, null, null, newBoardGame, new ArrayList<>());
         final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(result);
         final BoardGameResponseDto boardGameDto = boardGameBoxDto.boardGame();
 
@@ -86,17 +86,16 @@ public class BoardGameTests {
 
 
         //test 2 - when valid patch send, then ok (200) returned
-        final List<CustomFieldValue> existingCustomFieldValue = existingBoardGame.customFieldValues();
+        final List<CustomFieldValue> existingCustomFieldValue = new ArrayList<>(existingBoardGame.customFieldValues());
         final String updatedTitle = "Power Rangers The Deckbuilding Game";
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
-        existingCustomFieldValue.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
                 customFieldValueToUpdate.getCustomFieldId(),
                 "Updated" + customFieldValueToUpdate.getCustomFieldName(),
                 customFieldValueToUpdate.getCustomFieldType(),
                 "false"
         );
-        existingCustomFieldValue.add(updatedValue);
+        existingCustomFieldValue.set(0, updatedValue);
 
         final String jsonContent = factory.formatBoardGamePayload(updatedTitle, existingCustomFieldValue);
         final ResultActions result2 = mockMvc.perform(
@@ -151,7 +150,8 @@ public class BoardGameTests {
         // test 1: get one board game, happy path response shape correctly
         final String title = "Pandemic";
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
-        ResultActions postResult = factory.postBoardGameBoxReturnResult(title, false, false, null, null, customFieldValues);
+        final BoardGameResponseDto newBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title, null, null, null, null, customFieldValues);
+        ResultActions postResult = factory.postBoardGameBoxReturnResult(title, false, false, null, null, newBoardGame, new ArrayList<>());
         final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(postResult);
         final BoardGameResponseDto expectedDto = boardGameBoxDto.boardGame();
 
@@ -200,17 +200,20 @@ public class BoardGameTests {
 
         final String title1 = "Mega Man the Board Game";
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, customFieldValues1);
+        final BoardGameResponseDto newBoardGame1 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title1, null, null, null, null, customFieldValues1);
+        final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, newBoardGame1, new ArrayList<>());
         final BoardGameResponseDto gameDto1 = factory.resultToBoardGameBoxResponseDto(result1).boardGame();
 
         final String title2 = "Mega Man the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, customFieldValues2);
+        final BoardGameResponseDto newBoardGame2 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title2, null, null, null, null, customFieldValues2);
+        final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, newBoardGame2, new ArrayList<>());
         final BoardGameResponseDto gameDto2 = factory.resultToBoardGameBoxResponseDto(result2).boardGame();
 
         final String title3 = "Power Rangers the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, customFieldValues3);
+        final BoardGameResponseDto newBoardGame3 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title3, null, null, null, null, customFieldValues3);
+        final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, newBoardGame3, new ArrayList<>());
         final BoardGameResponseDto gameDto3 = factory.resultToBoardGameBoxResponseDto(result3).boardGame();
 
         final Filter filter = new Filter(Keychain.BOARD_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Mega Man", false);
