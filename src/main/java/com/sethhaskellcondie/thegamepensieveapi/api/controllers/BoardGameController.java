@@ -5,11 +5,8 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterRequestDto;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -49,28 +45,10 @@ public class BoardGameController {
     }
 
     @ResponseBody
-    @PostMapping("")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, BoardGameResponseDto> createNew(@RequestBody Map<String, BoardGameRequestDto> requestBody) throws ExceptionFailedDbValidation {
-        final BoardGameResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.BOARD_GAME_KEY));
-        final FormattedResponseBody<BoardGameResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
-    }
-
-    @ResponseBody
     @PutMapping("/{id}")
     public Map<String, BoardGameResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, BoardGameRequestDto> requestBody) {
         final BoardGameResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.BOARD_GAME_KEY));
         final FormattedResponseBody<BoardGameResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
-    }
-
-    @ResponseBody
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Map<String, String> deleteExisting(@PathVariable int id) throws ExceptionResourceNotFound {
-        gateway.deleteById(id);
-        FormattedResponseBody<String> body = new FormattedResponseBody<>("");
         return body.formatData();
     }
 }

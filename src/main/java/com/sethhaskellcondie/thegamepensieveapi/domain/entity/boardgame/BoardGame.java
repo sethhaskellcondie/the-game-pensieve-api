@@ -30,7 +30,7 @@ public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto>
         return title;
     }
 
-    public List<SlimBoardGameBox> getBoardGamesBoxes() {
+    public List<SlimBoardGameBox> getBoardGameBoxes() {
         return boardGameBoxes;
     }
 

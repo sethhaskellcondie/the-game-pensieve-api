@@ -318,7 +318,6 @@ public class VideoGameBoxTests {
 
     @Test
     void updateExistingVideoGameBox_NoRelatedGames_ReturnBadRequest() throws Exception {
-        //Note: somehow include this in the title and system check
         VideoGameBoxResponseDto responseDto = factory.postVideoGameBox();
         final String jsonContent = factory.formatVideoGameBoxPayload(responseDto.title(), responseDto.system().id(), List.of(), List.of(), false, new ArrayList<>());
         final ResultActions result = mockMvc.perform(
