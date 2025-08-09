@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.SlimBoardGameBox;
@@ -505,7 +506,7 @@ public class TestFactory {
     }
 
     public ResultActions postBoardGameBoxReturnResult(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId,
-                                                      BoardGameResponseDto boardGame, List<CustomFieldValue> customFieldValues) throws Exception {
+                                                      BoardGameRequestDto boardGame, List<CustomFieldValue> customFieldValues) throws Exception {
         final String formattedJson = formatBoardGameBoxPayload(title, isExpansion, isStandAlone, baseSetId, boardGameId, boardGame, customFieldValues);
 
         final ResultActions result = mockMvc.perform(
@@ -543,8 +544,8 @@ public class TestFactory {
         return String.format(json, title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValuesString);
     }
 
-    public String formatBoardGameBoxPayload(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId, 
-                                            BoardGameResponseDto boardGame, List<CustomFieldValue> customFieldValues) {
+    public String formatBoardGameBoxPayload(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId,
+                                            BoardGameRequestDto boardGame, List<CustomFieldValue> customFieldValues) {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
         final String boardGameString = boardGame != null ? formatBoardGameForPayload(boardGame) : "null";
         final String json = """
@@ -563,7 +564,7 @@ public class TestFactory {
         return String.format(json, title, isExpansion, isStandAlone, baseSetId, boardGameId, boardGameString, customFieldValuesString);
     }
 
-    private String formatBoardGameForPayload(BoardGameResponseDto boardGame) {
+    private String formatBoardGameForPayload(BoardGameRequestDto boardGame) {
         final String customFieldValuesString = formatCustomFieldValues(boardGame.customFieldValues());
         final String json = """
                 {
@@ -592,5 +593,63 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, title, customFieldValuesString);
+    }
+
+    public void validateBoardGameBoxResponseBody(ResultActions result, String expectedTitle, boolean expectedExpansion, boolean expectedStandAlone, Integer expectedBaseSetId,
+                                                 BoardGameResponseDto expectedBoardGameResponse, List<CustomFieldValue> customFieldValues) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data.key").value(Keychain.BOARD_GAME_BOX_KEY),
+                jsonPath("$.data.id").isNotEmpty(),
+                jsonPath("$.data.title").value(expectedTitle),
+                jsonPath("$.data.isExpansion").value(expectedExpansion),
+                jsonPath("$.data.isStandAlone").value(expectedStandAlone),
+                jsonPath("$.data.baseSetId").value(expectedBaseSetId),
+                jsonPath("$.data.boardGame.key").value(Keychain.BOARD_GAME_KEY),
+                jsonPath("$.data.boardGame.id").value(expectedBoardGameResponse.id()),
+                jsonPath("$.data.boardGame.title").value(expectedBoardGameResponse.title()),
+                jsonPath("$.errors").isEmpty()
+        );
+        BoardGameBoxResponseDto responseDto = resultToBoardGameBoxResponseDto(result);
+        validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
+        
+        // Also validate board game custom field values if they exist
+        if (expectedBoardGameResponse.customFieldValues() != null && !expectedBoardGameResponse.customFieldValues().isEmpty()) {
+            validateCustomFieldValues(responseDto.boardGame().customFieldValues(), expectedBoardGameResponse.customFieldValues());
+        }
+    }
+
+    public void validateBoardGameBoxResponseBody(ResultActions result, List<BoardGameBoxResponseDto> expectedBoardGameBoxes) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data").exists(),
+                jsonPath("$.errors").isEmpty()
+        );
+
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, List<BoardGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
+        });
+        final List<BoardGameBoxResponseDto> returnedBoardGameBoxes = body.get("data");
+        //test the order, and the deserialization
+        for (int i = 0; i < returnedBoardGameBoxes.size(); i++) {
+            BoardGameBoxResponseDto expectedBoardGameBox = expectedBoardGameBoxes.get(i);
+            BoardGameBoxResponseDto returnedBoardGameBox = returnedBoardGameBoxes.get(i);
+            assertAll(
+                    "The response body for boardGameBoxes is not formatted correctly",
+                    () -> assertEquals(Keychain.BOARD_GAME_BOX_KEY, returnedBoardGameBox.key()),
+                    () -> assertEquals(expectedBoardGameBox.id(), returnedBoardGameBox.id()),
+                    () -> assertEquals(expectedBoardGameBox.title(), returnedBoardGameBox.title()),
+                    () -> assertEquals(expectedBoardGameBox.isExpansion(), returnedBoardGameBox.isExpansion()),
+                    () -> assertEquals(expectedBoardGameBox.isStandAlone(), returnedBoardGameBox.isStandAlone()),
+                    () -> assertEquals(expectedBoardGameBox.baseSetId(), returnedBoardGameBox.baseSetId()),
+                    () -> assertEquals(expectedBoardGameBox.boardGame().id(), returnedBoardGameBox.boardGame().id()),
+                    () -> assertEquals(expectedBoardGameBox.boardGame().title(), returnedBoardGameBox.boardGame().title())
+            );
+            validateCustomFieldValues(expectedBoardGameBox.customFieldValues(), returnedBoardGameBox.customFieldValues());
+            
+            // Also validate board game custom field values if they exist
+            if (expectedBoardGameBox.boardGame().customFieldValues() != null && !expectedBoardGameBox.boardGame().customFieldValues().isEmpty()) {
+                validateCustomFieldValues(expectedBoardGameBox.boardGame().customFieldValues(), returnedBoardGameBox.boardGame().customFieldValues());
+            }
+        }
     }
 }

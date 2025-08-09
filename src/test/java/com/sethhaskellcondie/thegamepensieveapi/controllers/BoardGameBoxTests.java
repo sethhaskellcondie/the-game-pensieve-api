@@ -1,7 +1,5 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -16,15 +14,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -73,7 +66,7 @@ public class BoardGameBoxTests {
 
         final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, expectedExpansion, expectedStandAlone, null, relatedBoardGame.id(), expectedCustomFieldValues);
 
-        validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, relatedBoardGame, expectedCustomFieldValues);
+        factory.validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, relatedBoardGame, expectedCustomFieldValues);
 
         //test 2 - when valid patch sent, then return 200 (ok) returned
         final BoardGameBoxResponseDto existingBoardGameBox = factory.resultToBoardGameBoxResponseDto(result);
@@ -98,7 +91,7 @@ public class BoardGameBoxTests {
         );
 
         result2.andExpect(status().isOk());
-        validateBoardGameBoxResponseBody(result2, updatedTitle, existingBoardGameBox.isExpansion(), existingBoardGameBox.isStandAlone(), existingBoardGameBox.baseSetId(),
+        factory.validateBoardGameBoxResponseBody(result2, updatedTitle, existingBoardGameBox.isExpansion(), existingBoardGameBox.isStandAlone(), existingBoardGameBox.baseSetId(),
                 existingBoardGameBox.boardGame(), existingCustomFieldValue);
     }
 
@@ -150,7 +143,7 @@ public class BoardGameBoxTests {
         //This is only used as the expected result only testing the key, id, and title
         final BoardGameResponseDto boardGameResponseDto = new BoardGameResponseDto(Keychain.BOARD_GAME_BOX_KEY, boxResponseDto.boardGame().id(), expectedTitle, null, null, null, null, null);
 
-        validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, boardGameResponseDto, new ArrayList<>());
+        factory.validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, boardGameResponseDto, new ArrayList<>());
     }
 
     @Test
@@ -169,7 +162,7 @@ public class BoardGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameBoxResponseBody(result, title, isExpansion, isStandAlone, null, expectedDto.boardGame(), customFieldValues);
+        factory.validateBoardGameBoxResponseBody(result, title, isExpansion, isStandAlone, null, expectedDto.boardGame(), customFieldValues);
     }
 
     @Test
@@ -218,7 +211,7 @@ public class BoardGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameBoxResponseBody(result, List.of(boardGameBoxDto1, boardGameBoxDto2));
+        factory.validateBoardGameBoxResponseBody(result, List.of(boardGameBoxDto1, boardGameBoxDto2));
 
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
 
@@ -235,7 +228,7 @@ public class BoardGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameBoxResponseBody(resultActions, List.of(boardGameBoxDto3));
+        factory.validateBoardGameBoxResponseBody(resultActions, List.of(boardGameBoxDto3));
     }
 
     @Test
@@ -284,54 +277,4 @@ public class BoardGameBoxTests {
         );
     }
 
-    // ------------------------- Private Helper Methods ------------------------------
-
-    private void validateBoardGameBoxResponseBody(ResultActions result, String expectedTitle, boolean expectedExpansion, boolean expectedStandAlone, Integer expectedBaseSetId,
-                                                  BoardGameResponseDto expectedBoardGameResponse, List<CustomFieldValue> customFieldValues) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.key").value(Keychain.BOARD_GAME_BOX_KEY),
-                jsonPath("$.data.id").isNotEmpty(),
-                jsonPath("$.data.title").value(expectedTitle),
-                jsonPath("$.data.isExpansion").value(expectedExpansion),
-                jsonPath("$.data.isStandAlone").value(expectedStandAlone),
-                jsonPath("$.data.baseSetId").value(expectedBaseSetId),
-                jsonPath("$.data.boardGame.key").value(Keychain.BOARD_GAME_KEY),
-                jsonPath("$.data.boardGame.id").value(expectedBoardGameResponse.id()),
-                jsonPath("$.data.boardGame.title").value(expectedBoardGameResponse.title()),
-                //not testing the boardGame.customFieldValues those are tested in the BoardGameTests
-                jsonPath("$.errors").isEmpty()
-        );
-        BoardGameBoxResponseDto responseDto = factory.resultToBoardGameBoxResponseDto(result);
-        factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
-    }
-
-    private void validateBoardGameBoxResponseBody(ResultActions result, List<BoardGameBoxResponseDto> expectedBoardGameBoxes) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
-        );
-
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<BoardGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
-        });
-        final List<BoardGameBoxResponseDto> returnedToys = body.get("data");
-        //test the order, and the deserialization
-        for (int i = 0; i < returnedToys.size(); i++) {
-            BoardGameBoxResponseDto expectedBoardGameBox = expectedBoardGameBoxes.get(i);
-            BoardGameBoxResponseDto returnedBoardGameBox = returnedToys.get(i);
-            assertAll(
-                    "The response body for videoGames is not formatted correctly",
-                    () -> assertEquals(Keychain.BOARD_GAME_BOX_KEY, returnedBoardGameBox.key()),
-                    () -> assertEquals(expectedBoardGameBox.id(), returnedBoardGameBox.id()),
-                    () -> assertEquals(expectedBoardGameBox.title(), returnedBoardGameBox.title()),
-                    () -> assertEquals(expectedBoardGameBox.isExpansion(), returnedBoardGameBox.isExpansion()),
-                    () -> assertEquals(expectedBoardGameBox.isStandAlone(), returnedBoardGameBox.isStandAlone()),
-                    () -> assertEquals(expectedBoardGameBox.baseSetId(), returnedBoardGameBox.baseSetId()),
-                    () -> assertEquals(expectedBoardGameBox.boardGame().id(), returnedBoardGameBox.boardGame().id()),
-                    () -> assertEquals(expectedBoardGameBox.boardGame().title(), returnedBoardGameBox.boardGame().title())
-            );
-            factory.validateCustomFieldValues(expectedBoardGameBox.customFieldValues(), returnedBoardGameBox.customFieldValues());
-        }
-    }
 }
