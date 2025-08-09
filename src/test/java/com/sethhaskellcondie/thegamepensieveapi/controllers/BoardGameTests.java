@@ -75,13 +75,16 @@ public class BoardGameTests {
         );
         final BoardGameRequestDto newBoardGame = new BoardGameRequestDto(expectedTitle, expectedCustomFieldValues);
 
-        final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, false, false, null, null, newBoardGame, new ArrayList<>());
-        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(result);
+        final ResultActions boardGameBoxResult = factory.postBoardGameBoxReturnResult(expectedTitle, false, false, null, null, newBoardGame, new ArrayList<>());
+        
+        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult);
+        factory.validateBoardGameBoxResponseBody(boardGameBoxResult, expectedTitle, false, false, null, boardGameBoxDto.boardGame(), new ArrayList<>());
         final BoardGameResponseDto boardGameDto = boardGameBoxDto.boardGame();
 
         final ResultActions getBoardGameResult = mockMvc.perform(get(baseUrlSlash + boardGameDto.id()));
         getBoardGameResult.andExpect(status().isOk());
-        validateBoardGameResponseBody(getBoardGameResult, expectedTitle, new ArrayList<>(), expectedCustomFieldValues);
+        SlimBoardGameBox expectedSlimBox = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto);
+        validateBoardGameResponseBody(getBoardGameResult, expectedTitle, List.of(expectedSlimBox), expectedCustomFieldValues);
 
         final BoardGameResponseDto existingBoardGame = boardGameBoxDto.boardGame();
 
@@ -106,7 +109,11 @@ public class BoardGameTests {
         );
 
         result2.andExpect(status().isOk());
-        validateBoardGameResponseBody(result2, updatedTitle, new ArrayList<>(), existingCustomFieldValue);
+        
+        final ResultActions getBoardGameResultAfterUpdate = mockMvc.perform(get(baseUrlSlash + existingBoardGame.id()));
+        getBoardGameResultAfterUpdate.andExpect(status().isOk());
+        SlimBoardGameBox expectedSlimBox2 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto);
+        validateBoardGameResponseBody(getBoardGameResultAfterUpdate, updatedTitle, List.of(expectedSlimBox2), existingCustomFieldValue);
     }
 
     @Test
@@ -153,8 +160,10 @@ public class BoardGameTests {
         final String title = "Pandemic";
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
         final BoardGameRequestDto newBoardGame = new BoardGameRequestDto(title, customFieldValues);
-        ResultActions postResult = factory.postBoardGameBoxReturnResult(title, false, false, null, null, newBoardGame, new ArrayList<>());
-        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(postResult);
+        final ResultActions boardGameBoxResult = factory.postBoardGameBoxReturnResult(title, false, false, null, null, newBoardGame, new ArrayList<>());
+        
+        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult);
+        factory.validateBoardGameBoxResponseBody(boardGameBoxResult, title, false, false, null, boardGameBoxDto.boardGame(), new ArrayList<>());
         final BoardGameResponseDto expectedDto = boardGameBoxDto.boardGame();
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
@@ -163,7 +172,8 @@ public class BoardGameTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameResponseBody(result, expectedDto.title(), expectedDto.boardGameBoxes(), customFieldValues);
+        SlimBoardGameBox expectedSlimBox3 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto);
+        validateBoardGameResponseBody(result, expectedDto.title(), List.of(expectedSlimBox3), customFieldValues);
 
         final BoardGameResponseDto existingBoardGame = factory.resultToBoardGameResponseDto(result);
 
@@ -179,7 +189,8 @@ public class BoardGameTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameResponseBody(result2, existingBoardGame.title(), List.of(slimBoardGameBox1, slimBoardGameBox2), existingBoardGame.customFieldValues());
+        SlimBoardGameBox originalSlimBox = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto);
+        validateBoardGameResponseBody(result2, existingBoardGame.title(), List.of(originalSlimBox, slimBoardGameBox1, slimBoardGameBox2), existingBoardGame.customFieldValues());
     }
 
     @Test
@@ -203,20 +214,39 @@ public class BoardGameTests {
         final String title1 = "Mega Man the Board Game";
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
         final BoardGameRequestDto newBoardGame1 = new BoardGameRequestDto(title1, customFieldValues1);
-        final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, newBoardGame1, new ArrayList<>());
-        final BoardGameResponseDto gameDto1 = factory.resultToBoardGameBoxResponseDto(result1).boardGame();
+        final ResultActions boardGameBoxResult1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, newBoardGame1, new ArrayList<>());
+        
+        final BoardGameBoxResponseDto boardGameBoxDto1 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult1);
+        factory.validateBoardGameBoxResponseBody(boardGameBoxResult1, title1, false, false, null, boardGameBoxDto1.boardGame(), new ArrayList<>());
+        
+        final BoardGameResponseDto gameDto1 = boardGameBoxDto1.boardGame();
 
         final String title2 = "Mega Man the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
         final BoardGameRequestDto newBoardGame2 = new BoardGameRequestDto(title2, customFieldValues2);
-        final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, newBoardGame2, new ArrayList<>());
-        final BoardGameResponseDto gameDto2 = factory.resultToBoardGameBoxResponseDto(result2).boardGame();
+        final ResultActions boardGameBoxResult2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, newBoardGame2, new ArrayList<>());
+        
+        final BoardGameBoxResponseDto boardGameBoxDto2 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult2);
+        factory.validateBoardGameBoxResponseBody(boardGameBoxResult2, title2, false, false, null, boardGameBoxDto2.boardGame(), new ArrayList<>());
+        
+        final BoardGameResponseDto gameDto2 = boardGameBoxDto2.boardGame();
 
         final String title3 = "Power Rangers the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
         final BoardGameRequestDto newBoardGame3 = new BoardGameRequestDto(title3, customFieldValues3);
-        final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, newBoardGame3, new ArrayList<>());
-        final BoardGameResponseDto gameDto3 = factory.resultToBoardGameBoxResponseDto(result3).boardGame();
+        final ResultActions boardGameBoxResult3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, newBoardGame3, new ArrayList<>());
+        
+        final BoardGameBoxResponseDto boardGameBoxDto3 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult3);
+        factory.validateBoardGameBoxResponseBody(boardGameBoxResult3, title3, false, false, null, boardGameBoxDto3.boardGame(), new ArrayList<>());
+        
+        final BoardGameResponseDto gameDto3 = boardGameBoxDto3.boardGame();
+
+        SlimBoardGameBox expectedBox1 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto1);
+        SlimBoardGameBox expectedBox2 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto2);
+        BoardGameResponseDto expectedGame1 = new BoardGameResponseDto(gameDto1.key(), gameDto1.id(), gameDto1.title(),
+                List.of(expectedBox1), gameDto1.createdAt(), gameDto1.updatedAt(), gameDto1.deletedAt(), gameDto1.customFieldValues());
+        BoardGameResponseDto expectedGame2 = new BoardGameResponseDto(gameDto2.key(), gameDto2.id(), gameDto2.title(),
+                List.of(expectedBox2), gameDto2.createdAt(), gameDto2.updatedAt(), gameDto2.deletedAt(), gameDto2.customFieldValues());
 
         final Filter filter = new Filter(Keychain.BOARD_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Mega Man", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
@@ -230,12 +260,15 @@ public class BoardGameTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameResponseBody(result4, List.of(gameDto1, gameDto2));
+        validateBoardGameResponseBody(result4, List.of(expectedGame1, expectedGame2));
 
 
         //test 2: when getting all board game boxes with a custom field filter, only a subset of the games are returned
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
         final String jsonContent = factory.formatFiltersPayload(customFilter);
+        SlimBoardGameBox expectedBox3 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto3);
+        BoardGameResponseDto expectedGame3 = new BoardGameResponseDto(gameDto3.key(), gameDto3.id(), gameDto3.title(),
+                List.of(expectedBox3), gameDto3.createdAt(), gameDto3.updatedAt(), gameDto3.deletedAt(), gameDto3.customFieldValues());
 
         final ResultActions result5 = mockMvc.perform(post(baseUrl + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -246,7 +279,8 @@ public class BoardGameTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        validateBoardGameResponseBody(result5, List.of(gameDto3));
+
+        validateBoardGameResponseBody(result5, List.of(expectedGame3));
     }
 
     @Test
@@ -400,11 +434,12 @@ public class BoardGameTests {
                 jsonPath("$.data.key").value(Keychain.BOARD_GAME_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.title").value(expectedTitle),
-                //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), TODO Future Update: update this to test the board game boxes as well
+                jsonPath("$.data.boardGameBoxes.size()").value(expectedBoardGameBoxes.size()),
                 jsonPath("$.errors").isEmpty()
         );
         BoardGameResponseDto responseDto = factory.resultToBoardGameResponseDto(result);
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
+        validateSlimBoardGameBoxes(expectedBoardGameBoxes, responseDto.boardGameBoxes());
     }
 
     private void validateBoardGameResponseBody(ResultActions result, List<BoardGameResponseDto> expectedGames) throws Exception {
@@ -426,10 +461,39 @@ public class BoardGameTests {
                     "The response body for boardGames is not formatted correctly",
                     () -> assertEquals(Keychain.BOARD_GAME_KEY, returnedGame.key()),
                     () -> assertEquals(expectedGame.id(), returnedGame.id()),
-                    () -> assertEquals(expectedGame.title(), returnedGame.title())
-                    //jsonPath("$.data.boardGameBoxes").value(expectedBoardGameBoxes), TODO Future Update: update this to test the board game boxes as well
+                    () -> assertEquals(expectedGame.title(), returnedGame.title()),
+                    () -> assertEquals(expectedGame.boardGameBoxes().size(), returnedGame.boardGameBoxes().size())
             );
             factory.validateCustomFieldValues(expectedGame.customFieldValues(), returnedGame.customFieldValues());
+            validateSlimBoardGameBoxes(expectedGame.boardGameBoxes(), returnedGame.boardGameBoxes());
+        }
+    }
+
+    private void validateSlimBoardGameBoxes(List<SlimBoardGameBox> expectedBoardGameBoxes, List<SlimBoardGameBox> actualBoardGameBoxes) {
+        assertEquals(expectedBoardGameBoxes.size(), actualBoardGameBoxes.size(), "The number of returned slim board game boxes did not match the number of expected slim board game boxes.");
+        for (int i = 0; i < actualBoardGameBoxes.size(); i++) {
+            SlimBoardGameBox returnedBox = actualBoardGameBoxes.get(i);
+            SlimBoardGameBox expectedBox = expectedBoardGameBoxes.get(i);
+            if (expectedBox.id() == 0) {
+                assertAll(
+                        "The returned slim board game boxes didn't match the expected slim board game boxes.",
+                        () -> assertEquals(expectedBox.title(), returnedBox.title()),
+                        () -> assertEquals(expectedBox.isExpansion(), returnedBox.isExpansion()),
+                        () -> assertEquals(expectedBox.isStandAlone(), returnedBox.isStandAlone()),
+                        () -> assertEquals(expectedBox.baseSetId(), returnedBox.baseSetId()),
+                        () -> factory.validateCustomFieldValues(expectedBox.customFieldValues(), returnedBox.customFieldValues())
+                );
+            } else {
+                assertAll(
+                        "The returned slim board game boxes didn't match the expected slim board game boxes.",
+                        () -> assertEquals(expectedBox.id(), returnedBox.id()),
+                        () -> assertEquals(expectedBox.title(), returnedBox.title()),
+                        () -> assertEquals(expectedBox.isExpansion(), returnedBox.isExpansion()),
+                        () -> assertEquals(expectedBox.isStandAlone(), returnedBox.isStandAlone()),
+                        () -> assertEquals(expectedBox.baseSetId(), returnedBox.baseSetId()),
+                        () -> factory.validateCustomFieldValues(expectedBox.customFieldValues(), returnedBox.customFieldValues())
+                );
+            }
         }
     }
 }
