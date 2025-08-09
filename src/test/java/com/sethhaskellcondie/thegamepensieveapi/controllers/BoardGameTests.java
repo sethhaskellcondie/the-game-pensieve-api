@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.SlimBoardGameBox;
@@ -72,7 +73,7 @@ public class BoardGameTests {
                 new CustomFieldValue(0, "Best Player Count", "number", "3"),
                 new CustomFieldValue(0, "Publisher", "text", "Jasco")
         );
-        final BoardGameResponseDto newBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, expectedTitle, null, null, null, null, expectedCustomFieldValues);
+        final BoardGameRequestDto newBoardGame = new BoardGameRequestDto(expectedTitle, expectedCustomFieldValues);
 
         final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, false, false, null, null, newBoardGame, new ArrayList<>());
         final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(result);
@@ -109,9 +110,10 @@ public class BoardGameTests {
     }
 
     @Test
-    void postBoardGameBoxWithBlankTitle_ReturnBadRequest() throws Exception {
-        //One error: the title cannot be blank
-        final String jsonContent = factory.formatBoardGameBoxPayload("", false, false, null, null, null);
+    void postBoardGameInsideBoardGameBoxWithBlankTitle_ReturnBadRequest() throws Exception {
+        //One error: the board game title cannot be blank
+        final BoardGameRequestDto invalidBoardGame = new BoardGameRequestDto("", new ArrayList<>());
+        final String jsonContent = factory.formatBoardGameBoxPayload("Valid Box Title", false, false, null, null, invalidBoardGame, null);
 
         final ResultActions result = mockMvc.perform(
                 post("/v1/boardGameBoxes")
@@ -150,7 +152,7 @@ public class BoardGameTests {
         // test 1: get one board game, happy path response shape correctly
         final String title = "Pandemic";
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
-        final BoardGameResponseDto newBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title, null, null, null, null, customFieldValues);
+        final BoardGameRequestDto newBoardGame = new BoardGameRequestDto(title, customFieldValues);
         ResultActions postResult = factory.postBoardGameBoxReturnResult(title, false, false, null, null, newBoardGame, new ArrayList<>());
         final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(postResult);
         final BoardGameResponseDto expectedDto = boardGameBoxDto.boardGame();
@@ -200,19 +202,19 @@ public class BoardGameTests {
 
         final String title1 = "Mega Man the Board Game";
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
-        final BoardGameResponseDto newBoardGame1 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title1, null, null, null, null, customFieldValues1);
+        final BoardGameRequestDto newBoardGame1 = new BoardGameRequestDto(title1, customFieldValues1);
         final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, newBoardGame1, new ArrayList<>());
         final BoardGameResponseDto gameDto1 = factory.resultToBoardGameBoxResponseDto(result1).boardGame();
 
         final String title2 = "Mega Man the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
-        final BoardGameResponseDto newBoardGame2 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title2, null, null, null, null, customFieldValues2);
+        final BoardGameRequestDto newBoardGame2 = new BoardGameRequestDto(title2, customFieldValues2);
         final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, newBoardGame2, new ArrayList<>());
         final BoardGameResponseDto gameDto2 = factory.resultToBoardGameBoxResponseDto(result2).boardGame();
 
         final String title3 = "Power Rangers the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
-        final BoardGameResponseDto newBoardGame3 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 0, title3, null, null, null, null, customFieldValues3);
+        final BoardGameRequestDto newBoardGame3 = new BoardGameRequestDto(title3, customFieldValues3);
         final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, newBoardGame3, new ArrayList<>());
         final BoardGameResponseDto gameDto3 = factory.resultToBoardGameBoxResponseDto(result3).boardGame();
 
@@ -390,6 +392,8 @@ public class BoardGameTests {
                 jsonPath("$.errors.size()").value(1)
         );
     }
+
+    // ------------------------- Private Helper Methods ------------------------------
 
     private void validateBoardGameResponseBody(ResultActions result, String expectedTitle, List<SlimBoardGameBox> expectedBoardGameBoxes, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
