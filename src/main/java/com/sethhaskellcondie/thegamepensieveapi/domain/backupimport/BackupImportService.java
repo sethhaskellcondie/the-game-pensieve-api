@@ -4,6 +4,12 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBox;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
@@ -34,13 +40,15 @@ public class BackupImportService {
     private final SystemService systemService;
     private final ToyService toyService;
     private final VideoGameBoxService videoGameBoxService;
+    private final BoardGameBoxService boardGameBoxService;
 
     protected BackupImportService(CustomFieldRepository customFieldRepository, SystemService systemService, ToyService toyService,
-                                  VideoGameBoxService videoGameBoxService) {
+                                  VideoGameBoxService videoGameBoxService, BoardGameBoxService boardGameBoxService) {
         this.customFieldRepository = customFieldRepository;
         this.systemService = systemService;
         this.toyService = toyService;
         this.videoGameBoxService = videoGameBoxService;
+        this.boardGameBoxService = boardGameBoxService;
     }
 
     protected BackupDataDto getBackupData() {
@@ -48,8 +56,9 @@ public class BackupImportService {
         List<ToyResponseDto> toys = toyService.getWithFilters(new ArrayList<>()).stream().map(Toy::convertToResponseDto).toList();
         List<SystemResponseDto> systems = systemService.getWithFilters(new ArrayList<>()).stream().map(System::convertToResponseDto).toList();
         List<VideoGameBoxResponseDto> videoGameBoxes = videoGameBoxService.getWithFilters(new ArrayList<>()).stream().map(VideoGameBox::convertToResponseDto).toList();
+        List<BoardGameBoxResponseDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToResponseDto).toList();
 
-        return new BackupDataDto(customFields, toys, systems, videoGameBoxes);
+        return new BackupDataDto(customFields, toys, systems, videoGameBoxes, boardGameBoxes);
     }
 
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
@@ -70,6 +79,8 @@ public class BackupImportService {
 
         ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto.videoGameBoxes(), customFieldIds, systemResults.entityIds(), exceptionBackupImport);
 
+        ImportEntityResults boardGameBoxResults = importBoardGameBoxes(backupDataDto.boardGameBoxes(), customFieldIds, exceptionBackupImport);
+
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
             exceptionBackupImport.setHeader("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
         }
@@ -79,6 +90,7 @@ public class BackupImportService {
                 toyResults.existingCount(), toyResults.createdCount(),
                 systemResults.existingCount(), systemResults.createdCount(),
                 videoGameBoxResults.existingCount(), videoGameBoxResults.createdCount(),
+                boardGameBoxResults.existingCount(), boardGameBoxResults.createdCount(),
                 exceptionBackupImport
         );
     }
@@ -153,6 +165,7 @@ public class BackupImportService {
         if (null == toysToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
+        //TODO validate name...somewhere
         Map<Integer, Integer> toyIds = new HashMap<>(toysToBeImported.size());
 
         List<ToyResponseDto> validatedToys = new ArrayList<>(toysToBeImported.size());
@@ -202,6 +215,7 @@ public class BackupImportService {
     private ImportEntityResults importSystems(List<SystemResponseDto> systemsToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
+        //TODO validate name somewhere...
         if (null == systemsToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
@@ -313,6 +327,8 @@ public class BackupImportService {
     private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes,
                                                                  Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds,
                                                                  ExceptionBackupImport exceptionBackupImport) {
+
+        //TODO validate the title...somewhere
 
         List<VideoGameBoxResponseDto> validatedBoxes = new ArrayList<>(videoGameBoxes.size());
         for (VideoGameBoxResponseDto videoGameBox : videoGameBoxes) {
@@ -450,6 +466,126 @@ public class BackupImportService {
         }
         
         return new ValidatedVideoGameResults(importedVideoGamesIds, newGames);
+    }
+
+    private ImportEntityResults importBoardGameBoxes(List<BoardGameBoxResponseDto> boardGameBoxesToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+        int existingCount = 0;
+        int createdCount = 0;
+        if (null == boardGameBoxesToBeImported) {
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
+        }
+        Map<Integer, Integer> boardGameBoxIds = new HashMap<>(boardGameBoxesToBeImported.size());
+        Map<Integer, Integer> boardGameIds = new HashMap<>(boardGameBoxesToBeImported.size());
+        List<BoardGameBoxResponseDto> validatedBoxes = validateBoardGameBoxes(boardGameBoxesToBeImported, customFieldIds, exceptionBackupImport);
+
+        for (BoardGameBoxResponseDto importBox : validatedBoxes) {
+            try {
+                int boxId = boardGameBoxService.getIdByTitleAndBoardGameId(importBox.title(), importBox.boardGame().id());
+                if (boxId > 0) {
+                    existingCount++;
+                    boardGameBoxIds.put(importBox.id(), boxId);
+                } else {
+                    Integer existingBoardGameId = boardGameIds.get(importBox.boardGame().id());
+                    // This will fail if the base set is not imported before the expansion...
+                    // To fix this I would need to do another loop after all the board games are imported
+                    // TODO fix this in the future
+                    Integer baseSetId = boardGameIds.get(importBox.baseSetId());
+                    BoardGameRequestDto gameToBeCreated = null;
+                    if (null == existingBoardGameId) {
+                        gameToBeCreated = new BoardGameRequestDto(importBox.boardGame().title(), importBox.boardGame().customFieldValues());
+                    }
+
+                    BoardGameBox createdBoardGameBox = boardGameBoxService.createNew(new BoardGameBoxRequestDto(
+                        importBox.title(),
+                        importBox.isExpansion(),
+                        importBox.isStandAlone(),
+                        baseSetId,
+                        existingBoardGameId,
+                        gameToBeCreated,
+                        importBox.customFieldValues()
+                    ));
+                    createdCount++;
+                    boardGameBoxIds.put(importBox.id(), createdBoardGameBox.getId());
+                    boardGameIds.put(importBox.boardGame().id(), createdBoardGameBox.getId());
+                }
+            } catch (Exception exception) {
+                exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data with title: '" + importBox.title()
+                        + "' " + exception.getMessage()));
+            }
+        }
+        return new ImportEntityResults(boardGameBoxIds, existingCount, createdCount);
+    }
+
+    private List<BoardGameBoxResponseDto> validateBoardGameBoxes(List<BoardGameBoxResponseDto> boardGameBoxes, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+        List<BoardGameBoxResponseDto> validatedBoxes = new ArrayList<>(boardGameBoxes.size());
+
+        for (BoardGameBoxResponseDto boardGameBox : boardGameBoxes) {
+            boolean skipped = false;
+
+            if (null == boardGameBox.title() || boardGameBox.title().trim().isEmpty()) {
+                skipped = true;
+                exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data: Board game box must have a title, but title was missing or empty."));
+            }
+
+            // Validate board game (parent game) if it exists
+            if (null != boardGameBox.boardGame()) {
+                BoardGameRequestDto validatedGame = validateBoardGame(boardGameBox.boardGame(), customFieldIds, exceptionBackupImport);
+                if (null == validatedGame) {
+                    skipped = true;
+                }
+            }
+
+            for (CustomFieldValue value : boardGameBox.customFieldValues()) {
+                Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
+                if (null == customFieldId) {
+                    skipped = true;
+                    exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data: Imported Custom Field not found but expected for board game box titled: '"
+                        + boardGameBox.title() + "' with custom field value named '" + value.getCustomFieldName()
+                        + "' The custom field must be included on the import and not just existing in the database."));
+                } else {
+                    value.setCustomFieldId(customFieldId);
+                }
+            }
+
+            if (!skipped) {
+                validatedBoxes.add(boardGameBox);
+            }
+        }
+        
+        return validatedBoxes;
+    }
+
+    private BoardGameRequestDto validateBoardGame(BoardGameResponseDto boardGame, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+        if (null == boardGame) {
+            return null;
+        }
+
+        boolean valid = true;
+
+        // Validate board game title
+        if (null == boardGame.title() || boardGame.title().trim().isEmpty()) {
+            valid = false;
+            exceptionBackupImport.addBoardGameException(new Exception("Error importing board game data: Board game must have a title, but title was missing or empty."));
+        }
+
+        // Validate board game custom fields
+        for (CustomFieldValue value : boardGame.customFieldValues()) {
+            Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
+            if (null == customFieldId) {
+                valid = false;
+                exceptionBackupImport.addBoardGameException(new Exception("Error importing board game data: Imported Custom Field not found but expected for board game with title: '"
+                    + boardGame.title() + "' with custom field value named '" + value.getCustomFieldName()
+                    + "' The custom field must be included on the import and not just existing in the database."));
+            } else {
+                value.setCustomFieldId(customFieldId);
+            }
+        }
+
+        if (valid) {
+            return new BoardGameRequestDto(boardGame.title(), boardGame.customFieldValues());
+        }
+
+        return null;
     }
 }
 

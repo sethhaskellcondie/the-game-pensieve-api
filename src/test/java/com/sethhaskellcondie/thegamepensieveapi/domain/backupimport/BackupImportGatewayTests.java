@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
@@ -58,7 +60,8 @@ public class BackupImportGatewayTests {
                 customFieldsList,
                 initialBackupData.toys(),
                 initialBackupData.systems(),
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -76,13 +79,16 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(0, importResult.existingSystems()),
                 () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
-                () -> assertEquals(0, importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.existingBoardGameBoxes()),
+                () -> assertEquals(0, importResult.createdBoardGameBoxes()),
                 () -> assertEquals(customFieldErrors, importResult.exceptionBackupImport().getExceptions().size()),
                 () -> assertEquals(customFieldErrors, importResult.exceptionBackupImport().getCustomFieldExceptions().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getToyExceptions().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getSystemExceptions().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameBoxExceptions().getExceptions().size()),
-                () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameExceptions().getExceptions().size())
+                () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getBoardGameExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size())
         );
     }
 
@@ -101,7 +107,8 @@ public class BackupImportGatewayTests {
                 new ArrayList<>(customFieldsList),
                 initialBackupData.toys(),
                 initialBackupData.systems(),
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
         customFieldsList.add(duplicateValidCustomField); //duplicate name, no data is created or updated this is based on the name NOT the id
         final int existingCustomFields = 1;
@@ -109,7 +116,8 @@ public class BackupImportGatewayTests {
                 customFieldsList,
                 initialBackupData.toys(),
                 initialBackupData.systems(),
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -149,7 +157,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 toysList,
                 initialBackupData.systems(),
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -189,7 +198,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 new ArrayList<>(toysList),
                 initialBackupData.systems(),
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
         final int existingToys = 1;
         toysList.add(duplicateToy); //import skipped returned as existing toy
@@ -197,7 +207,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 toysList,
                 initialBackupData.systems(),
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -239,7 +250,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 initialBackupData.toys(),
                 systemsList,
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -279,7 +291,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 initialBackupData.toys(),
                 new ArrayList<>(systemsList),
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
         final int existingSystems = 1;
         systemsList.add(duplicateSystem); //import skipped returned as existing system because they share the same name, NOT determined by ID.
@@ -287,7 +300,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 initialBackupData.toys(),
                 systemsList,
-                initialBackupData.videoGameBoxes()
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -329,7 +343,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.customFields(),
                 initialBackupData.toys(),
                 initialBackupData.systems(),
-                videoGameBoxes
+                videoGameBoxes,
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -387,7 +402,8 @@ public class BackupImportGatewayTests {
                 customFieldsList,
                 initialBackupData.toys(),
                 systemsList,
-                videoGameBoxes
+                videoGameBoxes,
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -415,7 +431,7 @@ public class BackupImportGatewayTests {
 
 
     @Test
-    void videoGameGoxImport_ValidAndDuplicateGamesAndBoxes_ValidDataImportedDuplicateReturned() {
+    void videoGameBoxImport_ValidAndDuplicateGamesAndBoxes_ValidDataImportedDuplicateReturned() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
         //Arrange
@@ -459,7 +475,8 @@ public class BackupImportGatewayTests {
                 customFieldsList,
                 initialBackupData.toys(),
                 systemsList,
-                new ArrayList<>(videoGameBoxes)
+                new ArrayList<>(videoGameBoxes),
+                initialBackupData.boardGameBoxes()
         );
         final int existingVideoGameBoxes = 1; //This will be returned as existing because it shares the same name and system, NOT because of the provided IDs
         videoGameBoxes.add(duplicateVideoGameBox);
@@ -467,7 +484,8 @@ public class BackupImportGatewayTests {
                 customFieldsList,
                 initialBackupData.toys(),
                 systemsList,
-                videoGameBoxes
+                videoGameBoxes,
+                initialBackupData.boardGameBoxes()
         );
 
         //Act
@@ -490,6 +508,117 @@ public class BackupImportGatewayTests {
         validateBackupData(expectedResult, resultsBackupData);
     }
 
+    @Test
+    void boardGameBoxImport_InvalidBoxData_BoardGameErrorsReturned() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
+        final BoardGameResponseDto missingBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 99, "Missing Board Game", new ArrayList<>(), null, null, null, new ArrayList<>());
+        final BoardGameBoxResponseDto boardGameBoxWithMissingInformation = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 810,
+                "", true, false, null, missingBoardGame, null, null, null, List.of(missingCustomFieldValue));
+        List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        final int expectedBoardGameBoxErrors = 2;
+        //one for the missing custom field
+        //one for the missing title (empty string)
+        boardGameBoxes.add(boardGameBoxWithMissingInformation);
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                boardGameBoxes
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error on board game box import with custom field validation issues.",
+                () -> assertEquals(0, importResult.createdCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(0, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getCustomFieldExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getToyExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getSystemExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameBoxExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getBoardGameExceptions().getExceptions().size()),
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size())
+        );
+    }
+
+    @Test
+    void boardGameBoxImport_InvalidGameData_ErrorsReturned() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final int validCustomFieldBoxCustomFieldId = 987;
+        final CustomField validBoardGameBoxCustomField = new CustomField(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, Keychain.BOARD_GAME_BOX_KEY);
+        final CustomFieldValue validCustomFieldValue = new CustomFieldValue(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, "123");
+        final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
+        final BoardGameResponseDto invalidBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 234, "", new ArrayList<>(), null, null, null,
+                List.of(missingCustomFieldValue));
+        final BoardGameBoxResponseDto validBoardGameBoxWithInvalidGame = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 810,
+                "Valid Box With Invalid Game", true, false, null, invalidBoardGame, null, null, null, List.of(validCustomFieldValue));
+        List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
+        final int expectedCustomFieldsCreated = 1;
+        customFieldsList.add(validBoardGameBoxCustomField);
+        List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes().size() + 1);
+        final int expectedBoardGameErrors = 2;
+        //one for the missing custom field on the board game
+        //one for the missing title on the board game
+        final int expectedBoardGameBoxErrors = 0;
+        //board game box is skipped due to invalid board game, so no separate board game box error
+        boardGameBoxes.add(validBoardGameBoxWithInvalidGame);
+        final BackupDataDto importData = new BackupDataDto(
+                customFieldsList,
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                boardGameBoxes
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error on board game box import with invalid board game data.",
+                () -> assertEquals(expectedCustomFieldsCreated, importResult.createdCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(0, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(expectedBoardGameErrors + expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getCustomFieldExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getToyExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getSystemExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameBoxExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameExceptions().getExceptions().size()),
+                () -> assertEquals(expectedBoardGameErrors, importResult.exceptionBackupImport().getBoardGameExceptions().getExceptions().size()),
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size())
+        );
+    }
+
+    @Test
+    void boardGameImport_ValidAndDuplicateBoardGamesAndBoxes_ValidDataImportedDuplicateReturned() {
+        //TODO finish this
+    }
 
     @Test
     void exportData_ImportSameData_NoNewDataImported() {
@@ -511,6 +640,8 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
                 () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
                 () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
         final BackupDataDto resultsBackupData = gateway.getBackupData();
@@ -524,6 +655,7 @@ public class BackupImportGatewayTests {
         validateToyBackupData(expectedBackupData, actualBackupData);
         validateSystemBackupData(expectedBackupData, actualBackupData);
         validateVideoGameBackupData(expectedBackupData, actualBackupData);
+        validateBoardGameBackupData(expectedBackupData, actualBackupData);
     }
 
     private void validateCustomFieldBackupData(BackupDataDto expectedData, BackupDataDto actualData) {
@@ -656,6 +788,33 @@ public class BackupImportGatewayTests {
                     () -> assertEquals(expectedValue.getCustomFieldType(), actualValue.getCustomFieldType()),
                     () -> assertEquals(expectedValue.getValue(), actualValue.getValue())
             );
+        }
+    }
+
+    private void validateBoardGameBackupData(BackupDataDto expectedData, BackupDataDto actualData) {
+        final List<BoardGameBoxResponseDto> expectedBoardGameBoxes = expectedData.boardGameBoxes();
+        final List<BoardGameBoxResponseDto> actualBoardGameBoxes = actualData.boardGameBoxes();
+        if (null == expectedBoardGameBoxes || null == actualBoardGameBoxes) {
+            assertAll(
+                    "If the expected board game boxes are null then the actual should be as well.",
+                    () -> assertNull(expectedBoardGameBoxes),
+                    () -> assertNull(actualBoardGameBoxes)
+            );
+            return;
+        }
+        assertEquals(expectedBoardGameBoxes.size(), actualBoardGameBoxes.size(), "Unexpected number of board game box results returned in BackupDataDto");
+        for (int i = 0; i < expectedBoardGameBoxes.size(); i++) {
+            final BoardGameBoxResponseDto expectedBoardGameBox = expectedBoardGameBoxes.get(i);
+            final BoardGameBoxResponseDto actualBoardGameBox = actualBoardGameBoxes.get(i);
+            assertAll(
+                    "Mismatched board game box data returned in BackupDataDto.",
+                    () -> assertEquals(expectedBoardGameBox.title(), actualBoardGameBox.title()),
+                    () -> assertEquals(expectedBoardGameBox.isExpansion(), actualBoardGameBox.isExpansion()),
+                    () -> assertEquals(expectedBoardGameBox.isStandAlone(), actualBoardGameBox.isStandAlone()),
+                    () -> assertEquals(expectedBoardGameBox.baseSetId(), actualBoardGameBox.baseSetId()),
+                    () -> assertEquals(expectedBoardGameBox.boardGame().title(), actualBoardGameBox.boardGame().title())
+            );
+            validateCustomFieldValues(expectedBoardGameBox.customFieldValues(), actualBoardGameBox.customFieldValues(), Keychain.BOARD_GAME_BOX_KEY, actualBoardGameBox.title());
         }
     }
 }

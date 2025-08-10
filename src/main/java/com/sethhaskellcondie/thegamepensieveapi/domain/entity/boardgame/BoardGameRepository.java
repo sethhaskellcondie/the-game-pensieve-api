@@ -4,6 +4,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
 
@@ -106,5 +108,21 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
                 UPDATE board_games SET title = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, entity.getTitle(), Timestamp.from(Instant.now()), entity.getId());
+    }
+
+    public int getIdByTitle(String title) {
+        final String sql = getBaseQueryExcludeDeleted() + " AND title = ?";
+        final BoardGame boardGame;
+        try {
+            boardGame = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{title},
+                    new int[]{Types.VARCHAR},
+                    getRowMapper()
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            return -1;
+        }
+        return boardGame.getId();
     }
 }
