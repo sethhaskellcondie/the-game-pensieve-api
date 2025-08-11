@@ -42,4 +42,9 @@ public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGame
         BoardGame boardGame = new BoardGame().updateFromRequestDto(boardGameRequestDto);
         return repository.insert(boardGame);
     }
+
+    public int getIdByTitle(String title) {
+        BoardGameRepository boardGameRepository = (BoardGameRepository) repository;
+        return boardGameRepository.getIdByTitle(title);
+    }
 }

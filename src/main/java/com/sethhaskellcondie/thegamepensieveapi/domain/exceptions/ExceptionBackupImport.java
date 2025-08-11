@@ -11,6 +11,8 @@ public class ExceptionBackupImport extends MultiException {
     private final MultiException systemExceptions;
     private final MultiException videoGameBoxExceptions;
     private final MultiException videoGameExceptions;
+    private final MultiException boardGameExceptions;
+    private final MultiException boardGameBoxExceptions;
 
     public ExceptionBackupImport() {
         super();
@@ -21,6 +23,8 @@ public class ExceptionBackupImport extends MultiException {
         this.systemExceptions = new MultiException();
         this.videoGameBoxExceptions = new MultiException();
         this.videoGameExceptions = new MultiException();
+        this.boardGameExceptions = new MultiException();
+        this.boardGameBoxExceptions = new MultiException();
     }
 
     public ExceptionBackupImport(String message) {
@@ -32,6 +36,8 @@ public class ExceptionBackupImport extends MultiException {
         this.systemExceptions = new MultiException();
         this.videoGameBoxExceptions = new MultiException();
         this.videoGameExceptions = new MultiException();
+        this.boardGameExceptions = new MultiException();
+        this.boardGameBoxExceptions = new MultiException();
     }
 
     public String getHeader() {
@@ -123,6 +129,38 @@ public class ExceptionBackupImport extends MultiException {
         videoGameExceptions.appendExceptions(exceptions);
     }
 
+    public MultiException getBoardGameExceptions() {
+        return boardGameExceptions;
+    }
+
+    public void addBoardGameException(String message) {
+        boardGameExceptions.addException(message);
+    }
+
+    public void addBoardGameException(Exception exception) {
+        boardGameExceptions.addException(exception);
+    }
+
+    public void addBoardGameExceptions(List<Exception> exceptions) {
+        boardGameExceptions.appendExceptions(exceptions);
+    }
+
+    public MultiException getBoardGameBoxExceptions() {
+        return boardGameBoxExceptions;
+    }
+
+    public void addBoardGameBoxException(String message) {
+        boardGameBoxExceptions.addException(message);
+    }
+
+    public void addBoardGameBoxException(Exception exception) {
+        boardGameBoxExceptions.addException(exception);
+    }
+
+    public void addBoardGameBoxExceptions(List<Exception> exceptions) {
+        boardGameBoxExceptions.appendExceptions(exceptions);
+    }
+
     @Override
     public String getMessage() {
         StringBuilder messageBuilder = new StringBuilder();
@@ -166,6 +204,20 @@ public class ExceptionBackupImport extends MultiException {
             messageBuilder.append(videoGameExceptions.getMessage());
         }
         
+        if (!boardGameExceptions.isEmpty()) {
+            if (!messageBuilder.isEmpty()) {
+                messageBuilder.append(" ");
+            }
+            messageBuilder.append(boardGameExceptions.getMessage());
+        }
+        
+        if (!boardGameBoxExceptions.isEmpty()) {
+            if (!messageBuilder.isEmpty()) {
+                messageBuilder.append(" ");
+            }
+            messageBuilder.append(boardGameBoxExceptions.getMessage());
+        }
+        
         return messageBuilder.toString();
     }
 
@@ -195,6 +247,14 @@ public class ExceptionBackupImport extends MultiException {
         
         if (!videoGameExceptions.isEmpty()) {
             allMessages.addAll(videoGameExceptions.getMessages());
+        }
+        
+        if (!boardGameExceptions.isEmpty()) {
+            allMessages.addAll(boardGameExceptions.getMessages());
+        }
+        
+        if (!boardGameBoxExceptions.isEmpty()) {
+            allMessages.addAll(boardGameBoxExceptions.getMessages());
         }
         
         return allMessages;
@@ -228,6 +288,14 @@ public class ExceptionBackupImport extends MultiException {
             allExceptions.addAll(videoGameExceptions.getExceptions());
         }
         
+        if (!boardGameExceptions.isEmpty()) {
+            allExceptions.addAll(boardGameExceptions.getExceptions());
+        }
+        
+        if (!boardGameBoxExceptions.isEmpty()) {
+            allExceptions.addAll(boardGameBoxExceptions.getExceptions());
+        }
+        
         return allExceptions;
     }
 
@@ -238,6 +306,8 @@ public class ExceptionBackupImport extends MultiException {
                && toyExceptions.isEmpty()
                && systemExceptions.isEmpty()
                && videoGameBoxExceptions.isEmpty()
-               && videoGameExceptions.isEmpty();
+               && videoGameExceptions.isEmpty()
+               && boardGameExceptions.isEmpty()
+               && boardGameBoxExceptions.isEmpty();
     }
 }

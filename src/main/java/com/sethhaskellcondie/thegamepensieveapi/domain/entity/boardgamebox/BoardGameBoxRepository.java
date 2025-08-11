@@ -4,6 +4,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -155,5 +156,21 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
             slimBoardGameBoxes.add(boardGameBox.convertToSlimBoardGameBox());
         }
         return slimBoardGameBoxes;
+    }
+
+    public int getIdByTitleAndBoardGameId(String title, int boardGameId) {
+        final String sql = getBaseQueryExcludeDeleted() + " AND title = ? AND board_game_id = ?";
+        final BoardGameBox boardGameBox;
+        try {
+            boardGameBox = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{title, boardGameId},
+                    new int[]{Types.VARCHAR, Types.BIGINT},
+                    getRowMapper()
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            return -1;
+        }
+        return boardGameBox.getId();
     }
 }

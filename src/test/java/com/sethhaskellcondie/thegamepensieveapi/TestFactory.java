@@ -612,7 +612,6 @@ public class TestFactory {
         BoardGameBoxResponseDto responseDto = resultToBoardGameBoxResponseDto(result);
         validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
         
-        // Also validate board game custom field values if they exist
         if (expectedBoardGameResponse.customFieldValues() != null && !expectedBoardGameResponse.customFieldValues().isEmpty()) {
             validateCustomFieldValues(responseDto.boardGame().customFieldValues(), expectedBoardGameResponse.customFieldValues());
         }
@@ -646,7 +645,6 @@ public class TestFactory {
             );
             validateCustomFieldValues(expectedBoardGameBox.customFieldValues(), returnedBoardGameBox.customFieldValues());
             
-            // Also validate board game custom field values if they exist
             if (expectedBoardGameBox.boardGame().customFieldValues() != null && !expectedBoardGameBox.boardGame().customFieldValues().isEmpty()) {
                 validateCustomFieldValues(expectedBoardGameBox.boardGame().customFieldValues(), returnedBoardGameBox.boardGame().customFieldValues());
             }
