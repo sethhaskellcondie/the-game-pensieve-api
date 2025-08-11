@@ -429,7 +429,6 @@ public class BackupImportGatewayTests {
         );
     }
 
-
     @Test
     void videoGameBoxImport_ValidAndDuplicateGamesAndBoxes_ValidDataImportedDuplicateReturned() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
@@ -574,11 +573,9 @@ public class BackupImportGatewayTests {
         final int expectedCustomFieldsCreated = 1;
         customFieldsList.add(validBoardGameBoxCustomField);
         List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes().size() + 1);
-        final int expectedBoardGameErrors = 2;
+        final int expectedBoardGameBoxErrors = 2;
         //one for the missing custom field on the board game
         //one for the missing title on the board game
-        final int expectedBoardGameBoxErrors = 0;
-        //board game box is skipped due to invalid board game, so no separate board game box error
         boardGameBoxes.add(validBoardGameBoxWithInvalidGame);
         final BackupDataDto importData = new BackupDataDto(
                 customFieldsList,
@@ -604,20 +601,92 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
                 () -> assertEquals(0, importResult.createdBoardGameBoxes()),
-                () -> assertEquals(expectedBoardGameErrors + expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getCustomFieldExceptions().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getToyExceptions().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getSystemExceptions().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameBoxExceptions().getExceptions().size()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getVideoGameExceptions().getExceptions().size()),
-                () -> assertEquals(expectedBoardGameErrors, importResult.exceptionBackupImport().getBoardGameExceptions().getExceptions().size()),
-                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size())
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getBoardGameExceptions().getExceptions().size())
         );
     }
 
     @Test
     void boardGameImport_ValidAndDuplicateBoardGamesAndBoxes_ValidDataImportedDuplicateReturned() {
-        //TODO finish this
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final int validBoardGameBoxCustomFieldId = 554;
+        final String validBoardGameBoxCustomFieldName = "Valid For Box";
+        final CustomField validBoardGameBoxCustomField = new CustomField(validBoardGameBoxCustomFieldId, validBoardGameBoxCustomFieldName, CustomField.TYPE_NUMBER, Keychain.BOARD_GAME_BOX_KEY);
+        final int validBoardGameCustomFieldId = 556;
+        final String validBoardGameCustomFieldName = "Valid For Game";
+        final CustomField validBoardGameCustomField = new CustomField(validBoardGameCustomFieldId, validBoardGameCustomFieldName, CustomField.TYPE_TEXT, Keychain.BOARD_GAME_KEY);
+
+        final CustomFieldValue validBoxCustomFieldValue1 = new CustomFieldValue(validBoardGameBoxCustomFieldId, validBoardGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "123");
+        final CustomFieldValue validBoxCustomFieldValue2 = new CustomFieldValue(validBoardGameBoxCustomFieldId, validBoardGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "1234");
+        final CustomFieldValue validGameCustomFieldValue1 = new CustomFieldValue(validBoardGameCustomFieldId,
+                validBoardGameCustomFieldName, CustomField.TYPE_TEXT, "ABC");
+        final CustomFieldValue validGameCustomFieldValue2 = new CustomFieldValue(validBoardGameCustomFieldId,
+                validBoardGameCustomFieldName, CustomField.TYPE_TEXT, "ABCD");
+        final CustomFieldValue validGameCustomFieldValue3 = new CustomFieldValue(validBoardGameCustomFieldId,
+                validBoardGameCustomFieldName, CustomField.TYPE_TEXT, "ABCD");
+        final BoardGameResponseDto validBoardGame1 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 111, "Valid Game 1", new ArrayList<>(), null, null, null,
+                List.of(validGameCustomFieldValue1));
+        final BoardGameResponseDto validBoardGame2 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 112, "Valid Game 2", new ArrayList<>(), null, null, null,
+                List.of(validGameCustomFieldValue2));
+        final BoardGameResponseDto duplicateBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 112, "Valid Game 2", new ArrayList<>(), null, null, null,
+                List.of(validGameCustomFieldValue3));
+        final BoardGameBoxResponseDto validBoardGameBox1 = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 810,
+                "Valid Single Game Box", true, false, null, validBoardGame1, null, null, null, List.of(validBoxCustomFieldValue1));
+        final BoardGameBoxResponseDto validBoardGameBox2 = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 811,
+                "Valid Collection Box", false, true, null, validBoardGame2, null, null, null, List.of(validBoxCustomFieldValue2));
+        final BoardGameBoxResponseDto duplicateBoardGameBox = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 812,
+                "Valid Collection Box", false, true, null, duplicateBoardGame, null, null, null, List.of());
+
+        List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
+        final int createdCustomFields = 2;
+        customFieldsList.add(validBoardGameBoxCustomField);
+        customFieldsList.add(validBoardGameCustomField);
+        List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        final int createdBoardGameBoxes = 2;
+        boardGameBoxes.add(validBoardGameBox1);
+        boardGameBoxes.add(validBoardGameBox2);
+        final BackupDataDto expectedResult = new BackupDataDto(
+                customFieldsList,
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                new ArrayList<>(boardGameBoxes)
+        );
+        final int existingBoardGameBoxes = 1; //This will be returned as existing because it shares the same title and board game, NOT because of the provided IDs
+        boardGameBoxes.add(duplicateBoardGameBox);
+        final BackupDataDto importData = new BackupDataDto(
+                customFieldsList,
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                boardGameBoxes
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error on duplicate board game box import.",
+                () -> assertEquals(createdCustomFields, importResult.createdCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(createdBoardGameBoxes, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size() + existingBoardGameBoxes, importResult.existingBoardGameBoxes())
+        );
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        validateBackupData(expectedResult, resultsBackupData);
     }
 
     @Test

@@ -480,7 +480,11 @@ public class BackupImportService {
 
         for (BoardGameBoxResponseDto importBox : validatedBoxes) {
             try {
-                int boxId = boardGameBoxService.getIdByTitleAndBoardGameId(importBox.title(), importBox.boardGame().id());
+                Integer boardGameId = boardGameIds.get(importBox.boardGame().id());
+                if (boardGameId == null) {
+                    boardGameId = importBox.boardGame().id();
+                }
+                int boxId = boardGameBoxService.getIdByTitleAndBoardGameId(importBox.title(), boardGameId);
                 if (boxId > 0) {
                     existingCount++;
                     boardGameBoxIds.put(importBox.id(), boxId);
@@ -506,7 +510,7 @@ public class BackupImportService {
                     ));
                     createdCount++;
                     boardGameBoxIds.put(importBox.id(), createdBoardGameBox.getId());
-                    boardGameIds.put(importBox.boardGame().id(), createdBoardGameBox.getId());
+                    boardGameIds.put(importBox.boardGame().id(), createdBoardGameBox.getBoardGame().getId());
                 }
             } catch (Exception exception) {
                 exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data with title: '" + importBox.title()
@@ -562,13 +566,11 @@ public class BackupImportService {
 
         boolean valid = true;
 
-        // Validate board game title
         if (null == boardGame.title() || boardGame.title().trim().isEmpty()) {
             valid = false;
             exceptionBackupImport.addBoardGameException(new Exception("Error importing board game data: Board game must have a title, but title was missing or empty."));
         }
 
-        // Validate board game custom fields
         for (CustomFieldValue value : boardGame.customFieldValues()) {
             Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
             if (null == customFieldId) {
