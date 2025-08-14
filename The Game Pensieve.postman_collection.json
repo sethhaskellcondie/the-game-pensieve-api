@@ -473,6 +473,141 @@
 			"response": []
 		},
 		{
+			"name": "create board game box and board game",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"boardGameBox\": {\r\n        \"title\": \"Settlers of Catan\",\r\n        \"isExpansion\": false,\r\n        \"isStandAlone\": true,\r\n        \"baseSetId\": null,\r\n        \"boardGameId\": null,\r\n        \"boardGame\": {\r\n            \"title\": \"Settlers of Catan\",\r\n            \"customFieldValues\": [\r\n                {\r\n                    \"customFieldId\": 9,\r\n                    \"customFieldName\": \"Designer\",\r\n                    \"customFieldType\": \"text\",\r\n                    \"value\": \"Klaus Teuber\"\r\n                }\r\n            ]\r\n        },\r\n        \"customFieldValues\": [\r\n            {\r\n                \"customFieldId\": 10,\r\n                \"customFieldName\": \"Player Count\",\r\n                \"customFieldType\": \"text\",\r\n                \"value\": \"3-4\"\r\n            }\r\n        ]\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/boardGameBoxes"
+			},
+			"response": []
+		},
+		{
+			"name": "read one board game box",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/v1/boardGameBoxes/1"
+			},
+			"response": []
+		},
+		{
+			"name": "read all board game boxes",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/boardGameBoxes/function/search"
+			},
+			"response": []
+		},
+		{
+			"name": "read all board game boxes (filters example)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": [\r\n        {\r\n            \"key\": \"boardGameBox\",\r\n            \"field\": \"title\",\r\n            \"operator\": \"contains\",\r\n            \"operand\": \"Catan\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/boardGameBoxes/function/search"
+			},
+			"response": []
+		},
+		{
+			"name": "update one board game box",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"boardGameBox\": {\r\n        \"title\": \"Updated Board Game Box Title\",\r\n        \"isExpansion\": false,\r\n        \"isStandAlone\": true,\r\n        \"baseSetId\": null,\r\n        \"boardGameId\": 1,\r\n        \"boardGame\": null,\r\n        \"customFieldValues\": []\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/boardGameBoxes/1"
+			},
+			"response": []
+		},
+		{
+			"name": "delete one board game box",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://localhost:8080/v1/boardGameBoxes/1"
+			},
+			"response": []
+		},
+		{
+			"name": "read one board game",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/v1/boardGames/1"
+			},
+			"response": []
+		},
+		{
+			"name": "read all board games",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/boardGames/function/search"
+			},
+			"response": []
+		},
+		{
+			"name": "update one board game",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"boardGame\": {\r\n        \"title\": \"Updated Board Game Title\",\r\n        \"customFieldValues\": [\r\n            {\r\n                \"customFieldId\": 9,\r\n                \"customFieldName\": \"Designer\",\r\n                \"customFieldType\": \"text\",\r\n                \"value\": \"Updated Designer\"\r\n            }\r\n        ]\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/boardGames/1"
+			},
+			"response": []
+		},
+		{
 			"name": "seed sample data",
 			"request": {
 				"method": "POST",
