@@ -164,6 +164,23 @@ public class MetadataTests {
     }
 
     @Test
+    void patchMetadata_KeyNotFound_ReturnNotFound() throws Exception {
+        final String nonExistentKey = "-1";
+        final String validPatchValue = "{\"patchProperty1\":\"patchValue1\"}";
+        
+        final String patchPayload = formatMetadataPatchPayload(validPatchValue);
+        final ResultActions patchResult = mockMvc.perform(
+                patch(baseUrlSlash + nonExistentKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(patchPayload)
+        );
+        
+        patchResult.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors.length()").value(1));
+    }
+
+    @Test
     void deleteMetadata_ReuseDeletedKey_OverwriteDeletedKey() throws Exception {
         //Test 1: Post Metadata return 201
         final String testKey = "testKey99";
@@ -206,6 +223,19 @@ public class MetadataTests {
         
         String expectedNewValue = newTestValue.replace("\":", "\": ").replace(",\"", ", \"");
         validateMetadataResponseBody(newPostResult, testKey, expectedNewValue);
+    }
+
+    @Test
+    void deleteMetadata_KeyNotFound_ReturnNotFound() throws Exception {
+        final String nonExistentKey = "-1";
+        
+        final ResultActions deleteResult = mockMvc.perform(
+                delete(baseUrlSlash + nonExistentKey)
+        );
+        
+        deleteResult.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors.length()").value(1));
     }
 
 
