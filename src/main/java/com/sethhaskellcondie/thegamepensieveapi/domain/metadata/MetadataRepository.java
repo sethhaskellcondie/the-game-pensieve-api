@@ -83,4 +83,34 @@ public class MetadataRepository {
         final String sql = "SELECT * FROM metadata WHERE deleted_at IS NULL";
         return jdbcTemplate.query(sql, rowMapper);
     }
+
+    private Metadata getDeletedByKey(String key) {
+        final String sql = "SELECT * FROM metadata WHERE key = ? AND deleted_at IS NOT NULL";
+        Metadata metadata;
+        try {
+            metadata = jdbcTemplate.queryForObject(
+                    sql,
+                    new Object[]{key},
+                    new int[]{Types.VARCHAR},
+                    rowMapper
+            );
+        } catch (EmptyResultDataAccessException exception) {
+            return null;
+        }
+        return metadata;
+    }
+
+    public Metadata updateValue(Metadata metadata) {
+        try {
+            getByKey(metadata.key());
+        } catch (ExceptionResourceNotFound e) {
+            throw new ExceptionResourceNotFound("No metadata found with key: " + metadata.key(), e);
+        }
+
+        final String sql = """
+                            UPDATE metadata SET value = ?, deleted_at = NULL, updated_at = now() WHERE key = ?;
+                """;
+        jdbcTemplate.update(sql, metadata.value(), metadata.key());
+        return getByKey(metadata.key());
+    }
 }
