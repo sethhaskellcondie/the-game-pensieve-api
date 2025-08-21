@@ -21,6 +21,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -125,14 +127,31 @@ public class MetadataTests {
         validateMetadataResponseBody(postResult, testKey, expectedValue);
 
         //Test 2: Delete Metadata testKey99 return no content
+        final ResultActions deleteResult = mockMvc.perform(
+                delete(baseUrlSlash + testKey)
+        );
+        deleteResult.andExpect(status().isNoContent());
 
         //Test 3: Get Metadata with testKey99 return not found
+        final ResultActions getResult = mockMvc.perform(
+                get(baseUrlSlash + testKey)
+        );
+        getResult.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors.length()").value(1));
 
         //Test 4: POST new Metadata with the same key return created (revived old metadata)
-
-        //Test 5: POST new Metadata with the same key return bad request
-
-        //Test 6: GET ALL Metadata to return ok
+        final String newTestValue = "{\"differentProperty1\":\"differentValue1\",\"differentProperty2\":\"differentValue2\"}";
+        final String newPostPayload = formatMetadataPayload(testKey, newTestValue);
+        final ResultActions newPostResult = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(newPostPayload)
+        );
+        newPostResult.andExpect(status().isCreated());
+        
+        String expectedNewValue = newTestValue.replace("\":", "\": ").replace(",\"", ", \"");
+        validateMetadataResponseBody(newPostResult, testKey, expectedNewValue);
     }
 
 
