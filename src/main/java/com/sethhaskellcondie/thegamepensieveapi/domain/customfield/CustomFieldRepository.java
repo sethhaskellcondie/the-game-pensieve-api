@@ -113,12 +113,12 @@ public class CustomFieldRepository {
     }
 
     public List<CustomField> getAllCustomFields() {
-        final String sql = "SELECT * FROM custom_fields";
+        final String sql = "SELECT * FROM custom_fields WHERE deleted = false";
         return jdbcTemplate.query(sql, rowMapper);
     }
 
     public List<CustomField> getAllByKey(String entityKey) {
-        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? ;";
+        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? AND deleted = false;";
         return jdbcTemplate.query(sql, rowMapper, entityKey);
     }
 

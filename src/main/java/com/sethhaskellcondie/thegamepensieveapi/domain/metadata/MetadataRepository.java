@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.List;
 
 @Repository
 public class MetadataRepository {
@@ -76,5 +77,10 @@ public class MetadataRepository {
             logger.error("Database State Error: Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
             throw new ExceptionInternalCatastrophe("Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
         }
+    }
+
+    public List<Metadata> getAllMetadata() {
+        final String sql = "SELECT * FROM metadata WHERE deleted_at IS NULL";
+        return jdbcTemplate.query(sql, rowMapper);
     }
 }
