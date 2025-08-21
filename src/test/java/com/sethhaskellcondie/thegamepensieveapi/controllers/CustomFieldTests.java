@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -108,6 +109,45 @@ public class CustomFieldTests {
                 () -> assertTrue(returnedCustomFields.size() > 1),
                 () -> assertTrue(returnedCustomFields.contains(customField1)),
                 () -> assertTrue(returnedCustomFields.contains(customField2))
+        );
+    }
+
+    @Test
+    void getCustomFieldsByEntityKey_HappyPath_ReturnOnlyMatchingEntityKey() throws Exception {
+        final String toyEntityKey = "toy";
+        final String boardGameEntityKey = "boardGame";
+        
+        final CustomField toyCustomField = resultToResponseDto(factory.postCustomFieldReturnResult("ToyField", "text", toyEntityKey));
+        final CustomField boardGameCustomField = resultToResponseDto(factory.postCustomFieldReturnResult("BoardGameField", "text", boardGameEntityKey));
+
+        final ResultActions result = mockMvc.perform(get(baseUrl + "/entity/" + toyEntityKey));
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$.data").isArray()
+        );
+        
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, List<CustomField>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        final List<CustomField> returnedCustomFields = body.get("data");
+        
+        assertAll(
+                "The get custom fields by entity key response should only return matching entity key",
+                () -> assertTrue(returnedCustomFields.contains(toyCustomField)),
+                () -> assertFalse(returnedCustomFields.contains(boardGameCustomField))
+        );
+    }
+
+    @Test
+    void getCustomFieldsByEntityKey_InvalidEntityKey_ReturnError() throws Exception {
+        final ResultActions result = mockMvc.perform(get(baseUrl + "/entity/-1"));
+
+        result.andExpectAll(
+                status().isNotFound(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
         );
     }
 
