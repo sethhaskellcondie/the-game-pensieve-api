@@ -105,7 +105,15 @@ public class MetadataRepository {
         return getByKey(metadata.key());
     }
 
-    //TODO add delete by key
+    public void deleteByKey(String key) {
+        final String sql = """
+                            UPDATE metadata SET deleted_at = now() WHERE key = ?;
+                """;
+        int rowsUpdated = jdbcTemplate.update(sql, key);
+        if (rowsUpdated < 1) {
+            throw new ExceptionResourceNotFound("Delete failed - metadata not found with key: " + key);
+        }
+    }
 
     private Metadata getDeletedByKey(String key) {
         final String sql = "SELECT * FROM metadata WHERE key = ? AND deleted_at IS NOT NULL";
