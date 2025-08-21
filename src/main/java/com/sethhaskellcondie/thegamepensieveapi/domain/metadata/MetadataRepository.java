@@ -53,29 +53,34 @@ public class MetadataRepository {
     }
 
     public Metadata insertMetadata(Metadata metadata) {
-        final String sql = """
+        try {
+            getDeletedByKey(metadata.key());
+            return updateValue(metadata, false);
+        } catch (ExceptionResourceNotFound ignored) {
+            final String sql = """
                             INSERT INTO metadata(key, value) VALUES (?, ?);
                 """;
-        final KeyHolder keyHolder = new GeneratedKeyHolder();
-        try {
-            jdbcTemplate.update(
-                    connection -> {
-                        PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                        ps.setString(1, metadata.key());
-                        ps.setString(2, metadata.value());
-                        return ps;
-                    },
-                    keyHolder
-            );
-        } catch (DataIntegrityViolationException e) {
-            throw new ExceptionFailedDbValidation("Metadata with key '" + metadata.key() + "' already exists, Metadata keys must be unique.");
-        }
+            final KeyHolder keyHolder = new GeneratedKeyHolder();
+            try {
+                jdbcTemplate.update(
+                        connection -> {
+                            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                            ps.setString(1, metadata.key());
+                            ps.setString(2, metadata.value());
+                            return ps;
+                        },
+                        keyHolder
+                );
+            } catch (DataIntegrityViolationException e) {
+                throw new ExceptionFailedDbValidation("Metadata with key '" + metadata.key() + "' already exists, Metadata keys must be unique.");
+            }
 
-        try {
-            return getByKey(metadata.key());
-        } catch (ExceptionResourceNotFound | NullPointerException e) {
-            logger.error("Database State Error: Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
-            throw new ExceptionInternalCatastrophe("Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
+            try {
+                return getByKey(metadata.key());
+            } catch (ExceptionResourceNotFound | NullPointerException e) {
+                logger.error("Database State Error: Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
+                throw new ExceptionInternalCatastrophe("Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
+            }
         }
     }
 
@@ -100,11 +105,13 @@ public class MetadataRepository {
         return metadata;
     }
 
-    public Metadata updateValue(Metadata metadata) {
-        try {
-            getByKey(metadata.key());
-        } catch (ExceptionResourceNotFound e) {
-            throw new ExceptionResourceNotFound("No metadata found with key: " + metadata.key(), e);
+    public Metadata updateValue(Metadata metadata, Boolean needsValidation) {
+        if (needsValidation) {
+            try {
+                getByKey(metadata.key());
+            } catch (ExceptionResourceNotFound e) {
+                throw new ExceptionResourceNotFound("No metadata found with key: " + metadata.key(), e);
+            }
         }
 
         final String sql = """
