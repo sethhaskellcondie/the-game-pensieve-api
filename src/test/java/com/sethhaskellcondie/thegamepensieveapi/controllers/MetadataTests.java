@@ -73,7 +73,7 @@ public class MetadataTests {
     }
 
     @Test
-    void postMetadata_valueInvalidJson_ReturnBadRequest() throws Exception {
+    void postMetadata_InvalidJsonValue_ReturnBadRequest() throws Exception {
         final String testKey = "invalidPostJsonKey";
         final String invalidJson = "this is not valid json";
 
@@ -91,7 +91,61 @@ public class MetadataTests {
     }
 
     @Test
-    void patchMetadata_valueInvalidJson_ReturnBadRequest() throws Exception {
+    void getMetadataByKey_KeyFound_MetadataReturnedCorrectly() throws Exception {
+        final String testKey = "getTestKey";
+        final String testValue = "{\"getProperty1\":\"getValue1\",\"getProperty2\":\"getValue2\"}";
+
+        final String postPayload = formatMetadataPayload(testKey, testValue);
+        final ResultActions postResult = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postPayload)
+        );
+        postResult.andExpect(status().isCreated());
+
+        final ResultActions getResult = mockMvc.perform(
+                get(baseUrlSlash + testKey)
+        );
+        getResult.andExpect(status().isOk());
+        
+        String expectedValue = testValue.replace("\":", "\": ").replace(",\"", ", \"");
+        validateMetadataResponseBody(getResult, testKey, expectedValue);
+
+        final String secondKey = "secondGetTestKey";
+        final String secondValue = "{\"secondProperty1\":\"secondValue1\",\"secondProperty2\":\"secondValue2\"}";
+
+        final String secondPostPayload = formatMetadataPayload(secondKey, secondValue);
+        final ResultActions secondPostResult = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(secondPostPayload)
+        );
+        secondPostResult.andExpect(status().isCreated());
+
+        final ResultActions getAllResult = mockMvc.perform(
+                get(baseUrl)
+        );
+        
+        getAllResult.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].id").isNotEmpty())
+                .andExpect(jsonPath("$.data[0].key").value("getTestKey"))
+                .andExpect(jsonPath("$.data[0].value").value("{\"getProperty1\": \"getValue1\", \"getProperty2\": \"getValue2\"}"))
+                .andExpect(jsonPath("$.data[0].createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.data[0].updatedAt").isNotEmpty())
+                .andExpect(jsonPath("$.data[0].deletedAt").isEmpty())
+                .andExpect(jsonPath("$.data[1].id").isNotEmpty())
+                .andExpect(jsonPath("$.data[1].key").value("secondGetTestKey"))
+                .andExpect(jsonPath("$.data[1].value").value("{\"secondProperty1\": \"secondValue1\", \"secondProperty2\": \"secondValue2\"}"))
+                .andExpect(jsonPath("$.data[1].createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.data[1].updatedAt").isNotEmpty())
+                .andExpect(jsonPath("$.data[1].deletedAt").isEmpty())
+                .andExpect(jsonPath("$.errors").isEmpty());
+    }
+
+    @Test
+    void patchMetadata_InvalidJsonValue_ReturnBadRequest() throws Exception {
         final String patchKey = "invalidPatchJsonKey";
         final String invalidPatchJson = "invalid json here";
         
@@ -140,7 +194,7 @@ public class MetadataTests {
                 .andExpect(jsonPath("$.errors").isArray())
                 .andExpect(jsonPath("$.errors.length()").value(1));
 
-        //Test 4: POST new Metadata with the same key return created (revived old metadata)
+        //Test 4: POST new Metadata with the same key return created ("revived" old metadata)
         final String newTestValue = "{\"differentProperty1\":\"differentValue1\",\"differentProperty2\":\"differentValue2\"}";
         final String newPostPayload = formatMetadataPayload(testKey, newTestValue);
         final ResultActions newPostResult = mockMvc.perform(
