@@ -608,6 +608,69 @@
 			"response": []
 		},
 		{
+			"name": "create new metadata",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"metadata\": {\r\n        \"id\": null,\r\n        \"key\": \"user_settings\",\r\n        \"value\": \"{\\\"theme\\\":\\\"dark\\\",\\\"language\\\":\\\"en\\\",\\\"notifications\\\":true}\",\r\n        \"createdAt\": null,\r\n        \"updatedAt\": null,\r\n        \"deletedAt\": null\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/metadata"
+			},
+			"response": []
+		},
+		{
+			"name": "read all metadata",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/v1/metadata"
+			},
+			"response": []
+		},
+		{
+			"name": "read one metadata by key",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/v1/metadata/user_settings"
+			},
+			"response": []
+		},
+		{
+			"name": "update metadata value",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"value\": \"{\\\"theme\\\":\\\"light\\\",\\\"language\\\":\\\"es\\\",\\\"notifications\\\":false}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/metadata/user_settings"
+			},
+			"response": []
+		},
+		{
+			"name": "delete one metadata",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://localhost:8080/v1/metadata/user_settings"
+			},
+			"response": []
+		},
+		{
 			"name": "seed sample data",
 			"request": {
 				"method": "POST",
