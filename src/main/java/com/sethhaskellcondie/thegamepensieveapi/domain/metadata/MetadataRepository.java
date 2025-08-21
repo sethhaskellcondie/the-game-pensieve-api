@@ -63,7 +63,7 @@ public class MetadataRepository {
             return updateValue(metadata, false);
         } catch (ExceptionResourceNotFound ignored) {
             final String sql = """
-                            INSERT INTO metadata(key, value) VALUES (?, ?);
+                            INSERT INTO metadata(key, value) VALUES (?, ?::jsonb);
                 """;
             final KeyHolder keyHolder = new GeneratedKeyHolder();
             try {
@@ -99,7 +99,7 @@ public class MetadataRepository {
         }
 
         final String sql = """
-                            UPDATE metadata SET value = ?, deleted_at = NULL, updated_at = now() WHERE key = ?;
+                            UPDATE metadata SET value = ?::jsonb, deleted_at = NULL, updated_at = now() WHERE key = ?;
                 """;
         jdbcTemplate.update(sql, metadata.value(), metadata.key());
         return getByKey(metadata.key());

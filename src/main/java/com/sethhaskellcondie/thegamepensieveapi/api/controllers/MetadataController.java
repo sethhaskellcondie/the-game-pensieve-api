@@ -1,7 +1,10 @@
 package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.api.FormattedResponseBody;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
 import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.MetadataGateway;
@@ -24,16 +27,19 @@ import java.util.Map;
 @RequestMapping("v1/metadata")
 public class MetadataController {
     private final MetadataGateway gateway;
+    private final ObjectMapper objectMapper;
 
     public MetadataController(MetadataGateway gateway) {
         this.gateway = gateway;
+        this.objectMapper = new ObjectMapper();
     }
 
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Metadata> createNewMetadata(@RequestBody Map<String, Metadata> requestBody) throws ExceptionFailedDbValidation {
+    public Map<String, Metadata> createNewMetadata(@RequestBody Map<String, Metadata> requestBody) throws ExceptionFailedDbValidation, ExceptionInputValidation {
         final Metadata newMetadata = requestBody.get("metadata");
+        validateJsonValue(newMetadata.value());
         final Metadata savedMetadata = gateway.createNew(newMetadata);
         final FormattedResponseBody<Metadata> body = new FormattedResponseBody<>(savedMetadata);
         return body.formatData();
@@ -57,8 +63,9 @@ public class MetadataController {
 
     @ResponseBody
     @PatchMapping("/{key}")
-    public Map<String, Metadata> patchValue(@PathVariable String key, @RequestBody Map<String, String> requestBody) throws ExceptionResourceNotFound {
+    public Map<String, Metadata> patchValue(@PathVariable String key, @RequestBody Map<String, String> requestBody) throws ExceptionResourceNotFound, ExceptionInputValidation {
         final String newValue = requestBody.get("value");
+        validateJsonValue(newValue);
         final Metadata metadataToUpdate = new Metadata(null, key, newValue, null, null, null);
         final Metadata updatedMetadata = gateway.updateValue(metadataToUpdate);
         final FormattedResponseBody<Metadata> body = new FormattedResponseBody<>(updatedMetadata);
@@ -72,5 +79,17 @@ public class MetadataController {
         gateway.deleteByKey(key);
         FormattedResponseBody<String> body = new FormattedResponseBody<>("");
         return body.formatData();
+    }
+
+    private void validateJsonValue(String value) throws ExceptionInputValidation {
+        if (value == null || value.trim().isEmpty()) {
+            throw new ExceptionInputValidation("Value cannot be null or empty");
+        }
+        
+        try {
+            objectMapper.readTree(value);
+        } catch (JsonProcessingException e) {
+            throw new ExceptionInputValidation("Value must be valid JSON: " + e.getMessage());
+        }
     }
 }

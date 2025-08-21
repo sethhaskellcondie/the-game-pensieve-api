@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,7 +34,6 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldVa
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
-import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
 
 public class TestFactory {
 
@@ -669,11 +669,36 @@ public class TestFactory {
         final String json = """
                 {
                     "metadata": {
+                        "id": null,
                         "key": "%s",
-                        "value": "%s"
-                        }
+                        "value": "%s",
+                        "createdAt": null,
+                        "updatedAt": null,
+                        "deletedAt": null
+                    }
                 }
                 """;
-        return String.format(json, key, value);
+        return String.format(json, key, value.replace("\"", "\\\""));
+    }
+
+    public ResultActions patchMetadataValueReturnResult(String key, String value) throws Exception {
+        final String formattedJson = formatMetadataPatchPayload(value);
+
+        final ResultActions result = mockMvc.perform(
+                patch("/v1/metadata/" + key)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        return result;
+    }
+
+    public String formatMetadataPatchPayload(String value) {
+        final String json = """
+                {
+                    "value": "%s"
+                }
+                """;
+        return String.format(json, value.replace("\"", "\\\""));
     }
 }
