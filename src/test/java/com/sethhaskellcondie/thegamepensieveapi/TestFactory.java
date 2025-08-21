@@ -33,6 +33,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldVa
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
+import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
 
 public class TestFactory {
 
@@ -649,5 +650,30 @@ public class TestFactory {
                 validateCustomFieldValues(expectedBoardGameBox.boardGame().customFieldValues(), returnedBoardGameBox.boardGame().customFieldValues());
             }
         }
+    }
+
+    public ResultActions postMetadataReturnResult(String key, String value) throws Exception {
+        final String formattedJson = formatMetadataPayload(key, value);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/metadata")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public String formatMetadataPayload(String key, String value) {
+        final String json = """
+                {
+                    "metadata": {
+                        "key": "%s",
+                        "value": "%s"
+                        }
+                }
+                """;
+        return String.format(json, key, value);
     }
 }
