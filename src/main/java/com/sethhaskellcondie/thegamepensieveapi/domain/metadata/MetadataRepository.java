@@ -36,6 +36,11 @@ public class MetadataRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    public List<Metadata> getAllMetadata() {
+        final String sql = "SELECT * FROM metadata WHERE deleted_at IS NULL";
+        return jdbcTemplate.query(sql, rowMapper);
+    }
+
     public Metadata getByKey(String key) {
         final String sql = "SELECT * FROM metadata WHERE key = ? AND deleted_at IS NULL";
         Metadata metadata;
@@ -84,10 +89,23 @@ public class MetadataRepository {
         }
     }
 
-    public List<Metadata> getAllMetadata() {
-        final String sql = "SELECT * FROM metadata WHERE deleted_at IS NULL";
-        return jdbcTemplate.query(sql, rowMapper);
+    public Metadata updateValue(Metadata metadata, Boolean needsValidation) {
+        if (needsValidation) {
+            try {
+                getByKey(metadata.key());
+            } catch (ExceptionResourceNotFound e) {
+                throw new ExceptionResourceNotFound("No metadata found with key: " + metadata.key(), e);
+            }
+        }
+
+        final String sql = """
+                            UPDATE metadata SET value = ?, deleted_at = NULL, updated_at = now() WHERE key = ?;
+                """;
+        jdbcTemplate.update(sql, metadata.value(), metadata.key());
+        return getByKey(metadata.key());
     }
+
+    //TODO add delete by key
 
     private Metadata getDeletedByKey(String key) {
         final String sql = "SELECT * FROM metadata WHERE key = ? AND deleted_at IS NOT NULL";
@@ -103,21 +121,5 @@ public class MetadataRepository {
             return null;
         }
         return metadata;
-    }
-
-    public Metadata updateValue(Metadata metadata, Boolean needsValidation) {
-        if (needsValidation) {
-            try {
-                getByKey(metadata.key());
-            } catch (ExceptionResourceNotFound e) {
-                throw new ExceptionResourceNotFound("No metadata found with key: " + metadata.key(), e);
-            }
-        }
-
-        final String sql = """
-                            UPDATE metadata SET value = ?, deleted_at = NULL, updated_at = now() WHERE key = ?;
-                """;
-        jdbcTemplate.update(sql, metadata.value(), metadata.key());
-        return getByKey(metadata.key());
     }
 }
