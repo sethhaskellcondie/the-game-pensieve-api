@@ -1,16 +1,26 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.metadata;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInternalCatastrophe;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.Types;
 
 @Repository
 public class MetadataRepository {
     private final JdbcTemplate jdbcTemplate;
+    private final Logger logger = LoggerFactory.getLogger(MetadataRepository.class);
     private final RowMapper<Metadata> rowMapper = (resultSet, rowNumber) ->
             new Metadata(
                     resultSet.getInt("id"),
@@ -36,8 +46,35 @@ public class MetadataRepository {
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
-            throw new ExceptionResourceNotFound("metadata", "key: " + key, exception);
+            throw new ExceptionResourceNotFound("No Metadata found with key: + key: " + key, exception);
         }
         return metadata;
+    }
+
+    public Metadata insertMetadata(Metadata metadata) {
+        final String sql = """
+                            INSERT INTO metadata(key, value) VALUES (?, ?);
+                """;
+        final KeyHolder keyHolder = new GeneratedKeyHolder();
+        try {
+            jdbcTemplate.update(
+                    connection -> {
+                        PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                        ps.setString(1, metadata.key());
+                        ps.setString(2, metadata.value());
+                        return ps;
+                    },
+                    keyHolder
+            );
+        } catch (DataIntegrityViolationException e) {
+            throw new ExceptionFailedDbValidation("Metadata with key '" + metadata.key() + "' already exists, Metadata keys must be unique.");
+        }
+
+        try {
+            return getByKey(metadata.key());
+        } catch (ExceptionResourceNotFound | NullPointerException e) {
+            logger.error("Database State Error: Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
+            throw new ExceptionInternalCatastrophe("Just inserted metadata with key '" + metadata.key() + "' and couldn't immediately retrieve it.");
+        }
     }
 }
