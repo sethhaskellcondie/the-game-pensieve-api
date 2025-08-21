@@ -33,40 +33,18 @@ public class MetadataTests {
 
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private MetadataGateway metadataGateway;
-    private TestFactory factory;
     private final String baseUrl = "/v1/metadata";
     private final String baseUrlSlash = "/v1/metadata/";
-
-    @BeforeEach
-    void setUp() {
-        factory = new TestFactory(mockMvc);
-    }
-
-    //Test 1.5: Get by ID?
-
-    //Test 2: Delete Metadata key1 return no content
-
-    //Test 3: Get Metadata with key1 return not found
-
-    //Test 4: POST new Metadata with the same key return created (revived old metadata)
-
-    //Test 5: POST new Metadata with the same key return bad request
-
-    //Test 6: GET ALL Metadata to return ok
-
-    //Test 7: PATCH Metadata with key1 return ok
 
     @Test
     void postAndPatchMetadata_ValidInput_ReturnSuccess() throws Exception {
         //Test 1: Successful Post, Return 201
-        final String testKey = "key1";
-        final String testValue = "{\"property1\":\"value1\",\"property2\":\"value2\"}";
+        final String testKey = "keyBrothers1";
+        final String testValue = "{\"propertyBrothers1\":\"valueBrothers1\",\"propertyBrothers2\":\"valueBrothers2\"}";
 
         final String postPayload = formatMetadataPayload(testKey, testValue);
         final ResultActions postResult = mockMvc.perform(
-                post("/v1/metadata")
+                post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(postPayload)
         );
@@ -76,11 +54,11 @@ public class MetadataTests {
         validateMetadataResponseBody(postResult, testKey, expectedValue);
 
         //Test 2: Successful PATCH, Return 200
-        final String updatedValue = "{\"property1\":\"updatedValue1\",\"property3\":\"newValue3\"}";
+        final String updatedValue = "{\"propertyBrothers1\":\"updatedBrothers1\",\"propertyBrothers3\":\"newBrothers3\"}";
 
         final String patchPayload = formatMetadataPatchPayload(updatedValue);
         final ResultActions patchResult = mockMvc.perform(
-                patch("/v1/metadata/" + testKey)
+                patch(baseUrlSlash + testKey)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(patchPayload)
         );
@@ -99,7 +77,7 @@ public class MetadataTests {
 
         final String formattedJson = formatMetadataPayload(testKey, invalidJson);
         final ResultActions invalidPostResult = mockMvc.perform(
-                post("/v1/metadata")
+                post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );
@@ -118,7 +96,7 @@ public class MetadataTests {
         final String patchPayload = formatMetadataPatchPayload(invalidPatchJson);
         
         final ResultActions invalidPatchResult = mockMvc.perform(
-                patch("/v1/metadata/" + patchKey)
+                patch(baseUrlSlash + patchKey)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(patchPayload)
         );
@@ -128,6 +106,38 @@ public class MetadataTests {
                 .andExpect(jsonPath("$.errors").isArray())
                 .andExpect(jsonPath("$.errors[0]").value(containsString("Value must be valid JSON")));
     }
+
+    @Test
+    void deleteMetadata_ReuseDeletedKey_OverwriteDeletedKey() throws Exception {
+        //Test 1: Post Metadata return 201
+        final String testKey = "testKey99";
+        final String testValue = "{\"property1\":\"value1\",\"property2\":\"value2\"}";
+
+        final String postPayload = formatMetadataPayload(testKey, testValue);
+        final ResultActions postResult = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postPayload)
+        );
+        postResult.andExpect(status().isCreated());
+        
+        String expectedValue = testValue.replace("\":", "\": ").replace(",\"", ", \"");
+        validateMetadataResponseBody(postResult, testKey, expectedValue);
+
+        //Test 2: Delete Metadata testKey99 return no content
+
+        //Test 3: Get Metadata with testKey99 return not found
+
+        //Test 4: POST new Metadata with the same key return created (revived old metadata)
+
+        //Test 5: POST new Metadata with the same key return bad request
+
+        //Test 6: GET ALL Metadata to return ok
+    }
+
+
+    // -------------- private helper methods --------------
+
 
     private Metadata resultToMetadata(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
         final MvcResult mvcResult = result.andReturn();
