@@ -49,6 +49,14 @@ public class CustomFieldController {
     }
 
     @ResponseBody
+    @GetMapping("/entity/{key}")
+    public Map<String, List<CustomField>> getAllCustomFieldsByEntityKey(@PathVariable String key) throws ExceptionResourceNotFound {
+        final List<CustomField> customFields = gateway.getAllByEntityKey(key);
+        final FormattedResponseBody<List<CustomField>> body = new FormattedResponseBody<>(customFields);
+        return body.formatData();
+    }
+
+    @ResponseBody
     @PatchMapping("/{id}")
     public Map<String, CustomField> patchName(@PathVariable int id, @RequestBody Map<String, String> requestBody) throws ExceptionResourceNotFound {
         final String newName = requestBody.get("name");

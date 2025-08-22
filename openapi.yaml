@@ -791,6 +791,41 @@ paths:
                   errors:
                     type: 'null'
 
+  /v1/custom_fields/entity/{key}:
+    get:
+      tags:
+        - Custom Fields
+      summary: Get custom fields by entity key
+      description: Retrieve all custom fields associated with a specific entity type
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [toy, system, videoGame, videoGameBox, boardGame, boardGameBox]
+          description: Entity key to get custom fields for
+      responses:
+        '200':
+          description: List of custom fields for the entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CustomFieldResponse'
+                  errors:
+                    type: 'null'
+        '404':
+          description: Invalid entity key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /v1/custom_fields/{id}:
     patch:
       tags:

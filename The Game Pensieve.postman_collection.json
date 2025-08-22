@@ -401,6 +401,15 @@
 			"response": []
 		},
 		{
+			"name": "read custom fields by entity key",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/v1/custom_fields/entity/toy"
+			},
+			"response": []
+		},
+		{
 			"name": "patch custom field name",
 			"request": {
 				"method": "PATCH",
