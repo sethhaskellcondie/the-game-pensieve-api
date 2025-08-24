@@ -97,12 +97,10 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
                             INSERT INTO board_game_boxes(title, is_expansion, is_stand_alone, base_set_id, board_game_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        if (entity.getBaseSetId() == null) {
-            jdbcTemplate.update(
-                    getPreparedStatement(sql, entity),
-                    keyHolder
-            );
-        }
+        jdbcTemplate.update(
+                getPreparedStatement(sql, entity),
+                keyHolder
+        );
         return (Integer) keyHolder.getKeys().get("id");
     }
 
@@ -125,7 +123,7 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
                 ps.setString(1, entity.getTitle());
                 ps.setBoolean(2, entity.isExpansion());
                 ps.setBoolean(3, entity.isStandAlone());
-                ps.setNull(4, entity.getBaseSetId());
+                ps.setInt(4, entity.getBaseSetId());
                 ps.setInt(5, entity.getBoardGameId());
                 ps.setTimestamp(6, Timestamp.from(Instant.now()));
                 ps.setTimestamp(7, Timestamp.from(Instant.now()));

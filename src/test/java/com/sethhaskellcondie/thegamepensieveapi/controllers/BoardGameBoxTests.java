@@ -96,6 +96,37 @@ public class BoardGameBoxTests {
     }
 
     @Test
+    void postBoardGameBox_WithNonNullBaseSetId_BoardGameBoxCreated() throws Exception {
+        // This test replicates the bug where having a non-null baseSetId caused
+        // "Cannot invoke Map.get(Object) because KeyHolder.getKeys() is null" error
+        // The bug was in BoardGameBoxRepository.insertImplementation() where the insert
+        // was only executed if baseSetId was null, but the code always tried to get keys
+
+        final BoardGameBoxResponseDto baseSetBox = factory.postBoardGameBox();
+
+        final String expectedTitle = "Just One: Expansion";
+        final boolean expectedExpansion = true;
+        final boolean expectedStandAlone = false;
+        final Integer expectedBaseSetId = baseSetBox.id();
+
+        final ResultActions result = factory.postBoardGameBoxReturnResult(
+                expectedTitle,
+                expectedExpansion,
+                expectedStandAlone,
+                expectedBaseSetId,  // This non-null baseSetId was causing the bug
+                null,  // boardGameId null to create new board game
+                new ArrayList<>()
+        );
+
+        result.andExpect(status().isCreated());
+
+        final BoardGameBoxResponseDto createdBox = factory.resultToBoardGameBoxResponseDto(result);
+
+        factory.validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone,
+                expectedBaseSetId, createdBox.boardGame(), new ArrayList<>());
+    }
+
+    @Test
     void postBoardGameBox_TitleBlank_ReturnBadRequest() throws Exception {
         // The title cannot be blank
         final String jsonContent = factory.formatBoardGameBoxPayload("", false, false, 0, null, null);
@@ -276,5 +307,4 @@ public class BoardGameBoxTests {
                 jsonPath("$.errors.size()").value(1)
         );
     }
-
 }
