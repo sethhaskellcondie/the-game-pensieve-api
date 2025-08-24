@@ -546,12 +546,13 @@
 		},
 		{
 			"name": "update one board game box",
+			"description": "Updates an existing board game box. Note: boardGameId is required and must be greater than 0 for updates. Board game boxes must always have a valid parent board game.",
 			"request": {
 				"method": "PUT",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"boardGameBox\": {\r\n        \"title\": \"Updated Board Game Box Title\",\r\n        \"isExpansion\": false,\r\n        \"isStandAlone\": true,\r\n        \"baseSetId\": null,\r\n        \"boardGameId\": 1,\r\n        \"boardGame\": null,\r\n        \"customFieldValues\": []\r\n    }\r\n}",
+					"raw": "{\r\n    \"boardGameBox\": {\r\n        \"title\": \"Updated Board Game Box Title\",\r\n        \"isExpansion\": false,\r\n        \"isStandAlone\": true,\r\n        \"baseSetId\": null,\r\n        \"boardGameId\": 1,\r\n        \"customFieldValues\": []\r\n    }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

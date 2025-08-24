@@ -592,7 +592,7 @@ paths:
               type: object
               properties:
                 boardGameBox:
-                  $ref: '#/components/schemas/BoardGameBoxRequest'
+                  $ref: '#/components/schemas/BoardGameBoxUpdateRequest'
               required:
                 - boardGameBox
       responses:
@@ -1551,6 +1551,39 @@ components:
         - title
         - isExpansion
         - isStandAlone
+        - customFieldValues
+
+    BoardGameBoxUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the board game box
+          minLength: 1
+        isExpansion:
+          type: boolean
+          description: Whether this is an expansion
+        isStandAlone:
+          type: boolean
+          description: Whether this can be played standalone
+        baseSetId:
+          type: integer
+          nullable: true
+          description: ID of the base set if this is an expansion
+        boardGameId:
+          type: integer
+          description: ID of existing board game (required for updates)
+          minimum: 1
+        customFieldValues:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomFieldValue'
+          description: Custom field values for this board game box
+      required:
+        - title
+        - isExpansion
+        - isStandAlone
+        - boardGameId
         - customFieldValues
 
     BoardGameBoxResponse:

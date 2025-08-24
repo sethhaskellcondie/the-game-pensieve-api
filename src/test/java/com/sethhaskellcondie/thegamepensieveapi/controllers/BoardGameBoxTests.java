@@ -281,7 +281,7 @@ public class BoardGameBoxTests {
 
     @Test
     void updateExistingBoardGameBox_InvalidId_ReturnNotFound() throws Exception {
-        final String jsonContent = factory.formatBoardGameBoxPayload("invalidId", false, false, 1, null, null);
+        final String jsonContent = factory.formatBoardGameBoxPayload("invalidId", false, false, 1, 10, null);
         final ResultActions result = mockMvc.perform(
                 put(baseUrl + "/-1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -292,6 +292,60 @@ public class BoardGameBoxTests {
                 status().isNotFound(),
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.size()").value(1)
+        );
+    }
+
+    @Test
+    void putBoardGameBox_WithNullBoardGameId_ReturnBadRequest() throws Exception {
+        final BoardGameBoxResponseDto existingBox = factory.postBoardGameBox();
+
+        final String jsonContent = factory.formatBoardGameBoxPayload(
+                "Just One: Updated",
+                true,
+                false,
+                1,
+                null, // this should cause validation error
+                new ArrayList<>()
+        );
+
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + existingBox.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isArray(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
+    @Test
+    void putBoardGameBox_WithInvalidBoardGameId_ReturnBadRequest() throws Exception {
+        final BoardGameBoxResponseDto existingBox = factory.postBoardGameBox();
+
+        final String jsonContent = factory.formatBoardGameBoxPayload(
+                "Just One: Updated",
+                true,
+                false,
+                1,
+                0, // this should cause validation error (must be > 0)
+                new ArrayList<>()
+        );
+
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + existingBox.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isArray(),
+                jsonPath("$.errors.length()").value(1)
         );
     }
 
