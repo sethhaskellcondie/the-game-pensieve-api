@@ -15,7 +15,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
     private String title;
     private boolean expansion;
     private boolean standAlone;
-    private Integer baseSetId; //this is a BoardGameBox id to the base set if this box is not standAlone
+    private Integer baseSetId; //this is a BoardGameBox id to the base set if this box is an expansion
     private Integer boardGameId;
     private SlimBoardGame boardGame; //the board game is initially set to null, but can be hydrated in the service
 
