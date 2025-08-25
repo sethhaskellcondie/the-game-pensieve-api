@@ -1481,6 +1481,25 @@ components:
           type: string
           description: Title of the board game box
 
+    SlimBoardGame:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: Unique identifier of the board game
+            title:
+              type: string
+              description: Title of the board game
+        - $ref: '#/components/schemas/EntityTimestamps'
+        - type: object
+          properties:
+            customFieldValues:
+              type: array
+              items:
+                $ref: '#/components/schemas/CustomFieldValue'
+              description: Custom field values for this board game
+
     BoardGameResponse:
       allOf:
         - type: object
@@ -1611,7 +1630,7 @@ components:
               nullable: true
               description: ID of the base set if this is an expansion
             boardGame:
-              $ref: '#/components/schemas/BoardGameResponse'
+              $ref: '#/components/schemas/SlimBoardGame'
         - $ref: '#/components/schemas/EntityTimestamps'
         - type: object
           properties:

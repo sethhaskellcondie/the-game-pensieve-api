@@ -7,6 +7,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.SlimBoardGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
@@ -79,14 +80,14 @@ public class BoardGameTests {
         
         final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult, expectedTitle, false, false, null, boardGameBoxDto.boardGame(), new ArrayList<>());
-        final BoardGameResponseDto boardGameDto = boardGameBoxDto.boardGame();
+        final SlimBoardGame boardGameDto = boardGameBoxDto.boardGame();
 
         final ResultActions getBoardGameResult = mockMvc.perform(get(baseUrlSlash + boardGameDto.id()));
         getBoardGameResult.andExpect(status().isOk());
         SlimBoardGameBox expectedSlimBox = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto);
         validateBoardGameResponseBody(getBoardGameResult, expectedTitle, List.of(expectedSlimBox), expectedCustomFieldValues);
 
-        final BoardGameResponseDto existingBoardGame = boardGameBoxDto.boardGame();
+        final SlimBoardGame existingBoardGame = boardGameBoxDto.boardGame();
 
 
         //test 2 - when valid patch send, then ok (200) returned
@@ -164,7 +165,7 @@ public class BoardGameTests {
         
         final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult, title, false, false, null, boardGameBoxDto.boardGame(), new ArrayList<>());
-        final BoardGameResponseDto expectedDto = boardGameBoxDto.boardGame();
+        final SlimBoardGame expectedDto = boardGameBoxDto.boardGame();
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
 
@@ -219,7 +220,7 @@ public class BoardGameTests {
         final BoardGameBoxResponseDto boardGameBoxDto1 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult1);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult1, title1, false, false, null, boardGameBoxDto1.boardGame(), new ArrayList<>());
         
-        final BoardGameResponseDto gameDto1 = boardGameBoxDto1.boardGame();
+        final SlimBoardGame gameDto1 = boardGameBoxDto1.boardGame();
 
         final String title2 = "Mega Man the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
@@ -229,7 +230,7 @@ public class BoardGameTests {
         final BoardGameBoxResponseDto boardGameBoxDto2 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult2);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult2, title2, false, false, null, boardGameBoxDto2.boardGame(), new ArrayList<>());
         
-        final BoardGameResponseDto gameDto2 = boardGameBoxDto2.boardGame();
+        final SlimBoardGame gameDto2 = boardGameBoxDto2.boardGame();
 
         final String title3 = "Power Rangers the Deckbuilding Game";
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
@@ -239,13 +240,13 @@ public class BoardGameTests {
         final BoardGameBoxResponseDto boardGameBoxDto3 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult3);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult3, title3, false, false, null, boardGameBoxDto3.boardGame(), new ArrayList<>());
         
-        final BoardGameResponseDto gameDto3 = boardGameBoxDto3.boardGame();
+        final SlimBoardGame gameDto3 = boardGameBoxDto3.boardGame();
 
         SlimBoardGameBox expectedBox1 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto1);
         SlimBoardGameBox expectedBox2 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto2);
-        BoardGameResponseDto expectedGame1 = new BoardGameResponseDto(gameDto1.key(), gameDto1.id(), gameDto1.title(),
+        BoardGameResponseDto expectedGame1 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, gameDto1.id(), gameDto1.title(),
                 List.of(expectedBox1), gameDto1.createdAt(), gameDto1.updatedAt(), gameDto1.deletedAt(), gameDto1.customFieldValues());
-        BoardGameResponseDto expectedGame2 = new BoardGameResponseDto(gameDto2.key(), gameDto2.id(), gameDto2.title(),
+        BoardGameResponseDto expectedGame2 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, gameDto2.id(), gameDto2.title(),
                 List.of(expectedBox2), gameDto2.createdAt(), gameDto2.updatedAt(), gameDto2.deletedAt(), gameDto2.customFieldValues());
 
         final Filter filter = new Filter(Keychain.BOARD_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Mega Man", false);
@@ -267,7 +268,7 @@ public class BoardGameTests {
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
         final String jsonContent = factory.formatFiltersPayload(customFilter);
         SlimBoardGameBox expectedBox3 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto3);
-        BoardGameResponseDto expectedGame3 = new BoardGameResponseDto(gameDto3.key(), gameDto3.id(), gameDto3.title(),
+        BoardGameResponseDto expectedGame3 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, gameDto3.id(), gameDto3.title(),
                 List.of(expectedBox3), gameDto3.createdAt(), gameDto3.updatedAt(), gameDto3.deletedAt(), gameDto3.customFieldValues());
 
         final ResultActions result5 = mockMvc.perform(post(baseUrl + "/function/search")

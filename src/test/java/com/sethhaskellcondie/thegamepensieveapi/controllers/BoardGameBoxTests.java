@@ -3,7 +3,7 @@ package com.sethhaskellcondie.thegamepensieveapi.controllers;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ public class BoardGameBoxTests {
         final String expectedTitle = "Disney Villainous";
         final boolean expectedExpansion = false;
         final boolean expectedStandAlone = false;
-        final BoardGameResponseDto relatedBoardGame = factory.postBoardGameBox().boardGame();
+        final SlimBoardGame relatedBoardGame = factory.postBoardGameBox().boardGame();
         final List<CustomFieldValue> expectedCustomFieldValues = List.of(
                 new CustomFieldValue(0, "Has Solo Mode", "boolean", "true"),
                 new CustomFieldValue(0, "Best Player Count", "number", "3"),
@@ -171,10 +171,10 @@ public class BoardGameBoxTests {
 
         final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, expectedExpansion, expectedStandAlone, null, null, null);
         final BoardGameBoxResponseDto boxResponseDto = factory.resultToBoardGameBoxResponseDto(result);
-        //This is only used as the expected result only testing the key, id, and title
-        final BoardGameResponseDto boardGameResponseDto = new BoardGameResponseDto(Keychain.BOARD_GAME_BOX_KEY, boxResponseDto.boardGame().id(), expectedTitle, null, null, null, null, null);
+        //This is only used as the expected result only testing the id and title
+        final SlimBoardGame expectedSlimBoardGame = new SlimBoardGame(boxResponseDto.boardGame().id(), expectedTitle, null, null, null, null);
 
-        factory.validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, boardGameResponseDto, new ArrayList<>());
+        factory.validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, expectedSlimBoardGame, new ArrayList<>());
     }
 
     @Test
@@ -182,7 +182,7 @@ public class BoardGameBoxTests {
         final String title = "Freelancers";
         final boolean isExpansion = false;
         final boolean isStandAlone = true;
-        final BoardGameResponseDto relatedBoardGame = factory.postBoardGameBox().boardGame();
+        final SlimBoardGame relatedBoardGame = factory.postBoardGameBox().boardGame();
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
         ResultActions postResult = factory.postBoardGameBoxReturnResult(title, isExpansion, isStandAlone, null, relatedBoardGame.id(), customFieldValues);
         final BoardGameBoxResponseDto expectedDto = factory.resultToBoardGameBoxResponseDto(postResult);

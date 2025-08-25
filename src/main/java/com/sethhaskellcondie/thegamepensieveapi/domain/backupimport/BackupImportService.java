@@ -5,7 +5,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRe
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
@@ -510,7 +510,7 @@ public class BackupImportService {
                     ));
                     createdCount++;
                     boardGameBoxIds.put(importBox.id(), createdBoardGameBox.getId());
-                    boardGameIds.put(importBox.boardGame().id(), createdBoardGameBox.getBoardGame().getId());
+                    boardGameIds.put(importBox.boardGame().id(), createdBoardGameBox.getBoardGame().id());
                 }
             } catch (Exception exception) {
                 exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data with title: '" + importBox.title()
@@ -559,7 +559,7 @@ public class BackupImportService {
         return validatedBoxes;
     }
 
-    private BoardGameRequestDto validateBoardGame(BoardGameResponseDto boardGame, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private BoardGameRequestDto validateBoardGame(SlimBoardGame boardGame, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         if (null == boardGame) {
             return null;
         }

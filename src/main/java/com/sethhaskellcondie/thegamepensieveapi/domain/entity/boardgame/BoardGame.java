@@ -70,6 +70,10 @@ public class BoardGame extends Entity<BoardGameRequestDto, BoardGameResponseDto>
         return Keychain.BOARD_GAME_KEY;
     }
 
+    public SlimBoardGame convertToSlimBoardGame() {
+        return new SlimBoardGame(this.id, this.title, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
+    }
+
     private void validate() throws ExceptionMalformedEntity {
         if (null == this.title || this.title.isBlank()) {
             throw new ExceptionMalformedEntity("Board Game object error, title cannot be blank");

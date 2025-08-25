@@ -14,6 +14,7 @@ import java.util.Map;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.SlimBoardGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
@@ -491,6 +492,10 @@ public class TestFactory {
                 responseDto.createdAt(), responseDto.updatedAt(), responseDto.deletedAt(), responseDto.customFieldValues());
     }
 
+    public SlimBoardGame convertBoardGameResponseToSlimBoardGame(BoardGameResponseDto responseDto) {
+        return new SlimBoardGame(responseDto.id(), responseDto.title(), responseDto.createdAt(), responseDto.updatedAt(), responseDto.deletedAt(), responseDto.customFieldValues());
+    }
+
     public ResultActions postBoardGameBoxReturnResult(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId,
                                                       List<CustomFieldValue> customFieldValues) throws Exception {
         final String formattedJson = formatBoardGameBoxPayload(title, isExpansion, isStandAlone, baseSetId, boardGameId, customFieldValues);
@@ -596,7 +601,7 @@ public class TestFactory {
     }
 
     public void validateBoardGameBoxResponseBody(ResultActions result, String expectedTitle, boolean expectedExpansion, boolean expectedStandAlone, Integer expectedBaseSetId,
-                                                 BoardGameResponseDto expectedBoardGameResponse, List<CustomFieldValue> customFieldValues) throws Exception {
+                                                 SlimBoardGame expectedSlimBoardGame, List<CustomFieldValue> customFieldValues) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.key").value(Keychain.BOARD_GAME_BOX_KEY),
                 jsonPath("$.data.id").isNotEmpty(),
@@ -604,16 +609,15 @@ public class TestFactory {
                 jsonPath("$.data.isExpansion").value(expectedExpansion),
                 jsonPath("$.data.isStandAlone").value(expectedStandAlone),
                 jsonPath("$.data.baseSetId").value(expectedBaseSetId),
-                jsonPath("$.data.boardGame.key").value(Keychain.BOARD_GAME_KEY),
-                jsonPath("$.data.boardGame.id").value(expectedBoardGameResponse.id()),
-                jsonPath("$.data.boardGame.title").value(expectedBoardGameResponse.title()),
+                jsonPath("$.data.boardGame.id").value(expectedSlimBoardGame.id()),
+                jsonPath("$.data.boardGame.title").value(expectedSlimBoardGame.title()),
                 jsonPath("$.errors").isEmpty()
         );
         BoardGameBoxResponseDto responseDto = resultToBoardGameBoxResponseDto(result);
         validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
         
-        if (expectedBoardGameResponse.customFieldValues() != null && !expectedBoardGameResponse.customFieldValues().isEmpty()) {
-            validateCustomFieldValues(responseDto.boardGame().customFieldValues(), expectedBoardGameResponse.customFieldValues());
+        if (expectedSlimBoardGame.customFieldValues() != null && !expectedSlimBoardGame.customFieldValues().isEmpty()) {
+            validateCustomFieldValues(responseDto.boardGame().customFieldValues(), expectedSlimBoardGame.customFieldValues());
         }
     }
 

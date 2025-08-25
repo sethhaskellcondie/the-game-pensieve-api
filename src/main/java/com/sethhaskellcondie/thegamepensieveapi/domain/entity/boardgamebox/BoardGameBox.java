@@ -4,7 +4,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGame;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 
 import java.sql.Timestamp;
@@ -17,7 +17,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
     private boolean standAlone;
     private Integer baseSetId; //this is a BoardGameBox id to the base set if this box is not standAlone
     private Integer boardGameId;
-    private BoardGame boardGame; //the board game is initially set to null, but can be hydrated in the service Future Update: implement slim model
+    private SlimBoardGame boardGame; //the board game is initially set to null, but can be hydrated in the service
 
     public BoardGameBox() {
         super();
@@ -63,10 +63,19 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
             return;
         }
         this.boardGameId = boardGame.getId();
-        this.boardGame = boardGame;
+        this.boardGame = boardGame.convertToSlimBoardGame();
     }
 
-    public BoardGame getBoardGame() {
+    public void setSlimBoardGame(SlimBoardGame slimBoardGame) {
+        if (null == slimBoardGame.id()) {
+            this.boardGame = null;
+            return;
+        }
+        this.boardGameId = slimBoardGame.id();
+        this.boardGame = slimBoardGame;
+    }
+
+    public SlimBoardGame getBoardGame() {
         return boardGame;
     }
 
@@ -98,11 +107,7 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
 
     @Override
     public BoardGameBoxResponseDto convertToResponseDto() {
-        BoardGameResponseDto boardGameDto = null;
-        if (this.boardGame != null) {
-            boardGameDto = this.boardGame.convertToResponseDto();
-        }
-        return new BoardGameBoxResponseDto(this.getKey(), this.id, this.title, this.expansion, this.standAlone, this.baseSetId, boardGameDto,
+        return new BoardGameBoxResponseDto(this.getKey(), this.id, this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGame,
                 this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 

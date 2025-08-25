@@ -1,7 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -13,7 +13,7 @@ public record BoardGameBoxResponseDto(
         boolean isExpansion,
         boolean isStandAlone,
         Integer baseSetId,
-        BoardGameResponseDto boardGame,
+        SlimBoardGame boardGame,
         Timestamp createdAt,
         Timestamp updatedAt,
         Timestamp deletedAt,

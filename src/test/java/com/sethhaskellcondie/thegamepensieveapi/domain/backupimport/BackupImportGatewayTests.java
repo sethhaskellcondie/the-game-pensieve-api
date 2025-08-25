@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
@@ -513,7 +513,7 @@ public class BackupImportGatewayTests {
 
         //Arrange
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
-        final BoardGameResponseDto missingBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 99, "Missing Board Game", new ArrayList<>(), null, null, null, new ArrayList<>());
+        final SlimBoardGame missingBoardGame = new SlimBoardGame(99, "Missing Board Game", null, null, null, new ArrayList<>());
         final BoardGameBoxResponseDto boardGameBoxWithMissingInformation = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 810,
                 "", true, false, null, missingBoardGame, null, null, null, List.of(missingCustomFieldValue));
         List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
@@ -565,7 +565,7 @@ public class BackupImportGatewayTests {
         final CustomField validBoardGameBoxCustomField = new CustomField(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, Keychain.BOARD_GAME_BOX_KEY);
         final CustomFieldValue validCustomFieldValue = new CustomFieldValue(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, "123");
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
-        final BoardGameResponseDto invalidBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 234, "", new ArrayList<>(), null, null, null,
+        final SlimBoardGame invalidBoardGame = new SlimBoardGame(234, "", null, null, null,
                 List.of(missingCustomFieldValue));
         final BoardGameBoxResponseDto validBoardGameBoxWithInvalidGame = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 810,
                 "Valid Box With Invalid Game", true, false, null, invalidBoardGame, null, null, null, List.of(validCustomFieldValue));
@@ -630,11 +630,11 @@ public class BackupImportGatewayTests {
                 validBoardGameCustomFieldName, CustomField.TYPE_TEXT, "ABCD");
         final CustomFieldValue validGameCustomFieldValue3 = new CustomFieldValue(validBoardGameCustomFieldId,
                 validBoardGameCustomFieldName, CustomField.TYPE_TEXT, "ABCD");
-        final BoardGameResponseDto validBoardGame1 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 111, "Valid Game 1", new ArrayList<>(), null, null, null,
+        final SlimBoardGame validBoardGame1 = new SlimBoardGame(111, "Valid Game 1", null, null, null,
                 List.of(validGameCustomFieldValue1));
-        final BoardGameResponseDto validBoardGame2 = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 112, "Valid Game 2", new ArrayList<>(), null, null, null,
+        final SlimBoardGame validBoardGame2 = new SlimBoardGame(112, "Valid Game 2", null, null, null,
                 List.of(validGameCustomFieldValue2));
-        final BoardGameResponseDto duplicateBoardGame = new BoardGameResponseDto(Keychain.BOARD_GAME_KEY, 112, "Valid Game 2", new ArrayList<>(), null, null, null,
+        final SlimBoardGame duplicateBoardGame = new SlimBoardGame(112, "Valid Game 2", null, null, null,
                 List.of(validGameCustomFieldValue3));
         final BoardGameBoxResponseDto validBoardGameBox1 = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 810,
                 "Valid Single Game Box", true, false, null, validBoardGame1, null, null, null, List.of(validBoxCustomFieldValue1));
