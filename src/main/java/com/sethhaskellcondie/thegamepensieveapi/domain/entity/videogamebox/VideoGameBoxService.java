@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -137,11 +138,14 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
     private List<Integer> removeGamesFromExistingBox(VideoGameBox videoGameBox, VideoGameBoxRequestDto requestDto) {
         ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
         List<Integer> relatedGameIds = videoGameBox.getVideoGameIds();
-        for (Integer id : relatedGameIds) {
+        
+        Iterator<Integer> iterator = relatedGameIds.iterator();
+        while (iterator.hasNext()) {
+            Integer id = iterator.next();
             try {
                 if (!requestDto.existingVideoGameIds().contains(id)) {
                     VideoGame videoGame = videoGameService.getById(id);
-                    relatedGameIds.remove(id);
+                    iterator.remove(); 
                     //if this video game is the only game associated to this video game box then delete it
                     if (videoGame.getVideoGameBoxes().size() == 1) {
                         videoGameService.deleteById(id);
@@ -149,9 +153,6 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
                 }
             } catch (Exception e) {
                 exceptionMalformedEntity.addException("Error updating video game box: " + e.getMessage());
-            }
-            if (relatedGameIds.isEmpty()) {
-                break;
             }
         }
         if (!exceptionMalformedEntity.isEmpty()) {

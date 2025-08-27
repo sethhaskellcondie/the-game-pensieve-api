@@ -317,6 +317,55 @@ public class VideoGameBoxTests {
     }
 
     @Test
+    void putVideoGameBox_RemoveExistingGame_UpdateSuccessful() throws Exception {
+        final SystemResponseDto system = factory.postSystem();
+        final VideoGameRequestDto game1 = new VideoGameRequestDto("Game 1", system.id(), new ArrayList<>());
+        final VideoGameRequestDto game2 = new VideoGameRequestDto("Game 2", system.id(), new ArrayList<>());
+
+        final ResultActions createResult = factory.postVideoGameBoxReturnResult(
+                "Test Box",
+                system.id(),
+                new ArrayList<>(),
+                List.of(game1, game2),
+                true,
+                new ArrayList<>()
+        );
+
+        final VideoGameBoxResponseDto createdBox = factory.resultToVideoGameBoxResponseDto(createResult);
+
+        final Integer gameIdToKeep = createdBox.videoGames().get(0).id();
+        final SlimVideoGame expectedRemainingGame = createdBox.videoGames().get(0);
+        final String expectedUpdatedTitle = "Updated Box Title";
+        
+        final String updatePayload = factory.formatVideoGameBoxPayload(
+                expectedUpdatedTitle,
+                system.id(),
+                List.of(gameIdToKeep), // Only keep first game, remove second
+                new ArrayList<>(),     // No new games
+                true,
+                List.of()
+        );
+
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + createdBox.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+        );
+
+        result.andExpect(status().isOk());
+        
+        factory.validateVideoGameBoxResponseBody(
+                result,
+                expectedUpdatedTitle,
+                system,
+                List.of(expectedRemainingGame), // Only one game should remain
+                true,
+                false,
+                List.of()
+        );
+    }
+
+    @Test
     void updateExistingVideoGameBox_NoRelatedGames_ReturnBadRequest() throws Exception {
         VideoGameBoxResponseDto responseDto = factory.postVideoGameBox();
         final String jsonContent = factory.formatVideoGameBoxPayload(responseDto.title(), responseDto.system().id(), List.of(), List.of(), false, new ArrayList<>());
