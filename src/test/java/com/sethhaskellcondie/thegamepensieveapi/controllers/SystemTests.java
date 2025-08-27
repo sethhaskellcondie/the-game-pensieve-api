@@ -244,6 +244,62 @@ public class SystemTests {
     }
 
     @Test
+    void deleteSystem_SystemInUseByVideoGameBox_ReturnBadRequest() throws Exception {
+        final SystemResponseDto system = factory.postSystem();
+        final String videoGameTitle = "Test Game";
+        final String videoGameBoxTitle = "Test Game Box";
+        final ResultActions videoGameBoxResult = factory.postVideoGameBoxReturnResult(
+                videoGameBoxTitle,
+                system.id(),
+                new ArrayList<>(),
+                List.of(new com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto(
+                        videoGameTitle,
+                        system.id(),
+                        new ArrayList<>()
+                )),
+                true,
+                new ArrayList<>()
+        );
+        videoGameBoxResult.andExpect(status().isCreated());
+
+        final ResultActions deleteResult = mockMvc.perform(
+                delete(baseUrl + "/" + system.id())
+        );
+
+        deleteResult.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isArray(),
+                jsonPath("$.errors.length()").value(1)
+        );
+
+        // Now delete the video game box that was preventing system deletion, this will allow the delete to take place
+        final com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto videoGameBox = 
+                factory.resultToVideoGameBoxResponseDto(videoGameBoxResult);
+        
+        final ResultActions deleteVideoGameBoxResult = mockMvc.perform(
+                delete("/v1/videoGameBoxes/" + videoGameBox.id())
+        );
+        
+        deleteVideoGameBoxResult.andExpectAll(
+                status().isNoContent(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isEmpty()
+        );
+
+        final ResultActions deleteSystemResult = mockMvc.perform(
+                delete(baseUrl + "/" + system.id())
+        );
+
+        deleteSystemResult.andExpectAll(
+                status().isNoContent(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isEmpty()
+        );
+    }
+
+
+    @Test
     void deleteExistingSystem_InvalidId_ReturnNotFound() throws Exception {
         final ResultActions result = mockMvc.perform(
                 delete(baseUrl + "/-1")

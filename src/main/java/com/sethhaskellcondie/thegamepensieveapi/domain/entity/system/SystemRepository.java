@@ -141,6 +141,31 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
 
     @Override
     public void deleteById(int id) throws ExceptionResourceNotFound {
+        final String videoGamesCountSql = """
+                SELECT COUNT(*) FROM video_games WHERE system_id = ? AND deleted_at IS NULL;
+                """;
+        int videoGamesCount = jdbcTemplate.queryForObject(videoGamesCountSql, Integer.class, id);
+        
+        final String videoGameBoxesCountSql = """
+                SELECT COUNT(*) FROM video_game_boxes WHERE system_id = ? AND deleted_at IS NULL;
+                """;
+        int videoGameBoxesCount = jdbcTemplate.queryForObject(videoGameBoxesCountSql, Integer.class, id);
+        
+        if (videoGamesCount > 0 || videoGameBoxesCount > 0) {
+            StringBuilder errorMessage = new StringBuilder("Cannot delete system because it is currently being used by ");
+            if (videoGamesCount > 0) {
+                errorMessage.append(videoGamesCount).append(" video game").append(videoGamesCount > 1 ? "s" : "");
+            }
+            if (videoGamesCount > 0 && videoGameBoxesCount > 0) {
+                errorMessage.append(" and ");
+            }
+            if (videoGameBoxesCount > 0) {
+                errorMessage.append(videoGameBoxesCount).append(" video game box").append(videoGameBoxesCount > 1 ? "es" : "");
+            }
+            errorMessage.append(".");
+            throw new ExceptionFailedDbValidation(errorMessage.toString());
+        }
+
         final String sql = """
                             UPDATE systems SET deleted_at = ? WHERE id = ?;
                 """;
