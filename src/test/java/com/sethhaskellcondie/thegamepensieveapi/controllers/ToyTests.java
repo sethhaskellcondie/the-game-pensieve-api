@@ -212,7 +212,6 @@ public class ToyTests {
                 content().contentType(MediaType.APPLICATION_JSON)
         );
         validateToyResponseBody(sortResultActions, List.of(toyDto3, toyDto2, toyDto1));
-
     }
 
     @Test

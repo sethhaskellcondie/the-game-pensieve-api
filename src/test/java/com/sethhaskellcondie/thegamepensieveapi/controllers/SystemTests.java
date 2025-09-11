@@ -191,6 +191,22 @@ public class SystemTests {
                 content().contentType(MediaType.APPLICATION_JSON)
         );
         validateSystemResponseBody(resultActions, List.of(responseDto3));
+
+        //test 3 - sort by custom field descending
+        final Filter sortFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_ORDER_BY_DESC, "", true);
+
+        final String sortJsonContent = factory.formatFiltersPayload(sortFilter);
+
+        final ResultActions sortResultActions = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(sortJsonContent)
+        );
+
+        sortResultActions.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateSystemResponseBody(sortResultActions, List.of(responseDto3, responseDto2, responseDto1));
     }
 
     @Test
@@ -311,8 +327,6 @@ public class SystemTests {
                 jsonPath("$.errors").isNotEmpty()
         );
     }
-
-    // ------------------------- System Unique Tests ------------------------------
 
     @Test
     void postSystem_FailedValidation_ReturnArrayOfErrors() throws Exception {
