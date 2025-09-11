@@ -84,7 +84,7 @@ public class VideoGameBoxTests {
 
 
         //test 2 - when valid patch sent, then ok (200) returned
-        List<CustomFieldValue> existingCustomFieldValues = responseDto.customFieldValues();
+        List<CustomFieldValue> existingCustomFieldValues = new ArrayList<>(responseDto.customFieldValues());
 
         final String updatedTitle = "Super Princess Peach";
         final SystemResponseDto newRelatedSystem = factory.postSystem();
@@ -95,14 +95,13 @@ public class VideoGameBoxTests {
         final boolean newPhysical = false;
         final boolean newCollection = false;
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValues.get(0);
-        existingCustomFieldValues.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
                 customFieldValueToUpdate.getCustomFieldId(),
                 "Updated" + customFieldValueToUpdate.getCustomFieldName(),
                 customFieldValueToUpdate.getCustomFieldType(),
                 "false"
         );
-        existingCustomFieldValues.add(updatedValue);
+        existingCustomFieldValues.set(0, updatedValue);
 
         final String jsonContent = factory.formatVideoGameBoxPayload(updatedTitle, newRelatedSystem.id(), existingVideoGameIds, new ArrayList<>(), newPhysical, existingCustomFieldValues);
         final ResultActions resultActions = mockMvc.perform(
