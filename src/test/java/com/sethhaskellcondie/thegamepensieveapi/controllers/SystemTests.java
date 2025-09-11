@@ -210,6 +210,101 @@ public class SystemTests {
     }
 
     @Test
+    void getAllSystems_WithBooleanCustomFieldFilter_FilteredSystemsReturned() throws Exception {
+        //test 1 - get all systems where a boolean custom field is true
+        final String customFieldName = "IsRetro";
+        final String customFieldType = "boolean";
+        final String customFieldKey = Keychain.SYSTEM_KEY;
+        final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
+
+        final String name1 = "Nintendo Entertainment System";
+        final int generation1 = 3;
+        final boolean handheld1 = false;
+        final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "true"));
+        final ResultActions result1 = factory.postSystemReturnResult(name1, generation1, handheld1, customFieldValues1);
+        final SystemResponseDto responseDto1 = resultToResponseDto(result1);
+
+        final String name2 = "Super Nintendo Entertainment System";
+        final int generation2 = 4;
+        final boolean handheld2 = false;
+        final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "false"));
+        final ResultActions result2 = factory.postSystemReturnResult(name2, generation2, handheld2, customFieldValues2);
+        final SystemResponseDto responseDto2 = resultToResponseDto(result2);
+
+        final String name3 = "PlayStation 5";
+        final int generation3 = 9;
+        final boolean handheld3 = false;
+        final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "true"));
+        final ResultActions result3 = factory.postSystemReturnResult(name3, generation3, handheld3, customFieldValues3);
+        final SystemResponseDto responseDto3 = resultToResponseDto(result3);
+
+        final Filter booleanFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_EQUALS, "true", true);
+        final String jsonContent = factory.formatFiltersPayload(booleanFilter);
+
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+
+        validateSystemResponseBody(result, List.of(responseDto1, responseDto3));
+
+        //test 2 - get all systems where a boolean custom field is false
+        final Filter booleanFilterFalse = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_EQUALS, "false", true);
+        final String jsonContentFalse = factory.formatFiltersPayload(booleanFilterFalse);
+
+        final ResultActions resultFalse = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContentFalse)
+        );
+
+        resultFalse.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+
+        validateSystemResponseBody(resultFalse, List.of(responseDto2));
+
+        //test 3 - sort by custom field boolean type desc
+        final Filter booleanSortDescFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_ORDER_BY_DESC, "", true);
+        final String jsonContentSortDesc = factory.formatFiltersPayload(booleanSortDescFilter);
+
+        final ResultActions resultSortDesc = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContentSortDesc)
+        );
+
+        resultSortDesc.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+
+        // When sorting boolean desc, "true" values come first, then "false" values
+        validateSystemResponseBody(resultSortDesc, List.of(responseDto1, responseDto3, responseDto2));
+
+        //test 4 - sort by custom field boolean type asc
+        final Filter booleanSortAscFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_ORDER_BY, "", true);
+        final String jsonContentSortAsc = factory.formatFiltersPayload(booleanSortAscFilter);
+
+        final ResultActions resultSortAsc = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContentSortAsc)
+        );
+
+        resultSortAsc.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+
+        // When sorting boolean asc, "false" values come first, then "true" values
+        validateSystemResponseBody(resultSortAsc, List.of(responseDto2, responseDto1, responseDto3));
+    }
+
+    @Test
     void getAllSystems_NoSystemsPresent_EmptyArrayReturned() throws Exception {
         final Filter filter = new Filter("system", "text", "name", Filter.OPERATOR_STARTS_WITH, "noResults", false);
         final String jsonContent = factory.formatFiltersPayload(filter);
