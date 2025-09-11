@@ -39,15 +39,15 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
 
     @Override
     protected String getBaseQueryJoinCustomFieldValues() {
-        return """
+        return String.format("""
                 SELECT video_games.id, video_games.title, video_games.system_id,
                        video_games.created_at, video_games.updated_at, video_games.deleted_at
                         FROM video_games
                         JOIN custom_field_values as values ON video_games.id = values.entity_id
                           JOIN custom_fields as fields ON values.custom_field_id = fields.id
                                    WHERE video_games.deleted_at IS NULL
-                                 AND values.entity_key = 'video_game'
-                """;
+                                 AND values.entity_key = '%s'
+                """, Keychain.VIDEO_GAME_KEY);
     }
 
     @Override

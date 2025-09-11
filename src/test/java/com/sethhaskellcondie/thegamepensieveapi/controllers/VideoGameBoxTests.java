@@ -231,7 +231,7 @@ public class VideoGameBoxTests {
     @Test
     void getAllVideoGameBoxes_WithFilters_VideoGameBoxSubsetListReturned() throws Exception {
         //test 1 - when getting all video game boxes with a filter, only a subset of the video game boxes are returned
-        final String customFieldName = "Custom";
+        final String customFieldName = "CustomNumber";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.VIDEO_GAME_BOX_KEY;
         final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
@@ -271,10 +271,9 @@ public class VideoGameBoxTests {
         );
         validateVideoGameBoxResponseBody(result, List.of(gameBoxDto1, gameBoxDto2));
 
-        final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-
 
         //test 2 - when getting all video games boxes with a custom field filter, only a subset of the video game boxes are returned
+        final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
         final String jsonContent = factory.formatFiltersPayload(customFilter);
 
         final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
