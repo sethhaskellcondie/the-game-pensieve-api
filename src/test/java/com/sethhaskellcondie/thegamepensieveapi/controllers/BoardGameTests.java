@@ -453,11 +453,12 @@ public class BoardGameTests {
         final String responseString = mvcResult.getResponse().getContentAsString();
         final Map<String, List<BoardGameResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
         });
-        final List<BoardGameResponseDto> returnedToys = body.get("data");
+        final List<BoardGameResponseDto> returnedGames = body.get("data");
+        assertEquals(expectedGames.size(), returnedGames.size(), "The response body has the wrong number of board games included.");
         //test the order, and the deserialization
-        for (int i = 0; i < returnedToys.size(); i++) {
+        for (int i = 0; i < returnedGames.size(); i++) {
             BoardGameResponseDto expectedGame = expectedGames.get(i);
-            BoardGameResponseDto returnedGame = returnedToys.get(i);
+            BoardGameResponseDto returnedGame = returnedGames.get(i);
             assertAll(
                     "The response body for boardGames is not formatted correctly",
                     () -> assertEquals(Keychain.BOARD_GAME_KEY, returnedGame.key()),

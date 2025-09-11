@@ -224,7 +224,7 @@ public class VideoGameTests {
     @Test
     void getAllVideoGames_WithFilters_SubsetOfVideoGamesReturned() throws Exception {
         //test 1 - when getting all video games with a filter, only a subset of the video games are returned
-        final String customFieldName = "Custom";
+        final String customFieldName = "CustomNumber";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.VIDEO_GAME_KEY;
         final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
@@ -275,10 +275,9 @@ public class VideoGameTests {
         );
         validateVideoGameResponseBody(result, expectedResponse);
 
-        final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-
 
         //test 2 - when getting all video games with a custom field filters, only a subset of the video games are returned
+        final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
         final String jsonContent = factory.formatFiltersPayload(customFilter);
 
         final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
@@ -495,9 +494,10 @@ public class VideoGameTests {
 
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<VideoGameResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
-        });
+        final Map<String, List<VideoGameResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         final List<VideoGameResponseDto> returnedVideoGames = body.get("data");
+        assertEquals(expectedVideoGames.size(), returnedVideoGames.size(), "The response body has the wrong number of video games included.");
+
         //test the order, and the deserialization
         for (int i = 0; i < returnedVideoGames.size(); i++) {
             VideoGameResponseDto expectedGame = expectedVideoGames.get(i);

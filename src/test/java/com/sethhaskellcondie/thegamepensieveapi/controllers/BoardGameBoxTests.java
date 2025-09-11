@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -14,10 +16,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -242,7 +249,7 @@ public class BoardGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        factory.validateBoardGameBoxResponseBody(result, List.of(boardGameBoxDto1, boardGameBoxDto2));
+        validateBoardGameBoxResponseBody(result, List.of(boardGameBoxDto1, boardGameBoxDto2));
 
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
 
@@ -259,7 +266,7 @@ public class BoardGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        factory.validateBoardGameBoxResponseBody(resultActions, List.of(boardGameBoxDto3));
+        validateBoardGameBoxResponseBody(resultActions, List.of(boardGameBoxDto3));
     }
 
     @Test
@@ -360,5 +367,41 @@ public class BoardGameBoxTests {
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.size()").value(1)
         );
+    }
+
+    // ------------------------- Private Helper Methods ------------------------------
+
+    public void validateBoardGameBoxResponseBody(ResultActions result, List<BoardGameBoxResponseDto> expectedBoardGameBoxes) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data").exists(),
+                jsonPath("$.errors").isEmpty()
+        );
+
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, List<BoardGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        final List<BoardGameBoxResponseDto> returnedBoardGameBoxes = body.get("data");
+        assertEquals(expectedBoardGameBoxes.size(), returnedBoardGameBoxes.size(), "The response body has the wrong number of board game boxes included.");
+        //test the order, and the deserialization
+        for (int i = 0; i < returnedBoardGameBoxes.size(); i++) {
+            BoardGameBoxResponseDto expectedBoardGameBox = expectedBoardGameBoxes.get(i);
+            BoardGameBoxResponseDto returnedBoardGameBox = returnedBoardGameBoxes.get(i);
+            assertAll(
+                    "The response body for boardGameBoxes is not formatted correctly",
+                    () -> assertEquals(Keychain.BOARD_GAME_BOX_KEY, returnedBoardGameBox.key()),
+                    () -> assertEquals(expectedBoardGameBox.id(), returnedBoardGameBox.id()),
+                    () -> assertEquals(expectedBoardGameBox.title(), returnedBoardGameBox.title()),
+                    () -> assertEquals(expectedBoardGameBox.isExpansion(), returnedBoardGameBox.isExpansion()),
+                    () -> assertEquals(expectedBoardGameBox.isStandAlone(), returnedBoardGameBox.isStandAlone()),
+                    () -> assertEquals(expectedBoardGameBox.baseSetId(), returnedBoardGameBox.baseSetId()),
+                    () -> assertEquals(expectedBoardGameBox.boardGame().id(), returnedBoardGameBox.boardGame().id()),
+                    () -> assertEquals(expectedBoardGameBox.boardGame().title(), returnedBoardGameBox.boardGame().title())
+            );
+            factory.validateCustomFieldValues(expectedBoardGameBox.customFieldValues(), returnedBoardGameBox.customFieldValues());
+
+            if (expectedBoardGameBox.boardGame().customFieldValues() != null && !expectedBoardGameBox.boardGame().customFieldValues().isEmpty()) {
+                factory.validateCustomFieldValues(expectedBoardGameBox.boardGame().customFieldValues(), returnedBoardGameBox.boardGame().customFieldValues());
+            }
+        }
     }
 }

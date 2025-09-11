@@ -306,6 +306,7 @@ public class ToyTests {
         final String responseString = mvcResult.getResponse().getContentAsString();
         final Map<String, List<ToyResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         final List<ToyResponseDto> returnedToys = body.get("data");
+        assertEquals(expectedToys.size(), returnedToys.size(), "The response body has the wrong number of toys included.");
         //test the order, and the deserialization
         for (int i = 0; i < returnedToys.size(); i++) {
             ToyResponseDto expectedToy = expectedToys.get(i);

@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -16,11 +18,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -263,7 +269,7 @@ public class VideoGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        factory.validateVideoGameBoxResponseBody(result, List.of(gameBoxDto1, gameBoxDto2));
+        validateVideoGameBoxResponseBody(result, List.of(gameBoxDto1, gameBoxDto2));
 
         final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
 
@@ -280,7 +286,7 @@ public class VideoGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON)
         );
-        factory.validateVideoGameBoxResponseBody(resultActions, List.of(gameBoxDto3));
+        validateVideoGameBoxResponseBody(resultActions, List.of(gameBoxDto3));
     }
 
     @Test
@@ -414,5 +420,34 @@ public class VideoGameBoxTests {
 
     private SlimVideoGame convertToExpectedSlimVideoGameResponse(VideoGameRequestDto requestDto, SystemResponseDto expectedSystem) {
         return new SlimVideoGame(0, requestDto.title(), expectedSystem, null, null, null, requestDto.customFieldValues());
+    }
+
+    private void validateVideoGameBoxResponseBody(ResultActions result, List<VideoGameBoxResponseDto> expectedGameBoxes) throws Exception {
+        result.andExpectAll(
+                jsonPath("$.data").exists(),
+                jsonPath("$.errors").isEmpty()
+        );
+
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final Map<String, List<VideoGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
+        final List<VideoGameBoxResponseDto> returnedGameBoxes = body.get("data");
+        assertEquals(expectedGameBoxes.size(), returnedGameBoxes.size(), "The response body has the wrong number of video game boxes included.");
+
+        //test the order, and the deserialization
+        for (int i = 0; i < returnedGameBoxes.size(); i++) {
+            VideoGameBoxResponseDto expectedGameBox = expectedGameBoxes.get(i);
+            VideoGameBoxResponseDto returnedGameBox = returnedGameBoxes.get(i);
+            assertAll(
+                    "The response body for videoGameBoxes is not formatted correctly",
+                    () -> assertEquals(Keychain.VIDEO_GAME_BOX_KEY, returnedGameBox.key()),
+                    () -> assertEquals(expectedGameBox.id(), returnedGameBox.id()),
+                    () -> assertEquals(expectedGameBox.title(), returnedGameBox.title()),
+                    () -> factory.validateSlimVideoGames(expectedGameBox.videoGames(), returnedGameBox.videoGames()),
+                    () -> assertEquals(expectedGameBox.isPhysical(), returnedGameBox.isPhysical()),
+                    () -> assertEquals(expectedGameBox.isCollection(), returnedGameBox.isCollection())
+            );
+            factory.validateCustomFieldValues(expectedGameBox.customFieldValues(), returnedGameBox.customFieldValues());
+        }
     }
 }

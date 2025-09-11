@@ -386,6 +386,7 @@ public class SystemTests {
         final String responseString = mvcResult.getResponse().getContentAsString();
         final Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         final List<SystemResponseDto> returnedSystems = body.get("data");
+        assertEquals(expectedSystems.size(), returnedSystems.size(), "The response body has the wrong number of systems included.");
         //testing order as well as each member being deserialized correctly
         for (int i = 0; i < returnedSystems.size(); i++) {
             SystemResponseDto expectedSystem = expectedSystems.get(i);
