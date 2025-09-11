@@ -215,7 +215,7 @@ public class BoardGameBoxTests {
     }
 
     @Test
-    void getAllVideoGames_StartsWithFilter_VideoGameListReturned() throws Exception {
+    void getAllBoardGameBoxes_StartsWithFilter_BoardGameListReturned() throws Exception {
         // test 1 - when getting all board game boxes with a filter, only a subset of board game boxes are returned
         final String customFieldName = "Custom";
         final String customFieldType = "number";

@@ -43,7 +43,7 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
         //in general the first row are the columns for the entity
         //the second and third row are the columns for the custom field values and the custom fields they should always be the same
         //then the remainder of the query is the same but fill in the property entity (systems)
-        return """
+        return String.format("""
                 SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at,
                         values.custom_field_id, values.entity_key, values.value_text, values.value_number,
                         fields.name as custom_field_name, fields.type as custom_field_type
@@ -51,8 +51,8 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
                     JOIN custom_field_values as values ON systems.id = values.entity_id
                     JOIN custom_fields as fields ON values.custom_field_id = fields.id
                     WHERE systems.deleted_at IS NULL
-                    AND values.entity_key = 'system'
-            """;
+                    AND values.entity_key = '%s'
+            """, Keychain.SYSTEM_KEY);
     }
 
     protected String getEntityKey() {

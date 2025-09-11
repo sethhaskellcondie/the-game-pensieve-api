@@ -35,14 +35,14 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
 
     @Override
     protected String getBaseQueryJoinCustomFieldValues() {
-        return """
+        return String.format("""
                 SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
                 FROM board_games
                 JOIN custom_field_values as values ON board_games.id = values.entity_id
                           JOIN custom_fields as fields ON values.custom_field_id = fields.id
                                    WHERE board_games.deleted_at IS NULL
-                                 AND values.entity_key = 'board_game'
-                """;
+                                 AND values.entity_key = '%s'
+                """, Keychain.BOARD_GAME_KEY);
     }
 
     @Override
