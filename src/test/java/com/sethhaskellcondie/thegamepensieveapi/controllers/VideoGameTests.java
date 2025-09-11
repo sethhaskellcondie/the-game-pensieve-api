@@ -255,7 +255,7 @@ public class VideoGameTests {
         final VideoGameRequestDto newGame3 = new VideoGameRequestDto(gameTitle3, relatedSystem3.id(), customFieldValues3);
         final ResultActions result3 = factory.postVideoGameBoxReturnResult(boxTitle3, relatedSystem3.id(), new ArrayList<>(), List.of(newGame3), isPhysical, new ArrayList<>());
         final VideoGameBoxResponseDto responseDto3 = factory.resultToVideoGameBoxResponseDto(result3);
-        final SlimVideoGame slimVideoGame3 = responseDto2.videoGames().get(0);
+        final SlimVideoGame slimVideoGame3 = responseDto3.videoGames().get(0);
 
         final Filter filter = new Filter(Keychain.VIDEO_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Unique", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
