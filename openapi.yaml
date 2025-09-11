@@ -1186,7 +1186,7 @@ components:
           description: Field name to filter on
         operator:
           type: string
-          enum: [equals, not_equals, contains, starts_with, ends_with, greater_than, less_than, greater_than_or_equal_to, less_than_or_equal_to]
+          enum: [equals, not_equals, contains, starts_with, ends_with, greater_than, less_than, greater_than_equal_to, less_than_equal_to]
           description: Filter operator
         operand:
           type: string
