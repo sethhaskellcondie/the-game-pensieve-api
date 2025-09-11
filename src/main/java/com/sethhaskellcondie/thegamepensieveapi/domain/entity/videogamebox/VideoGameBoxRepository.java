@@ -45,7 +45,7 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     @Override
     protected String getBaseQueryJoinCustomFieldValues() {
         return String.format("""
-                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.is_physical, video_game_boxes.is_collection,
+                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.system_id, video_game_boxes.is_physical, video_game_boxes.is_collection,
                 video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
                 FROM video_game_boxes
                 JOIN custom_field_values as values ON video_game_boxes.id = values.entity_id
