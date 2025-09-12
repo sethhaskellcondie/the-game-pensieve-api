@@ -143,7 +143,7 @@ public class ToyTests {
     @Test
     void getAllToys_WithFilters_SubsetToyListReturned() throws Exception {
         //test 1 - when getting all toys with a filter, only a subset of the toys are returned
-        final String customFieldName = "Custom";
+        final String customFieldName = "CustomNumber";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.TOY_KEY;
         final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
@@ -196,6 +196,22 @@ public class ToyTests {
                 content().contentType(MediaType.APPLICATION_JSON)
         );
         validateToyResponseBody(resultActions, List.of(toyDto3));
+
+        //test 3 - sort by custom field descending
+        final Filter sortFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_ORDER_BY_DESC, "", true);
+
+        final String sortJsonContent = factory.formatFiltersPayload(sortFilter);
+
+        final ResultActions sortResultActions = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(sortJsonContent)
+        );
+
+        sortResultActions.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateToyResponseBody(sortResultActions, List.of(toyDto3, toyDto2, toyDto1));
     }
 
     @Test
@@ -289,6 +305,7 @@ public class ToyTests {
         final String responseString = mvcResult.getResponse().getContentAsString();
         final Map<String, List<ToyResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         final List<ToyResponseDto> returnedToys = body.get("data");
+        assertEquals(expectedToys.size(), returnedToys.size(), "The response body has the wrong number of toys included.");
         //test the order, and the deserialization
         for (int i = 0; i < returnedToys.size(); i++) {
             ToyResponseDto expectedToy = expectedToys.get(i);

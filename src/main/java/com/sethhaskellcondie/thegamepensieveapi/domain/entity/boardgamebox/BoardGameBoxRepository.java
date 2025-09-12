@@ -38,15 +38,15 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
 
     @Override
     protected String getBaseQueryJoinCustomFieldValues() {
-        return """
+        return String.format("""
                 SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id,
                 board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
                 FROM board_game_boxes
                 JOIN custom_field_values as values ON board_game_boxes.id = values.entity_id
                           JOIN custom_fields as fields ON values.custom_field_id = fields.id
-                                   WHERE board_game_boxes.deleted_at IS NULL
-                                 AND values.entity_key = 'board_game_box'
-                """;
+                                 WHERE board_game_boxes.deleted_at IS NULL
+                                 AND values.entity_key = '%s'
+                """, Keychain.BOARD_GAME_BOX_KEY);
     }
 
     @Override

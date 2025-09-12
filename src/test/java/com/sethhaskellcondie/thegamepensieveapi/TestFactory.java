@@ -448,33 +448,6 @@ public class TestFactory {
         validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
     }
 
-    public void validateVideoGameBoxResponseBody(ResultActions result, List<VideoGameBoxResponseDto> expectedGameBoxes) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
-        );
-
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<VideoGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<VideoGameBoxResponseDto> returnedGameBoxes = body.get("data");
-        //test the order, and the deserialization
-        for (int i = 0; i < returnedGameBoxes.size(); i++) {
-            VideoGameBoxResponseDto expectedGameBox = expectedGameBoxes.get(i);
-            VideoGameBoxResponseDto returnedGameBox = returnedGameBoxes.get(i);
-            assertAll(
-                    "The response body for videoGameBoxes is not formatted correctly",
-                    () -> assertEquals(Keychain.VIDEO_GAME_BOX_KEY, returnedGameBox.key()),
-                    () -> assertEquals(expectedGameBox.id(), returnedGameBox.id()),
-                    () -> assertEquals(expectedGameBox.title(), returnedGameBox.title()),
-                    () -> validateSlimVideoGames(expectedGameBox.videoGames(), returnedGameBox.videoGames()),
-                    () -> assertEquals(expectedGameBox.isPhysical(), returnedGameBox.isPhysical()),
-                    () -> assertEquals(expectedGameBox.isCollection(), returnedGameBox.isCollection())
-            );
-            validateCustomFieldValues(expectedGameBox.customFieldValues(), returnedGameBox.customFieldValues());
-        }
-    }
-
     public BoardGameBoxResponseDto postBoardGameBox() throws Exception {
         final String title = "TestBoardGameBox-" + randomString(4);
         final ResultActions result = postBoardGameBoxReturnResult(title, false, false, null, null, null);
@@ -618,40 +591,6 @@ public class TestFactory {
         
         if (expectedSlimBoardGame.customFieldValues() != null && !expectedSlimBoardGame.customFieldValues().isEmpty()) {
             validateCustomFieldValues(responseDto.boardGame().customFieldValues(), expectedSlimBoardGame.customFieldValues());
-        }
-    }
-
-    public void validateBoardGameBoxResponseBody(ResultActions result, List<BoardGameBoxResponseDto> expectedBoardGameBoxes) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
-        );
-
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<BoardGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
-        });
-        final List<BoardGameBoxResponseDto> returnedBoardGameBoxes = body.get("data");
-        //test the order, and the deserialization
-        for (int i = 0; i < returnedBoardGameBoxes.size(); i++) {
-            BoardGameBoxResponseDto expectedBoardGameBox = expectedBoardGameBoxes.get(i);
-            BoardGameBoxResponseDto returnedBoardGameBox = returnedBoardGameBoxes.get(i);
-            assertAll(
-                    "The response body for boardGameBoxes is not formatted correctly",
-                    () -> assertEquals(Keychain.BOARD_GAME_BOX_KEY, returnedBoardGameBox.key()),
-                    () -> assertEquals(expectedBoardGameBox.id(), returnedBoardGameBox.id()),
-                    () -> assertEquals(expectedBoardGameBox.title(), returnedBoardGameBox.title()),
-                    () -> assertEquals(expectedBoardGameBox.isExpansion(), returnedBoardGameBox.isExpansion()),
-                    () -> assertEquals(expectedBoardGameBox.isStandAlone(), returnedBoardGameBox.isStandAlone()),
-                    () -> assertEquals(expectedBoardGameBox.baseSetId(), returnedBoardGameBox.baseSetId()),
-                    () -> assertEquals(expectedBoardGameBox.boardGame().id(), returnedBoardGameBox.boardGame().id()),
-                    () -> assertEquals(expectedBoardGameBox.boardGame().title(), returnedBoardGameBox.boardGame().title())
-            );
-            validateCustomFieldValues(expectedBoardGameBox.customFieldValues(), returnedBoardGameBox.customFieldValues());
-            
-            if (expectedBoardGameBox.boardGame().customFieldValues() != null && !expectedBoardGameBox.boardGame().customFieldValues().isEmpty()) {
-                validateCustomFieldValues(expectedBoardGameBox.boardGame().customFieldValues(), returnedBoardGameBox.boardGame().customFieldValues());
-            }
         }
     }
 }

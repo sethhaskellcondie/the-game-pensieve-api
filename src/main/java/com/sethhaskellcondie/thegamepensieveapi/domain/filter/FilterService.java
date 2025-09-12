@@ -339,6 +339,8 @@ public class FilterService {
                     case OPERATOR_EQUALS -> whereStatement = " AND values.value_text = ?";
                     case OPERATOR_NOT_EQUALS -> whereStatement = " AND values.value_text <> ?";
                     case OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> whereStatement = " AND values.value_text LIKE ?";
+                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY values.value_text ASC";
+                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY values.value_text DESC";
                     default -> whereStatement = "";
                 }
             }
@@ -350,6 +352,8 @@ public class FilterService {
                     case OPERATOR_LESS_THAN -> whereStatement = " AND values.value_number < ?";
                     case OPERATOR_GREATER_THAN_EQUAL_TO -> whereStatement = " AND values.value_number >= ?";
                     case OPERATOR_LESS_THAN_EQUAL_TO -> whereStatement = " AND values.value_number <= ?";
+                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY values.value_number ASC";
+                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY values.value_number DESC";
                     default -> whereStatement = "";
                 }
             }

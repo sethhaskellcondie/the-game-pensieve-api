@@ -224,7 +224,7 @@ public class VideoGameTests {
     @Test
     void getAllVideoGames_WithFilters_SubsetOfVideoGamesReturned() throws Exception {
         //test 1 - when getting all video games with a filter, only a subset of the video games are returned
-        final String customFieldName = "Custom";
+        final String customFieldName = "CustomNumber";
         final String customFieldType = "number";
         final String customFieldKey = Keychain.VIDEO_GAME_KEY;
         final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, customFieldKey);
@@ -255,7 +255,7 @@ public class VideoGameTests {
         final VideoGameRequestDto newGame3 = new VideoGameRequestDto(gameTitle3, relatedSystem3.id(), customFieldValues3);
         final ResultActions result3 = factory.postVideoGameBoxReturnResult(boxTitle3, relatedSystem3.id(), new ArrayList<>(), List.of(newGame3), isPhysical, new ArrayList<>());
         final VideoGameBoxResponseDto responseDto3 = factory.resultToVideoGameBoxResponseDto(result3);
-        final SlimVideoGame slimVideoGame3 = responseDto2.videoGames().get(0);
+        final SlimVideoGame slimVideoGame3 = responseDto3.videoGames().get(0);
 
         final Filter filter = new Filter(Keychain.VIDEO_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Unique", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
@@ -275,10 +275,9 @@ public class VideoGameTests {
         );
         validateVideoGameResponseBody(result, expectedResponse);
 
-        final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
-
 
         //test 2 - when getting all video games with a custom field filters, only a subset of the video games are returned
+        final Filter customFilter = new Filter(customFieldKey, customFieldType, customFieldName, Filter.OPERATOR_GREATER_THAN, "2", true);
         final String jsonContent = factory.formatFiltersPayload(customFilter);
 
         final ResultActions resultActions = mockMvc.perform(post(baseUrl + "/function/search")
@@ -495,9 +494,10 @@ public class VideoGameTests {
 
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<VideoGameResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
-        });
+        final Map<String, List<VideoGameResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
         final List<VideoGameResponseDto> returnedVideoGames = body.get("data");
+        assertEquals(expectedVideoGames.size(), returnedVideoGames.size(), "The response body has the wrong number of video games included.");
+
         //test the order, and the deserialization
         for (int i = 0; i < returnedVideoGames.size(); i++) {
             VideoGameResponseDto expectedGame = expectedVideoGames.get(i);
