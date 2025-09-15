@@ -1,3613 +1,3100 @@
 {
-  "customFields": [
-    {
-      "id": 1,
-      "name": "Broken",
-      "type": "boolean",
-      "entityKey": "toy"
+  "customFields" : [ {
+    "id" : 1,
+    "name" : "Broken",
+    "type" : "boolean",
+    "entityKey" : "toy"
+  }, {
+    "id" : 2,
+    "name" : "Release Year",
+    "type" : "number",
+    "entityKey" : "system"
+  }, {
+    "id" : 3,
+    "name" : "Company",
+    "type" : "text",
+    "entityKey" : "system"
+  }, {
+    "id" : 4,
+    "name" : "Developer",
+    "type" : "text",
+    "entityKey" : "videoGame"
+  }, {
+    "id" : 5,
+    "name" : "Publisher",
+    "type" : "text",
+    "entityKey" : "videoGame"
+  }, {
+    "id" : 6,
+    "name" : "Enhanced Port",
+    "type" : "boolean",
+    "entityKey" : "videoGameBox"
+  }, {
+    "id" : 7,
+    "name" : "Release Year",
+    "type" : "number",
+    "entityKey" : "boardGameBox"
+  }, {
+    "id" : 8,
+    "name" : "Publisher",
+    "type" : "text",
+    "entityKey" : "boardGame"
+  }, {
+    "id" : 9,
+    "name" : "Min Player Count",
+    "type" : "number",
+    "entityKey" : "boardGame"
+  }, {
+    "id" : 10,
+    "name" : "Max Player Count",
+    "type" : "number",
+    "entityKey" : "boardGame"
+  }, {
+    "id" : 11,
+    "name" : "Quantity",
+    "type" : "number",
+    "entityKey" : "toy"
+  }, {
+    "id" : 12,
+    "name" : "Notes",
+    "type" : "text",
+    "entityKey" : "toy"
+  }, {
+    "id" : 13,
+    "name" : "Have Controller",
+    "type" : "boolean",
+    "entityKey" : "system"
+  }, {
+    "id" : 14,
+    "name" : "Release Year",
+    "type" : "number",
+    "entityKey" : "videoGame"
+  }, {
+    "id" : 15,
+    "name" : "Favorite",
+    "type" : "boolean",
+    "entityKey" : "videoGame"
+  }, {
+    "id" : 16,
+    "name" : "Release Year",
+    "type" : "number",
+    "entityKey" : "videoGameBox"
+  }, {
+    "id" : 17,
+    "name" : "Notes",
+    "type" : "text",
+    "entityKey" : "videoGameBox"
+  }, {
+    "id" : 18,
+    "name" : "Has App",
+    "type" : "boolean",
+    "entityKey" : "boardGame"
+  }, {
+    "id" : 19,
+    "name" : "Missing Components",
+    "type" : "boolean",
+    "entityKey" : "boardGameBox"
+  }, {
+    "id" : 20,
+    "name" : "Notes",
+    "type" : "text",
+    "entityKey" : "boardGameBox"
+  }, {
+    "id" : 21,
+    "name" : "Designer",
+    "type" : "text",
+    "entityKey" : "boardGame"
+  } ],
+  "toys" : [ {
+    "key" : "toy",
+    "id" : 1,
+    "name" : "Darkwing Duck",
+    "set" : "Misc",
+    "createdAt" : 1757970298640,
+    "updatedAt" : 1757970298640,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 1,
+      "customFieldName" : "Broken",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 11,
+      "customFieldName" : "Quantity",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 12,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "10 / 10 no notes"
+    } ]
+  }, {
+    "key" : "toy",
+    "id" : 2,
+    "name" : "Iron Man ",
+    "set" : "Disney Infinity",
+    "createdAt" : 1757970298649,
+    "updatedAt" : 1757970298649,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 1,
+      "customFieldName" : "Broken",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 11,
+      "customFieldName" : "Quantity",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 12,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "Best Avenger"
+    } ]
+  }, {
+    "key" : "toy",
+    "id" : 3,
+    "name" : "Mickey Mouse",
+    "set" : "Disney Infinity",
+    "createdAt" : 1757970298655,
+    "updatedAt" : 1757970298655,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 1,
+      "customFieldName" : "Broken",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 11,
+      "customFieldName" : "Quantity",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 12,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "Missing Keyblade"
+    } ]
+  }, {
+    "key" : "toy",
+    "id" : 4,
+    "name" : "Super Mario",
+    "set" : "Amiibo",
+    "createdAt" : 1757970298661,
+    "updatedAt" : 1757970298661,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 1,
+      "customFieldName" : "Broken",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 11,
+      "customFieldName" : "Quantity",
+      "customFieldType" : "number",
+      "value" : "0"
+    }, {
+      "customFieldId" : 12,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "Missing?"
+    } ]
+  }, {
+    "key" : "toy",
+    "id" : 5,
+    "name" : "Princess Peach",
+    "set" : "Amiibo",
+    "createdAt" : 1757970298666,
+    "updatedAt" : 1757970298666,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 1,
+      "customFieldName" : "Broken",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 11,
+      "customFieldName" : "Quantity",
+      "customFieldType" : "number",
+      "value" : "3"
+    }, {
+      "customFieldId" : 12,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "Princess Power!"
+    } ]
+  }, {
+    "key" : "toy",
+    "id" : 6,
+    "name" : "Mega Man 11",
+    "set" : "Amiibo",
+    "createdAt" : 1757970298670,
+    "updatedAt" : 1757970298670,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 1,
+      "customFieldName" : "Broken",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 11,
+      "customFieldName" : "Quantity",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 12,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  } ],
+  "systems" : [ {
+    "key" : "system",
+    "id" : 2,
+    "name" : "Wii",
+    "generation" : 7,
+    "handheld" : false,
+    "createdAt" : 1757970298680,
+    "updatedAt" : 1757970298680,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2006"
+    }, {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 3,
+    "name" : "NES",
+    "generation" : 3,
+    "handheld" : false,
+    "createdAt" : 1757970298685,
+    "updatedAt" : 1757970298685,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1985"
+    }, {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 4,
+    "name" : "SNES",
+    "generation" : 4,
+    "handheld" : false,
+    "createdAt" : 1757970298690,
+    "updatedAt" : 1757970298690,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1991"
+    }, {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 5,
+    "name" : "Game Boy Color",
+    "generation" : 4,
+    "handheld" : true,
+    "createdAt" : 1757970298694,
+    "updatedAt" : 1757970298694,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1988"
+    }, {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 6,
+    "name" : "Game Boy",
+    "generation" : 4,
+    "handheld" : true,
+    "createdAt" : 1757970298698,
+    "updatedAt" : 1757970298698,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1989"
+    }, {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 7,
+    "name" : "PS1",
+    "generation" : 5,
+    "handheld" : false,
+    "createdAt" : 1757970298702,
+    "updatedAt" : 1757970298702,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1995"
+    }, {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Sony"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 8,
+    "name" : "Wii U",
+    "generation" : 8,
+    "handheld" : false,
+    "createdAt" : 1757970298705,
+    "updatedAt" : 1757970298705,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2012"
+    }, {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 9,
+    "name" : "Switch",
+    "generation" : 9,
+    "handheld" : false,
+    "createdAt" : 1757970298709,
+    "updatedAt" : 1757970298709,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2017"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "system",
+    "id" : 1,
+    "name" : "Genesis",
+    "generation" : 4,
+    "handheld" : false,
+    "createdAt" : 1757970298676,
+    "updatedAt" : 1757970322998,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 3,
+      "customFieldName" : "Company",
+      "customFieldType" : "text",
+      "value" : "Sega"
+    }, {
+      "customFieldId" : 2,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1989"
+    }, {
+      "customFieldId" : 13,
+      "customFieldName" : "Have Controller",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  } ],
+  "videoGameBoxes" : [ {
+    "key" : "videoGameBox",
+    "id" : 1,
+    "title" : "Kirby's Adventures",
+    "system" : {
+      "key" : "system",
+      "id" : 3,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1757970298685,
+      "updatedAt" : 1757970298685,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "id": 2,
-      "name": "Release Year",
-      "type": "number",
-      "entityKey": "system"
-    },
-    {
-      "id": 3,
-      "name": "Company",
-      "type": "text",
-      "entityKey": "system"
-    },
-    {
-      "id": 4,
-      "name": "Developer",
-      "type": "text",
-      "entityKey": "videoGame"
-    },
-    {
-      "id": 5,
-      "name": "Publisher",
-      "type": "text",
-      "entityKey": "videoGame"
-    },
-    {
-      "id": 6,
-      "name": "Enhanced Port",
-      "type": "boolean",
-      "entityKey": "videoGameBox"
-    },
-    {
-      "id": 7,
-      "name": "Release Year",
-      "type": "number",
-      "entityKey": "boardGameBox"
-    },
-    {
-      "id": 9,
-      "name": "Publisher",
-      "type": "text",
-      "entityKey": "boardGame"
-    },
-    {
-      "id": 10,
-      "name": "Min Player Count",
-      "type": "number",
-      "entityKey": "boardGame"
-    },
-    {
-      "id": 11,
-      "name": "Max Player Count",
-      "type": "number",
-      "entityKey": "boardGame"
-    },
-    {
-      "id": 12,
-      "name": "Quantity",
-      "type": "number",
-      "entityKey": "toy"
-    },
-    {
-      "id": 13,
-      "name": "Notes",
-      "type": "text",
-      "entityKey": "toy"
-    },
-    {
-      "id": 14,
-      "name": "Have Controller",
-      "type": "boolean",
-      "entityKey": "system"
-    },
-    {
-      "id": 15,
-      "name": "Release Year",
-      "type": "number",
-      "entityKey": "videoGame"
-    },
-    {
-      "id": 16,
-      "name": "Favorite",
-      "type": "boolean",
-      "entityKey": "videoGame"
-    },
-    {
-      "id": 18,
-      "name": "Release Year",
-      "type": "number",
-      "entityKey": "videoGameBox"
-    },
-    {
-      "id": 19,
-      "name": "Notes",
-      "type": "text",
-      "entityKey": "videoGameBox"
-    },
-    {
-      "id": 20,
-      "name": "Has App",
-      "type": "boolean",
-      "entityKey": "boardGame"
-    },
-    {
-      "id": 22,
-      "name": "Missing Components",
-      "type": "boolean",
-      "entityKey": "boardGameBox"
-    },
-    {
-      "id": 23,
-      "name": "Notes",
-      "type": "text",
-      "entityKey": "boardGameBox"
-    },
-    {
-      "id": 8,
-      "name": "Designer",
-      "type": "text",
-      "entityKey": "boardGame"
-    }
-  ],
-  "toys": [
-    {
-      "key": "toy",
-      "id": 1,
-      "name": "Darkwing Duck",
-      "set": "Misc",
-      "createdAt": 1756840615665,
-      "updatedAt": 1756841541104,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 1,
-          "customFieldName": "Broken",
-          "customFieldType": "boolean",
-          "value": "true"
-        },
-        {
-          "customFieldId": 12,
-          "customFieldName": "Quantity",
-          "customFieldType": "number",
-          "value": "1"
-        },
-        {
-          "customFieldId": 13,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "10 / 10 no notes"
-        }
-      ]
-    },
-    {
-      "key": "toy",
-      "id": 6,
-      "name": "Iron Man ",
-      "set": "Disney Infinity",
-      "createdAt": 1756840615686,
-      "updatedAt": 1756841566714,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 1,
-          "customFieldName": "Broken",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 12,
-          "customFieldName": "Quantity",
-          "customFieldType": "number",
-          "value": "1"
-        },
-        {
-          "customFieldId": 13,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "Best Avenger"
-        }
-      ]
-    },
-    {
-      "key": "toy",
-      "id": 5,
-      "name": "Mickey Mouse",
-      "set": "Disney Infinity",
-      "createdAt": 1756840615683,
-      "updatedAt": 1756841580829,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 1,
-          "customFieldName": "Broken",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 12,
-          "customFieldName": "Quantity",
-          "customFieldType": "number",
-          "value": "1"
-        },
-        {
-          "customFieldId": 13,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "Missing Keyblade"
-        }
-      ]
-    },
-    {
-      "key": "toy",
-      "id": 2,
-      "name": "Super Mario",
-      "set": "Amiibo",
-      "createdAt": 1756840615673,
-      "updatedAt": 1756841594426,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 1,
-          "customFieldName": "Broken",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 12,
-          "customFieldName": "Quantity",
-          "customFieldType": "number",
-          "value": "0"
-        },
-        {
-          "customFieldId": 13,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "Missing?"
-        }
-      ]
-    },
-    {
-      "key": "toy",
-      "id": 4,
-      "name": "Princess Peach",
-      "set": "Amiibo",
-      "createdAt": 1756840615680,
-      "updatedAt": 1756841899723,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 1,
-          "customFieldName": "Broken",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 12,
-          "customFieldName": "Quantity",
-          "customFieldType": "number",
-          "value": "3"
-        },
-        {
-          "customFieldId": 13,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "Princess Power!"
-        }
-      ]
-    },
-    {
-      "key": "toy",
-      "id": 3,
-      "name": "Mega Man 11",
-      "set": "Amiibo",
-      "createdAt": 1756840615676,
-      "updatedAt": 1756841911467,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 1,
-          "customFieldName": "Broken",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 12,
-          "customFieldName": "Quantity",
-          "customFieldType": "number",
-          "value": "2"
-        },
-        {
-          "customFieldId": 13,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
-    }
-  ],
-  "systems": [
-    {
-      "key": "system",
-      "id": 9,
-      "name": "Genesis",
-      "generation": 4,
-      "handheld": false,
-      "createdAt": 1756840615726,
-      "updatedAt": 1756840615726,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1989"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Sega"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 5,
-      "name": "Wii",
-      "generation": 7,
-      "handheld": false,
-      "createdAt": 1756840615710,
-      "updatedAt": 1756846870517,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2006"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Nintendo"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 1,
-      "name": "NES",
-      "generation": 3,
-      "handheld": false,
-      "createdAt": 1756840615692,
-      "updatedAt": 1756846876737,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1985"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Nintendo"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 2,
-      "name": "SNES",
-      "generation": 4,
-      "handheld": false,
-      "createdAt": 1756840615697,
-      "updatedAt": 1756846885024,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1991"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Nintendo"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 8,
-      "name": "Game Boy Color",
-      "generation": 4,
-      "handheld": true,
-      "createdAt": 1756840615722,
-      "updatedAt": 1756846895540,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1988"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Nintendo"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 4,
-      "name": "Game Boy",
-      "generation": 4,
-      "handheld": true,
-      "createdAt": 1756840615706,
-      "updatedAt": 1756846901277,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1989"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Nintendo"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 3,
-      "name": "PS1",
-      "generation": 5,
-      "handheld": false,
-      "createdAt": 1756840615701,
-      "updatedAt": 1756846904198,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1995"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Sony"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 6,
-      "name": "Wii U",
-      "generation": 8,
-      "handheld": false,
-      "createdAt": 1756840615714,
-      "updatedAt": 1756846907194,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2012"
-        },
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Nintendo"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "key": "system",
-      "id": 7,
-      "name": "Switch",
-      "generation": 9,
-      "handheld": false,
-      "createdAt": 1756840615718,
-      "updatedAt": 1756846909580,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 3,
-          "customFieldName": "Company",
-          "customFieldType": "text",
-          "value": "Nintendo"
-        },
-        {
-          "customFieldId": 2,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2017"
-        },
-        {
-          "customFieldId": 14,
-          "customFieldName": "Have Controller",
-          "customFieldType": "boolean",
-          "value": "true"
-        }
-      ]
-    }
-  ],
-  "videoGameBoxes": [
-    {
-      "key": "videoGameBox",
-      "id": 1,
-      "title": "Kirby's Adventures",
-      "system": {
-        "key": "system",
-        "id": 1,
-        "name": "NES",
-        "generation": 3,
-        "handheld": false,
-        "createdAt": 1756840615692,
-        "updatedAt": 1756846876737,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1985"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 1,
+      "title" : "Kirby's Adventures",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 1,
-          "title": "Kirby's Adventures",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615733,
-          "updatedAt": 1756858020721,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "HAL"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1993"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615737,
-      "updatedAt": 1756854454031,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1993"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "First game with copy abilities!"
-        }
-      ]
+      "createdAt" : 1757970298716,
+      "updatedAt" : 1757970298716,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "HAL"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1993"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298720,
+    "updatedAt" : 1757970298720,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "First game with copy abilities!"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 2,
+    "title" : "Wizards and Warriors",
+    "system" : {
+      "key" : "system",
+      "id" : 3,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1757970298685,
+      "updatedAt" : 1757970298685,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 2,
-      "title": "Wizards and Warriors",
-      "system": {
-        "key": "system",
-        "id": 1,
-        "name": "NES",
-        "generation": 3,
-        "handheld": false,
-        "createdAt": 1756840615692,
-        "updatedAt": 1756846876737,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1985"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 2,
+      "title" : "Wizards and Warriors",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 2,
-          "title": "Wizards and Warriors",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615740,
-          "updatedAt": 1756858093044,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Rare"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Rare"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1987"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615743,
-      "updatedAt": 1756854492980,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1987"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298724,
+      "updatedAt" : 1757970298724,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Rare"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Rare"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1987"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298728,
+    "updatedAt" : 1757970298728,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1987"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 3,
+    "title" : "Super Mario Bros. / Duck Hunt",
+    "system" : {
+      "key" : "system",
+      "id" : 3,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1757970298685,
+      "updatedAt" : 1757970298685,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 3,
-      "title": "Super Mario Bros. / Duck Hunt",
-      "system": {
-        "key": "system",
-        "id": 1,
-        "name": "NES",
-        "generation": 3,
-        "handheld": false,
-        "createdAt": 1756840615692,
-        "updatedAt": 1756846876737,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1985"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 3,
+      "title" : "Duck Hunt",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 3,
-          "title": "Super Mario Bros.",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615747,
-          "updatedAt": 1756858139876,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1985"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "id": 4,
-          "title": "Duck Hunt",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615749,
-          "updatedAt": 1756858168891,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1985"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": true,
-      "createdAt": 1756840615751,
-      "updatedAt": 1756854558344,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1988"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298731,
+      "updatedAt" : 1757970298731,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 4,
+      "title" : "Super Mario Bros.",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298735,
+      "updatedAt" : 1757970298735,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1757970298738,
+    "updatedAt" : 1757970298738,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1988"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 4,
+    "title" : "Collection of Mana",
+    "system" : {
+      "key" : "system",
+      "id" : 9,
+      "name" : "Switch",
+      "generation" : 9,
+      "handheld" : false,
+      "createdAt" : 1757970298709,
+      "updatedAt" : 1757970298709,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2017"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 14,
-      "title": "Collection of Mana",
-      "system": {
-        "key": "system",
-        "id": 7,
-        "name": "Switch",
-        "generation": 9,
-        "handheld": false,
-        "createdAt": 1756840615718,
-        "updatedAt": 1756846909580,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2017"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 5,
+      "title" : "Secret of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 8,
-          "title": "Secret of Mana",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615766,
-          "updatedAt": 1756858883684,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Squaresoft"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1993"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "id": 9,
-          "title": "Trials of Mana",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615771,
-          "updatedAt": 1756869432800,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "0"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 24,
-          "title": "Final Fantasy Adventure",
-          "system": {
-            "key": "system",
-            "id": 4,
-            "name": "Game Boy",
-            "generation": 4,
-            "handheld": true,
-            "createdAt": 1756840615706,
-            "updatedAt": 1756846901277,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1989"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615821,
-          "updatedAt": 1756870865148,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1991"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": true,
-      "createdAt": 1756840615822,
-      "updatedAt": 1756857155604,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2019"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "First western release of Trials of Mana"
-        }
-      ]
+      "createdAt" : 1757970298742,
+      "updatedAt" : 1757970298742,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Squaresoft"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1993"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    }, {
+      "id" : 6,
+      "title" : "Final Fantasy Adventure",
+      "system" : {
+        "key" : "system",
+        "id" : 6,
+        "name" : "Game Boy",
+        "generation" : 4,
+        "handheld" : true,
+        "createdAt" : 1757970298698,
+        "updatedAt" : 1757970298698,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298744,
+      "updatedAt" : 1757970298744,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 7,
+      "title" : "Trials of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298747,
+      "updatedAt" : 1757970298747,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "0"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1757970298750,
+    "updatedAt" : 1757970298750,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2019"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "First western release of Trials of Mana"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 5,
+    "title" : "Secret of Mana",
+    "system" : {
+      "key" : "system",
+      "id" : 4,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1757970298690,
+      "updatedAt" : 1757970298690,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 5,
-      "title": "Secret of Mana",
-      "system": {
-        "key": "system",
-        "id": 2,
-        "name": "SNES",
-        "generation": 4,
-        "handheld": false,
-        "createdAt": 1756840615697,
-        "updatedAt": 1756846885024,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1991"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 5,
+      "title" : "Secret of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 8,
-          "title": "Secret of Mana",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615766,
-          "updatedAt": 1756858883684,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Squaresoft"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1993"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615769,
-      "updatedAt": 1756857303357,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1993"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298742,
+      "updatedAt" : 1757970298742,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Squaresoft"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1993"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298755,
+    "updatedAt" : 1757970298755,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 6,
+    "title" : "Trials of Mana",
+    "system" : {
+      "key" : "system",
+      "id" : 9,
+      "name" : "Switch",
+      "generation" : 9,
+      "handheld" : false,
+      "createdAt" : 1757970298709,
+      "updatedAt" : 1757970298709,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2017"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 13,
-      "title": "Trials of Mana",
-      "system": {
-        "key": "system",
-        "id": 7,
-        "name": "Switch",
-        "generation": 9,
-        "handheld": false,
-        "createdAt": 1756840615718,
-        "updatedAt": 1756846909580,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2017"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 7,
+      "title" : "Trials of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 9,
-          "title": "Trials of Mana",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615771,
-          "updatedAt": 1756869432800,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "0"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615817,
-      "updatedAt": 1756857514614,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "true"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2020"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "They took out the multiplayer! (Shame!)"
-        }
-      ]
+      "createdAt" : 1757970298747,
+      "updatedAt" : 1757970298747,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "0"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298759,
+    "updatedAt" : 1757970298759,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2020"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "They took out the multiplayer! (Shame!)"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 7,
+    "title" : "Kirby's Return to Dream Land",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "Wii",
+      "generation" : 7,
+      "handheld" : false,
+      "createdAt" : 1757970298680,
+      "updatedAt" : 1757970298680,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2006"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 7,
-      "title": "Kirby's Return to Dream Land",
-      "system": {
-        "key": "system",
-        "id": 5,
-        "name": "Wii",
-        "generation": 7,
-        "handheld": false,
-        "createdAt": 1756840615710,
-        "updatedAt": 1756846870517,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2006"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 8,
+      "title" : "Kirby's Return to Dream Land",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "Wii",
+        "generation" : 7,
+        "handheld" : false,
+        "createdAt" : 1757970298680,
+        "updatedAt" : 1757970298680,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "2006"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 10,
-          "title": "Kirby's Return to Dream Land",
-          "system": {
-            "key": "system",
-            "id": 5,
-            "name": "Wii",
-            "generation": 7,
-            "handheld": false,
-            "createdAt": 1756840615710,
-            "updatedAt": 1756846870517,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "2006"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615775,
-          "updatedAt": 1756869454889,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "HAL"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2011"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615777,
-      "updatedAt": 1756857597011,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2011"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298762,
+      "updatedAt" : 1757970298762,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "HAL"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2011"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298765,
+    "updatedAt" : 1757970298765,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2011"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 8,
+    "title" : "Disney Classic Games Collection",
+    "system" : {
+      "key" : "system",
+      "id" : 9,
+      "name" : "Switch",
+      "generation" : 9,
+      "handheld" : false,
+      "createdAt" : 1757970298709,
+      "updatedAt" : 1757970298709,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2017"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 12,
-      "title": "Disney Classic Games Collection",
-      "system": {
-        "key": "system",
-        "id": 7,
-        "name": "Switch",
-        "generation": 9,
-        "handheld": false,
-        "createdAt": 1756840615718,
-        "updatedAt": 1756846909580,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2017"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 9,
+      "title" : "The Lion King ",
+      "system" : {
+        "key" : "system",
+        "id" : 5,
+        "name" : "Game Boy Color",
+        "generation" : 4,
+        "handheld" : true,
+        "createdAt" : 1757970298694,
+        "updatedAt" : 1757970298694,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1988"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 14,
-          "title": "The Lion King",
-          "system": {
-            "key": "system",
-            "id": 4,
-            "name": "Game Boy",
-            "generation": 4,
-            "handheld": true,
-            "createdAt": 1756840615706,
-            "updatedAt": 1756846901277,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1989"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615793,
-          "updatedAt": 1756869958007,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Virgin Interactive"
-            },
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Dark Technologies"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1995"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 15,
-          "title": "The Jungle Book",
-          "system": {
-            "key": "system",
-            "id": 4,
-            "name": "Game Boy",
-            "generation": 4,
-            "handheld": true,
-            "createdAt": 1756840615706,
-            "updatedAt": 1756846901277,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1989"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615795,
-          "updatedAt": 1756870753681,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Eurocom"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Virgin Interactive"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1994"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 16,
-          "title": "The Lion King ",
-          "system": {
-            "key": "system",
-            "id": 8,
-            "name": "Game Boy Color",
-            "generation": 4,
-            "handheld": true,
-            "createdAt": 1756840615722,
-            "updatedAt": 1756846895540,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1988"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615797,
-          "updatedAt": 1756870042339,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Dark Technologies"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Virgin Interactive"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1995"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 17,
-          "title": "Aladdin",
-          "system": {
-            "key": "system",
-            "id": 8,
-            "name": "Game Boy Color",
-            "generation": 4,
-            "handheld": true,
-            "createdAt": 1756840615722,
-            "updatedAt": 1756846895540,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1988"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615798,
-          "updatedAt": 1756870557664,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Crawfish Interactive"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Ubisoft"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2000"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 18,
-          "title": "The Jungle Book",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615800,
-          "updatedAt": 1756870809461,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Eurocom"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Virgin Interactive"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1994"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 19,
-          "title": "The Jungle Book ",
-          "system": {
-            "key": "system",
-            "id": 9,
-            "name": "Genesis",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615726,
-            "updatedAt": 1756840615726,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1989"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Sega"
-              }
-            ]
-          },
-          "createdAt": 1756840615802,
-          "updatedAt": 1756870683800,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Eurocom"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Virgin Interactive"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1994"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 20,
-          "title": "Aladdin",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615803,
-          "updatedAt": 1756870610609,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Capcom"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Capcom"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1993"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 21,
-          "title": "The Lion King",
-          "system": {
-            "key": "system",
-            "id": 9,
-            "name": "Genesis",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615726,
-            "updatedAt": 1756840615726,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1989"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Sega"
-              }
-            ]
-          },
-          "createdAt": 1756840615805,
-          "updatedAt": 1756870247155,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Virgin Interactive"
-            },
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Westwood Studios"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1994"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 22,
-          "title": "The Lion King",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615807,
-          "updatedAt": 1756870269482,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Westwood Studios"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Virgin Interactive"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1994"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 23,
-          "title": "Aladdin",
-          "system": {
-            "key": "system",
-            "id": 9,
-            "name": "Genesis",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615726,
-            "updatedAt": 1756840615726,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1989"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Sega"
-              }
-            ]
-          },
-          "createdAt": 1756840615809,
-          "updatedAt": 1756870339384,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Virgin Games"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Sega"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1993"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": true,
-      "createdAt": 1756840615812,
-      "updatedAt": 1756857730504,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2021"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298768,
+      "updatedAt" : 1757970298768,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Dark Technologies"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Virgin Interactive"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1995"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 10,
+      "title" : "Aladdin",
+      "system" : {
+        "key" : "system",
+        "id" : 5,
+        "name" : "Game Boy Color",
+        "generation" : 4,
+        "handheld" : true,
+        "createdAt" : 1757970298694,
+        "updatedAt" : 1757970298694,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1988"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298771,
+      "updatedAt" : 1757970298771,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Crawfish Interactive"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Ubisoft"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2000"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 11,
+      "title" : "The Jungle Book",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298773,
+      "updatedAt" : 1757970298773,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Eurocom"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Virgin Interactive"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1994"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 12,
+      "title" : "The Jungle Book ",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298676,
+        "updatedAt" : 1757970322998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        }, {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "false"
+        } ]
+      },
+      "createdAt" : 1757970298776,
+      "updatedAt" : 1757970298776,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Eurocom"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Virgin Interactive"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1994"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 13,
+      "title" : "Aladdin",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298778,
+      "updatedAt" : 1757970298778,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Capcom"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Capcom"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1993"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 14,
+      "title" : "The Lion King",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298676,
+        "updatedAt" : 1757970322998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        }, {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "false"
+        } ]
+      },
+      "createdAt" : 1757970298781,
+      "updatedAt" : 1757970298781,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Virgin Interactive"
+      }, {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Westwood Studios"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1994"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 15,
+      "title" : "The Lion King",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298785,
+      "updatedAt" : 1757970298785,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Westwood Studios"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Virgin Interactive"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1994"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 16,
+      "title" : "Aladdin",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298676,
+        "updatedAt" : 1757970322998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        }, {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "false"
+        } ]
+      },
+      "createdAt" : 1757970298788,
+      "updatedAt" : 1757970298788,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Virgin Games"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Sega"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1993"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 17,
+      "title" : "The Lion King",
+      "system" : {
+        "key" : "system",
+        "id" : 6,
+        "name" : "Game Boy",
+        "generation" : 4,
+        "handheld" : true,
+        "createdAt" : 1757970298698,
+        "updatedAt" : 1757970298698,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298792,
+      "updatedAt" : 1757970298792,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Virgin Interactive"
+      }, {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Dark Technologies"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1995"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 18,
+      "title" : "The Jungle Book",
+      "system" : {
+        "key" : "system",
+        "id" : 6,
+        "name" : "Game Boy",
+        "generation" : 4,
+        "handheld" : true,
+        "createdAt" : 1757970298698,
+        "updatedAt" : 1757970298698,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298795,
+      "updatedAt" : 1757970298795,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Eurocom"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Virgin Interactive"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1994"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1757970298799,
+    "updatedAt" : 1757970298799,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2021"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 9,
+    "title" : "Princess Peach Showtime",
+    "system" : {
+      "key" : "system",
+      "id" : 9,
+      "name" : "Switch",
+      "generation" : 9,
+      "handheld" : false,
+      "createdAt" : 1757970298709,
+      "updatedAt" : 1757970298709,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2017"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 10,
-      "title": "Princess Peach Showtime",
-      "system": {
-        "key": "system",
-        "id": 7,
-        "name": "Switch",
-        "generation": 9,
-        "handheld": false,
-        "createdAt": 1756840615718,
-        "updatedAt": 1756846909580,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2017"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 19,
+      "title" : "Princess Peach Showtime",
+      "system" : {
+        "key" : "system",
+        "id" : 9,
+        "name" : "Switch",
+        "generation" : 9,
+        "handheld" : false,
+        "createdAt" : 1757970298709,
+        "updatedAt" : 1757970298709,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "2017"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 13,
-          "title": "Princess Peach Showtime",
-          "system": {
-            "key": "system",
-            "id": 7,
-            "name": "Switch",
-            "generation": 9,
-            "handheld": false,
-            "createdAt": 1756840615718,
-            "updatedAt": 1756846909580,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "2017"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615787,
-          "updatedAt": 1756869547539,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2024"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615789,
-      "updatedAt": 1756857794373,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2024"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298804,
+      "updatedAt" : 1757970298804,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2024"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298806,
+    "updatedAt" : 1757970298806,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2024"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 10,
+    "title" : "Kirby's Return to Dream Land Deluxe",
+    "system" : {
+      "key" : "system",
+      "id" : 9,
+      "name" : "Switch",
+      "generation" : 9,
+      "handheld" : false,
+      "createdAt" : 1757970298709,
+      "updatedAt" : 1757970298709,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2017"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 11,
-      "title": "Kirby's Return to Dream Land Deluxe",
-      "system": {
-        "key": "system",
-        "id": 7,
-        "name": "Switch",
-        "generation": 9,
-        "handheld": false,
-        "createdAt": 1756840615718,
-        "updatedAt": 1756846909580,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2017"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 8,
+      "title" : "Kirby's Return to Dream Land",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "Wii",
+        "generation" : 7,
+        "handheld" : false,
+        "createdAt" : 1757970298680,
+        "updatedAt" : 1757970298680,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "2006"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 10,
-          "title": "Kirby's Return to Dream Land",
-          "system": {
-            "key": "system",
-            "id": 5,
-            "name": "Wii",
-            "generation": 7,
-            "handheld": false,
-            "createdAt": 1756840615710,
-            "updatedAt": 1756846870517,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "2006"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615775,
-          "updatedAt": 1756869454889,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "HAL"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2011"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615791,
-      "updatedAt": 1756857823335,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2023"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298762,
+      "updatedAt" : 1757970298762,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "HAL"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2011"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298810,
+    "updatedAt" : 1757970298810,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2023"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 11,
+    "title" : "The Amazing Race",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "Wii",
+      "generation" : 7,
+      "handheld" : false,
+      "createdAt" : 1757970298680,
+      "updatedAt" : 1757970298680,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2006"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 9,
-      "title": "The Amazing Race",
-      "system": {
-        "key": "system",
-        "id": 5,
-        "name": "Wii",
-        "generation": 7,
-        "handheld": false,
-        "createdAt": 1756840615710,
-        "updatedAt": 1756846870517,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2006"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 20,
+      "title" : "The Amazing Race",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "Wii",
+        "generation" : 7,
+        "handheld" : false,
+        "createdAt" : 1757970298680,
+        "updatedAt" : 1757970298680,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "2006"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 12,
-          "title": "The Amazing Race",
-          "system": {
-            "key": "system",
-            "id": 5,
-            "name": "Wii",
-            "generation": 7,
-            "handheld": false,
-            "createdAt": 1756840615710,
-            "updatedAt": 1756846870517,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "2006"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615783,
-          "updatedAt": 1756869534221,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Ubisoft"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Ludia Inc"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2010"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615785,
-      "updatedAt": 1756857850476,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2010"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298812,
+      "updatedAt" : 1757970298812,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Ubisoft"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Ludia Inc"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2010"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298815,
+    "updatedAt" : 1757970298815,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2010"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 12,
+    "title" : "Rayman Origins",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "Wii",
+      "generation" : 7,
+      "handheld" : false,
+      "createdAt" : 1757970298680,
+      "updatedAt" : 1757970298680,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2006"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 8,
-      "title": "Rayman Origins",
-      "system": {
-        "key": "system",
-        "id": 5,
-        "name": "Wii",
-        "generation": 7,
-        "handheld": false,
-        "createdAt": 1756840615710,
-        "updatedAt": 1756846870517,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "2006"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 21,
+      "title" : "Rayman Origins",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "Wii",
+        "generation" : 7,
+        "handheld" : false,
+        "createdAt" : 1757970298680,
+        "updatedAt" : 1757970298680,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "2006"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 11,
-          "title": "Rayman Origins",
-          "system": {
-            "key": "system",
-            "id": 5,
-            "name": "Wii",
-            "generation": 7,
-            "handheld": false,
-            "createdAt": 1756840615710,
-            "updatedAt": 1756846870517,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "2006"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615779,
-          "updatedAt": 1756869467168,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Ubisoft"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Ubisoft"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "2011"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615782,
-      "updatedAt": 1756857879751,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2011"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": ""
-        }
-      ]
+      "createdAt" : 1757970298817,
+      "updatedAt" : 1757970298817,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Ubisoft"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Ubisoft"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "2011"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298820,
+    "updatedAt" : 1757970298820,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2011"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 13,
+    "title" : "Super Mario All-Stars",
+    "system" : {
+      "key" : "system",
+      "id" : 4,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1757970298690,
+      "updatedAt" : 1757970298690,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 4,
-      "title": "Super Mario All-Stars",
-      "system": {
-        "key": "system",
-        "id": 2,
-        "name": "SNES",
-        "generation": 4,
-        "handheld": false,
-        "createdAt": 1756840615697,
-        "updatedAt": 1756846885024,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1991"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 4,
+      "title" : "Super Mario Bros.",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 3,
-          "title": "Super Mario Bros.",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615747,
-          "updatedAt": 1756858139876,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1985"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "id": 5,
-          "title": "Super Mario Bros. 3",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615756,
-          "updatedAt": 1756858295342,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1990"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "id": 6,
-          "title": "Super Mario Bros. The Lost Levels",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615759,
-          "updatedAt": 1756858373613,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1993"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "id": 7,
-          "title": "Super Mario Bros. 2",
-          "system": {
-            "key": "system",
-            "id": 1,
-            "name": "NES",
-            "generation": 3,
-            "handheld": false,
-            "createdAt": 1756840615692,
-            "updatedAt": 1756846876737,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1985"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615761,
-          "updatedAt": 1756858856476,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Nintendo"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "1988"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": true,
-      "createdAt": 1756840615763,
-      "updatedAt": 1756858427353,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "true"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "1993"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "First western release of Super Mario Bros. The Lost Levels"
-        }
-      ]
+      "createdAt" : 1757970298735,
+      "updatedAt" : 1757970298735,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    }, {
+      "id" : 22,
+      "title" : "Super Mario Bros. 3",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298823,
+      "updatedAt" : 1757970298823,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1990"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
+    }, {
+      "id" : 23,
+      "title" : "Super Mario Bros. The Lost Levels",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298826,
+      "updatedAt" : 1757970298826,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1993"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    }, {
+      "id" : 24,
+      "title" : "Super Mario Bros. 2",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1757970298685,
+        "updatedAt" : 1757970298685,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
+      },
+      "createdAt" : 1757970298828,
+      "updatedAt" : 1757970298828,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1988"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1757970298831,
+    "updatedAt" : 1757970298831,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "First western release of Super Mario Bros. The Lost Levels"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 14,
+    "title" : "Secret of Mana 2",
+    "system" : {
+      "key" : "system",
+      "id" : 4,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1757970298690,
+      "updatedAt" : 1757970298690,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      }, {
+        "customFieldId" : 13,
+        "customFieldName" : "Have Controller",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      } ]
     },
-    {
-      "key": "videoGameBox",
-      "id": 6,
-      "title": "Secret of Mana 2",
-      "system": {
-        "key": "system",
-        "id": 2,
-        "name": "SNES",
-        "generation": 4,
-        "handheld": false,
-        "createdAt": 1756840615697,
-        "updatedAt": 1756846885024,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 2,
-            "customFieldName": "Release Year",
-            "customFieldType": "number",
-            "value": "1991"
-          },
-          {
-            "customFieldId": 3,
-            "customFieldName": "Company",
-            "customFieldType": "text",
-            "value": "Nintendo"
-          },
-          {
-            "customFieldId": 14,
-            "customFieldName": "Have Controller",
-            "customFieldType": "boolean",
-            "value": "true"
-          }
-        ]
+    "videoGames" : [ {
+      "id" : 7,
+      "title" : "Trials of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 4,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1757970298690,
+        "updatedAt" : 1757970298690,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        }, {
+          "customFieldId" : 13,
+          "customFieldName" : "Have Controller",
+          "customFieldType" : "boolean",
+          "value" : "true"
+        } ]
       },
-      "videoGames": [
-        {
-          "id": 9,
-          "title": "Trials of Mana",
-          "system": {
-            "key": "system",
-            "id": 2,
-            "name": "SNES",
-            "generation": 4,
-            "handheld": false,
-            "createdAt": 1756840615697,
-            "updatedAt": 1756846885024,
-            "deletedAt": null,
-            "customFieldValues": [
-              {
-                "customFieldId": 2,
-                "customFieldName": "Release Year",
-                "customFieldType": "number",
-                "value": "1991"
-              },
-              {
-                "customFieldId": 3,
-                "customFieldName": "Company",
-                "customFieldType": "text",
-                "value": "Nintendo"
-              },
-              {
-                "customFieldId": 14,
-                "customFieldName": "Have Controller",
-                "customFieldType": "boolean",
-                "value": "true"
-              }
-            ]
-          },
-          "createdAt": 1756840615771,
-          "updatedAt": 1756869432800,
-          "deletedAt": null,
-          "customFieldValues": [
-            {
-              "customFieldId": 4,
-              "customFieldName": "Developer",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 5,
-              "customFieldName": "Publisher",
-              "customFieldType": "text",
-              "value": "Square"
-            },
-            {
-              "customFieldId": 15,
-              "customFieldName": "Release Year",
-              "customFieldType": "number",
-              "value": "0"
-            },
-            {
-              "customFieldId": 16,
-              "customFieldName": "Favorite",
-              "customFieldType": "boolean",
-              "value": "false"
-            }
-          ]
-        }
-      ],
-      "isPhysical": true,
-      "isCollection": false,
-      "createdAt": 1756840615773,
-      "updatedAt": 1756871461829,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 6,
-          "customFieldName": "Enhanced Port",
-          "customFieldType": "boolean",
-          "value": "false"
-        },
-        {
-          "customFieldId": 18,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "0"
-        },
-        {
-          "customFieldId": 19,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "Reproduction Cart"
-        }
-      ]
-    }
-  ],
-  "boardGameBoxes": [
-    {
-      "key": "boardGameBox",
-      "id": 4,
-      "title": "Set-A-Watch Swords of the Coin",
-      "isExpansion": true,
-      "isStandAlone": true,
-      "baseSetId": 3,
-      "boardGame": {
-        "id": 3,
-        "title": "Set-A-Watch",
-        "createdAt": 1756840615829,
-        "updatedAt": 1756848717006,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 9,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Rock Manor Games"
-          },
-          {
-            "customFieldId": 10,
-            "customFieldName": "Min Player Count",
-            "customFieldType": "number",
-            "value": "1"
-          },
-          {
-            "customFieldId": 11,
-            "customFieldName": "Max Player Count",
-            "customFieldType": "number",
-            "value": "4"
-          },
-          {
-            "customFieldId": 20,
-            "customFieldName": "Has App",
-            "customFieldType": "boolean",
-            "value": "true"
-          },
-          {
-            "customFieldId": 8,
-            "customFieldName": "Designer",
-            "customFieldType": "text",
-            "value": "Mike Gnade, Todd Walsh"
-          }
-        ]
-      },
-      "createdAt": 1756840615831,
-      "updatedAt": 1756840615831,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 7,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2021"
-        }
-      ]
+      "createdAt" : 1757970298747,
+      "updatedAt" : 1757970298747,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 4,
+        "customFieldName" : "Developer",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 5,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Square"
+      }, {
+        "customFieldId" : 14,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "0"
+      }, {
+        "customFieldId" : 15,
+        "customFieldName" : "Favorite",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1757970298835,
+    "updatedAt" : 1757970298835,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 6,
+      "customFieldName" : "Enhanced Port",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 16,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "0"
+    }, {
+      "customFieldId" : 17,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "Reproduction Cart"
+    } ]
+  } ],
+  "boardGameBoxes" : [ {
+    "key" : "boardGameBox",
+    "id" : 1,
+    "title" : "Set-A-Watch Swords of the Coin",
+    "isExpansion" : true,
+    "isStandAlone" : true,
+    "baseSetId" : null,
+    "boardGame" : {
+      "id" : 1,
+      "title" : "Set-A-Watch",
+      "createdAt" : 1757970298838,
+      "updatedAt" : 1757970298838,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 8,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Rock Manor Games"
+      }, {
+        "customFieldId" : 9,
+        "customFieldName" : "Min Player Count",
+        "customFieldType" : "number",
+        "value" : "1"
+      }, {
+        "customFieldId" : 10,
+        "customFieldName" : "Max Player Count",
+        "customFieldType" : "number",
+        "value" : "4"
+      }, {
+        "customFieldId" : 18,
+        "customFieldName" : "Has App",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      }, {
+        "customFieldId" : 21,
+        "customFieldName" : "Designer",
+        "customFieldType" : "text",
+        "value" : "Mike Gnade, Todd Walsh"
+      } ]
     },
-    {
-      "key": "boardGameBox",
-      "id": 5,
-      "title": "Set-A-Watch Forsaken Isles",
-      "isExpansion": true,
-      "isStandAlone": true,
-      "baseSetId": 3,
-      "boardGame": {
-        "id": 3,
-        "title": "Set-A-Watch",
-        "createdAt": 1756840615829,
-        "updatedAt": 1756848717006,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 9,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Rock Manor Games"
-          },
-          {
-            "customFieldId": 10,
-            "customFieldName": "Min Player Count",
-            "customFieldType": "number",
-            "value": "1"
-          },
-          {
-            "customFieldId": 11,
-            "customFieldName": "Max Player Count",
-            "customFieldType": "number",
-            "value": "4"
-          },
-          {
-            "customFieldId": 20,
-            "customFieldName": "Has App",
-            "customFieldType": "boolean",
-            "value": "true"
-          },
-          {
-            "customFieldId": 8,
-            "customFieldName": "Designer",
-            "customFieldType": "text",
-            "value": "Mike Gnade, Todd Walsh"
-          }
-        ]
-      },
-      "createdAt": 1756840615833,
-      "updatedAt": 1756840615833,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 7,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2024"
-        }
-      ]
+    "createdAt" : 1757970298841,
+    "updatedAt" : 1757970345841,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 7,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2021"
+    }, {
+      "customFieldId" : 19,
+      "customFieldName" : "Missing Components",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 20,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "boardGameBox",
+    "id" : 2,
+    "title" : "Set-A-Watch Forsaken Isles",
+    "isExpansion" : true,
+    "isStandAlone" : true,
+    "baseSetId" : 1,
+    "boardGame" : {
+      "id" : 1,
+      "title" : "Set-A-Watch",
+      "createdAt" : 1757970298838,
+      "updatedAt" : 1757970298838,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 8,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Rock Manor Games"
+      }, {
+        "customFieldId" : 9,
+        "customFieldName" : "Min Player Count",
+        "customFieldType" : "number",
+        "value" : "1"
+      }, {
+        "customFieldId" : 10,
+        "customFieldName" : "Max Player Count",
+        "customFieldType" : "number",
+        "value" : "4"
+      }, {
+        "customFieldId" : 18,
+        "customFieldName" : "Has App",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      }, {
+        "customFieldId" : 21,
+        "customFieldName" : "Designer",
+        "customFieldType" : "text",
+        "value" : "Mike Gnade, Todd Walsh"
+      } ]
     },
-    {
-      "key": "boardGameBox",
-      "id": 6,
-      "title": "Set-A-Watch Doomed Run",
-      "isExpansion": true,
-      "isStandAlone": false,
-      "baseSetId": 3,
-      "boardGame": {
-        "id": 3,
-        "title": "Set-A-Watch",
-        "createdAt": 1756840615829,
-        "updatedAt": 1756848717006,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 9,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Rock Manor Games"
-          },
-          {
-            "customFieldId": 10,
-            "customFieldName": "Min Player Count",
-            "customFieldType": "number",
-            "value": "1"
-          },
-          {
-            "customFieldId": 11,
-            "customFieldName": "Max Player Count",
-            "customFieldType": "number",
-            "value": "4"
-          },
-          {
-            "customFieldId": 20,
-            "customFieldName": "Has App",
-            "customFieldType": "boolean",
-            "value": "true"
-          },
-          {
-            "customFieldId": 8,
-            "customFieldName": "Designer",
-            "customFieldType": "text",
-            "value": "Mike Gnade, Todd Walsh"
-          }
-        ]
-      },
-      "createdAt": 1756840615835,
-      "updatedAt": 1756848785723,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 7,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2024"
-        },
-        {
-          "customFieldId": 22,
-          "customFieldName": "Missing Components",
-          "customFieldType": "boolean",
-          "value": "true"
-        },
-        {
-          "customFieldId": 23,
-          "customFieldName": "Notes",
-          "customFieldType": "text",
-          "value": "Requires Base Set and ALL Expansions"
-        }
-      ]
+    "createdAt" : 1757970298843,
+    "updatedAt" : 1757970347815,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 7,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2024"
+    }, {
+      "customFieldId" : 19,
+      "customFieldName" : "Missing Components",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 20,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "boardGameBox",
+    "id" : 3,
+    "title" : "Set-A-Watch Doomed Run",
+    "isExpansion" : true,
+    "isStandAlone" : false,
+    "baseSetId" : 1,
+    "boardGame" : {
+      "id" : 1,
+      "title" : "Set-A-Watch",
+      "createdAt" : 1757970298838,
+      "updatedAt" : 1757970298838,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 8,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Rock Manor Games"
+      }, {
+        "customFieldId" : 9,
+        "customFieldName" : "Min Player Count",
+        "customFieldType" : "number",
+        "value" : "1"
+      }, {
+        "customFieldId" : 10,
+        "customFieldName" : "Max Player Count",
+        "customFieldType" : "number",
+        "value" : "4"
+      }, {
+        "customFieldId" : 18,
+        "customFieldName" : "Has App",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      }, {
+        "customFieldId" : 21,
+        "customFieldName" : "Designer",
+        "customFieldType" : "text",
+        "value" : "Mike Gnade, Todd Walsh"
+      } ]
     },
-    {
-      "key": "boardGameBox",
-      "id": 3,
-      "title": "Set-A-Watch",
-      "isExpansion": false,
-      "isStandAlone": true,
-      "baseSetId": null,
-      "boardGame": {
-        "id": 3,
-        "title": "Set-A-Watch",
-        "createdAt": 1756840615829,
-        "updatedAt": 1756848717006,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 9,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Rock Manor Games"
-          },
-          {
-            "customFieldId": 10,
-            "customFieldName": "Min Player Count",
-            "customFieldType": "number",
-            "value": "1"
-          },
-          {
-            "customFieldId": 11,
-            "customFieldName": "Max Player Count",
-            "customFieldType": "number",
-            "value": "4"
-          },
-          {
-            "customFieldId": 20,
-            "customFieldName": "Has App",
-            "customFieldType": "boolean",
-            "value": "true"
-          },
-          {
-            "customFieldId": 8,
-            "customFieldName": "Designer",
-            "customFieldType": "text",
-            "value": "Mike Gnade, Todd Walsh"
-          }
-        ]
-      },
-      "createdAt": 1756840615829,
-      "updatedAt": 1756848837014,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 7,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2019"
-        }
-      ]
+    "createdAt" : 1757970298845,
+    "updatedAt" : 1757970349502,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 7,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2024"
+    }, {
+      "customFieldId" : 19,
+      "customFieldName" : "Missing Components",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 20,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : "Requires Base Set and ALL Expansions"
+    } ]
+  }, {
+    "key" : "boardGameBox",
+    "id" : 4,
+    "title" : "Set-A-Watch",
+    "isExpansion" : false,
+    "isStandAlone" : true,
+    "baseSetId" : null,
+    "boardGame" : {
+      "id" : 1,
+      "title" : "Set-A-Watch",
+      "createdAt" : 1757970298838,
+      "updatedAt" : 1757970298838,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 8,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Rock Manor Games"
+      }, {
+        "customFieldId" : 9,
+        "customFieldName" : "Min Player Count",
+        "customFieldType" : "number",
+        "value" : "1"
+      }, {
+        "customFieldId" : 10,
+        "customFieldName" : "Max Player Count",
+        "customFieldType" : "number",
+        "value" : "4"
+      }, {
+        "customFieldId" : 18,
+        "customFieldName" : "Has App",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      }, {
+        "customFieldId" : 21,
+        "customFieldName" : "Designer",
+        "customFieldType" : "text",
+        "value" : "Mike Gnade, Todd Walsh"
+      } ]
     },
-    {
-      "key": "boardGameBox",
-      "id": 1,
-      "title": "Jekyll vs Hyde",
-      "isExpansion": false,
-      "isStandAlone": true,
-      "baseSetId": null,
-      "boardGame": {
-        "id": 1,
-        "title": "Jekyll vs Hyde",
-        "createdAt": 1756840615825,
-        "updatedAt": 1756849491555,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 9,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Mandoo Games"
-          },
-          {
-            "customFieldId": 10,
-            "customFieldName": "Min Player Count",
-            "customFieldType": "number",
-            "value": "2"
-          },
-          {
-            "customFieldId": 11,
-            "customFieldName": "Max Player Count",
-            "customFieldType": "number",
-            "value": "2"
-          },
-          {
-            "customFieldId": 20,
-            "customFieldName": "Has App",
-            "customFieldType": "boolean",
-            "value": "false"
-          },
-          {
-            "customFieldId": 8,
-            "customFieldName": "Designer",
-            "customFieldType": "text",
-            "value": "Geonil"
-          }
-        ]
-      },
-      "createdAt": 1756840615826,
-      "updatedAt": 1756848857202,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 7,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2021"
-        }
-      ]
+    "createdAt" : 1757970298847,
+    "updatedAt" : 1757970351143,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 7,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2019"
+    }, {
+      "customFieldId" : 19,
+      "customFieldName" : "Missing Components",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 20,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "boardGameBox",
+    "id" : 5,
+    "title" : "Jekyll vs Hyde",
+    "isExpansion" : false,
+    "isStandAlone" : true,
+    "baseSetId" : null,
+    "boardGame" : {
+      "id" : 2,
+      "title" : "Jekyll vs Hyde",
+      "createdAt" : 1757970298848,
+      "updatedAt" : 1757970298848,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 8,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Mandoo Games"
+      }, {
+        "customFieldId" : 9,
+        "customFieldName" : "Min Player Count",
+        "customFieldType" : "number",
+        "value" : "2"
+      }, {
+        "customFieldId" : 10,
+        "customFieldName" : "Max Player Count",
+        "customFieldType" : "number",
+        "value" : "2"
+      }, {
+        "customFieldId" : 18,
+        "customFieldName" : "Has App",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 21,
+        "customFieldName" : "Designer",
+        "customFieldType" : "text",
+        "value" : "Geonil"
+      } ]
     },
-    {
-      "key": "boardGameBox",
-      "id": 2,
-      "title": "Trio",
-      "isExpansion": false,
-      "isStandAlone": true,
-      "baseSetId": null,
-      "boardGame": {
-        "id": 2,
-        "title": "Trio",
-        "createdAt": 1756840615827,
-        "updatedAt": 1756849576665,
-        "deletedAt": null,
-        "customFieldValues": [
-          {
-            "customFieldId": 9,
-            "customFieldName": "Publisher",
-            "customFieldType": "text",
-            "value": "Cocktail Games"
-          },
-          {
-            "customFieldId": 10,
-            "customFieldName": "Min Player Count",
-            "customFieldType": "number",
-            "value": "2"
-          },
-          {
-            "customFieldId": 11,
-            "customFieldName": "Max Player Count",
-            "customFieldType": "number",
-            "value": "6"
-          },
-          {
-            "customFieldId": 20,
-            "customFieldName": "Has App",
-            "customFieldType": "boolean",
-            "value": "false"
-          },
-          {
-            "customFieldId": 8,
-            "customFieldName": "Designer",
-            "customFieldType": "text",
-            "value": "Kaya Miyano"
-          }
-        ]
-      },
-      "createdAt": 1756840615828,
-      "updatedAt": 1756848867988,
-      "deletedAt": null,
-      "customFieldValues": [
-        {
-          "customFieldId": 7,
-          "customFieldName": "Release Year",
-          "customFieldType": "number",
-          "value": "2023"
-        }
-      ]
-    }
-  ]
+    "createdAt" : 1757970298851,
+    "updatedAt" : 1757970353511,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 7,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2021"
+    }, {
+      "customFieldId" : 19,
+      "customFieldName" : "Missing Components",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 20,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  }, {
+    "key" : "boardGameBox",
+    "id" : 6,
+    "title" : "Trio",
+    "isExpansion" : false,
+    "isStandAlone" : true,
+    "baseSetId" : null,
+    "boardGame" : {
+      "id" : 3,
+      "title" : "Trio",
+      "createdAt" : 1757970298852,
+      "updatedAt" : 1757970298852,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 8,
+        "customFieldName" : "Publisher",
+        "customFieldType" : "text",
+        "value" : "Cocktail Games"
+      }, {
+        "customFieldId" : 9,
+        "customFieldName" : "Min Player Count",
+        "customFieldType" : "number",
+        "value" : "2"
+      }, {
+        "customFieldId" : 10,
+        "customFieldName" : "Max Player Count",
+        "customFieldType" : "number",
+        "value" : "6"
+      }, {
+        "customFieldId" : 18,
+        "customFieldName" : "Has App",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 21,
+        "customFieldName" : "Designer",
+        "customFieldType" : "text",
+        "value" : "Kaya Miyano"
+      } ]
+    },
+    "createdAt" : 1757970298855,
+    "updatedAt" : 1757970361832,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 7,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2023"
+    }, {
+      "customFieldId" : 19,
+      "customFieldName" : "Missing Components",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 20,
+      "customFieldName" : "Notes",
+      "customFieldType" : "text",
+      "value" : ""
+    } ]
+  } ]
 }
