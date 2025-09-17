@@ -14,13 +14,22 @@ info:
       "errors": null
     }
     ```
-    
+
     ## Entity Relationships
     - **Systems** are gaming platforms (Nintendo Switch, PlayStation, etc.)
     - **Video Game Boxes** contain one or more Video Games and belong to a System
     - **Board Game Boxes** contain exactly one Board Game
     - **Toys** are standalone collectibles
     - **Custom Fields** can be attached to any entity for additional metadata
+
+    ## Filter System
+    The API provides advanced filtering capabilities through `/function/search` endpoints:
+    - **Text filters**: equals, not_equals, contains, starts_with, ends_with
+    - **Number filters**: equals, not_equals, greater_than, less_than, etc.
+    - **Boolean filters**: equals
+    - **Time filters**: since, before
+    - **System filters**: equals, not_equals (for video games and video game boxes)
+    - **Sort and Pagination**: order_by, limit, offset
   version: 1.0.0
   contact:
     name: The Game Pensieve API Support
@@ -423,12 +432,38 @@ paths:
       tags:
         - Video Game Boxes
       summary: Search video game boxes with filters
+      description: |
+        Search video game boxes using various filters including system filtering.
+
+        **System Filter Example**: Filter video game boxes by their gaming system:
+        ```json
+        {
+          "filters": [
+            {
+              "key": "videoGameBox",
+              "field": "system_id",
+              "operator": "not_equals",
+              "operand": "3"
+            }
+          ]
+        }
+        ```
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/FilterRequest'
+            example:
+              filters:
+                - key: videoGameBox
+                  field: system_id
+                  operator: equals
+                  operand: "2"
+                - key: videoGameBox
+                  field: isPhysical
+                  operator: equals
+                  operand: "true"
       responses:
         '200':
           description: Search results
@@ -506,12 +541,38 @@ paths:
       tags:
         - Video Games
       summary: Search video games with filters
+      description: |
+        Search video games using various filters including system filtering.
+
+        **System Filter Example**: Filter video games by their gaming system:
+        ```json
+        {
+          "filters": [
+            {
+              "key": "videoGame",
+              "field": "system_id",
+              "operator": "equals",
+              "operand": "1"
+            }
+          ]
+        }
+        ```
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/FilterRequest'
+            example:
+              filters:
+                - key: videoGame
+                  field: system_id
+                  operator: equals
+                  operand: "1"
+                - key: videoGame
+                  field: title
+                  operator: contains
+                  operand: "Mario"
       responses:
         '200':
           description: Search results
@@ -1186,11 +1247,25 @@ components:
           description: Field name to filter on
         operator:
           type: string
-          enum: [equals, not_equals, contains, starts_with, ends_with, greater_than, less_than, greater_than_equal_to, less_than_equal_to]
-          description: Filter operator
+          enum: [equals, not_equals, contains, starts_with, ends_with, greater_than, less_than, greater_than_equal_to, less_than_equal_to, since, before, order_by, order_by_desc, limit, offset]
+          description: |
+            Filter operator. Available operators depend on field type:
+            - **Text fields**: equals, not_equals, contains, starts_with, ends_with
+            - **Number fields**: equals, not_equals, greater_than, less_than, greater_than_equal_to, less_than_equal_to
+            - **Boolean fields**: equals
+            - **Time fields**: since, before
+            - **System fields**: equals, not_equals (for system_id on video games and video game boxes)
+            - **Sort fields**: order_by, order_by_desc
+            - **Pagination fields**: limit, offset
         operand:
           type: string
-          description: Value to filter by
+          description: |
+            Value to filter by. Format depends on field type:
+            - **Text**: Any string value
+            - **Number**: Numeric string (e.g., "123")
+            - **Boolean**: "true" or "false"
+            - **Time**: ISO datetime string (e.g., "2023-01-01T00:00:00")
+            - **System**: System ID as string (e.g., "1")
       required:
         - key
         - field
@@ -1696,14 +1771,46 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: Map of field names to their data types
+          description: |
+            Map of field names to their data types. Possible types include:
+            - **text**: String fields supporting text operations
+            - **number**: Numeric fields supporting comparison operations
+            - **boolean**: Boolean fields supporting equality operations
+            - **time**: Timestamp fields supporting temporal operations
+            - **system**: System ID fields supporting equality operations (video games and video game boxes only)
+            - **sort**: Special field for result ordering
+            - **pagination**: Special field for result limiting
         filters:
           type: object
           additionalProperties:
             type: array
             items:
               type: string
-          description: Map of field names to available operators
+          description: |
+            Map of field names to available operators:
+            - **Text fields**: ["equals", "not_equals", "contains", "starts_with", "ends_with"]
+            - **Number fields**: ["equals", "not_equals", "greater_than", "less_than", "greater_than_equal_to", "less_than_equal_to"]
+            - **Boolean fields**: ["equals"]
+            - **Time fields**: ["since", "before"]
+            - **System fields**: ["equals", "not_equals"]
+            - **Sort fields**: ["order_by", "order_by_desc"]
+            - **Pagination fields**: ["limit", "offset"]
+      example:
+        type: "videoGame"
+        fields:
+          title: "text"
+          system_id: "system"
+          created_at: "time"
+          updated_at: "time"
+          all_fields: "sort"
+          pagination_fields: "pagination"
+        filters:
+          title: ["equals", "not_equals", "contains", "starts_with", "ends_with"]
+          system_id: ["equals", "not_equals"]
+          created_at: ["since", "before"]
+          updated_at: ["since", "before"]
+          all_fields: ["order_by", "order_by_desc"]
+          pagination_fields: ["limit", "offset"]
 
     # Data Management Schemas
     BackupData:
