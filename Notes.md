@@ -29,6 +29,47 @@ The project can be run by running the dockerfile this will spin up three contain
 ## Test Plan / Flow
 This project uses the diamond testing strategy, there are many integration tests that run tests from the controller, but there are parts of the program that needs more in-depth unit testing like custom fields and filters. The integration tests use test-containers to make sure that there is no cross containment between data for tests. The integration tests use the MockMvc library that comes included with Spring Boot library.
 
+## Filter System
+The system supports a powerful filtering mechanism for searching entities. All search endpoints use RPC-style calls: `POST /{resource}/function/search` with a filter array in the request body.
+
+### Filter Types
+- **Text**: String filtering with operators: equals, not_equals, contains, starts_with, ends_with
+- **Number**: Numeric filtering with operators: equals, not_equals, greater_than, greater_than_equal_to, less_than, less_than_equal_to
+- **Boolean**: Boolean filtering with operator: equals
+- **Time**: Timestamp filtering with operators: since, before
+- **System**: System ID filtering with operators: equals, not_equals (specifically for video games and video game boxes)
+- **Sort**: Ordering results with operators: order_by, order_by_desc
+- **Pagination**: Limiting results with operators: limit, offset
+
+### System Filter
+The system filter type is designed specifically for filtering video games and video game boxes by their associated system. Unlike the general number type, the system filter:
+- Only supports `equals` and `not_equals` operators
+- Provides semantic clarity that the field represents a system relationship
+- Prevents inappropriate operations like greater_than/less_than on system IDs
+- Returns clear validation error messages for invalid operators
+
+**Example Usage:**
+```json
+{
+  "filters": [
+    {
+      "entityKey": "videoGame",
+      "type": "system",
+      "field": "system_id",
+      "operator": "equals",
+      "operand": "1"
+    }
+  ]
+}
+```
+
+**Available Fields:**
+- Video Games: `system_id` (system filter type)
+- Video Game Boxes: `system_id` (system filter type)
+
+### Custom Fields
+All entities support custom fields which can be filtered using their respective data types. Custom fields are dynamically defined and stored separately from the core entity data.
+
 ## Documentation
 The design notes can be found with documentation style comments on the Entity, and System classes.
 The requirements for each entity is listed on the integration tests for that entity. For example to find the requirements for the Video Game Box check the VideoGameBoxTests.java
