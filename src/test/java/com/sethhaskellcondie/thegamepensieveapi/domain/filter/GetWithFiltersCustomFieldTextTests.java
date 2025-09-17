@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * every entity.
  */
 @JdbcTest
-@ActiveProfiles("filter-tests3")
+@ActiveProfiles("filter-tests3") //also used in GetWithFiltersSystemTests
 public class GetWithFiltersCustomFieldTextTests {
 
     @Autowired
