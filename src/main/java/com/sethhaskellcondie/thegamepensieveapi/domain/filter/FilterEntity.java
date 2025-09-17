@@ -26,12 +26,14 @@ public final class FilterEntity {
             }
             case Keychain.VIDEO_GAME_KEY -> {
                 fields.put("title", Filter.FIELD_TYPE_TEXT);
+                fields.put("system_id", Filter.FIELD_TYPE_SYSTEM);
                 //Right now video games cannot filter on system text because the system name is not in the database table
                 //we would need to join that table in the getWithFilters query but then unique filters would need to be allowed
                 //for system text...
             }
             case Keychain.VIDEO_GAME_BOX_KEY -> {
                 fields.put("title", Filter.FIELD_TYPE_TEXT);
+                fields.put("system_id", Filter.FIELD_TYPE_SYSTEM);
                 fields.put("is_physical", Filter.FIELD_TYPE_BOOLEAN);
                 fields.put("is_collection", Filter.FIELD_TYPE_BOOLEAN);
                 //Video game boxes have the same issue where we can't filter on the games inside the box because they are

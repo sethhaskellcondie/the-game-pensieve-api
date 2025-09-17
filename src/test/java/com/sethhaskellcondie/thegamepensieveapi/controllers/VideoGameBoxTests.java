@@ -288,6 +288,73 @@ public class VideoGameBoxTests {
     }
 
     @Test
+    void getAllVideoGameBoxes_FilterBySystemId_VideoGameBoxSubsetListReturned() throws Exception {
+        final SystemResponseDto system1 = factory.postSystem();
+        final SystemResponseDto system2 = factory.postSystem();
+
+        final String title1 = "Mario Bros Testing";
+        final VideoGameRequestDto relatedGame1 = new VideoGameRequestDto(title1, system1.id(), new ArrayList<>());
+        final ResultActions result1 = factory.postVideoGameBoxReturnResult(title1, system1.id(), List.of(), List.of(relatedGame1), false, new ArrayList<>());
+        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToVideoGameBoxResponseDto(result1);
+
+        final String title2 = "Zelda Testing";
+        final VideoGameRequestDto relatedGame2 = new VideoGameRequestDto(title2, system2.id(), new ArrayList<>());
+        final ResultActions result2 = factory.postVideoGameBoxReturnResult(title2, system2.id(), List.of(), List.of(relatedGame2), false, new ArrayList<>());
+        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToVideoGameBoxResponseDto(result2);
+
+        final String title3 = "Metroid Testing";
+        final VideoGameRequestDto relatedGame3 = new VideoGameRequestDto(title3, system2.id(), new ArrayList<>());
+        final ResultActions result3 = factory.postVideoGameBoxReturnResult(title3, system2.id(), List.of(), List.of(relatedGame3), false, new ArrayList<>());
+        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToVideoGameBoxResponseDto(result3);
+
+        final Filter filter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "system", "system_id", Filter.OPERATOR_EQUALS, String.valueOf(system2.id()), false);
+        final String formattedJson = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateVideoGameBoxResponseBody(result, List.of(gameBoxDto2, gameBoxDto3));
+
+        // Test not_equals operator for system_id
+        final Filter notEqualsFilter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "system", "system_id", Filter.OPERATOR_NOT_EQUALS, String.valueOf(system2.id()), false);
+        final String notEqualsJsonContent = factory.formatFiltersPayload(notEqualsFilter);
+
+        final ResultActions notEqualsResult = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(notEqualsJsonContent)
+        );
+
+        notEqualsResult.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateVideoGameBoxResponseBody(notEqualsResult, List.of(gameBoxDto1));
+    }
+
+    @Test
+    void getAllVideoGameBoxes_FilterBySystemIdInvalidOperand_ReturnBadRequest() throws Exception {
+        final Filter filter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "system", "system_id", Filter.OPERATOR_EQUALS, "not_a_number", false);
+        final String formattedJson = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
+        );
+    }
+
+    @Test
     void getAllVideoGameBoxes_NoResultFilter_EmptyArrayReturned() throws Exception {
         final Filter filter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "NoResults", false);
         final String formattedJson = factory.formatFiltersPayload(filter);

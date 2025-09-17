@@ -17,6 +17,7 @@ public class Filter {
     public static final String FIELD_TYPE_NUMBER = "number";
     public static final String FIELD_TYPE_BOOLEAN = "boolean";
     public static final String FIELD_TYPE_TIME = "time";
+    public static final String FIELD_TYPE_SYSTEM = "system";
     public static final String FIELD_TYPE_SORT = "sort";
     public static final String FIELD_TYPE_PAGINATION = "pagination";
 
