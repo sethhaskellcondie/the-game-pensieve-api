@@ -19,6 +19,7 @@ import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.FIEL
 import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.FIELD_TYPE_NUMBER;
 import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.FIELD_TYPE_PAGINATION;
 import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.FIELD_TYPE_SORT;
+import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.FIELD_TYPE_SYSTEM;
 import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.FIELD_TYPE_TEXT;
 import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.FIELD_TYPE_TIME;
 import static com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter.OPERATOR_BEFORE;
@@ -150,6 +151,11 @@ public class FilterService {
             case FIELD_TYPE_BOOLEAN -> {
                 filters.add(OPERATOR_EQUALS);
             }
+            //Not implementing sort on system yet, because we are filtering on the ID not the name or any visible text or numbers
+            case FIELD_TYPE_SYSTEM -> {
+                filters.add(OPERATOR_EQUALS);
+                filters.add(OPERATOR_NOT_EQUALS);
+            }
             case FIELD_TYPE_TIME -> {
                 filters.add(OPERATOR_SINCE);
                 filters.add(OPERATOR_BEFORE);
@@ -208,6 +214,7 @@ public class FilterService {
             switch (fieldType) {
                 case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> exceptionInvalidFilter = additionalNumberAndPaginationFilterValidation(filter, exceptionInvalidFilter);
                 case FIELD_TYPE_BOOLEAN -> exceptionInvalidFilter = additionalBooleanFilterValidation(filter, exceptionInvalidFilter);
+                case FIELD_TYPE_SYSTEM -> exceptionInvalidFilter = additionalSystemFilterValidation(filter, exceptionInvalidFilter);
                 case FIELD_TYPE_TIME -> exceptionInvalidFilter = additionalTimeValidation(filter, exceptionInvalidFilter);
                 default -> { }
             }
@@ -251,6 +258,18 @@ public class FilterService {
         }
         if (!Objects.equals(filter.getOperand(), "true") && !Objects.equals(filter.getOperand(), "false")) {
             exceptionInvalidFilter.addException("Boolean type filters must have their operands match exactly 'true' or 'false'.");
+        }
+        return exceptionInvalidFilter;
+    }
+
+    private static ExceptionInvalidFilter additionalSystemFilterValidation(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
+        if (Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) || Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
+            return exceptionInvalidFilter;
+        }
+        try {
+            parseInt(filter.getOperand());
+        } catch (NumberFormatException exception) {
+            exceptionInvalidFilter.addException("System filters must include whole numbers as operands (system IDs).");
         }
         return exceptionInvalidFilter;
     }
@@ -403,7 +422,7 @@ public class FilterService {
 
     private static Object castOperand(Filter filter) {
         switch (filter.getType()) {
-            case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> {
+            case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION, FIELD_TYPE_SYSTEM -> {
                 try {
                     return parseInt(filter.getOperand());
                 } catch (NumberFormatException exception) {

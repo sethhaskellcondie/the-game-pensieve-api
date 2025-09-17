@@ -79,6 +79,24 @@ Powerful filtering with operators like equals, not equals, contains, greater tha
 - Multiple filters can be combined
 - SQL generation uses table aliases from Keychain
 
+**Filter Types:**
+- **Text**: equals, not_equals, contains, starts_with, ends_with
+- **Number**: equals, not_equals, greater_than, greater_than_equal_to, less_than, less_than_equal_to
+- **Boolean**: equals
+- **Time**: since, before
+- **System**: equals, not_equals (for video games and video game boxes only)
+- **Sort**: order_by, order_by_desc
+- **Pagination**: limit, offset
+
+**System Filter Implementation:**
+The system filter type (`FIELD_TYPE_SYSTEM`) is specifically designed for filtering video games and video game boxes by their `system_id` field. Key characteristics:
+- Only supports `equals` and `not_equals` operators
+- Provides semantic clarity for system relationships
+- Prevents inappropriate operations like greater_than/less_than on system IDs
+- Implemented in `FilterService.java` with specialized validation
+- Available fields: `videoGame.system_id`, `videoGameBox.system_id`
+- Test coverage in `GetWithFiltersSystemTests.java`
+
 #### Backup Import System
 Comprehensive import functionality for collection data:
 - Imports entity data with preserved relationships and custom field values

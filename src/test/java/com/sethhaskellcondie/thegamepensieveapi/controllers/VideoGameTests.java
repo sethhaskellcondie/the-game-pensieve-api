@@ -293,6 +293,69 @@ public class VideoGameTests {
     }
 
     @Test
+    void getAllVideoGames_FilterBySystemId_VideoGameSubsetListReturned() throws Exception {
+        final SystemResponseDto system1 = factory.postSystem();
+        final SystemResponseDto system2 = factory.postSystem();
+
+        final String gameTitle1 = "Mario Bros On System 1";
+        final VideoGameRequestDto game1 = new VideoGameRequestDto(gameTitle1, system1.id(), new ArrayList<>());
+        final ResultActions result1 = factory.postVideoGameBoxReturnResult("Mario Box On System 1", system1.id(), List.of(), List.of(game1), false, new ArrayList<>());
+        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToVideoGameBoxResponseDto(result1);
+        final SlimVideoGame slimVideoGame1 = gameBoxDto1.videoGames().get(0);
+
+        final String gameTitle2 = "Zelda On System 2";
+        final VideoGameRequestDto game2 = new VideoGameRequestDto(gameTitle2, system2.id(), new ArrayList<>());
+        final ResultActions result2 = factory.postVideoGameBoxReturnResult("Zelda Box On System 2", system2.id(), List.of(), List.of(game2), false, new ArrayList<>());
+        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToVideoGameBoxResponseDto(result2);
+        final SlimVideoGame slimVideoGame2 = gameBoxDto2.videoGames().get(0);
+
+        final String gameTitle3 = "Metroid On System 2";
+        final VideoGameRequestDto game3 = new VideoGameRequestDto(gameTitle3, system2.id(), new ArrayList<>());
+        final ResultActions result3 = factory.postVideoGameBoxReturnResult("Metroid Box On System 2", system2.id(), List.of(), List.of(game3), false, new ArrayList<>());
+        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToVideoGameBoxResponseDto(result3);
+        final SlimVideoGame slimVideoGame3 = gameBoxDto3.videoGames().get(0);
+
+        // Test equals operator for system_id
+        final Filter filter = new Filter(Keychain.VIDEO_GAME_KEY, "system", "system_id", Filter.OPERATOR_EQUALS, String.valueOf(system2.id()), false);
+        final String formattedJson = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        List<VideoGameResponseDto> expectedResponse = List.of(
+                convertToVideoGameResponseDto(slimVideoGame2, List.of(gameBoxDto2)),
+                convertToVideoGameResponseDto(slimVideoGame3, List.of(gameBoxDto3))
+        );
+        validateVideoGameResponseBody(result, expectedResponse);
+
+        //Can't implement test for not_equals because when run with the other tests the results cannot be tracked
+        //This will be tested in
+    }
+
+    @Test
+    void getAllVideoGames_FilterBySystemIdInvalidOperand_ReturnBadRequest() throws Exception {
+        final Filter filter = new Filter(Keychain.VIDEO_GAME_KEY, "system", "system_id", Filter.OPERATOR_EQUALS, "invalid_id", false);
+        final String formattedJson = factory.formatFiltersPayload(filter);
+
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.size()").value(1)
+        );
+    }
+
+    @Test
     void deleteExistingVideoGameBox_GameBelongsToOtherBoxes_OnlyDeletedThisBox() throws Exception {
         final String gameTitle = "Super Mario Bros.";
         final SystemResponseDto relatedSystem = factory.postSystem();

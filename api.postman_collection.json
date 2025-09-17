@@ -293,6 +293,42 @@
 			"response": []
 		},
 		{
+			"name": "read all video game boxes (system filter example)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": [\r\n        {\r\n            \"entityKey\": \"videoGameBox\",\r\n            \"type\": \"system\",\r\n            \"field\": \"system_id\",\r\n            \"operator\": \"equals\",\r\n            \"operand\": \"1\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/videoGameBoxes/function/search"
+			},
+			"response": []
+		},
+		{
+			"name": "read all video game boxes (system not equals filter)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": [\r\n        {\r\n            \"entityKey\": \"videoGameBox\",\r\n            \"type\": \"system\",\r\n            \"field\": \"system_id\",\r\n            \"operator\": \"not_equals\",\r\n            \"operand\": \"1\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/videoGameBoxes/function/search"
+			},
+			"response": []
+		},
+		{
 			"name": "update one video game box",
 			"request": {
 				"method": "PUT",
@@ -336,6 +372,42 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\r\n    \"filters\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/videoGames/function/search"
+			},
+			"response": []
+		},
+		{
+			"name": "read all video games (system filter example)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": [\r\n        {\r\n            \"entityKey\": \"videoGame\",\r\n            \"type\": \"system\",\r\n            \"field\": \"system_id\",\r\n            \"operator\": \"equals\",\r\n            \"operand\": \"2\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/videoGames/function/search"
+			},
+			"response": []
+		},
+		{
+			"name": "read all video games (system not equals filter)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": [\r\n        {\r\n            \"entityKey\": \"videoGame\",\r\n            \"type\": \"system\",\r\n            \"field\": \"system_id\",\r\n            \"operator\": \"not_equals\",\r\n            \"operand\": \"2\"\r\n        }\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
