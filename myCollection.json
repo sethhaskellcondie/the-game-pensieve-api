@@ -4459,6 +4459,11 @@
     "updatedAt" : 1758316736177,
     "deletedAt" : null,
     "customFieldValues" : [ {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
       "customFieldId" : 4,
       "customFieldName" : "Min Players",
       "customFieldType" : "number",
@@ -4488,11 +4493,6 @@
       "customFieldName" : "Local Multiplayer",
       "customFieldType" : "boolean",
       "value" : "true"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
     } ]
   }, {
     "key" : "videoGameBox",
@@ -7208,6 +7208,1922 @@
       "customFieldName" : "Release Year",
       "customFieldType" : "number",
       "value" : "2017"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 41,
+    "title" : "Sega Genesis Mini",
+    "system" : {
+      "key" : "system",
+      "id" : 3,
+      "name" : "Genesis",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380998,
+      "updatedAt" : 1758304380998,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1989"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Sega"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 83,
+      "title" : "Ecco the Dolphin",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758321555345,
+      "updatedAt" : 1758321555345,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 48,
+      "title" : "Mega Man 2",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514721,
+      "updatedAt" : 1758314514721,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 84,
+      "title" : "Space Harrier 2",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227356,
+      "updatedAt" : 1758322227356,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 85,
+      "title" : "Shining Force",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227364,
+      "updatedAt" : 1758322227364,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 86,
+      "title" : "Toe Jam and Earl",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227372,
+      "updatedAt" : 1758322227372,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 87,
+      "title" : "Altered Beast",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227379,
+      "updatedAt" : 1758322227379,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 88,
+      "title" : "Gunstar Heroes",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227386,
+      "updatedAt" : 1758322227386,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 89,
+      "title" : "Earthworm Jim",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227392,
+      "updatedAt" : 1758322227392,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 90,
+      "title" : "Thunder Force 3",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227399,
+      "updatedAt" : 1758322227399,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 91,
+      "title" : "Shinobi 3",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227406,
+      "updatedAt" : 1758322227406,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 92,
+      "title" : "Contra: Hard Corps",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227411,
+      "updatedAt" : 1758322227411,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 93,
+      "title" : "World of Illusion",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227416,
+      "updatedAt" : 1758322227416,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 94,
+      "title" : "Super Fantasy Zone",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227421,
+      "updatedAt" : 1758322227421,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 95,
+      "title" : "Streets of Rage 2",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227425,
+      "updatedAt" : 1758322227425,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 96,
+      "title" : "Landstalker",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227429,
+      "updatedAt" : 1758322227429,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 97,
+      "title" : "Beyond Oasis",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227432,
+      "updatedAt" : 1758322227432,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 98,
+      "title" : "Ghouls 'n Ghosts",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227435,
+      "updatedAt" : 1758322227435,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 99,
+      "title" : "Alex Kidd",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227439,
+      "updatedAt" : 1758322227439,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 100,
+      "title" : "Golden Axe",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227442,
+      "updatedAt" : 1758322227442,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 101,
+      "title" : "Phantasy Star 4",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322227445,
+      "updatedAt" : 1758322227445,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 102,
+      "title" : "Mega Man",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758322227448,
+      "updatedAt" : 1758322227448,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 103,
+      "title" : "Mega Man 3",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758322227451,
+      "updatedAt" : 1758322227451,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 12,
+      "title" : "Tetris",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381155,
+      "updatedAt" : 1758320866412,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 104,
+      "title" : "Vectorman",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969313,
+      "updatedAt" : 1758322969313,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 105,
+      "title" : "Wonderboy in Monster World",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969317,
+      "updatedAt" : 1758322969317,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 106,
+      "title" : "Virtua Fighter 2",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969320,
+      "updatedAt" : 1758322969320,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 107,
+      "title" : "Alisia Dragoon",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969323,
+      "updatedAt" : 1758322969323,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 108,
+      "title" : "Columns",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969326,
+      "updatedAt" : 1758322969326,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 109,
+      "title" : "Dynamite Headdy",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969330,
+      "updatedAt" : 1758322969330,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 110,
+      "title" : "Strider",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969333,
+      "updatedAt" : 1758322969333,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 111,
+      "title" : "Kid Chameleon",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969336,
+      "updatedAt" : 1758322969336,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 112,
+      "title" : "Light Crusader",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969339,
+      "updatedAt" : 1758322969339,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 113,
+      "title" : "Monster World 4",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969342,
+      "updatedAt" : 1758322969342,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 114,
+      "title" : "Eternal Champions",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969345,
+      "updatedAt" : 1758322969345,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 115,
+      "title" : "Road Rash 2",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969348,
+      "updatedAt" : 1758322969348,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 116,
+      "title" : "Darius",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969351,
+      "updatedAt" : 1758322969351,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 117,
+      "title" : "Dr. Robotnik's Mean Bean Machine",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969354,
+      "updatedAt" : 1758322969354,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 118,
+      "title" : "Sonic the Hedgehog",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969357,
+      "updatedAt" : 1758322969357,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 119,
+      "title" : "Sonic the Hedgehog 2",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969360,
+      "updatedAt" : 1758322969360,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 120,
+      "title" : "Sonic Spinball",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969363,
+      "updatedAt" : 1758322969363,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 121,
+      "title" : "Castle of Illusion Staring Mickey Mouse",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969366,
+      "updatedAt" : 1758322969366,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Finished"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 122,
+      "title" : "Comix Zone",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969369,
+      "updatedAt" : 1758322969369,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 123,
+      "title" : "Castlevania: Bloodlines",
+      "system" : {
+        "key" : "system",
+        "id" : 3,
+        "name" : "Genesis",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380998,
+        "updatedAt" : 1758304380998,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1989"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Sega"
+        } ]
+      },
+      "createdAt" : 1758322969372,
+      "updatedAt" : 1758322969372,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1758321555360,
+    "updatedAt" : 1758322969375,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Sega"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Sega"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2019"
     }, {
       "customFieldId" : 9,
       "customFieldName" : "Local Multiplayer",
