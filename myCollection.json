@@ -50,67 +50,67 @@
     "type" : "boolean",
     "entityKey" : "videoGameBox"
   }, {
-    "id" : 12,
+    "id" : 11,
     "name" : "Completion Level",
     "type" : "text",
     "entityKey" : "videoGame"
   }, {
-    "id" : 15,
+    "id" : 12,
     "name" : "Min Players",
     "type" : "number",
     "entityKey" : "boardGameBox"
   }, {
-    "id" : 16,
+    "id" : 13,
     "name" : "Max Players",
     "type" : "number",
     "entityKey" : "boardGameBox"
   }, {
-    "id" : 17,
+    "id" : 14,
     "name" : "Best Player Count",
     "type" : "number",
     "entityKey" : "boardGameBox"
   }, {
-    "id" : 18,
+    "id" : 15,
     "name" : "Cooperative Play",
     "type" : "boolean",
     "entityKey" : "boardGameBox"
   }, {
-    "id" : 19,
+    "id" : 16,
     "name" : "Release Year",
     "type" : "number",
     "entityKey" : "boardGameBox"
   }, {
-    "id" : 20,
+    "id" : 17,
     "name" : "Publisher",
     "type" : "text",
     "entityKey" : "boardGameBox"
   }, {
-    "id" : 22,
+    "id" : 18,
     "name" : "Familiarity Level",
     "type" : "text",
     "entityKey" : "boardGame"
   }, {
-    "id" : 23,
+    "id" : 19,
     "name" : "Hall of Fame",
     "type" : "boolean",
     "entityKey" : "boardGame"
   }, {
-    "id" : 24,
+    "id" : 20,
     "name" : "Designers",
     "type" : "text",
     "entityKey" : "boardGame"
   }, {
-    "id" : 25,
+    "id" : 21,
     "name" : "Artists",
     "type" : "text",
     "entityKey" : "boardGame"
   }, {
-    "id" : 27,
+    "id" : 22,
     "name" : "Hall of Fame",
     "type" : "boolean",
     "entityKey" : "videoGame"
   }, {
-    "id" : 26,
+    "id" : 23,
     "name" : "Stream Completion",
     "type" : "text",
     "entityKey" : "videoGame"
@@ -122,8 +122,8 @@
     "name" : "NES",
     "generation" : 3,
     "handheld" : false,
-    "createdAt" : 1758237352721,
-    "updatedAt" : 1758237352722,
+    "createdAt" : 1758304380984,
+    "updatedAt" : 1758304380985,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -142,8 +142,8 @@
     "name" : "SNES",
     "generation" : 4,
     "handheld" : false,
-    "createdAt" : 1758237396771,
-    "updatedAt" : 1758237396771,
+    "createdAt" : 1758304380993,
+    "updatedAt" : 1758304380993,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -162,8 +162,8 @@
     "name" : "Genesis",
     "generation" : 4,
     "handheld" : false,
-    "createdAt" : 1758237444606,
-    "updatedAt" : 1758237444606,
+    "createdAt" : 1758304380998,
+    "updatedAt" : 1758304380998,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -182,8 +182,8 @@
     "name" : "Sega CD",
     "generation" : 4,
     "handheld" : false,
-    "createdAt" : 1758237498249,
-    "updatedAt" : 1758237498250,
+    "createdAt" : 1758304381003,
+    "updatedAt" : 1758304381003,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -202,8 +202,8 @@
     "name" : "Game Boy",
     "generation" : 4,
     "handheld" : true,
-    "createdAt" : 1758237584948,
-    "updatedAt" : 1758237584948,
+    "createdAt" : 1758304381008,
+    "updatedAt" : 1758304381008,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -222,8 +222,8 @@
     "name" : "Game Gear",
     "generation" : 4,
     "handheld" : true,
-    "createdAt" : 1758237624131,
-    "updatedAt" : 1758237624131,
+    "createdAt" : 1758304381012,
+    "updatedAt" : 1758304381012,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -242,8 +242,8 @@
     "name" : "N64",
     "generation" : 5,
     "handheld" : false,
-    "createdAt" : 1758237656479,
-    "updatedAt" : 1758237656479,
+    "createdAt" : 1758304381016,
+    "updatedAt" : 1758304381016,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -262,8 +262,8 @@
     "name" : "PS1",
     "generation" : 5,
     "handheld" : false,
-    "createdAt" : 1758237689308,
-    "updatedAt" : 1758237689308,
+    "createdAt" : 1758304381020,
+    "updatedAt" : 1758304381020,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -278,12 +278,12 @@
     } ]
   }, {
     "key" : "system",
-    "id" : 10,
+    "id" : 9,
     "name" : "GameCube",
     "generation" : 6,
     "handheld" : false,
-    "createdAt" : 1758237829069,
-    "updatedAt" : 1758238518693,
+    "createdAt" : 1758304381024,
+    "updatedAt" : 1758304381024,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -298,12 +298,12 @@
     } ]
   }, {
     "key" : "system",
-    "id" : 11,
+    "id" : 10,
     "name" : "Dreamcast",
     "generation" : 6,
     "handheld" : false,
-    "createdAt" : 1758237858628,
-    "updatedAt" : 1758238584586,
+    "createdAt" : 1758304381028,
+    "updatedAt" : 1758304381028,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -318,12 +318,12 @@
     } ]
   }, {
     "key" : "system",
-    "id" : 12,
+    "id" : 11,
     "name" : "PS2",
     "generation" : 6,
     "handheld" : false,
-    "createdAt" : 1758238703117,
-    "updatedAt" : 1758238703118,
+    "createdAt" : 1758304381031,
+    "updatedAt" : 1758304381031,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -338,12 +338,12 @@
     } ]
   }, {
     "key" : "system",
-    "id" : 13,
+    "id" : 12,
     "name" : "GBA",
     "generation" : 6,
     "handheld" : true,
-    "createdAt" : 1758238793925,
-    "updatedAt" : 1758238793925,
+    "createdAt" : 1758304381035,
+    "updatedAt" : 1758304381035,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -358,12 +358,12 @@
     } ]
   }, {
     "key" : "system",
-    "id" : 9,
+    "id" : 13,
     "name" : "GBC",
     "generation" : 5,
     "handheld" : true,
-    "createdAt" : 1758237734774,
-    "updatedAt" : 1758238800914,
+    "createdAt" : 1758304381038,
+    "updatedAt" : 1758304381038,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -382,8 +382,8 @@
     "name" : "Wii",
     "generation" : 7,
     "handheld" : false,
-    "createdAt" : 1758238851660,
-    "updatedAt" : 1758238851660,
+    "createdAt" : 1758304381041,
+    "updatedAt" : 1758304381041,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -402,8 +402,8 @@
     "name" : "PS3",
     "generation" : 7,
     "handheld" : false,
-    "createdAt" : 1758238879394,
-    "updatedAt" : 1758238879394,
+    "createdAt" : 1758304381043,
+    "updatedAt" : 1758304381043,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -422,8 +422,8 @@
     "name" : "Nintendo DS",
     "generation" : 7,
     "handheld" : true,
-    "createdAt" : 1758238913189,
-    "updatedAt" : 1758238913189,
+    "createdAt" : 1758304381046,
+    "updatedAt" : 1758304381046,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -442,8 +442,8 @@
     "name" : "Wii U",
     "generation" : 8,
     "handheld" : false,
-    "createdAt" : 1758238944723,
-    "updatedAt" : 1758238944723,
+    "createdAt" : 1758304381049,
+    "updatedAt" : 1758304381049,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -462,8 +462,8 @@
     "name" : "3DS",
     "generation" : 8,
     "handheld" : true,
-    "createdAt" : 1758238971304,
-    "updatedAt" : 1758238971304,
+    "createdAt" : 1758304381051,
+    "updatedAt" : 1758304381051,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -482,8 +482,8 @@
     "name" : "Switch",
     "generation" : 9,
     "handheld" : true,
-    "createdAt" : 1758239027969,
-    "updatedAt" : 1758239027969,
+    "createdAt" : 1758304381054,
+    "updatedAt" : 1758304381054,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 2,
@@ -499,159 +499,6 @@
   } ],
   "videoGameBoxes" : [ {
     "key" : "videoGameBox",
-    "id" : 1,
-    "title" : "Super Mario Bros. / Duck Hunt",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 1,
-      "title" : "Super Mario Bros.",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758239549361,
-      "updatedAt" : 1758262305778,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Victory"
-      } ]
-    }, {
-      "id" : 2,
-      "title" : "Duck Hunt",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758239549376,
-      "updatedAt" : 1758262325301,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "N/A"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : true,
-    "createdAt" : 1758239549385,
-    "updatedAt" : 1758239549385,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Nintendo"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Nintendo"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1998"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "true"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
     "id" : 2,
     "title" : "Legacy of the Wizard",
     "system" : {
@@ -660,8 +507,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -684,8 +531,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -699,21 +546,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758239922640,
-      "updatedAt" : 1758262375094,
+      "createdAt" : 1758304381076,
+      "updatedAt" : 1758304381076,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Played"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Achievement"
@@ -721,8 +568,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758239922654,
-    "updatedAt" : 1758239922654,
+    "createdAt" : 1758304381079,
+    "updatedAt" : 1758304381079,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -770,8 +617,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -794,8 +641,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -809,21 +656,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758253680614,
-      "updatedAt" : 1758262343570,
+      "createdAt" : 1758304381085,
+      "updatedAt" : 1758304381085,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Complete"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Not Yet"
@@ -831,8 +678,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758253680627,
-    "updatedAt" : 1758253680627,
+    "createdAt" : 1758304381089,
+    "updatedAt" : 1758304381089,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -880,8 +727,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -904,8 +751,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -919,21 +766,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758253840388,
-      "updatedAt" : 1758262357769,
+      "createdAt" : 1758304381095,
+      "updatedAt" : 1758304381095,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Complete"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Complete"
@@ -941,8 +788,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758253840396,
-    "updatedAt" : 1758253840396,
+    "createdAt" : 1758304381098,
+    "updatedAt" : 1758304381098,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -982,116 +829,6 @@
     } ]
   }, {
     "key" : "videoGameBox",
-    "id" : 5,
-    "title" : "Spy vs Spy",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 6,
-      "title" : "Spy vs Spy",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758254056724,
-      "updatedAt" : 1758262363942,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Victory"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758254056739,
-    "updatedAt" : 1758254056739,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Kemco"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Kemco"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1988"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
     "id" : 6,
     "title" : "Ducktales",
     "system" : {
@@ -1100,8 +837,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -1124,8 +861,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -1139,21 +876,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758254994501,
-      "updatedAt" : 1758262313823,
+      "createdAt" : 1758304381113,
+      "updatedAt" : 1758304381113,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Complete"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Victory"
@@ -1161,8 +898,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758254994516,
-    "updatedAt" : 1758254994516,
+    "createdAt" : 1758304381115,
+    "updatedAt" : 1758304381115,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -1210,8 +947,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -1234,8 +971,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -1249,21 +986,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758255352730,
-      "updatedAt" : 1758262387735,
+      "createdAt" : 1758304381121,
+      "updatedAt" : 1758304381121,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Played"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Achievement"
@@ -1271,8 +1008,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758255352744,
-    "updatedAt" : 1758255352744,
+    "createdAt" : 1758304381124,
+    "updatedAt" : 1758304381124,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -1320,8 +1057,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -1344,8 +1081,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -1359,21 +1096,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758262859217,
-      "updatedAt" : 1758262859217,
+      "createdAt" : 1758304381130,
+      "updatedAt" : 1758304381130,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Played"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Achievement"
@@ -1381,8 +1118,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758262859234,
-    "updatedAt" : 1758262859234,
+    "createdAt" : 1758304381133,
+    "updatedAt" : 1758304381133,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -1422,226 +1159,6 @@
     } ]
   }, {
     "key" : "videoGameBox",
-    "id" : 9,
-    "title" : "Teenage Mutant Ninja Turtles 2: The Arcade Game",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 10,
-      "title" : "Teenage Mutant Ninja Turtles 2: The Arcade Game",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758263162876,
-      "updatedAt" : 1758263162876,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758263162887,
-    "updatedAt" : 1758263162887,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Konami"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Konami"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1990"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
-    "id" : 10,
-    "title" : "Teenage Mutant Ninja Turtles 3: The Manhattan Project",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 11,
-      "title" : "Teenage Mutant Ninja Turtles 3: The Manhattan Project",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758263262011,
-      "updatedAt" : 1758263262011,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758263262026,
-    "updatedAt" : 1758263262026,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Konami"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Konami"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1992"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
     "id" : 11,
     "title" : "Tetris",
     "system" : {
@@ -1650,8 +1167,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -1674,8 +1191,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -1689,21 +1206,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758263380480,
-      "updatedAt" : 1758263380480,
+      "createdAt" : 1758304381155,
+      "updatedAt" : 1758304381155,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Complete"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Achievement"
@@ -1711,8 +1228,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758263380496,
-    "updatedAt" : 1758263380496,
+    "createdAt" : 1758304381158,
+    "updatedAt" : 1758304381158,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -1760,8 +1277,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -1784,8 +1301,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -1799,21 +1316,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758263510991,
-      "updatedAt" : 1758263510991,
+      "createdAt" : 1758304381162,
+      "updatedAt" : 1758304381162,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Complete"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Complete"
@@ -1821,8 +1338,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758263511008,
-    "updatedAt" : 1758263511008,
+    "createdAt" : 1758304381164,
+    "updatedAt" : 1758304381164,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -1870,8 +1387,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -1894,8 +1411,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -1909,21 +1426,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758263635962,
-      "updatedAt" : 1758263635962,
+      "createdAt" : 1758304381169,
+      "updatedAt" : 1758304381169,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Played"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Achievement"
@@ -1931,8 +1448,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758263635978,
-    "updatedAt" : 1758263635978,
+    "createdAt" : 1758304381171,
+    "updatedAt" : 1758304381171,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -1959,556 +1476,6 @@
       "customFieldName" : "Release Year",
       "customFieldType" : "number",
       "value" : "1990"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
-    "id" : 14,
-    "title" : "Chip N Dale Rescue Rangers",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 15,
-      "title" : "Chip N Dale Rescue Rangers",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758263750025,
-      "updatedAt" : 1758263750025,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758263750039,
-    "updatedAt" : 1758263750039,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Capcom"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Capcom"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1990"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
-    "id" : 15,
-    "title" : "Tecmo Super Bowl",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 16,
-      "title" : "Tecmo Super Bowl",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758263861510,
-      "updatedAt" : 1758263861510,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "N/A"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758263861523,
-    "updatedAt" : 1758263861523,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Tecmo"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Tecmo"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1991"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
-    "id" : 16,
-    "title" : "R.C. Pro-Am",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 17,
-      "title" : "R.C. Pro-Am",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758263939842,
-      "updatedAt" : 1758263939843,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Played"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Achievement"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758263939854,
-    "updatedAt" : 1758263939854,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Rare"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Nintendo"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1988"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
-    "id" : 17,
-    "title" : "M.C. Kids",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 18,
-      "title" : "M.C. Kids",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758264075961,
-      "updatedAt" : 1758264075961,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Finished"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Victory"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758264075977,
-    "updatedAt" : 1758264075977,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Virgin"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Virgin"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1992"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
-    "id" : 18,
-    "title" : "Wario's Woods",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 19,
-      "title" : "Wario's Woods",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758264172839,
-      "updatedAt" : 1758264172839,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 12,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 27,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 26,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Not Yet"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : false,
-    "createdAt" : 1758264172852,
-    "updatedAt" : 1758264172852,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Nintendo"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Nintendo"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1994"
     }, {
       "customFieldId" : 9,
       "customFieldName" : "Local Multiplayer",
@@ -2530,8 +1497,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -2554,8 +1521,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -2569,21 +1536,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758264696043,
-      "updatedAt" : 1758264696043,
+      "createdAt" : 1758304381209,
+      "updatedAt" : 1758304381209,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Complete"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Complete"
@@ -2591,8 +1558,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758264696058,
-    "updatedAt" : 1758264696058,
+    "createdAt" : 1758304381211,
+    "updatedAt" : 1758304381211,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -2640,8 +1607,8 @@
       "name" : "NES",
       "generation" : 3,
       "handheld" : false,
-      "createdAt" : 1758237352721,
-      "updatedAt" : 1758237352722,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 2,
@@ -2664,8 +1631,8 @@
         "name" : "NES",
         "generation" : 3,
         "handheld" : false,
-        "createdAt" : 1758237352721,
-        "updatedAt" : 1758237352722,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
         "deletedAt" : null,
         "customFieldValues" : [ {
           "customFieldId" : 2,
@@ -2679,21 +1646,21 @@
           "value" : "Nintendo"
         } ]
       },
-      "createdAt" : 1758265171987,
-      "updatedAt" : 1758265171987,
+      "createdAt" : 1758304381215,
+      "updatedAt" : 1758304381215,
       "deletedAt" : null,
       "customFieldValues" : [ {
-        "customFieldId" : 12,
+        "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
         "value" : "Played"
       }, {
-        "customFieldId" : 27,
+        "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
         "value" : "false"
       }, {
-        "customFieldId" : 26,
+        "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Not Yet"
@@ -2701,8 +1668,8 @@
     } ],
     "isPhysical" : true,
     "isCollection" : false,
-    "createdAt" : 1758265172003,
-    "updatedAt" : 1758265172003,
+    "createdAt" : 1758304381217,
+    "updatedAt" : 1758304381217,
     "deletedAt" : null,
     "customFieldValues" : [ {
       "customFieldId" : 4,
@@ -2729,6 +1696,2463 @@
       "customFieldName" : "Release Year",
       "customFieldType" : "number",
       "value" : "1988"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 1,
+    "title" : "Super Mario Bros. / Duck Hunt",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 1,
+      "title" : "Super Mario Bros.",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381061,
+      "updatedAt" : 1758304381061,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 2,
+      "title" : "Duck Hunt",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381066,
+      "updatedAt" : 1758304381066,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "N/A"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1758304381069,
+    "updatedAt" : 1758314622907,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1998"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 5,
+    "title" : "Spy vs Spy",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 6,
+      "title" : "Spy vs Spy",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381104,
+      "updatedAt" : 1758304381104,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381107,
+    "updatedAt" : 1758314627904,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Kemco"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Kemco"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1988"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 9,
+    "title" : "Teenage Mutant Ninja Turtles 2: The Arcade Game",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 10,
+      "title" : "Teenage Mutant Ninja Turtles 2: The Arcade Game",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381138,
+      "updatedAt" : 1758304381138,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381140,
+    "updatedAt" : 1758314632894,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Konami"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Konami"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1990"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 10,
+    "title" : "Teenage Mutant Ninja Turtles 3: The Manhattan Project",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 11,
+      "title" : "Teenage Mutant Ninja Turtles 3: The Manhattan Project",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381148,
+      "updatedAt" : 1758304381148,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381150,
+    "updatedAt" : 1758314635623,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Konami"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Konami"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1992"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 14,
+    "title" : "Chip N Dale Rescue Rangers",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 15,
+      "title" : "Chip N Dale Rescue Rangers",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381176,
+      "updatedAt" : 1758304381176,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381178,
+    "updatedAt" : 1758314639627,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1990"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 15,
+    "title" : "Tecmo Super Bowl",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 16,
+      "title" : "Tecmo Super Bowl",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381183,
+      "updatedAt" : 1758304381183,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "N/A"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381185,
+    "updatedAt" : 1758314643640,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Tecmo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Tecmo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1991"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 16,
+    "title" : "R.C. Pro-Am",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 17,
+      "title" : "R.C. Pro-Am",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381189,
+      "updatedAt" : 1758304381189,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381191,
+    "updatedAt" : 1758314646516,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Rare"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1988"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 17,
+    "title" : "M.C. Kids",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 18,
+      "title" : "M.C. Kids",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381196,
+      "updatedAt" : 1758304381196,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Finished"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381198,
+    "updatedAt" : 1758314648936,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Virgin"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Virgin"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1992"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 18,
+    "title" : "Wario's Woods",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 19,
+      "title" : "Wario's Woods",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381202,
+      "updatedAt" : 1758304381202,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758304381204,
+    "updatedAt" : 1758314651763,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1994"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 21,
+    "title" : "NES Classic (mini console)",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 1,
+      "title" : "Super Mario Bros.",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381061,
+      "updatedAt" : 1758304381061,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 21,
+      "title" : "Bubble Bobble",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381215,
+      "updatedAt" : 1758304381215,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 23,
+      "title" : "Super Mario Bros. 2",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791083,
+      "updatedAt" : 1758313791083,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 24,
+      "title" : "Super Mario Bros. 3",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791092,
+      "updatedAt" : 1758313791092,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 25,
+      "title" : "The Legend of Zelda",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791098,
+      "updatedAt" : 1758313791098,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 26,
+      "title" : "Zelda 2: The Adventure of Link",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791105,
+      "updatedAt" : 1758313791105,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 27,
+      "title" : "Pac-Man",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791111,
+      "updatedAt" : 1758313791111,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 28,
+      "title" : "Excitebike",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791117,
+      "updatedAt" : 1758313791117,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 29,
+      "title" : "Balloon Fight",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791123,
+      "updatedAt" : 1758313791123,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 30,
+      "title" : "Gradius",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791127,
+      "updatedAt" : 1758313791127,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 31,
+      "title" : "Kid Icarus",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791132,
+      "updatedAt" : 1758313791132,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 32,
+      "title" : "Galaga",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791136,
+      "updatedAt" : 1758313791136,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 33,
+      "title" : "Ninja Gaiden",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791139,
+      "updatedAt" : 1758313791139,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 34,
+      "title" : "Tecmo Bowl",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791143,
+      "updatedAt" : 1758313791143,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "N/A"
+      } ]
+    }, {
+      "id" : 35,
+      "title" : "Double Dragon 2: The Revenge",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791145,
+      "updatedAt" : 1758313791145,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 20,
+      "title" : "Kirby's Adventure",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381209,
+      "updatedAt" : 1758304381209,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 36,
+      "title" : "Dr. Mario",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514678,
+      "updatedAt" : 1758314514678,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 37,
+      "title" : "Final Fantasy",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514683,
+      "updatedAt" : 1758314514683,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "N/A"
+      } ]
+    }, {
+      "id" : 38,
+      "title" : "StarTropics",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514688,
+      "updatedAt" : 1758314514688,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 39,
+      "title" : "Super C",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514692,
+      "updatedAt" : 1758314514692,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 40,
+      "title" : "Donkey Kong",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514696,
+      "updatedAt" : 1758314514696,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 41,
+      "title" : "Donkey Kong Jr.",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514699,
+      "updatedAt" : 1758314514699,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 42,
+      "title" : "Castlevania",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514702,
+      "updatedAt" : 1758314514702,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 43,
+      "title" : "Castlevania 2: Simon's Quest",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514706,
+      "updatedAt" : 1758314514706,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 44,
+      "title" : "Mario Bros.",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514709,
+      "updatedAt" : 1758314514709,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 45,
+      "title" : "Ice Climber",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514712,
+      "updatedAt" : 1758314514712,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 46,
+      "title" : "Punch-Out!!",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514715,
+      "updatedAt" : 1758314514715,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 47,
+      "title" : "Ghosts 'n Goblins",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514718,
+      "updatedAt" : 1758314514718,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Finished"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 48,
+      "title" : "Mega Man 2",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514721,
+      "updatedAt" : 1758314514721,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1758312949568,
+    "updatedAt" : 1758314655617,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2016"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 22,
+    "title" : "ActRaiser",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 49,
+      "title" : "ActRaiser",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758315173568,
+      "updatedAt" : 1758315173568,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758315173579,
+    "updatedAt" : 1758315173579,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Quintet"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Enix"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
     }, {
       "customFieldId" : 9,
       "customFieldName" : "Local Multiplayer",
