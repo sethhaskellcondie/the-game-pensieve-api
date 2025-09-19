@@ -1048,6 +1048,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
 
+  /v1/function/seedMyCollection:
+    post:
+      tags:
+        - Data Management
+      summary: Seed database with personal collection data
+      description: Populate the database with the author's personal gaming collection data from myCollection.json file
+      responses:
+        '200':
+          description: Personal collection data seeded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ImportResults'
+                  errors:
+                    type: 'null'
+
   /v1/metadata:
     post:
       tags:

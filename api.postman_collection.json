@@ -760,6 +760,15 @@
 				"url": "http://localhost:8080/v1/function/seedSampleData"
 			},
 			"response": []
+		},
+		{
+			"name": "seed my collection",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "http://localhost:8080/v1/function/seedMyCollection"
+			},
+			"response": []
 		}
 	],
 	"auth": {
