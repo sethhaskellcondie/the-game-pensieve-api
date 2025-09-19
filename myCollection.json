@@ -877,7 +877,7 @@
         } ]
       },
       "createdAt" : 1758304381113,
-      "updatedAt" : 1758304381113,
+      "updatedAt" : 1758321009362,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 11,
@@ -888,7 +888,7 @@
         "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
-        "value" : "false"
+        "value" : "true"
       }, {
         "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
@@ -1207,7 +1207,7 @@
         } ]
       },
       "createdAt" : 1758304381155,
-      "updatedAt" : 1758304381155,
+      "updatedAt" : 1758320866412,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 11,
@@ -1218,7 +1218,7 @@
         "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
-        "value" : "false"
+        "value" : "true"
       }, {
         "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
@@ -2527,7 +2527,7 @@
         } ]
       },
       "createdAt" : 1758304381202,
-      "updatedAt" : 1758304381202,
+      "updatedAt" : 1758320877321,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 11,
@@ -2538,7 +2538,7 @@
         "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
-        "value" : "false"
+        "value" : "true"
       }, {
         "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
@@ -4459,11 +4459,6 @@
     "updatedAt" : 1758316736177,
     "deletedAt" : null,
     "customFieldValues" : [ {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    }, {
       "customFieldId" : 4,
       "customFieldName" : "Min Players",
       "customFieldType" : "number",
@@ -4493,6 +4488,11 @@
       "customFieldName" : "Local Multiplayer",
       "customFieldType" : "boolean",
       "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
     } ]
   }, {
     "key" : "videoGameBox",
@@ -5376,7 +5376,7 @@
         } ]
       },
       "createdAt" : 1758304381155,
-      "updatedAt" : 1758304381155,
+      "updatedAt" : 1758320866412,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 11,
@@ -5387,7 +5387,7 @@
         "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
-        "value" : "false"
+        "value" : "true"
       }, {
         "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
@@ -5419,23 +5419,23 @@
         } ]
       },
       "createdAt" : 1758317489631,
-      "updatedAt" : 1758317489631,
+      "updatedAt" : 1758320849609,
       "deletedAt" : null,
       "customFieldValues" : [ {
         "customFieldId" : 11,
         "customFieldName" : "Completion Level",
         "customFieldType" : "text",
-        "value" : ""
+        "value" : "Complete"
       }, {
         "customFieldId" : 22,
         "customFieldName" : "Hall of Fame",
         "customFieldType" : "boolean",
-        "value" : "false"
+        "value" : "true"
       }, {
         "customFieldId" : 23,
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
-        "value" : ""
+        "value" : "Not Yet"
       } ]
     } ],
     "isPhysical" : true,
@@ -6238,6 +6238,976 @@
       "customFieldName" : "Release Year",
       "customFieldType" : "number",
       "value" : "1993"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 40,
+    "title" : "SNES Classic (mini console)",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 62,
+      "title" : "Super Mario World",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317757190,
+      "updatedAt" : 1758317757190,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Finished"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 63,
+      "title" : "Super Mario Kart",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317858736,
+      "updatedAt" : 1758317858736,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 64,
+      "title" : "The Legend of Zelda: A Link to the Past",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317913088,
+      "updatedAt" : 1758317913088,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 65,
+      "title" : "Super Metroid",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317957761,
+      "updatedAt" : 1758317957761,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 66,
+      "title" : "Secret of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758318004226,
+      "updatedAt" : 1758318004226,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 67,
+      "title" : "F-Zero",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741585,
+      "updatedAt" : 1758320741585,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 68,
+      "title" : "Super Castlevania 4",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741591,
+      "updatedAt" : 1758320741591,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 69,
+      "title" : "Super Ghouls 'n Ghosts",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741597,
+      "updatedAt" : 1758320741597,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 70,
+      "title" : "Contra 3: The Alien Wars",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741603,
+      "updatedAt" : 1758320741603,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 71,
+      "title" : "Star Fox",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741608,
+      "updatedAt" : 1758320741608,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 72,
+      "title" : "Star Fox 2",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741613,
+      "updatedAt" : 1758320741613,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 73,
+      "title" : "Donkey Kong Country",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741617,
+      "updatedAt" : 1758320741617,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 74,
+      "title" : "Final Fantasy 6",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741621,
+      "updatedAt" : 1758320741621,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 75,
+      "title" : "Super Punch-Out!!",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741625,
+      "updatedAt" : 1758320741625,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 76,
+      "title" : "Super Street Fighter 2: Turbo",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741629,
+      "updatedAt" : 1758320741629,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Finished"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 77,
+      "title" : "Earthbound",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741632,
+      "updatedAt" : 1758320741632,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 78,
+      "title" : "Kirby's Dream Course",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741635,
+      "updatedAt" : 1758320741635,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 79,
+      "title" : "Yoshi's Island",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741638,
+      "updatedAt" : 1758320741638,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 80,
+      "title" : "Super Mario RPG: Legend of the Seven Stars",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741641,
+      "updatedAt" : 1758320741641,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Finished"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 81,
+      "title" : "Kirby Super Star",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741644,
+      "updatedAt" : 1758320741644,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 82,
+      "title" : "Mega Man X",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758320741647,
+      "updatedAt" : 1758320741647,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1758319411862,
+    "updatedAt" : 1758320741650,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "2017"
     }, {
       "customFieldId" : 9,
       "customFieldName" : "Local Multiplayer",
