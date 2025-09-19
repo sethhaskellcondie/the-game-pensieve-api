@@ -1709,159 +1709,6 @@
     } ]
   }, {
     "key" : "videoGameBox",
-    "id" : 1,
-    "title" : "Super Mario Bros. / Duck Hunt",
-    "system" : {
-      "key" : "system",
-      "id" : 1,
-      "name" : "NES",
-      "generation" : 3,
-      "handheld" : false,
-      "createdAt" : 1758304380984,
-      "updatedAt" : 1758304380985,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 2,
-        "customFieldName" : "Release Year",
-        "customFieldType" : "number",
-        "value" : "1985"
-      }, {
-        "customFieldId" : 3,
-        "customFieldName" : "Company",
-        "customFieldType" : "text",
-        "value" : "Nintendo"
-      } ]
-    },
-    "videoGames" : [ {
-      "id" : 1,
-      "title" : "Super Mario Bros.",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758304380984,
-        "updatedAt" : 1758304380985,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758304381061,
-      "updatedAt" : 1758304381061,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 11,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 22,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 23,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Victory"
-      } ]
-    }, {
-      "id" : 2,
-      "title" : "Duck Hunt",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1758304380984,
-        "updatedAt" : 1758304380985,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1758304381066,
-      "updatedAt" : 1758304381066,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 11,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 22,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 23,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "N/A"
-      } ]
-    } ],
-    "isPhysical" : true,
-    "isCollection" : true,
-    "createdAt" : 1758304381069,
-    "updatedAt" : 1758314622907,
-    "deletedAt" : null,
-    "customFieldValues" : [ {
-      "customFieldId" : 4,
-      "customFieldName" : "Min Players",
-      "customFieldType" : "number",
-      "value" : "1"
-    }, {
-      "customFieldId" : 5,
-      "customFieldName" : "Max Players",
-      "customFieldType" : "number",
-      "value" : "2"
-    }, {
-      "customFieldId" : 6,
-      "customFieldName" : "Developer",
-      "customFieldType" : "text",
-      "value" : "Nintendo"
-    }, {
-      "customFieldId" : 7,
-      "customFieldName" : "Publisher",
-      "customFieldType" : "text",
-      "value" : "Nintendo"
-    }, {
-      "customFieldId" : 8,
-      "customFieldName" : "Release Year",
-      "customFieldType" : "number",
-      "value" : "1998"
-    }, {
-      "customFieldId" : 9,
-      "customFieldName" : "Local Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "true"
-    }, {
-      "customFieldId" : 10,
-      "customFieldName" : "Online Multiplayer",
-      "customFieldType" : "boolean",
-      "value" : "false"
-    } ]
-  }, {
-    "key" : "videoGameBox",
     "id" : 5,
     "title" : "Spy vs Spy",
     "system" : {
@@ -4158,6 +4005,2244 @@
       "customFieldName" : "Local Multiplayer",
       "customFieldType" : "boolean",
       "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 1,
+    "title" : "Super Mario Bros. / Duck Hunt",
+    "system" : {
+      "key" : "system",
+      "id" : 1,
+      "name" : "NES",
+      "generation" : 3,
+      "handheld" : false,
+      "createdAt" : 1758304380984,
+      "updatedAt" : 1758304380985,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1985"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 1,
+      "title" : "Super Mario Bros.",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381061,
+      "updatedAt" : 1758304381061,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 2,
+      "title" : "Duck Hunt",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381066,
+      "updatedAt" : 1758304381066,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "N/A"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1758304381069,
+    "updatedAt" : 1758315544085,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1988"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 23,
+    "title" : "The Lost Vikings",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 50,
+      "title" : "The Lost Vikings",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758315669129,
+      "updatedAt" : 1758315669129,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758315669139,
+    "updatedAt" : 1758315669139,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Silicon & Synapse (Blizzard Entertainment)"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Interplay"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 24,
+    "title" : "Battletoads / Double Dragon",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 51,
+      "title" : "Battletoads / Double Dragon",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758316602818,
+      "updatedAt" : 1758316602818,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758316602831,
+    "updatedAt" : 1758316602831,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Rare"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Tradewest"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 25,
+    "title" : "Disney's Goof Troop",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 52,
+      "title" : "Disney's Goof Troop",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758316736166,
+      "updatedAt" : 1758316736166,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758316736177,
+    "updatedAt" : 1758316736177,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 26,
+    "title" : "Mighty Morphin Power Rangers",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 53,
+      "title" : "Mighty Morphin Power Rangers",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758316936018,
+      "updatedAt" : 1758316936018,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758316936031,
+    "updatedAt" : 1758316936032,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Natsume"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Bandai"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1994"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 27,
+    "title" : "Mighty Morphin Power Rangers: The Movie",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 54,
+      "title" : "Mighty Morphin Power Rangers: The Movie",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317055899,
+      "updatedAt" : 1758317055899,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317055914,
+    "updatedAt" : 1758317055914,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Natsume"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Bandai"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1995"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 28,
+    "title" : "Power Rangers The Fighting Edition",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 55,
+      "title" : "Power Rangers The Fighting Edition",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317109578,
+      "updatedAt" : 1758317109578,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317109590,
+    "updatedAt" : 1758317109590,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Natsume"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Bandai"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1995"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 29,
+    "title" : "Chrono Trigger",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 56,
+      "title" : "Chrono Trigger",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317171328,
+      "updatedAt" : 1758317171328,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317171339,
+    "updatedAt" : 1758317171339,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Square"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Square"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1995"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 30,
+    "title" : "Marvel Super Heroes in War of the Gems",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 57,
+      "title" : "Marvel Super Heroes in War of the Gems",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317227050,
+      "updatedAt" : 1758317227051,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317227065,
+    "updatedAt" : 1758317227065,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1996"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 31,
+    "title" : "Super Mario All-Stars",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 1,
+      "title" : "Super Mario Bros.",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381061,
+      "updatedAt" : 1758304381061,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    }, {
+      "id" : 23,
+      "title" : "Super Mario Bros. 2",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791083,
+      "updatedAt" : 1758313791083,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    }, {
+      "id" : 24,
+      "title" : "Super Mario Bros. 3",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758313791092,
+      "updatedAt" : 1758313791092,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "true"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    }, {
+      "id" : 58,
+      "title" : "Super Mario Bros.: The Lost Levels",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317394100,
+      "updatedAt" : 1758317394100,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1758317394106,
+    "updatedAt" : 1758317394106,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 32,
+    "title" : "Tetris & Dr. Mario",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 36,
+      "title" : "Dr. Mario",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758314514678,
+      "updatedAt" : 1758314514678,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 12,
+      "title" : "Tetris",
+      "system" : {
+        "key" : "system",
+        "id" : 1,
+        "name" : "NES",
+        "generation" : 3,
+        "handheld" : false,
+        "createdAt" : 1758304380984,
+        "updatedAt" : 1758304380985,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1985"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758304381155,
+      "updatedAt" : 1758304381155,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Achievement"
+      } ]
+    }, {
+      "id" : 59,
+      "title" : "Tetris & Dr. Mario",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317489631,
+      "updatedAt" : 1758317489631,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : ""
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : ""
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : true,
+    "createdAt" : 1758317489639,
+    "updatedAt" : 1758317489639,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1994"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 33,
+    "title" : "Secret of Mana 2",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 60,
+      "title" : "Trials of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317595693,
+      "updatedAt" : 1758317595693,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317595707,
+    "updatedAt" : 1758317595707,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "3"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Square"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Square"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "0"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 34,
+    "title" : "Megaman and Bass",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 61,
+      "title" : "Megaman and Bass",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317661618,
+      "updatedAt" : 1758317661618,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317661632,
+    "updatedAt" : 1758317661632,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Capcom"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "0"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 35,
+    "title" : "Super Mario World",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 62,
+      "title" : "Super Mario World",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317757190,
+      "updatedAt" : 1758317757190,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Finished"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Victory"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317757200,
+    "updatedAt" : 1758317757200,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1991"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 36,
+    "title" : "Super Mario Kart",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 63,
+      "title" : "Super Mario Kart",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317858736,
+      "updatedAt" : 1758317858736,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317858749,
+    "updatedAt" : 1758317858749,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "2"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1992"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 37,
+    "title" : "The Legend of Zelda: A Link to the Past",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 64,
+      "title" : "The Legend of Zelda: A Link to the Past",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317913088,
+      "updatedAt" : 1758317913088,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Played"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317913099,
+    "updatedAt" : 1758317913099,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1992"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 38,
+    "title" : "Super Metroid",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 65,
+      "title" : "Super Metroid",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758317957761,
+      "updatedAt" : 1758317957761,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Backlog"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Not Yet"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758317957776,
+    "updatedAt" : 1758317957776,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Nintendo"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1994"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    }, {
+      "customFieldId" : 10,
+      "customFieldName" : "Online Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "false"
+    } ]
+  }, {
+    "key" : "videoGameBox",
+    "id" : 39,
+    "title" : "Secret of Mana",
+    "system" : {
+      "key" : "system",
+      "id" : 2,
+      "name" : "SNES",
+      "generation" : 4,
+      "handheld" : false,
+      "createdAt" : 1758304380993,
+      "updatedAt" : 1758304380993,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 2,
+        "customFieldName" : "Release Year",
+        "customFieldType" : "number",
+        "value" : "1991"
+      }, {
+        "customFieldId" : 3,
+        "customFieldName" : "Company",
+        "customFieldType" : "text",
+        "value" : "Nintendo"
+      } ]
+    },
+    "videoGames" : [ {
+      "id" : 66,
+      "title" : "Secret of Mana",
+      "system" : {
+        "key" : "system",
+        "id" : 2,
+        "name" : "SNES",
+        "generation" : 4,
+        "handheld" : false,
+        "createdAt" : 1758304380993,
+        "updatedAt" : 1758304380993,
+        "deletedAt" : null,
+        "customFieldValues" : [ {
+          "customFieldId" : 2,
+          "customFieldName" : "Release Year",
+          "customFieldType" : "number",
+          "value" : "1991"
+        }, {
+          "customFieldId" : 3,
+          "customFieldName" : "Company",
+          "customFieldType" : "text",
+          "value" : "Nintendo"
+        } ]
+      },
+      "createdAt" : 1758318004226,
+      "updatedAt" : 1758318004226,
+      "deletedAt" : null,
+      "customFieldValues" : [ {
+        "customFieldId" : 11,
+        "customFieldName" : "Completion Level",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      }, {
+        "customFieldId" : 22,
+        "customFieldName" : "Hall of Fame",
+        "customFieldType" : "boolean",
+        "value" : "false"
+      }, {
+        "customFieldId" : 23,
+        "customFieldName" : "Stream Completion",
+        "customFieldType" : "text",
+        "value" : "Complete"
+      } ]
+    } ],
+    "isPhysical" : true,
+    "isCollection" : false,
+    "createdAt" : 1758318004238,
+    "updatedAt" : 1758318004238,
+    "deletedAt" : null,
+    "customFieldValues" : [ {
+      "customFieldId" : 4,
+      "customFieldName" : "Min Players",
+      "customFieldType" : "number",
+      "value" : "1"
+    }, {
+      "customFieldId" : 5,
+      "customFieldName" : "Max Players",
+      "customFieldType" : "number",
+      "value" : "3"
+    }, {
+      "customFieldId" : 6,
+      "customFieldName" : "Developer",
+      "customFieldType" : "text",
+      "value" : "Square"
+    }, {
+      "customFieldId" : 7,
+      "customFieldName" : "Publisher",
+      "customFieldType" : "text",
+      "value" : "Square"
+    }, {
+      "customFieldId" : 8,
+      "customFieldName" : "Release Year",
+      "customFieldType" : "number",
+      "value" : "1993"
+    }, {
+      "customFieldId" : 9,
+      "customFieldName" : "Local Multiplayer",
+      "customFieldType" : "boolean",
+      "value" : "true"
     }, {
       "customFieldId" : 10,
       "customFieldName" : "Online Multiplayer",
