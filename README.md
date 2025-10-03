@@ -26,9 +26,6 @@ Flyway: Database migrations <br>
 JDBC Template: Database connection <br>
 Docker: Run-time container
 
-## Project Presentation
-This presentation explains the system design, and test strategy for this project: https://youtu.be/24g4e8enVwQ
-
 ## Project Setup
 
 This project comes with a Maven wrapper so that Maven doesn't need to be installed locally, more information on that here: https://www.baeldung.com/maven-wrapper
@@ -46,8 +43,8 @@ Commands:
 - Build the jar file by running the maven command: 
   - $ mvn install -DskipTests
 - Then run the docker compose file with this command:
-  - $ docker-compose up
-- This will start three docker containers, one for the api, one for the flyway migrations, and one for the database.
+  - $ docker-compose up -d
+- This will start three docker containers, one for the backend, one for the flyway migrations, and one for the database.
 - You can access the api on port 8080
 - The test endpoint localhost:8080/v1/heartbeat will return the string "thump thump" when working correctly.
 

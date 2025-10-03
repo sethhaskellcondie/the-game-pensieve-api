@@ -1,0 +1,40 @@
+services:
+  frontend:
+    image: sethcondie/the-game-pensieve-web:latest
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    image: sethcondie/the-game-pensive-api:latest
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - db
+      - flyway
+    restart: unless-stopped
+
+  flyway:
+    image: sethcondie/the-game-pensive-flyway:latest
+    command: -configFiles=/flyway/conf/flyway.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16.2-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: pensieve-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
