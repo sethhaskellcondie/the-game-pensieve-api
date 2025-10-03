@@ -17,13 +17,11 @@
 		<checkstyle.version>10.15.0</checkstyle.version>
 	</properties>
 	<build>
+		<finalName>the_game_pensieve_api</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<finalName>the_game_pensieve_api</finalName>
-				</configuration>
 			</plugin>
 			
 			<!-- Checkstyle Plugin -->

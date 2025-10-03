@@ -1,8 +1,11 @@
-# the docker-compose version for this file, version is always the first line
-version: '3.8'
-
 services:
-  api:
+  frontend:
+    image: sethcondie/the-game-pensieve-web:latest
+    ports:
+      - "4200:80" #host port:container port
+    depends_on:
+      - backend
+  backend:
     depends_on:
       - db
     build:

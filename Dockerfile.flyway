@@ -1,0 +1,7 @@
+FROM flyway/flyway
+
+# Copy migration files into the Flyway SQL directory
+COPY src/main/resources/migrations /flyway/sql
+
+# Copy Flyway configuration
+COPY docker-flyway.config /flyway/conf/flyway.config
