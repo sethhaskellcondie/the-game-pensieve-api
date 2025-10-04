@@ -74,17 +74,50 @@ All entities support custom fields which can be filtered using their respective 
 The design notes can be found with documentation style comments on the Entity, and System classes.
 The requirements for each entity is listed on the integration tests for that entity. For example to find the requirements for the Video Game Box check the VideoGameBoxTests.java
 
-# Deployment steps 
-- Run the maven command to build the project
-  - $ mvn install -DskipTests
-- Build the image with the correct tag 
-  - $ docker build --build-arg JAR_FILE=target/*.jar -t sethcondie/the-game-pensive-api .
-- Push that image to Docker Hub
-  - $ docker push sethcondie/the-game-pensive-api
-- Push a custom flyway image that will store the migrations independent of this project this uses (Dockerfile.flyway)
-  - $ docker build -f Dockerfile.flyway -t sethcondie/the-game-pensive-flyway:latest .
-  - $ docker push sethcondie/the-game-pensive-flyway:latest
+# Multiplatform Deployment Steps
 
-After these steps are complete anyone can run the entire project with the production.yaml file and this command
-- $ docker compose -f compose.production.yaml up
-- The front end project will run on localhost:4200
+## One-time Setup
+Create a builder that supports multiplatform builds:
+```bash
+docker buildx create --name multiplatform --use
+docker buildx inspect --bootstrap
+```
+
+## Build and Deploy
+1. Run the maven command to build the project:
+   ```bash
+   mvn install -DskipTests
+   ```
+
+2. Build and push the API image for multiple platforms:
+   ```bash
+   docker buildx build --platform linux/amd64,linux/arm64 \
+     --build-arg JAR_FILE=target/the_game_pensieve_api.jar \
+     -t sethcondie/the-game-pensive-api:latest \
+     --push \
+     .
+   ```
+
+3. Build and push the Flyway migration image for multiple platforms:
+   ```bash
+   docker buildx build --platform linux/amd64,linux/arm64 \
+     -f Dockerfile.flyway \
+     -t sethcondie/the-game-pensive-flyway:latest \
+     --push \
+     .
+   ```
+
+Note: The frontend image (sethcondie/the-game-pensieve-web:latest) should be built from the frontend repository using:
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t sethcondie/the-game-pensieve-web:latest \
+  --push \
+  .
+```
+
+## Running the Project
+After these steps are complete, anyone can run the entire project with the production.yaml file:
+```bash
+docker compose -f compose.production.yaml up
+```
+The frontend will run on localhost:4200

@@ -2,14 +2,21 @@
 # eclipse-temurin provides a java runtime container, this project uses java 17
 FROM eclipse-temurin:17
 
+# Set working directory
+WORKDIR /app
+
 # these two lines will copy a built jar file to to the container the JAR_FILE is passed in during the docker build command
 # example: docker build --build-arg "JAR_FILE=target/*.jar" -t sethcondie/the-game-pensive-api .
 ARG JAR_FILE
 # copy everything in the : path from host machine <space> to the path on the container
 COPY ${JAR_FILE} app.jar
 
+# Copy JSON data files for backup/import functionality
+COPY sampleData.json /app/sampleData.json
+COPY myCollection.json /app/myCollection.json
+
 # this will run the jar file in the container
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
 
 # run in the terminal (in this directory) with the command
 # docker build -t pensieve-api .
