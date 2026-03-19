@@ -97,18 +97,17 @@ public class VideoGameTests {
 
 
         //test 2 - when valid patch sent, then ok (200) returned
-        List<CustomFieldValue> existingCustomFieldValues = existingVideoGame.customFieldValues();
+        List<CustomFieldValue> existingCustomFieldValues = new ArrayList<>(existingVideoGame.customFieldValues());
         final String updatedTitle = "Mega Man 3";
         final SystemResponseDto newRelatedSystem = factory.postSystem();
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValues.get(0);
-        existingCustomFieldValues.remove(0);
         final CustomFieldValue updatedValue = new CustomFieldValue(
                 customFieldValueToUpdate.getCustomFieldId(),
                 "Updated" + customFieldValueToUpdate.getCustomFieldName(),
                 customFieldValueToUpdate.getCustomFieldType(),
                 "false"
         );
-        existingCustomFieldValues.add(updatedValue);
+        existingCustomFieldValues.set(0, updatedValue);
 
         final String jsonContent = factory.formatVideoGamePayload(updatedTitle, newRelatedSystem.id(), existingCustomFieldValues);
         final ResultActions resultActions = mockMvc.perform(
