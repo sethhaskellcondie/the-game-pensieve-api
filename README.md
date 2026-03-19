@@ -2,6 +2,17 @@
 A Pensieve in the Harry Potter series is a basin where wizards can store thoughts and memories outside themselves.
 This project is like a pensieve but just for information on games in a collection.
 
+## How to Run This Project Locally Without Cloning
+This project has images that are stored on the docker hub and can be pull to use this system without cloning the project.
+You will need two things:
+1. Download and Install Docker Desktop: https://www.docker.com/products/docker-desktop/
+2. A copy of the compose.production.yaml from this project
+
+Once that is complete open a terminal in the same directory as the yaml file and run this command:
+- docker compose -f compose.production.yaml up
+
+You will be able to see all the needed images downloading and start running in the terminal and in the docker desktop. You can then reach the front end on localhost:4200
+
 ## API Design
 This api is a combination of REST and RPC endpoint design. All the CRUD endpoints are implemented with a rest design.
 The RPC endpoints all contain `/function/` in the path the most common is the Get All endpoint
