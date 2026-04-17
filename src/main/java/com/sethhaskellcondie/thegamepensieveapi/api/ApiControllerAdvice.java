@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,14 @@ public class ApiControllerAdvice {
     @ResponseBody
     public Map<String, List<String>> handleExceptionMalformedEntity(ExceptionMalformedEntity e) {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
+        return body.formatError();
+    }
+
+    @ExceptionHandler(value = {NoResourceFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public Map<String, List<String>> handleNoResourceFoundException(NoResourceFoundException e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
 

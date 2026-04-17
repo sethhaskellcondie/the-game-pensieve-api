@@ -1,6 +1,6 @@
 # from declares the base image that we will build off of (FROM is always the first line of a Dockerfile)
 # eclipse-temurin provides a java runtime container, this project uses java 17
-FROM eclipse-temurin:17
+FROM eclipse-temurin:25
 
 # Set working directory
 WORKDIR /app
@@ -26,7 +26,7 @@ ENTRYPOINT ["java","-jar","/app/app.jar"]
 # Another way to setup a docker file that copies the source code and runs it in the container
 # https://www.docker.com/blog/kickstart-your-spring-boot-application-development/
 #
-# FROM eclipse-temurin:17-jdk-focal
+# FROM eclipse-temurin:25-jdk-focal
 #
 # WORKDIR /app
 #

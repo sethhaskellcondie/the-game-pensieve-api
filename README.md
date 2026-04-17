@@ -65,7 +65,7 @@ Commands:
 
 ### Run Locally
 Requirements:
-- This project runs on java 17, download and install the SDK and JDK.
+- This project runs on java 25, download and install the SDK and JDK.
   - https://www.oracle.com/java/technologies/downloads/
 - Then download and install docker (for Postgres and Flyway)
     - https://www.docker.com/products/docker-desktop/
