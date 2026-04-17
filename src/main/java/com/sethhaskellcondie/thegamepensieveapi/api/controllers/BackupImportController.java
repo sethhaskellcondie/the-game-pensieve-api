@@ -1,11 +1,12 @@
 package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensieveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensieveapi.api.ApiResponse;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupDataDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupImportGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.ImportResultsDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInternalError;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,14 +15,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 
 /**
  * There are no api tests for these endpoints, instead there are domain tests for the backupImportGateway
  */
 @RestController
-public class BackupImportController {
+public class BackupImportController extends BaseController {
 
     private final BackupImportGateway gateway;
     private final String backupDataPath = "backup.json";
@@ -31,7 +31,7 @@ public class BackupImportController {
     }
 
     @PostMapping("v1/function/backup")
-    public Map<String, BackupDataDto> backupJsonToFile() {
+    public ApiResponse<BackupDataDto> backupJsonToFile(HttpServletRequest request) {
         final File file = new File(backupDataPath);
         final ObjectMapper objectMapper = new ObjectMapper();
         final BackupDataDto backupDataDto = gateway.getBackupData();
@@ -40,13 +40,11 @@ public class BackupImportController {
         } catch (IOException e) {
             throw new ExceptionInternalError("Failed to write backup data to file: " + backupDataPath, e);
         }
-
-        final FormattedResponseBody<BackupDataDto> body = new FormattedResponseBody<>(backupDataDto);
-        return body.formatData();
+        return buildResponse(backupDataDto, request);
     }
 
     @PostMapping("v1/function/importFromFile")
-    public FormattedImportResults importJsonFromFile() {
+    public ApiResponse<FormattedImportResultsData> importJsonFromFile(HttpServletRequest request) {
         final BackupDataDto backupData;
         try {
             final byte[] fileData = Files.readAllBytes(Paths.get(backupDataPath));
@@ -57,23 +55,21 @@ public class BackupImportController {
         }
 
         final ImportResultsDto importResults = gateway.importBackupData(backupData);
-        final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
-        return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
+        final FormattedImportResultsData data = buildImportResultsData(importResults);
+        return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
     }
 
     @PostMapping("v1/function/import")
-    public FormattedImportResults importJsonFromRequestBody(@RequestBody Map<String, BackupDataDto> requestBody) {
+    public ApiResponse<FormattedImportResultsData> importJsonFromRequestBody(@RequestBody Map<String, BackupDataDto> requestBody, HttpServletRequest request) {
         final BackupDataDto backupData = requestBody.get("data");
 
         final ImportResultsDto importResults = gateway.importBackupData(backupData);
-        final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
-        return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
+        final FormattedImportResultsData data = buildImportResultsData(importResults);
+        return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
     }
 
     @PostMapping("v1/function/seedSampleData")
-    public FormattedImportResults seedSampleData() {
+    public ApiResponse<FormattedImportResultsData> seedSampleData(HttpServletRequest request) {
         final BackupDataDto sampleData;
         try {
             final byte[] fileData = Files.readAllBytes(Paths.get("sampleData.json"));
@@ -84,13 +80,12 @@ public class BackupImportController {
         }
 
         final ImportResultsDto importResults = gateway.importBackupData(sampleData);
-        final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
-        return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
+        final FormattedImportResultsData data = buildImportResultsData(importResults);
+        return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
     }
 
     @PostMapping("v1/function/seedMyCollection")
-    public FormattedImportResults seedMyCollection() {
+    public ApiResponse<FormattedImportResultsData> seedMyCollection(HttpServletRequest request) {
         final BackupDataDto myCollectionData;
         try {
             final byte[] fileData = Files.readAllBytes(Paths.get("myCollection.json"));
@@ -101,15 +96,20 @@ public class BackupImportController {
         }
 
         final ImportResultsDto importResults = gateway.importBackupData(myCollectionData);
-        final FormattedImportResultsData data = new FormattedImportResultsData(importResults.existingCustomFields(), importResults.createdCustomFields(), importResults.existingToys(),
-                importResults.createdToys(), importResults.existingSystems(), importResults.createdSystems(), importResults.existingCustomFields(), importResults.createdCustomFields());
-        return new FormattedImportResults(data, importResults.exceptionBackupImport().getMessages());
+        final FormattedImportResultsData data = buildImportResultsData(importResults);
+        return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
+    }
+
+    private FormattedImportResultsData buildImportResultsData(ImportResultsDto importResults) {
+        return new FormattedImportResultsData(
+                importResults.existingCustomFields(), importResults.createdCustomFields(),
+                importResults.existingToys(), importResults.createdToys(),
+                importResults.existingSystems(), importResults.createdSystems(),
+                importResults.existingCustomFields(), importResults.createdCustomFields()
+        );
     }
 }
 
 record FormattedImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys,
                                   int existingSystems, int createdSystems, int existingVideoGameBoxes, int createdVideoGameBoxes) {
-}
-
-record FormattedImportResults(FormattedImportResultsData data, List<String> errors) {
 }

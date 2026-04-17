@@ -1,11 +1,12 @@
 package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 
-import com.sethhaskellcondie.thegamepensieveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensieveapi.api.ApiResponse;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("v1/custom_fields")
-public class CustomFieldController {
+public class CustomFieldController extends BaseController {
     private final CustomFieldGateway gateway;
 
     public CustomFieldController(CustomFieldGateway gateway) {
@@ -33,44 +34,39 @@ public class CustomFieldController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequestDto> requestBody) throws ExceptionFailedDbValidation {
+    public ApiResponse<CustomField> createNewCustomField(@RequestBody Map<String, CustomFieldRequestDto> requestBody, HttpServletRequest request) throws ExceptionFailedDbValidation {
         final CustomFieldRequestDto newCustomField = requestBody.get("custom_field");
         final CustomField savedCustomField = gateway.createNew(newCustomField);
-        final FormattedResponseBody<CustomField> body = new FormattedResponseBody<>(savedCustomField);
-        return body.formatData();
+        return buildResponse(savedCustomField, request);
     }
 
     @ResponseBody
     @GetMapping("")
-    public Map<String, List<CustomField>> getAllCustomFields() {
+    public ApiResponse<List<CustomField>> getAllCustomFields(HttpServletRequest request) {
         final List<CustomField> allCustomFields = gateway.getAllCustomFields();
-        final FormattedResponseBody<List<CustomField>> body = new FormattedResponseBody<>(allCustomFields);
-        return body.formatData();
+        return buildResponse(allCustomFields, request);
     }
 
     @ResponseBody
     @GetMapping("/entity/{key}")
-    public Map<String, List<CustomField>> getAllCustomFieldsByEntityKey(@PathVariable String key) throws ExceptionResourceNotFound {
+    public ApiResponse<List<CustomField>> getAllCustomFieldsByEntityKey(@PathVariable String key, HttpServletRequest request) throws ExceptionResourceNotFound {
         final List<CustomField> customFields = gateway.getAllByEntityKey(key);
-        final FormattedResponseBody<List<CustomField>> body = new FormattedResponseBody<>(customFields);
-        return body.formatData();
+        return buildResponse(customFields, request);
     }
 
     @ResponseBody
     @PatchMapping("/{id}")
-    public Map<String, CustomField> patchName(@PathVariable int id, @RequestBody Map<String, String> requestBody) throws ExceptionResourceNotFound {
+    public ApiResponse<CustomField> patchName(@PathVariable int id, @RequestBody Map<String, String> requestBody, HttpServletRequest request) throws ExceptionResourceNotFound {
         final String newName = requestBody.get("name");
         final CustomField updatedCustomField = gateway.updateName(id, newName);
-        final FormattedResponseBody<CustomField> body = new FormattedResponseBody<>(updatedCustomField);
-        return body.formatData();
+        return buildResponse(updatedCustomField, request);
     }
 
     @ResponseBody
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Map<String, String> deleteExistingCustomField(@PathVariable int id) throws ExceptionResourceNotFound {
+    public ApiResponse<String> deleteExistingCustomField(@PathVariable int id, HttpServletRequest request) throws ExceptionResourceNotFound {
         gateway.deleteById(id);
-        FormattedResponseBody<String> body = new FormattedResponseBody<>("");
-        return body.formatData();
+        return buildResponse("", request);
     }
 }

@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
@@ -18,9 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -100,10 +97,8 @@ public class CustomFieldTests {
                 content().contentType(MediaType.APPLICATION_JSON),
                 jsonPath("$.data").isArray()
         );
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<CustomField>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<CustomField> returnedCustomFields = body.get("data");
+        result.andExpect(jsonPath("$.roundTripMs").isNotEmpty());
+        final List<CustomField> returnedCustomFields = factory.extractDataList(result, new TypeReference<List<CustomField>>() { });
         assertAll(
                 "The get all custom fields response body is formatted incorrectly",
                 () -> assertTrue(returnedCustomFields.size() > 1),
@@ -128,11 +123,9 @@ public class CustomFieldTests {
                 jsonPath("$.data").isArray()
         );
         
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<CustomField>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<CustomField> returnedCustomFields = body.get("data");
-        
+        result.andExpect(jsonPath("$.roundTripMs").isNotEmpty());
+        final List<CustomField> returnedCustomFields = factory.extractDataList(result, new TypeReference<List<CustomField>>() { });
+
         assertAll(
                 "The get custom fields by entity key response should only return matching entity key",
                 () -> assertTrue(returnedCustomFields.contains(toyCustomField)),
@@ -202,7 +195,8 @@ public class CustomFieldTests {
         result.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
         assertThrows(ExceptionResourceNotFound.class, () -> customFieldGateway.getById(existingCustomField.id()));
@@ -250,11 +244,11 @@ public class CustomFieldTests {
         );
     }
 
-    private CustomField resultToResponseDto(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
+    private CustomField resultToResponseDto(ResultActions result) throws Exception {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, CustomField> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        return body.get("data");
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), CustomField.class);
     }
 
     private void validateCustomFieldResponseBody(ResultActions result, String expectedName, String expectedType, String expectedEntityKey) throws Exception {
@@ -263,7 +257,8 @@ public class CustomFieldTests {
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.type").value(expectedType),
                 jsonPath("$.data.entityKey").value(expectedEntityKey),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -273,7 +268,8 @@ public class CustomFieldTests {
                 jsonPath("$.data.name").value(customField.name()),
                 jsonPath("$.data.type").value(customField.type()),
                 jsonPath("$.data.entityKey").value(customField.entityKey()),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 }

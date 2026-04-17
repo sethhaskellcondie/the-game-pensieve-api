@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -15,12 +14,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -350,7 +347,8 @@ public class SystemTests {
         result.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -391,11 +389,12 @@ public class SystemTests {
         final ResultActions deleteVideoGameBoxResult = mockMvc.perform(
                 delete("/v1/videoGameBoxes/" + videoGameBox.id())
         );
-        
+
         deleteVideoGameBoxResult.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
         final ResultActions deleteSystemResult = mockMvc.perform(
@@ -405,7 +404,8 @@ public class SystemTests {
         deleteSystemResult.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -479,7 +479,8 @@ public class SystemTests {
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.generation").value(expectedGeneration),
                 jsonPath("$.data.handheld").value(expectedHandheld),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
         SystemResponseDto responseDto = resultToResponseDto(result);
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
@@ -488,13 +489,11 @@ public class SystemTests {
     private void validateSystemResponseBody(ResultActions result, List<SystemResponseDto> expectedSystems) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<SystemResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<SystemResponseDto> returnedSystems = body.get("data");
+        final List<SystemResponseDto> returnedSystems = factory.extractDataList(result, new TypeReference<List<SystemResponseDto>>() { });
         assertEquals(expectedSystems.size(), returnedSystems.size(), "The response body has the wrong number of systems included.");
         //testing order as well as each member being deserialized correctly
         for (int i = 0; i < returnedSystems.size(); i++) {

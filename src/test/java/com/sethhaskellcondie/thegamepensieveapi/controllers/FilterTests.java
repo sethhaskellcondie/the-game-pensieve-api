@@ -52,7 +52,8 @@ public class FilterTests {
                 jsonPath("$.data.type").value("missing_entity_filters"),
                 jsonPath("$.data.fields").isEmpty(),
                 jsonPath("$.data.filters").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -306,7 +307,8 @@ public class FilterTests {
                 jsonPath("$.data.filters." + numberCustomFieldName + "[3]").value("greater_than_equal_to"),
                 jsonPath("$.data.filters." + numberCustomFieldName + "[4]").value("less_than"),
                 jsonPath("$.data.filters." + numberCustomFieldName + "[5]").value("less_than_equal_to"),
-                jsonPath("$.data.filters." + booleanCustomFieldName + "[0]").value("equals")
+                jsonPath("$.data.filters." + booleanCustomFieldName + "[0]").value("equals"),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 }

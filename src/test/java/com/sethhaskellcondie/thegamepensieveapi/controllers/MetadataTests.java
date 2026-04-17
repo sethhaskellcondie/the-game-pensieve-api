@@ -1,7 +1,5 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
 import org.junit.jupiter.api.Test;
@@ -11,11 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -87,7 +81,7 @@ public class MetadataTests {
                 .andExpect(jsonPath("$.errors[0]").value(containsString("Value must be valid JSON")));
     }
 
-    //test only works when run independently not as part of the test suite, will fix later ;)
+    //TODO test only works when run independently not as part of the test suite, will fix later ;)
     void getMetadataByKey_KeyFound_MetadataReturnedCorrectly() throws Exception {
         final String testKey = "getTestKey";
         final String testValue = "{\"getProperty1\":\"getValue1\",\"getProperty2\":\"getValue2\"}";
@@ -138,7 +132,8 @@ public class MetadataTests {
                 .andExpect(jsonPath("$.data[1].createdAt").isNotEmpty())
                 .andExpect(jsonPath("$.data[1].updatedAt").isNotEmpty())
                 .andExpect(jsonPath("$.data[1].deletedAt").isEmpty())
-                .andExpect(jsonPath("$.errors").isEmpty());
+                .andExpect(jsonPath("$.errors").isEmpty())
+                .andExpect(jsonPath("$.roundTripMs").isNotEmpty());
     }
 
     @Test
@@ -198,7 +193,12 @@ public class MetadataTests {
         final ResultActions deleteResult = mockMvc.perform(
                 delete(baseUrlSlash + testKey)
         );
-        deleteResult.andExpect(status().isNoContent());
+        deleteResult.andExpectAll(
+                status().isNoContent(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
+        );
 
         //Test 3: Get Metadata with testKey99 return not found
         final ResultActions getResult = mockMvc.perform(
@@ -239,11 +239,10 @@ public class MetadataTests {
     // -------------- private helper methods --------------
 
 
-    private Metadata resultToMetadata(ResultActions result) throws UnsupportedEncodingException, JsonProcessingException {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, Metadata> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        return body.get("data");
+    private Metadata resultToMetadata(ResultActions result) throws Exception {
+        final String responseString = result.andReturn().getResponse().getContentAsString();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), Metadata.class);
     }
 
     private void validateMetadataResponseBody(ResultActions result, String expectedKey, String expectedValue) throws Exception {
@@ -253,15 +252,14 @@ public class MetadataTests {
                 jsonPath("$.data.value").value(expectedValue),
                 jsonPath("$.data.createdAt").isNotEmpty(),
                 jsonPath("$.data.updatedAt").isNotEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
-        MvcResult mvcResult = result.andReturn();
-        String responseString = mvcResult.getResponse().getContentAsString();
-        Map<String, Object> responseMap = new ObjectMapper().readValue(responseString, Map.class);
-        Map<String, Object> data = (Map<String, Object>) responseMap.get("data");
-        String returnedValue = (String) data.get("value");
+        final String responseString = result.andReturn().getResponse().getContentAsString();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final String returnedValue = objectMapper.treeToValue(objectMapper.readTree(responseString).get("data").get("value"), String.class);
         try {
-            new ObjectMapper().readTree(returnedValue);
+            objectMapper.readTree(returnedValue);
         } catch (Exception e) {
             throw new AssertionError("Returned value is not valid JSON: " + returnedValue, e);
         }

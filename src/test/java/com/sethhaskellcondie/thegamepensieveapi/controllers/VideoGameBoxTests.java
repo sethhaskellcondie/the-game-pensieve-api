@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -18,12 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -354,7 +351,8 @@ public class VideoGameBoxTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
                 jsonPath("$.data").value(new ArrayList<>()),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -451,7 +449,8 @@ public class VideoGameBoxTests {
         result.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -477,13 +476,11 @@ public class VideoGameBoxTests {
     private void validateVideoGameBoxResponseBody(ResultActions result, List<VideoGameBoxResponseDto> expectedGameBoxes) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<VideoGameBoxResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<VideoGameBoxResponseDto> returnedGameBoxes = body.get("data");
+        final List<VideoGameBoxResponseDto> returnedGameBoxes = factory.extractDataList(result, new TypeReference<List<VideoGameBoxResponseDto>>() { });
         assertEquals(expectedGameBoxes.size(), returnedGameBoxes.size(), "The response body has the wrong number of video game boxes included.");
 
         //test the order, and the deserialization

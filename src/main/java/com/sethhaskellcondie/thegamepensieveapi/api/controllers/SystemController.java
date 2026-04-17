@@ -1,6 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 
-import com.sethhaskellcondie.thegamepensieveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensieveapi.api.ApiResponse;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
@@ -8,6 +8,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResou
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +46,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("v1/systems")
-public class SystemController {
+public class SystemController extends BaseController {
     private final SystemGateway gateway;
 
     public SystemController(SystemGateway gateway) {
@@ -54,10 +55,9 @@ public class SystemController {
 
     @ResponseBody
     @GetMapping("/{id}")
-    public Map<String, SystemResponseDto> getById(@PathVariable int id) {
+    public ApiResponse<SystemResponseDto> getById(@PathVariable int id, HttpServletRequest request) {
         final SystemResponseDto responseDto = gateway.getById(id);
-        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
+        return buildResponse(responseDto, request);
     }
 
     /**
@@ -67,36 +67,32 @@ public class SystemController {
      */
     @ResponseBody
     @PostMapping("/function/search")
-    public Map<String, List<SystemResponseDto>> getWithFilters(@RequestBody Map<String, List<FilterRequestDto>> requestBody) {
+    public ApiResponse<List<SystemResponseDto>> getWithFilters(@RequestBody Map<String, List<FilterRequestDto>> requestBody, HttpServletRequest request) {
         final List<SystemResponseDto> data = gateway.getWithFilters(requestBody.get("filters"));
-        final FormattedResponseBody<List<SystemResponseDto>> body = new FormattedResponseBody<>(data);
-        return body.formatData();
+        return buildResponse(data, request);
     }
 
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, SystemResponseDto> postNew(@RequestBody Map<String, SystemRequestDto> requestBody) throws ExceptionFailedDbValidation {
+    public ApiResponse<SystemResponseDto> postNew(@RequestBody Map<String, SystemRequestDto> requestBody, HttpServletRequest request) throws ExceptionFailedDbValidation {
         final SystemResponseDto responseDto = gateway.createNew(requestBody.get(Keychain.SYSTEM_KEY));
-        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
+        return buildResponse(responseDto, request);
     }
 
     @ResponseBody
     @PutMapping("/{id}")
-    public Map<String, SystemResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, SystemRequestDto> requestBody)
+    public ApiResponse<SystemResponseDto> updateExisting(@PathVariable int id, @RequestBody Map<String, SystemRequestDto> requestBody, HttpServletRequest request)
             throws ExceptionFailedDbValidation, ExceptionResourceNotFound {
         final SystemResponseDto responseDto = gateway.updateExisting(id, requestBody.get(Keychain.SYSTEM_KEY));
-        final FormattedResponseBody<SystemResponseDto> body = new FormattedResponseBody<>(responseDto);
-        return body.formatData();
+        return buildResponse(responseDto, request);
     }
 
     @ResponseBody
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Map<String, String> deleteExisting(@PathVariable int id) throws ExceptionResourceNotFound {
+    public ApiResponse<String> deleteExisting(@PathVariable int id, HttpServletRequest request) throws ExceptionResourceNotFound {
         gateway.deleteById(id);
-        FormattedResponseBody<String> body = new FormattedResponseBody<>("");
-        return body.formatData();
+        return buildResponse("", request);
     }
 }

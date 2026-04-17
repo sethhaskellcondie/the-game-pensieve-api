@@ -12,8 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.SlimVideoGameBox;
@@ -26,11 +26,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -378,7 +375,8 @@ public class VideoGameTests {
         deleteResult.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
         //The Super Mario Bros. Video Game should still exist because it also belongs to Super Mario Collection Again
@@ -403,7 +401,8 @@ public class VideoGameTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
                 jsonPath("$.data").value(new ArrayList<>()),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -444,7 +443,8 @@ public class VideoGameTests {
         result.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
         final ResultActions getVideoGameResult = mockMvc.perform(get(baseUrlSlash + slimVideoGame.id()));
@@ -540,7 +540,8 @@ public class VideoGameTests {
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.title").value(expectedTitle),
                 jsonPath("$.data.videoGameBoxes.size()").value(expectedVideoGameBoxes.size()),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
         VideoGameResponseDto responseDto = factory.resultToVideoGameResponseDto(result);
         factory.validateSystem(expectedSystem, responseDto.system());
@@ -551,13 +552,11 @@ public class VideoGameTests {
     private void validateVideoGameResponseBody(ResultActions result, List<VideoGameResponseDto> expectedVideoGames) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<VideoGameResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<VideoGameResponseDto> returnedVideoGames = body.get("data");
+        final List<VideoGameResponseDto> returnedVideoGames = factory.extractDataList(result, new TypeReference<List<VideoGameResponseDto>>() { });
         assertEquals(expectedVideoGames.size(), returnedVideoGames.size(), "The response body has the wrong number of video games included.");
 
         //test the order, and the deserialization

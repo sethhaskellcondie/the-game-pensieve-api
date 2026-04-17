@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -19,12 +18,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -297,7 +294,8 @@ public class BoardGameTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
                 jsonPath("$.data").value(new ArrayList<>()),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -389,7 +387,8 @@ public class BoardGameTests {
         result.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
         mockMvc.perform(get(baseUrlSlash + parentBoardGameId))
@@ -411,7 +410,8 @@ public class BoardGameTests {
         result.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -436,7 +436,8 @@ public class BoardGameTests {
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.title").value(expectedTitle),
                 jsonPath("$.data.boardGameBoxes.size()").value(expectedBoardGameBoxes.size()),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
         BoardGameResponseDto responseDto = factory.resultToBoardGameResponseDto(result);
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
@@ -446,14 +447,11 @@ public class BoardGameTests {
     private void validateBoardGameResponseBody(ResultActions result, List<BoardGameResponseDto> expectedGames) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<BoardGameResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() {
-        });
-        final List<BoardGameResponseDto> returnedGames = body.get("data");
+        final List<BoardGameResponseDto> returnedGames = factory.extractDataList(result, new TypeReference<List<BoardGameResponseDto>>() { });
         assertEquals(expectedGames.size(), returnedGames.size(), "The response body has the wrong number of board games included.");
         //test the order, and the deserialization
         for (int i = 0; i < returnedGames.size(); i++) {

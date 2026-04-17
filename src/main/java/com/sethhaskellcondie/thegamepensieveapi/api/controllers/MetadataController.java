@@ -2,12 +2,13 @@ package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sethhaskellcondie.thegamepensieveapi.api.FormattedResponseBody;
+import com.sethhaskellcondie.thegamepensieveapi.api.ApiResponse;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
 import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.MetadataGateway;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("v1/metadata")
-public class MetadataController {
+public class MetadataController extends BaseController {
     private final MetadataGateway gateway;
     private final ObjectMapper objectMapper;
 
@@ -37,55 +38,51 @@ public class MetadataController {
     @ResponseBody
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Metadata> createNewMetadata(@RequestBody Map<String, Metadata> requestBody) throws ExceptionFailedDbValidation, ExceptionInputValidation {
+    public ApiResponse<Metadata> createNewMetadata(@RequestBody Map<String, Metadata> requestBody, HttpServletRequest request) throws ExceptionFailedDbValidation, ExceptionInputValidation {
         final Metadata newMetadata = requestBody.get("metadata");
         validateJsonValue(newMetadata.value());
         final Metadata savedMetadata = gateway.createNew(newMetadata);
-        final FormattedResponseBody<Metadata> body = new FormattedResponseBody<>(savedMetadata);
-        return body.formatData();
+        return buildResponse(savedMetadata, request);
     }
 
     @ResponseBody
     @GetMapping("")
-    public Map<String, List<Metadata>> getAllMetadata() {
+    public ApiResponse<List<Metadata>> getAllMetadata(HttpServletRequest request) {
         final List<Metadata> allMetadata = gateway.getAllMetadata();
-        final FormattedResponseBody<List<Metadata>> body = new FormattedResponseBody<>(allMetadata);
-        return body.formatData();
+        return buildResponse(allMetadata, request);
     }
 
     @ResponseBody
     @GetMapping("/{key}")
-    public Map<String, Metadata> getByKey(@PathVariable String key) throws ExceptionResourceNotFound {
+    public ApiResponse<Metadata> getByKey(@PathVariable String key, HttpServletRequest request) throws ExceptionResourceNotFound {
         final Metadata metadata = gateway.getByKey(key);
-        final FormattedResponseBody<Metadata> body = new FormattedResponseBody<>(metadata);
-        return body.formatData();
+        return buildResponse(metadata, request);
     }
 
     @ResponseBody
     @PatchMapping("/{key}")
-    public Map<String, Metadata> patchValue(@PathVariable String key, @RequestBody Map<String, String> requestBody) throws ExceptionResourceNotFound, ExceptionInputValidation {
+    public ApiResponse<Metadata> patchValue(@PathVariable String key, @RequestBody Map<String, String> requestBody, HttpServletRequest request)
+            throws ExceptionResourceNotFound, ExceptionInputValidation {
         final String newValue = requestBody.get("value");
         validateJsonValue(newValue);
         final Metadata metadataToUpdate = new Metadata(null, key, newValue, null, null, null);
         final Metadata updatedMetadata = gateway.updateValue(metadataToUpdate);
-        final FormattedResponseBody<Metadata> body = new FormattedResponseBody<>(updatedMetadata);
-        return body.formatData();
+        return buildResponse(updatedMetadata, request);
     }
 
     @ResponseBody
     @DeleteMapping("/{key}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Map<String, String> deleteByKey(@PathVariable String key) throws ExceptionResourceNotFound {
+    public ApiResponse<String> deleteByKey(@PathVariable String key, HttpServletRequest request) throws ExceptionResourceNotFound {
         gateway.deleteByKey(key);
-        FormattedResponseBody<String> body = new FormattedResponseBody<>("");
-        return body.formatData();
+        return buildResponse("", request);
     }
 
     private void validateJsonValue(String value) throws ExceptionInputValidation {
         if (value == null || value.trim().isEmpty()) {
             throw new ExceptionInputValidation("Value cannot be null or empty");
         }
-        
+
         try {
             objectMapper.readTree(value);
         } catch (JsonProcessingException e) {

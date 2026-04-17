@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -15,12 +14,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -227,7 +224,8 @@ public class ToyTests {
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
                 jsonPath("$.data").value(new ArrayList<>()),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -260,7 +258,8 @@ public class ToyTests {
         result.andExpectAll(
                 status().isNoContent(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
     }
 
@@ -289,7 +288,8 @@ public class ToyTests {
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.set").value(expectedSet),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
         ToyResponseDto responseDto = resultToResponseDto(result);
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
@@ -298,13 +298,11 @@ public class ToyTests {
     private void validateToyResponseBody(ResultActions result, List<ToyResponseDto> expectedToys) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data").exists(),
-                jsonPath("$.errors").isEmpty()
+                jsonPath("$.errors").isEmpty(),
+                jsonPath("$.roundTripMs").isNotEmpty()
         );
 
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final Map<String, List<ToyResponseDto>> body = new ObjectMapper().readValue(responseString, new TypeReference<>() { });
-        final List<ToyResponseDto> returnedToys = body.get("data");
+        final List<ToyResponseDto> returnedToys = factory.extractDataList(result, new TypeReference<List<ToyResponseDto>>() { });
         assertEquals(expectedToys.size(), returnedToys.size(), "The response body has the wrong number of toys included.");
         //test the order, and the deserialization
         for (int i = 0; i < returnedToys.size(); i++) {
