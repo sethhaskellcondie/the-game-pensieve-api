@@ -14,7 +14,7 @@
 	<description>This project will store information about different games in a database along with an api to access that data.</description>
 	<properties>
 		<java.version>25</java.version>
-		<checkstyle.version>10.15.0</checkstyle.version>
+		<checkstyle.version>10.21.0</checkstyle.version>
 	</properties>
 	<build>
 		<finalName>the_game_pensieve_api</finalName>
@@ -28,7 +28,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.3.1</version>
+				<version>3.6.0</version>
 				<configuration>
 					<configLocation>checkstyle.xml</configLocation>
 					<consoleOutput>true</consoleOutput>
