@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.api;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionCustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionImportInProgress;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInvalidFilter;
@@ -39,6 +40,14 @@ public class ApiControllerAdvice {
     }
 
     //----Handle Entity Specific Errors----
+    @ExceptionHandler(value = {ExceptionImportInProgress.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public Map<String, List<String>> handleExceptionImportInProgress(ExceptionImportInProgress e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
+        return body.formatError();
+    }
+
     @ExceptionHandler(value = {ExceptionCustomFieldValue.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody

@@ -117,7 +117,8 @@ public class FilterService {
                 " or ",       // 'or' allows boolean based injection
                 " union ",    // 'union' allows union based injection
                 " delete ",   // 'delete' is not allowed
-                " select "    // 'select' is not allowed
+                " select ",   // 'select' is not allowed
+                " drop "      // 'drop' is not allowed
         );
     }
 
