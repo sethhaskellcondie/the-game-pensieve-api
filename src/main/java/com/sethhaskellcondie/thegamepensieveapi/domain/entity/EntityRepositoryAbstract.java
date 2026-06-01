@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
@@ -57,6 +58,9 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     protected String getBaseQueryWhereIsDeleted() {
         return getBaseQuery() + " AND deleted_at IS NOT NULL ";
     }
+
+    // Returns only the SELECT … FROM {table} clause (no JOINs, no WHERE).
+    // Used by getWithFilters() to build a dynamic multi-JOIN query when custom field filters are present.
     protected abstract String getBaseQueryJoinCustomFieldValues();
     protected abstract String getEntityKey();
     protected abstract RowMapper<T> getRowMapper();
@@ -92,15 +96,33 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         filters = FilterService.validateAndOrderFilters(filters, customFields);
         final List<String> whereStatements = FilterService.formatWhereStatements(filters);
         final List<Object> operands = FilterService.formatOperands(filters);
-        String sql = baseQuery + String.join(" ", whereStatements);
-        if (filters.stream().anyMatch(Filter::isCustom)) {
-            sql = baseQueryJoinCustomFieldValues + String.join(" ", whereStatements);
+        long customFilterCount = filters.stream().filter(Filter::isCustom).count();
+        String sql;
+        if (customFilterCount == 0) {
+            sql = baseQuery + String.join(" ", whereStatements);
+        } else {
+            sql = buildQueryWithCustomFieldJoins((int) customFilterCount) + String.join(" ", whereStatements);
         }
         List<T> entities = jdbcTemplate.query(sql, rowMapper, operands.toArray());
         for (T entity: entities) {
             setCustomFieldsValuesForEntity(entity);
         }
         return entities;
+    }
+
+    private String buildQueryWithCustomFieldJoins(int count) {
+        String tableName = Keychain.getTableAliasByKey(entityKey);
+        StringBuilder builder = new StringBuilder(baseQueryJoinCustomFieldValues);
+        for (int i = 1; i <= count; i++) {
+            builder.append(" JOIN custom_field_values AS values").append(i)
+              .append(" ON ").append(tableName).append(".id = values").append(i).append(".entity_id")
+              .append(" AND values").append(i).append(".entity_key = '").append(entityKey).append("'");
+            builder.append(" JOIN custom_fields AS fields").append(i)
+              .append(" ON values").append(i).append(".custom_field_id = fields").append(i).append(".id")
+              .append(" AND fields").append(i).append(".deleted = false");
+        }
+        builder.append(" WHERE ").append(tableName).append(".deleted_at IS NULL");
+        return builder.toString();
     }
 
     @Override

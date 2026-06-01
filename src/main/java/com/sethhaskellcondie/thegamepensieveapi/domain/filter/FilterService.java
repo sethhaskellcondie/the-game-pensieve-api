@@ -338,11 +338,16 @@ public class FilterService {
 
     public static List<String> formatWhereStatements(List<Filter> filters) {
         List<String> whereStatements = new ArrayList<>();
+        int customFieldIndex = 1;
         for (Filter filter : filters) {
             if (filter.isCustom()) {
-                //The table alias for custom_fields is always 'fields' as setup in each EntityRepository getBaseQueryJoinCustomFieldValues();
-                whereStatements.add(" AND fields.name = '" + filter.getField() + "'");
-                whereStatements.add(getCustomFilterWhereStatement(filter));
+                // Each custom field filter gets its own indexed JOIN alias (fields1/values1, fields2/values2, …)
+                // so that multiple custom field filters don't contradict each other in the WHERE clause.
+                String fieldsAlias = "fields" + customFieldIndex;
+                String valuesAlias = "values" + customFieldIndex;
+                whereStatements.add(" AND " + fieldsAlias + ".name = '" + filter.getField() + "'");
+                whereStatements.add(getCustomFilterWhereStatement(filter, valuesAlias));
+                customFieldIndex++;
             } else {
                 whereStatements.add(getWhereStatement(filter));
             }
@@ -350,30 +355,29 @@ public class FilterService {
         return whereStatements;
     }
 
-    private static String getCustomFilterWhereStatement(Filter filter) {
+    private static String getCustomFilterWhereStatement(Filter filter, String valuesAlias) {
         final String whereStatement;
-        //The table alias for custom_field_values is always 'values' as setup in each EntityRepository getBaseQueryJoinCustomFieldValues();
         switch (filter.getType()) {
             case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
                 switch (filter.getOperator()) {
-                    case OPERATOR_EQUALS -> whereStatement = " AND values.value_text = ?";
-                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND values.value_text <> ?";
-                    case OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> whereStatement = " AND values.value_text LIKE ?";
-                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY values.value_text ASC";
-                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY values.value_text DESC";
+                    case OPERATOR_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_text = ?";
+                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_text <> ?";
+                    case OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> whereStatement = " AND " + valuesAlias + ".value_text LIKE ?";
+                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY " + valuesAlias + ".value_text ASC";
+                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY " + valuesAlias + ".value_text DESC";
                     default -> whereStatement = "";
                 }
             }
             case CustomField.TYPE_NUMBER -> {
                 switch (filter.getOperator()) {
-                    case OPERATOR_EQUALS -> whereStatement = " AND values.value_number = ?";
-                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND values.value_number <> ?";
-                    case OPERATOR_GREATER_THAN -> whereStatement = " AND values.value_number > ?";
-                    case OPERATOR_LESS_THAN -> whereStatement = " AND values.value_number < ?";
-                    case OPERATOR_GREATER_THAN_EQUAL_TO -> whereStatement = " AND values.value_number >= ?";
-                    case OPERATOR_LESS_THAN_EQUAL_TO -> whereStatement = " AND values.value_number <= ?";
-                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY values.value_number ASC";
-                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY values.value_number DESC";
+                    case OPERATOR_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_number = ?";
+                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_number <> ?";
+                    case OPERATOR_GREATER_THAN -> whereStatement = " AND " + valuesAlias + ".value_number > ?";
+                    case OPERATOR_LESS_THAN -> whereStatement = " AND " + valuesAlias + ".value_number < ?";
+                    case OPERATOR_GREATER_THAN_EQUAL_TO -> whereStatement = " AND " + valuesAlias + ".value_number >= ?";
+                    case OPERATOR_LESS_THAN_EQUAL_TO -> whereStatement = " AND " + valuesAlias + ".value_number <= ?";
+                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY " + valuesAlias + ".value_number ASC";
+                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY " + valuesAlias + ".value_number DESC";
                     default -> whereStatement = "";
                 }
             }
