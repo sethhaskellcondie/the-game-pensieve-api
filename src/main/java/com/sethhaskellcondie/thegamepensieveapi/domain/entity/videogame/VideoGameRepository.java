@@ -33,21 +33,11 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
         return "SELECT video_games.id, video_games.title, video_games.system_id, video_games.created_at, video_games.updated_at, video_games.deleted_at ";
     }
 
-    protected String getBaseQuery() {
-        return getSelectClause() + " FROM video_games WHERE 1 = 1 ";
-    }
-
-    @Override
-    protected String getBaseQueryJoinCustomFieldValues() {
-        return String.format("""
-                SELECT video_games.id, video_games.title, video_games.system_id,
-                       video_games.created_at, video_games.updated_at, video_games.deleted_at
-                        FROM video_games
-                        JOIN custom_field_values as values ON video_games.id = values.entity_id
-                          JOIN custom_fields as fields ON values.custom_field_id = fields.id
-                                   WHERE video_games.deleted_at IS NULL
-                                 AND values.entity_key = '%s'
-                """, Keychain.VIDEO_GAME_KEY);
+    protected String getBaseQuery(boolean includeWhereClause) {
+        if (includeWhereClause) {
+            return getSelectClause() + " FROM video_games WHERE 1 = 1 ";
+        }
+        return getSelectClause() + " FROM video_games";
     }
 
     @Override

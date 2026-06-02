@@ -35,24 +35,15 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
     }
 
     private String getSelectClause() {
-        return "SELECT id, title, system_id, is_physical, is_collection, created_at, updated_at, deleted_at ";
+        return "SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.system_id, video_game_boxes.is_physical, video_game_boxes.is_collection, "
+                + "video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at ";
     }
 
-    protected String getBaseQuery() {
-        return getSelectClause() + " FROM video_game_boxes WHERE 1 = 1 ";
-    }
-
-    @Override
-    protected String getBaseQueryJoinCustomFieldValues() {
-        return String.format("""
-                SELECT video_game_boxes.id, video_game_boxes.title, video_game_boxes.system_id, video_game_boxes.is_physical, video_game_boxes.is_collection,
-                video_game_boxes.created_at, video_game_boxes.updated_at, video_game_boxes.deleted_at
-                FROM video_game_boxes
-                JOIN custom_field_values as values ON video_game_boxes.id = values.entity_id
-                JOIN custom_fields as fields ON values.custom_field_id = fields.id
-                WHERE video_game_boxes.deleted_at IS NULL
-                AND values.entity_key = '%s'
-                """, Keychain.VIDEO_GAME_BOX_KEY);
+    protected String getBaseQuery(boolean includeWhereClause) {
+        if (includeWhereClause) {
+            return getSelectClause() + " FROM video_game_boxes WHERE 1 = 1 ";
+        }
+        return getSelectClause() + " FROM video_game_boxes";
     }
 
     @Override

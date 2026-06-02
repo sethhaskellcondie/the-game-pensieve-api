@@ -29,21 +29,11 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
         return "SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at ";
     }
 
-    protected String getBaseQuery() {
-        return getSelectClause() + " FROM toys WHERE 1 = 1 ";
-    }
-
-    protected String getBaseQueryJoinCustomFieldValues() {
-        return String.format("""
-            SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at,
-               values.custom_field_id, values.entity_key, values.value_text, values.value_number,
-               fields.name as custom_field_name, fields.type as custom_field_type
-            FROM toys
-            JOIN custom_field_values as values ON toys.id = values.entity_id
-            JOIN custom_fields as fields ON values.custom_field_id = fields.id
-            WHERE toys.deleted_at IS NULL
-            AND values.entity_key = '%s'
-            """, Keychain.TOY_KEY);
+    protected String getBaseQuery(boolean includeWhereClause) {
+        if (includeWhereClause) {
+            return getSelectClause() + " FROM toys WHERE 1 = 1 ";
+        }
+        return getSelectClause() + " FROM toys";
     }
 
     protected String getEntityKey() {
