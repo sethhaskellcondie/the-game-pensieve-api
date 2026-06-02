@@ -48,8 +48,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     }
 
     //DO NOT end the base queries with a ';' they will be appended
-    // Pass includeWhereClause=true to get "SELECT … FROM table WHERE 1 = 1 " (for normal queries and queryById).
-    // Pass includeWhereClause=false to get "SELECT … FROM table" (for building multi-JOIN custom field queries).
     protected abstract String getBaseQuery(boolean includeWhereClause);
     protected String getBaseQueryExcludeDeleted() {
         return getBaseQuery(true) + " AND deleted_at IS NULL ";
