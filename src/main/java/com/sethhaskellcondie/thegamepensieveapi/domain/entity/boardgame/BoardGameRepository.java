@@ -29,16 +29,11 @@ public class BoardGameRepository extends EntityRepositoryAbstract<BoardGame, Boa
         return "SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at";
     }
 
-    protected String getBaseQuery() {
-        return getSelectClause() + " FROM board_games WHERE 1 = 1 ";
-    }
-
-    @Override
-    protected String getBaseQueryJoinCustomFieldValues() {
-        return """
-                SELECT board_games.id, board_games.title, board_games.created_at, board_games.updated_at, board_games.deleted_at
-                FROM board_games
-                """;
+    protected String getBaseQuery(boolean includeWhereClause) {
+        if (includeWhereClause) {
+            return getSelectClause() + " FROM board_games WHERE 1 = 1 ";
+        }
+        return getSelectClause() + " FROM board_games";
     }
 
     @Override

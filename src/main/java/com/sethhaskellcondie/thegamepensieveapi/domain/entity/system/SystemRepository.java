@@ -35,12 +35,11 @@ public class SystemRepository extends EntityRepositoryAbstract<System, SystemReq
         return "SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at ";
     }
 
-    protected String getBaseQuery() {
-        return getSelectClause() + " FROM systems WHERE 1 = 1 ";
-    }
-
-    protected String getBaseQueryJoinCustomFieldValues() {
-        return "SELECT systems.id, systems.name, systems.generation, systems.handheld, systems.created_at, systems.updated_at, systems.deleted_at FROM systems";
+    protected String getBaseQuery(boolean includeWhereClause) {
+        if (includeWhereClause) {
+            return getSelectClause() + " FROM systems WHERE 1 = 1 ";
+        }
+        return getSelectClause() + " FROM systems";
     }
 
     protected String getEntityKey() {

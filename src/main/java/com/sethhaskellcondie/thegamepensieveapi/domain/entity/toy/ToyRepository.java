@@ -29,12 +29,11 @@ public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, 
         return "SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at ";
     }
 
-    protected String getBaseQuery() {
-        return getSelectClause() + " FROM toys WHERE 1 = 1 ";
-    }
-
-    protected String getBaseQueryJoinCustomFieldValues() {
-        return "SELECT toys.id, toys.name, toys.set, toys.created_at, toys.updated_at, toys.deleted_at FROM toys";
+    protected String getBaseQuery(boolean includeWhereClause) {
+        if (includeWhereClause) {
+            return getSelectClause() + " FROM toys WHERE 1 = 1 ";
+        }
+        return getSelectClause() + " FROM toys";
     }
 
     protected String getEntityKey() {

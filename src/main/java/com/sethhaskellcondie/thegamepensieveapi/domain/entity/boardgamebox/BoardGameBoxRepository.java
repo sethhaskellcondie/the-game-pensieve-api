@@ -32,17 +32,11 @@ public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBo
                 + "board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at";
     }
 
-    protected String getBaseQuery() {
-        return getSelectClause() + " FROM board_game_boxes WHERE 1 = 1 ";
-    }
-
-    @Override
-    protected String getBaseQueryJoinCustomFieldValues() {
-        return """
-                SELECT board_game_boxes.id, board_game_boxes.title, board_game_boxes.is_expansion, board_game_boxes.is_stand_alone, board_game_boxes.base_set_id, board_game_boxes.board_game_id,
-                board_game_boxes.created_at, board_game_boxes.updated_at, board_game_boxes.deleted_at
-                FROM board_game_boxes
-                """;
+    protected String getBaseQuery(boolean includeWhereClause) {
+        if (includeWhereClause) {
+            return getSelectClause() + " FROM board_game_boxes WHERE 1 = 1 ";
+        }
+        return getSelectClause() + " FROM board_game_boxes";
     }
 
     @Override

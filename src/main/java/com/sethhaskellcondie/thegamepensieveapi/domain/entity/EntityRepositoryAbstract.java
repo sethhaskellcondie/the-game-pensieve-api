@@ -29,7 +29,6 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     private final CustomFieldValueRepository customFieldValueRepository;
     private final CustomFieldRepository customFieldRepository;
     private final String baseQuery;
-    private final String baseQueryJoinCustomFieldValues;
     private final String baseQueryWhereDeletedAtIsNotNull;
     private final String baseQueryIncludeDeleted;
     private final String entityKey;
@@ -42,26 +41,24 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
         this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
         this.baseQuery = this.getBaseQueryExcludeDeleted();
-        this.baseQueryJoinCustomFieldValues = this.getBaseQueryJoinCustomFieldValues();
         this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereIsDeleted();
-        this.baseQueryIncludeDeleted = this.getBaseQuery();
+        this.baseQueryIncludeDeleted = this.getBaseQuery(true);
         this.entityKey = this.getEntityKey();
         this.rowMapper = this.getRowMapper();
     }
 
     //DO NOT end the base queries with a ';' they will be appended
-    protected abstract String getBaseQuery();
+    // Pass includeWhereClause=true to get "SELECT … FROM table WHERE 1 = 1 " (for normal queries and queryById).
+    // Pass includeWhereClause=false to get "SELECT … FROM table" (for building multi-JOIN custom field queries).
+    protected abstract String getBaseQuery(boolean includeWhereClause);
     protected String getBaseQueryExcludeDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NULL ";
+        return getBaseQuery(true) + " AND deleted_at IS NULL ";
     }
 
     protected String getBaseQueryWhereIsDeleted() {
-        return getBaseQuery() + " AND deleted_at IS NOT NULL ";
+        return getBaseQuery(true) + " AND deleted_at IS NOT NULL ";
     }
 
-    // Returns only the SELECT … FROM {table} clause (no JOINs, no WHERE).
-    // Used by getWithFilters() to build a dynamic multi-JOIN query when custom field filters are present.
-    protected abstract String getBaseQueryJoinCustomFieldValues();
     protected abstract String getEntityKey();
     protected abstract RowMapper<T> getRowMapper();
 
@@ -112,7 +109,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     private String buildQueryWithCustomFieldJoins(int count) {
         String tableName = Keychain.getTableAliasByKey(entityKey);
-        StringBuilder builder = new StringBuilder(baseQueryJoinCustomFieldValues);
+        StringBuilder builder = new StringBuilder(getBaseQuery(false));
         for (int i = 1; i <= count; i++) {
             builder.append(" JOIN custom_field_values AS values").append(i)
               .append(" ON ").append(tableName).append(".id = values").append(i).append(".entity_id")
