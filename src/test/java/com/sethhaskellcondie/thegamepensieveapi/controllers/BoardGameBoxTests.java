@@ -73,7 +73,7 @@ public class BoardGameBoxTests {
         factory.validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone, null, relatedBoardGame, expectedCustomFieldValues);
 
         //test 2 - when valid patch sent, then return 200 (ok) returned
-        final BoardGameBoxResponseDto existingBoardGameBox = factory.resultToBoardGameBoxResponseDto(result);
+        final BoardGameBoxResponseDto existingBoardGameBox = factory.resultToDto(result, BoardGameBoxResponseDto.class);
         List<CustomFieldValue> existingCustomFieldValue = existingBoardGameBox.customFieldValues();
         final String updatedTitle = "Marvel Villainous";
         final CustomFieldValue customFieldValueToUpdate = existingCustomFieldValue.get(0);
@@ -124,7 +124,7 @@ public class BoardGameBoxTests {
 
         result.andExpect(status().isCreated());
 
-        final BoardGameBoxResponseDto createdBox = factory.resultToBoardGameBoxResponseDto(result);
+        final BoardGameBoxResponseDto createdBox = factory.resultToDto(result, BoardGameBoxResponseDto.class);
 
         factory.validateBoardGameBoxResponseBody(result, expectedTitle, expectedExpansion, expectedStandAlone,
                 expectedBaseSetId, createdBox.boardGame(), new ArrayList<>());
@@ -174,7 +174,7 @@ public class BoardGameBoxTests {
         final boolean expectedStandAlone = true;
 
         final ResultActions result = factory.postBoardGameBoxReturnResult(expectedTitle, expectedExpansion, expectedStandAlone, null, null, null);
-        final BoardGameBoxResponseDto boxResponseDto = factory.resultToBoardGameBoxResponseDto(result);
+        final BoardGameBoxResponseDto boxResponseDto = factory.resultToDto(result, BoardGameBoxResponseDto.class);
         //This is only used as the expected result only testing the id and title
         final SlimBoardGame expectedSlimBoardGame = new SlimBoardGame(boxResponseDto.boardGame().id(), expectedTitle, null, null, null, null);
 
@@ -189,7 +189,7 @@ public class BoardGameBoxTests {
         final SlimBoardGame relatedBoardGame = factory.postBoardGameBox().boardGame();
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
         ResultActions postResult = factory.postBoardGameBoxReturnResult(title, isExpansion, isStandAlone, null, relatedBoardGame.id(), customFieldValues);
-        final BoardGameBoxResponseDto expectedDto = factory.resultToBoardGameBoxResponseDto(postResult);
+        final BoardGameBoxResponseDto expectedDto = factory.resultToDto(postResult, BoardGameBoxResponseDto.class);
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
 
@@ -222,17 +222,17 @@ public class BoardGameBoxTests {
         final String title1 = "King of Tokyo";
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
         final ResultActions result1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, customFieldValues1);
-        final BoardGameBoxResponseDto boardGameBoxDto1 = factory.resultToBoardGameBoxResponseDto(result1);
+        final BoardGameBoxResponseDto boardGameBoxDto1 = factory.resultToDto(result1, BoardGameBoxResponseDto.class);
 
         final String title2 = "King of New York";
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
         final ResultActions result2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, customFieldValues2);
-        final BoardGameBoxResponseDto boardGameBoxDto2 = factory.resultToBoardGameBoxResponseDto(result2);
+        final BoardGameBoxResponseDto boardGameBoxDto2 = factory.resultToDto(result2, BoardGameBoxResponseDto.class);
 
         final String title3 = "Forgotten Waters";
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
         final ResultActions result3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, customFieldValues3);
-        final BoardGameBoxResponseDto boardGameBoxDto3 = factory.resultToBoardGameBoxResponseDto(result3);
+        final BoardGameBoxResponseDto boardGameBoxDto3 = factory.resultToDto(result3, BoardGameBoxResponseDto.class);
 
         final Filter filter = new Filter(Keychain.BOARD_GAME_BOX_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "King of ", false);
         final String formattedJson = factory.formatFiltersPayload(filter);

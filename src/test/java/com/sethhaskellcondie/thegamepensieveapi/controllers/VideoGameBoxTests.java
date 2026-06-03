@@ -77,7 +77,7 @@ public class VideoGameBoxTests {
 
         factory.validateVideoGameBoxResponseBody(result, expectedTitle, relatedSystem, expectedVideoGameResults, isPhysical, isCollection, expectedCustomFieldValues);
 
-        final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
+        final VideoGameBoxResponseDto responseDto = factory.resultToDto(result, VideoGameBoxResponseDto.class);
 
 
         //test 2 - when valid patch sent, then ok (200) returned
@@ -202,7 +202,7 @@ public class VideoGameBoxTests {
         final List<SlimVideoGame> expectedVideoGames = List.of(convertToExpectedSlimVideoGameResponse(newVideoGame, relatedSystem));
         final List<CustomFieldValue> customFieldValues = List.of(new CustomFieldValue(0, "customFieldName", "text", "value"));
         ResultActions postResult = factory.postVideoGameBoxReturnResult(title, relatedSystem.id(), new ArrayList<>(), List.of(newVideoGame), physical, customFieldValues);
-        final VideoGameBoxResponseDto expectedDto = factory.resultToVideoGameBoxResponseDto(postResult);
+        final VideoGameBoxResponseDto expectedDto = factory.resultToDto(postResult, VideoGameBoxResponseDto.class);
 
         final ResultActions result = mockMvc.perform(get(baseUrlSlash + expectedDto.id()));
 
@@ -237,21 +237,21 @@ public class VideoGameBoxTests {
         final VideoGameRequestDto relatedGame1 = new VideoGameRequestDto(title1, relatedSystem1.id(), new ArrayList<>());
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
         final ResultActions result1 = factory.postVideoGameBoxReturnResult(title1, relatedSystem1.id(), List.of(), List.of(relatedGame1), false, customFieldValues1);
-        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToVideoGameBoxResponseDto(result1);
+        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToDto(result1, VideoGameBoxResponseDto.class);
 
         final String title2 = "NES Mega Man 2";
         final SystemResponseDto relatedSystem2 = factory.postSystem();
         final VideoGameRequestDto relatedGame2 = new VideoGameRequestDto(title2, relatedSystem2.id(), new ArrayList<>());
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
         final ResultActions result2 = factory.postVideoGameBoxReturnResult(title2, relatedSystem2.id(), List.of(), List.of(relatedGame2), false, customFieldValues2);
-        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToVideoGameBoxResponseDto(result2);
+        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToDto(result2, VideoGameBoxResponseDto.class);
 
         final String title3 = "SNES Mega Man 7";
         final SystemResponseDto relatedSystem3 = factory.postSystem();
         final VideoGameRequestDto relatedGame3 = new VideoGameRequestDto(title3, relatedSystem3.id(), new ArrayList<>());
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
         final ResultActions result3 = factory.postVideoGameBoxReturnResult(title3, relatedSystem3.id(), List.of(), List.of(relatedGame3), false, customFieldValues3);
-        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToVideoGameBoxResponseDto(result3);
+        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToDto(result3, VideoGameBoxResponseDto.class);
 
         final Filter filter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "NES ", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
@@ -292,17 +292,17 @@ public class VideoGameBoxTests {
         final String title1 = "Mario Bros Testing";
         final VideoGameRequestDto relatedGame1 = new VideoGameRequestDto(title1, system1.id(), new ArrayList<>());
         final ResultActions result1 = factory.postVideoGameBoxReturnResult(title1, system1.id(), List.of(), List.of(relatedGame1), false, new ArrayList<>());
-        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToVideoGameBoxResponseDto(result1);
+        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToDto(result1, VideoGameBoxResponseDto.class);
 
         final String title2 = "Zelda Testing";
         final VideoGameRequestDto relatedGame2 = new VideoGameRequestDto(title2, system2.id(), new ArrayList<>());
         final ResultActions result2 = factory.postVideoGameBoxReturnResult(title2, system2.id(), List.of(), List.of(relatedGame2), false, new ArrayList<>());
-        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToVideoGameBoxResponseDto(result2);
+        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToDto(result2, VideoGameBoxResponseDto.class);
 
         final String title3 = "Metroid Testing";
         final VideoGameRequestDto relatedGame3 = new VideoGameRequestDto(title3, system2.id(), new ArrayList<>());
         final ResultActions result3 = factory.postVideoGameBoxReturnResult(title3, system2.id(), List.of(), List.of(relatedGame3), false, new ArrayList<>());
-        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToVideoGameBoxResponseDto(result3);
+        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToDto(result3, VideoGameBoxResponseDto.class);
 
         final Filter filter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "system", "system_id", Filter.OPERATOR_EQUALS, String.valueOf(system2.id()), false);
         final String formattedJson = factory.formatFiltersPayload(filter);
@@ -387,7 +387,7 @@ public class VideoGameBoxTests {
                 new ArrayList<>()
         );
 
-        final VideoGameBoxResponseDto createdBox = factory.resultToVideoGameBoxResponseDto(createResult);
+        final VideoGameBoxResponseDto createdBox = factory.resultToDto(createResult, VideoGameBoxResponseDto.class);
 
         final Integer gameIdToKeep = createdBox.videoGames().get(0).id();
         final SlimVideoGame expectedRemainingGame = createdBox.videoGames().get(0);

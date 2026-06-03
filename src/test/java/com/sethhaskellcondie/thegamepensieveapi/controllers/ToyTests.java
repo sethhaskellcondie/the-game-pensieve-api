@@ -279,7 +279,7 @@ public class ToyTests {
     // ------------------------- Private Helper Methods ------------------------------
 
     private ToyResponseDto resultToResponseDto(ResultActions result) throws Exception {
-        return factory.resultToToyResponseDto(result);
+        return factory.resultToDto(result, ToyResponseDto.class);
     }
 
     private void validateToyResponseBody(ResultActions result, String expectedName, String expectedSet, List<CustomFieldValue> customFieldValues) throws Exception {

@@ -75,7 +75,7 @@ public class BoardGameTests {
 
         final ResultActions boardGameBoxResult = factory.postBoardGameBoxReturnResult(expectedTitle, false, false, null, null, newBoardGame, new ArrayList<>());
         
-        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult);
+        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToDto(boardGameBoxResult, BoardGameBoxResponseDto.class);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult, expectedTitle, false, false, null, boardGameBoxDto.boardGame(), new ArrayList<>());
         final SlimBoardGame boardGameDto = boardGameBoxDto.boardGame();
 
@@ -160,7 +160,7 @@ public class BoardGameTests {
         final BoardGameRequestDto newBoardGame = new BoardGameRequestDto(title, customFieldValues);
         final ResultActions boardGameBoxResult = factory.postBoardGameBoxReturnResult(title, false, false, null, null, newBoardGame, new ArrayList<>());
         
-        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult);
+        final BoardGameBoxResponseDto boardGameBoxDto = factory.resultToDto(boardGameBoxResult, BoardGameBoxResponseDto.class);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult, title, false, false, null, boardGameBoxDto.boardGame(), new ArrayList<>());
         final SlimBoardGame expectedDto = boardGameBoxDto.boardGame();
 
@@ -173,7 +173,7 @@ public class BoardGameTests {
         SlimBoardGameBox expectedSlimBox3 = factory.convertBoardGameBoxResponseToSlimBoardGameBox(boardGameBoxDto);
         validateBoardGameResponseBody(result, expectedDto.title(), List.of(expectedSlimBox3), customFieldValues);
 
-        final BoardGameResponseDto existingBoardGame = factory.resultToBoardGameResponseDto(result);
+        final BoardGameResponseDto existingBoardGame = factory.resultToDto(result, BoardGameResponseDto.class);
 
         // test 2: get one board game after adding two boxes, happy path response shaped correctly
         BoardGameBoxResponseDto boardGameBoxResponse1 = factory.postBoardGameBox(existingBoardGame.id());
@@ -214,7 +214,7 @@ public class BoardGameTests {
         final BoardGameRequestDto newBoardGame1 = new BoardGameRequestDto(title1, customFieldValues1);
         final ResultActions boardGameBoxResult1 = factory.postBoardGameBoxReturnResult(title1, false, false, null, null, newBoardGame1, new ArrayList<>());
         
-        final BoardGameBoxResponseDto boardGameBoxDto1 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult1);
+        final BoardGameBoxResponseDto boardGameBoxDto1 = factory.resultToDto(boardGameBoxResult1, BoardGameBoxResponseDto.class);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult1, title1, false, false, null, boardGameBoxDto1.boardGame(), new ArrayList<>());
         
         final SlimBoardGame gameDto1 = boardGameBoxDto1.boardGame();
@@ -224,7 +224,7 @@ public class BoardGameTests {
         final BoardGameRequestDto newBoardGame2 = new BoardGameRequestDto(title2, customFieldValues2);
         final ResultActions boardGameBoxResult2 = factory.postBoardGameBoxReturnResult(title2, false, false, null, null, newBoardGame2, new ArrayList<>());
         
-        final BoardGameBoxResponseDto boardGameBoxDto2 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult2);
+        final BoardGameBoxResponseDto boardGameBoxDto2 = factory.resultToDto(boardGameBoxResult2, BoardGameBoxResponseDto.class);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult2, title2, false, false, null, boardGameBoxDto2.boardGame(), new ArrayList<>());
         
         final SlimBoardGame gameDto2 = boardGameBoxDto2.boardGame();
@@ -234,7 +234,7 @@ public class BoardGameTests {
         final BoardGameRequestDto newBoardGame3 = new BoardGameRequestDto(title3, customFieldValues3);
         final ResultActions boardGameBoxResult3 = factory.postBoardGameBoxReturnResult(title3, false, false, null, null, newBoardGame3, new ArrayList<>());
         
-        final BoardGameBoxResponseDto boardGameBoxDto3 = factory.resultToBoardGameBoxResponseDto(boardGameBoxResult3);
+        final BoardGameBoxResponseDto boardGameBoxDto3 = factory.resultToDto(boardGameBoxResult3, BoardGameBoxResponseDto.class);
         factory.validateBoardGameBoxResponseBody(boardGameBoxResult3, title3, false, false, null, boardGameBoxDto3.boardGame(), new ArrayList<>());
         
         final SlimBoardGame gameDto3 = boardGameBoxDto3.boardGame();
@@ -439,7 +439,7 @@ public class BoardGameTests {
                 jsonPath("$.errors").isEmpty(),
                 jsonPath("$.roundTripMs").isNotEmpty()
         );
-        BoardGameResponseDto responseDto = factory.resultToBoardGameResponseDto(result);
+        BoardGameResponseDto responseDto = factory.resultToDto(result, BoardGameResponseDto.class);
         factory.validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
         validateSlimBoardGameBoxes(expectedBoardGameBoxes, responseDto.boardGameBoxes());
     }

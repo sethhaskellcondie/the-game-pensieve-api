@@ -16,7 +16,6 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGam
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.SlimBoardGameBox;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
@@ -32,7 +31,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
 
 public class TestFactory {
@@ -170,7 +168,7 @@ public class TestFactory {
 
     public SystemResponseDto postSystem() throws Exception {
         final ResultActions result = postSystemReturnResult();
-        return resultToSystemResponseDto(result);
+        return resultToDto(result, SystemResponseDto.class);
     }
 
     public ResultActions postSystemReturnResult() throws Exception {
@@ -205,11 +203,10 @@ public class TestFactory {
         return result;
     }
 
-    public SystemResponseDto resultToSystemResponseDto(ResultActions result) throws Exception {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
+    public <T> T resultToDto(ResultActions result, Class<T> clazz) throws Exception {
+        final String responseString = result.andReturn().getResponse().getContentAsString();
         final ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), SystemResponseDto.class);
+        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), clazz);
     }
 
     public void validateSystem(SystemResponseDto expectedSystem, SystemResponseDto actualSystem) {
@@ -269,12 +266,6 @@ public class TestFactory {
         return result;
     }
 
-    public ToyResponseDto resultToToyResponseDto(ResultActions result) throws Exception {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), ToyResponseDto.class);
-    }
 
     public String formatToyPayload(String name, String set, List<CustomFieldValue> customFieldValues) {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
@@ -290,12 +281,6 @@ public class TestFactory {
         return String.format(json, name, set, customFieldValuesString);
     }
 
-    public VideoGameResponseDto resultToVideoGameResponseDto(ResultActions result) throws Exception {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), VideoGameResponseDto.class);
-    }
 
     public String formatVideoGamePayload(String title, int systemId, List<CustomFieldValue> customFieldValues) {
         final String json = """
@@ -339,7 +324,7 @@ public class TestFactory {
         final int systemId = postSystem().id();
         final VideoGameRequestDto newVideoGame = new VideoGameRequestDto(title, systemId, new ArrayList<>());
         final ResultActions result = postVideoGameBoxReturnResult(title, systemId, new ArrayList<Integer>(), List.of(newVideoGame), false, null);
-        return resultToVideoGameBoxResponseDto(result);
+        return resultToDto(result, VideoGameBoxResponseDto.class);
     }
 
     public ResultActions postVideoGameBoxReturnResult(String title, int systemId, List<Integer> existingGameIds, List<VideoGameRequestDto> newVideoGames, boolean isPhysical,
@@ -357,12 +342,6 @@ public class TestFactory {
         return result;
     }
 
-    public VideoGameBoxResponseDto resultToVideoGameBoxResponseDto(ResultActions result) throws Exception {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), VideoGameBoxResponseDto.class);
-    }
 
     public String formatVideoGameBoxPayload(String title, int systemId, List<Integer> videoGameIds, List<VideoGameRequestDto> newVideoGames, boolean isPhysical,
                                             List<CustomFieldValue> customFieldValues) {
@@ -440,7 +419,7 @@ public class TestFactory {
                 jsonPath("$.errors").isEmpty(),
                 jsonPath("$.roundTripMs").isNotEmpty()
         );
-        VideoGameBoxResponseDto responseDto = resultToVideoGameBoxResponseDto(result);
+        VideoGameBoxResponseDto responseDto = resultToDto(result, VideoGameBoxResponseDto.class);
         validateSystem(expectedSystem, responseDto.system());
         validateSlimVideoGames(expectedVideoGames, responseDto.videoGames());
         validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
@@ -449,13 +428,13 @@ public class TestFactory {
     public BoardGameBoxResponseDto postBoardGameBox() throws Exception {
         final String title = "TestBoardGameBox-" + randomString(4);
         final ResultActions result = postBoardGameBoxReturnResult(title, false, false, null, null, null);
-        return resultToBoardGameBoxResponseDto(result);
+        return resultToDto(result, BoardGameBoxResponseDto.class);
     }
 
     public BoardGameBoxResponseDto postBoardGameBox(int boardGameId) throws Exception {
         final String title = "TestBoardGameBox-" + randomString(4);
         final ResultActions result = postBoardGameBoxReturnResult(title, false, false, null, boardGameId, null);
-        return resultToBoardGameBoxResponseDto(result);
+        return resultToDto(result, BoardGameBoxResponseDto.class);
     }
 
     public SlimBoardGameBox convertBoardGameBoxResponseToSlimBoardGameBox(BoardGameBoxResponseDto responseDto) {
@@ -495,12 +474,6 @@ public class TestFactory {
         return result;
     }
 
-    public BoardGameBoxResponseDto resultToBoardGameBoxResponseDto(ResultActions result) throws Exception {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), BoardGameBoxResponseDto.class);
-    }
 
     public String formatBoardGameBoxPayload(String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId, List<CustomFieldValue> customFieldValues) {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
@@ -551,12 +524,6 @@ public class TestFactory {
         return String.format(json, boardGame.title(), customFieldValuesString);
     }
 
-    public BoardGameResponseDto resultToBoardGameResponseDto(ResultActions result) throws Exception {
-        final MvcResult mvcResult = result.andReturn();
-        final String responseString = mvcResult.getResponse().getContentAsString();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), BoardGameResponseDto.class);
-    }
 
     public String formatBoardGamePayload(String title, List<CustomFieldValue> customFieldValues) {
         final String customFieldValuesString = formatCustomFieldValues(customFieldValues);
@@ -585,7 +552,7 @@ public class TestFactory {
                 jsonPath("$.errors").isEmpty(),
                 jsonPath("$.roundTripMs").isNotEmpty()
         );
-        BoardGameBoxResponseDto responseDto = resultToBoardGameBoxResponseDto(result);
+        BoardGameBoxResponseDto responseDto = resultToDto(result, BoardGameBoxResponseDto.class);
         validateCustomFieldValues(responseDto.customFieldValues(), customFieldValues);
 
         if (expectedSlimBoardGame.customFieldValues() != null && !expectedSlimBoardGame.customFieldValues().isEmpty()) {

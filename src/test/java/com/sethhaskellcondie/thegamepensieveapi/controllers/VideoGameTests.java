@@ -89,7 +89,7 @@ public class VideoGameTests {
 
         factory.validateVideoGameBoxResponseBody(result, boxTitle, boxSystem, expectedVideoGameResults, isPhysical, expectedCollection, new ArrayList<>());
 
-        final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
+        final VideoGameBoxResponseDto responseDto = factory.resultToDto(result, VideoGameBoxResponseDto.class);
         final SlimVideoGame existingVideoGame = responseDto.videoGames().get(0);
 
 
@@ -187,7 +187,7 @@ public class VideoGameTests {
         final List<SlimVideoGame> expectedVideoGameResults = List.of(convertToExpectedSlimVideoGameResponse(newGame1, relatedSystem));
         final ResultActions result = factory.postVideoGameBoxReturnResult(boxTitle, relatedSystem.id(), new ArrayList<>(), List.of(newGame1), isPhysical, new ArrayList<>());
         factory.validateVideoGameBoxResponseBody(result, boxTitle, relatedSystem, expectedVideoGameResults, isPhysical, expectedCollection, new ArrayList<>());
-        final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
+        final VideoGameBoxResponseDto responseDto = factory.resultToDto(result, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame = responseDto.videoGames().get(0);
 
         //create another box with Super Mario Bros. 3
@@ -200,7 +200,7 @@ public class VideoGameTests {
         final ResultActions result3 = mockMvc.perform(get(baseUrlSlash + slimVideoGame.id()));
         List<SlimVideoGameBox> expectedBoxes = List.of(
                 convertToExpectedSlimVideoGameBox(responseDto, relatedSystem),
-                convertToExpectedSlimVideoGameBox(factory.resultToVideoGameBoxResponseDto(result2), relatedSystem)
+                convertToExpectedSlimVideoGameBox(factory.resultToDto(result2, VideoGameBoxResponseDto.class), relatedSystem)
         );
 
         validateVideoGameResponseBody(result3, gameTitle, relatedSystem, expectedBoxes, new ArrayList<>());
@@ -232,7 +232,7 @@ public class VideoGameTests {
         final List<CustomFieldValue> customFieldValues1 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
         final VideoGameRequestDto newGame1 = new VideoGameRequestDto(gameTitle1, relatedSystem1.id(), customFieldValues1);
         final ResultActions result1 = factory.postVideoGameBoxReturnResult(boxTitle1, relatedSystem1.id(), new ArrayList<>(), List.of(newGame1), isPhysical, new ArrayList<>());
-        final VideoGameBoxResponseDto responseDto1 = factory.resultToVideoGameBoxResponseDto(result1);
+        final VideoGameBoxResponseDto responseDto1 = factory.resultToDto(result1, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame1 = responseDto1.videoGames().get(0);
 
         final String boxTitle2 = "Video Game Box 2";
@@ -241,7 +241,7 @@ public class VideoGameTests {
         final List<CustomFieldValue> customFieldValues2 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
         final VideoGameRequestDto newGame2 = new VideoGameRequestDto(gameTitle2, relatedSystem2.id(), customFieldValues2);
         final ResultActions result2 = factory.postVideoGameBoxReturnResult(boxTitle2, relatedSystem2.id(), new ArrayList<>(), List.of(newGame2), isPhysical, new ArrayList<>());
-        final VideoGameBoxResponseDto responseDto2 = factory.resultToVideoGameBoxResponseDto(result2);
+        final VideoGameBoxResponseDto responseDto2 = factory.resultToDto(result2, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame2 = responseDto2.videoGames().get(0);
 
         final String boxTitle3 = "Video Game Box 3";
@@ -250,7 +250,7 @@ public class VideoGameTests {
         final List<CustomFieldValue> customFieldValues3 = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "3"));
         final VideoGameRequestDto newGame3 = new VideoGameRequestDto(gameTitle3, relatedSystem3.id(), customFieldValues3);
         final ResultActions result3 = factory.postVideoGameBoxReturnResult(boxTitle3, relatedSystem3.id(), new ArrayList<>(), List.of(newGame3), isPhysical, new ArrayList<>());
-        final VideoGameBoxResponseDto responseDto3 = factory.resultToVideoGameBoxResponseDto(result3);
+        final VideoGameBoxResponseDto responseDto3 = factory.resultToDto(result3, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame3 = responseDto3.videoGames().get(0);
 
         final Filter filter = new Filter(Keychain.VIDEO_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "Unique", false);
@@ -296,19 +296,19 @@ public class VideoGameTests {
         final String gameTitle1 = "Mario Bros On System 1";
         final VideoGameRequestDto game1 = new VideoGameRequestDto(gameTitle1, system1.id(), new ArrayList<>());
         final ResultActions result1 = factory.postVideoGameBoxReturnResult("Mario Box On System 1", system1.id(), List.of(), List.of(game1), false, new ArrayList<>());
-        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToVideoGameBoxResponseDto(result1);
+        final VideoGameBoxResponseDto gameBoxDto1 = factory.resultToDto(result1, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame1 = gameBoxDto1.videoGames().get(0);
 
         final String gameTitle2 = "Zelda On System 2";
         final VideoGameRequestDto game2 = new VideoGameRequestDto(gameTitle2, system2.id(), new ArrayList<>());
         final ResultActions result2 = factory.postVideoGameBoxReturnResult("Zelda Box On System 2", system2.id(), List.of(), List.of(game2), false, new ArrayList<>());
-        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToVideoGameBoxResponseDto(result2);
+        final VideoGameBoxResponseDto gameBoxDto2 = factory.resultToDto(result2, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame2 = gameBoxDto2.videoGames().get(0);
 
         final String gameTitle3 = "Metroid On System 2";
         final VideoGameRequestDto game3 = new VideoGameRequestDto(gameTitle3, system2.id(), new ArrayList<>());
         final ResultActions result3 = factory.postVideoGameBoxReturnResult("Metroid Box On System 2", system2.id(), List.of(), List.of(game3), false, new ArrayList<>());
-        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToVideoGameBoxResponseDto(result3);
+        final VideoGameBoxResponseDto gameBoxDto3 = factory.resultToDto(result3, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame3 = gameBoxDto3.videoGames().get(0);
 
         // Test equals operator for system_id
@@ -361,13 +361,13 @@ public class VideoGameTests {
         final boolean isPhysical = true;
         final VideoGameRequestDto newGame1 = new VideoGameRequestDto(gameTitle, relatedSystem.id(), new ArrayList<>());
         final ResultActions result = factory.postVideoGameBoxReturnResult(boxTitle, relatedSystem.id(), new ArrayList<>(), List.of(newGame1), isPhysical, new ArrayList<>());
-        final VideoGameBoxResponseDto responseDto = factory.resultToVideoGameBoxResponseDto(result);
+        final VideoGameBoxResponseDto responseDto = factory.resultToDto(result, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame = responseDto.videoGames().get(0);
 
         //create another box with Super Mario Bros.
         final String boxTitle2 = "Super Mario Collection Again";
         final ResultActions result2 = factory.postVideoGameBoxReturnResult(boxTitle2, relatedSystem.id(), List.of(slimVideoGame.id()), new ArrayList<>(), isPhysical, new ArrayList<>());
-        final VideoGameBoxResponseDto expectedBox = factory.resultToVideoGameBoxResponseDto(result2);
+        final VideoGameBoxResponseDto expectedBox = factory.resultToDto(result2, VideoGameBoxResponseDto.class);
         //delete Super Mario Collection
         final ResultActions deleteResult = mockMvc.perform(
                 delete(videoGameBoxUrlSlash + responseDto.id())
@@ -433,7 +433,7 @@ public class VideoGameTests {
         final List<SlimVideoGame> expectedVideoGameResults = List.of(convertToExpectedSlimVideoGameResponse(newGame1, relatedSystem));
         final ResultActions postBoxResult = factory.postVideoGameBoxReturnResult(boxTitle, relatedSystem.id(), new ArrayList<>(), List.of(newGame1), isPhysical, new ArrayList<>());
         factory.validateVideoGameBoxResponseBody(postBoxResult, boxTitle, relatedSystem, expectedVideoGameResults, isPhysical, expectedCollection, new ArrayList<>());
-        final VideoGameBoxResponseDto existingVideoGameBox = factory.resultToVideoGameBoxResponseDto(postBoxResult);
+        final VideoGameBoxResponseDto existingVideoGameBox = factory.resultToDto(postBoxResult, VideoGameBoxResponseDto.class);
         final SlimVideoGame slimVideoGame = existingVideoGameBox.videoGames().get(0);
 
         final ResultActions result = mockMvc.perform(
@@ -473,7 +473,7 @@ public class VideoGameTests {
 
         final ResultActions result = factory.postVideoGameBoxReturnResult(boxTitle, boxSystem.id(), new ArrayList<>(), List.of(newGame1, newGame2), isPhysical, new ArrayList<>());
         factory.validateVideoGameBoxResponseBody(result, boxTitle, boxSystem, expectedVideoGameResults1, isPhysical, expectedCollection, new ArrayList<>());
-        final VideoGameBoxResponseDto responseDto1 = factory.resultToVideoGameBoxResponseDto(result);
+        final VideoGameBoxResponseDto responseDto1 = factory.resultToDto(result, VideoGameBoxResponseDto.class);
         final int game1Id = responseDto1.videoGames().get(0).id();
         final int game2Id = responseDto1.videoGames().get(1).id();
         //Note: should I add validation here, or update this test to work after the test that tests the post functionality.
@@ -543,7 +543,7 @@ public class VideoGameTests {
                 jsonPath("$.errors").isEmpty(),
                 jsonPath("$.roundTripMs").isNotEmpty()
         );
-        VideoGameResponseDto responseDto = factory.resultToVideoGameResponseDto(result);
+        VideoGameResponseDto responseDto = factory.resultToDto(result, VideoGameResponseDto.class);
         factory.validateSystem(expectedSystem, responseDto.system());
         validateSlimVideoGameBoxes(expectedVideoGameBoxes, responseDto.videoGameBoxes());
         factory.validateCustomFieldValues(customFieldValues, responseDto.customFieldValues());

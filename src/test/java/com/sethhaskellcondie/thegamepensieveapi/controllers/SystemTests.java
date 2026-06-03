@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -384,7 +385,7 @@ public class SystemTests {
 
         // Now delete the video game box that was preventing system deletion, this will allow the delete to take place
         final com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto videoGameBox = 
-                factory.resultToVideoGameBoxResponseDto(videoGameBoxResult);
+                factory.resultToDto(videoGameBoxResult, VideoGameBoxResponseDto.class);
         
         final ResultActions deleteVideoGameBoxResult = mockMvc.perform(
                 delete("/v1/videoGameBoxes/" + videoGameBox.id())
@@ -469,7 +470,7 @@ public class SystemTests {
     // ------------------------- Private Helper Methods ------------------------------
 
     private SystemResponseDto resultToResponseDto(ResultActions result) throws Exception {
-        return factory.resultToSystemResponseDto(result);
+        return factory.resultToDto(result, SystemResponseDto.class);
     }
 
     private void validateSystemResponseBody(ResultActions result, String expectedName, int expectedGeneration, boolean expectedHandheld, List<CustomFieldValue> customFieldValues) throws Exception {
