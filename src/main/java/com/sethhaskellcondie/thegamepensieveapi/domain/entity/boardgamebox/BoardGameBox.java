@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityData;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
@@ -9,9 +10,11 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalfo
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 
-public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxResponseDto> {
+public class BoardGameBox implements Entity<BoardGameBoxRequestDto, BoardGameBoxResponseDto> {
 
+    private final EntityData entityData;
     private String title;
     private boolean expansion;
     private boolean standAlone;
@@ -20,12 +23,12 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
     private SlimBoardGame boardGame; //the board game is initially set to null, but can be hydrated in the service
 
     public BoardGameBox() {
-        super();
+        this.entityData = new EntityData();
     }
 
     public BoardGameBox(Integer id, String title, boolean isExpansion, boolean isStandAlone, Integer baseSetId, Integer boardGameId,
                         Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) {
-        super(id, createdAt, updatedAt, deletedAt, customFieldValues);
+        this.entityData = new EntityData(id, createdAt, updatedAt, deletedAt, customFieldValues);
         this.title = title;
         this.expansion = isExpansion;
         this.standAlone = isStandAlone;
@@ -35,6 +38,48 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
         }
         this.boardGameId = boardGameId;
         this.boardGame = null;
+    }
+
+    @Override
+    public Integer getId() {
+        return entityData.getId();
+    }
+
+    @Override
+    public String getKey() {
+        return Keychain.BOARD_GAME_BOX_KEY;
+    }
+
+    @Override
+    public List<CustomFieldValue> getCustomFieldValues() {
+        return entityData.getCustomFieldValues();
+    }
+
+    @Override
+    public void setCustomFieldValues(List<CustomFieldValue> customFieldValues) {
+        entityData.setCustomFieldValues(customFieldValues);
+    }
+
+    @Override
+    public boolean isPersisted() {
+        return entityData.isPersisted();
+    }
+
+    @Override
+    public boolean isDeleted() {
+        return entityData.isDeleted();
+    }
+
+    public Timestamp getCreatedAt() {
+        return entityData.getCreatedAt();
+    }
+
+    public Timestamp getUpdatedAt() {
+        return entityData.getUpdatedAt();
+    }
+
+    public Timestamp getDeletedAt() {
+        return entityData.getDeletedAt();
     }
 
     public String getTitle() {
@@ -84,50 +129,64 @@ public class BoardGameBox extends Entity<BoardGameBoxRequestDto, BoardGameBoxRes
     }
 
     @Override
-    protected BoardGameBox updateFromRequestDto(BoardGameBoxRequestDto requestDto) {
+    public BoardGameBox updateFromRequestDto(BoardGameBoxRequestDto requestDto) {
         this.title = requestDto.title();
         this.expansion = requestDto.isExpansion();
         this.standAlone = requestDto.isStandAlone();
         this.baseSetId = requestDto.baseSetId();
         this.boardGameId = requestDto.boardGameId();
-        this.customFieldValues = requestDto.customFieldValues();
+        entityData.setCustomFieldValues(requestDto.customFieldValues());
         this.validate();
         return this;
     }
 
     @Override
-    public String getKey() {
-        return Keychain.BOARD_GAME_BOX_KEY;
-    }
-
-    @Override
     public BoardGameBoxRequestDto convertToRequestDto() {
-        return new BoardGameBoxRequestDto(this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGameId, null, this.customFieldValues);
+        return new BoardGameBoxRequestDto(this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGameId, null, entityData.getCustomFieldValues());
     }
 
     @Override
     public BoardGameBoxResponseDto convertToResponseDto() {
-        return new BoardGameBoxResponseDto(this.getKey(), this.id, this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGame,
-                this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
+        return new BoardGameBoxResponseDto(this.getKey(), entityData.getId(), this.title, this.expansion, this.standAlone, this.baseSetId, this.boardGame,
+                entityData.getCreatedAt(), entityData.getUpdatedAt(), entityData.getDeletedAt(), entityData.getCustomFieldValues());
+    }
+
+    public SlimBoardGameBox convertToSlimBoardGameBox() {
+        return new SlimBoardGameBox(
+                entityData.getId(),
+                this.title,
+                this.expansion,
+                this.standAlone,
+                this.baseSetId,
+                entityData.getCreatedAt(),
+                entityData.getUpdatedAt(),
+                entityData.getDeletedAt(),
+                entityData.getCustomFieldValues()
+        );
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof BoardGameBox other)) {
+            return false;
+        }
+        if (!other.isPersisted()) {
+            return false;
+        }
+        return Objects.equals(this.getId(), other.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 
     private void validate() throws ExceptionMalformedEntity {
         if (null == this.title || this.title.isBlank()) {
             throw new ExceptionMalformedEntity("Board Game Box object error, title cannot be blank");
         }
-    }
-
-    public SlimBoardGameBox convertToSlimBoardGameBox() {
-        return new SlimBoardGameBox(
-                this.id,
-                this.title,
-                this.expansion,
-                this.standAlone,
-                this.baseSetId,
-                this.created_at,
-                this.updated_at,
-                this.deleted_at,
-                this.customFieldValues
-        );
     }
 }
