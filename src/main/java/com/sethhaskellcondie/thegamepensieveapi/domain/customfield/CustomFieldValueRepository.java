@@ -15,8 +15,11 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Repository
 public class CustomFieldValueRepository {
@@ -58,6 +61,25 @@ public class CustomFieldValueRepository {
                 """;
         List<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, entityId, entityKey);
         return customFieldValueJoinCustomFieldDaos.stream().map(CustomFieldValueJoinCustomFieldDao::convertToValue).toList();
+    }
+
+    public Map<Integer, List<CustomFieldValue>> getCustomFieldValuesByEntityIdsAndEntityKey(List<Integer> entityIds, String entityKey) {
+        String placeholders = entityIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+        final String sql = "SELECT * FROM custom_field_values"
+                + " JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id"
+                + " WHERE custom_field_values.entity_id IN (" + placeholders + ")"
+                + " AND custom_field_values.entity_key = ? AND custom_fields.deleted = false;";
+        Object[] params = new Object[entityIds.size() + 1];
+        for (int i = 0; i < entityIds.size(); i++) {
+            params[i] = entityIds.get(i);
+        }
+        params[entityIds.size()] = entityKey;
+        List<CustomFieldValueJoinCustomFieldDao> daos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, params);
+        Map<Integer, List<CustomFieldValue>> result = new HashMap<>();
+        for (CustomFieldValueJoinCustomFieldDao dao : daos) {
+            result.computeIfAbsent(dao.entityId(), k -> new ArrayList<>()).add(dao.convertToValue());
+        }
+        return result;
     }
 
     public List<CustomFieldValue> upsertValues(List<CustomFieldValue> values, int entityId, String entityKey) {
