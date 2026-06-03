@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityData;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.Entity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
@@ -13,9 +14,11 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalfo
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxResponseDto> {
+public class VideoGameBox implements Entity<VideoGameBoxRequestDto, VideoGameBoxResponseDto> {
 
+    private final EntityData entityData;
     private String title;
     private int systemId; //This is the systemId saved in the database it should correspond to a system in the system table.
     private System system; //This works like a flag if the systemId is valid then a system (can be deleted) can be pulled from the database, set in the service not the constructor
@@ -25,7 +28,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     private boolean collection;
 
     public VideoGameBox() {
-        super();
+        this.entityData = new EntityData();
         this.videoGameIds = new ArrayList<>();
         this.videoGames = new ArrayList<>();
     }
@@ -33,7 +36,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     //used by the repository to get the data from the database, the videoGames and system will be set later
     public VideoGameBox(Integer id, String title, int systemId, boolean physical, boolean collection,
                         Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt, List<CustomFieldValue> customFieldValues) {
-        super(id, createdAt, updatedAt, deletedAt, customFieldValues);
+        this.entityData = new EntityData(id, createdAt, updatedAt, deletedAt, customFieldValues);
         this.title = title;
         this.systemId = systemId;
         this.system = null;
@@ -41,6 +44,48 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         this.videoGames = new ArrayList<>();
         this.physical = physical;
         this.collection = collection;
+    }
+
+    @Override
+    public Integer getId() {
+        return entityData.getId();
+    }
+
+    @Override
+    public String getKey() {
+        return Keychain.VIDEO_GAME_BOX_KEY;
+    }
+
+    @Override
+    public List<CustomFieldValue> getCustomFieldValues() {
+        return entityData.getCustomFieldValues();
+    }
+
+    @Override
+    public void setCustomFieldValues(List<CustomFieldValue> customFieldValues) {
+        entityData.setCustomFieldValues(customFieldValues);
+    }
+
+    @Override
+    public boolean isPersisted() {
+        return entityData.isPersisted();
+    }
+
+    @Override
+    public boolean isDeleted() {
+        return entityData.isDeleted();
+    }
+
+    public Timestamp getCreatedAt() {
+        return entityData.getCreatedAt();
+    }
+
+    public Timestamp getUpdatedAt() {
+        return entityData.getUpdatedAt();
+    }
+
+    public Timestamp getDeletedAt() {
+        return entityData.getDeletedAt();
     }
 
     public String getTitle() {
@@ -115,7 +160,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
     }
 
     @Override
-    protected VideoGameBox updateFromRequestDto(VideoGameBoxRequestDto requestDto) {
+    public VideoGameBox updateFromRequestDto(VideoGameBoxRequestDto requestDto) {
         //the videoGames, the videoGameIds, and the System are all setup outside of this
         ExceptionMalformedEntity exception = new ExceptionMalformedEntity();
         this.title = requestDto.title();
@@ -125,7 +170,7 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
             exception.addException(new ExceptionInputValidation("Video Game Box object error, the systemId cannot be null."));
         }
         this.physical = requestDto.isPhysical();
-        this.customFieldValues = requestDto.customFieldValues();
+        entityData.setCustomFieldValues(requestDto.customFieldValues());
 
         try {
             this.validate();
@@ -145,8 +190,8 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         if (isSystemValid()) {
             systemResponseDto = this.system.convertToResponseDto();
         }
-        return new VideoGameBoxResponseDto(this.getKey(), this.id, this.title, systemResponseDto, this.videoGames, this.physical, this.collection,
-                this.created_at, this.updated_at, this.deleted_at, this.customFieldValues
+        return new VideoGameBoxResponseDto(this.getKey(), entityData.getId(), this.title, systemResponseDto, this.videoGames, this.physical, this.collection,
+                entityData.getCreatedAt(), entityData.getUpdatedAt(), entityData.getDeletedAt(), entityData.getCustomFieldValues()
         );
     }
 
@@ -156,12 +201,35 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         for (SlimVideoGame videoGame : this.videoGames) {
             videoGameRequests.add(new VideoGameRequestDto(videoGame.title(), videoGame.system().id(), videoGame.customFieldValues()));
         }
-        return new VideoGameBoxRequestDto(this.title, this.systemId, this.videoGameIds, videoGameRequests, this.physical, this.customFieldValues);
+        return new VideoGameBoxRequestDto(this.title, this.systemId, this.videoGameIds, videoGameRequests, this.physical, entityData.getCustomFieldValues());
+    }
+
+    public SlimVideoGameBox convertToSlimVideoGameBox() {
+        SystemResponseDto systemResponseDto = null;
+        if (isSystemValid()) {
+            systemResponseDto = this.system.convertToResponseDto();
+        }
+        return new SlimVideoGameBox(entityData.getId(), this.title, systemResponseDto, this.physical, this.collection,
+                entityData.getCreatedAt(), entityData.getUpdatedAt(), entityData.getDeletedAt(), entityData.getCustomFieldValues());
     }
 
     @Override
-    public String getKey() {
-        return Keychain.VIDEO_GAME_BOX_KEY;
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof VideoGameBox other)) {
+            return false;
+        }
+        if (!other.isPersisted()) {
+            return false;
+        }
+        return Objects.equals(this.getId(), other.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 
     private void validate() {
@@ -175,13 +243,5 @@ public class VideoGameBox extends Entity<VideoGameBoxRequestDto, VideoGameBoxRes
         if (!exception.isEmpty()) {
             throw exception;
         }
-    }
-
-    public SlimVideoGameBox convertToSlimVideoGameBox() {
-        SystemResponseDto systemResponseDto = null;
-        if (isSystemValid()) {
-            systemResponseDto = this.system.convertToResponseDto();
-        }
-        return new SlimVideoGameBox(this.id, this.title, systemResponseDto, this.physical, this.collection, this.created_at, this.updated_at, this.deleted_at, this.customFieldValues);
     }
 }

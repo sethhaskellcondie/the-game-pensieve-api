@@ -14,7 +14,7 @@ public abstract class EntityGatewayAbstract<T extends Entity<RequestDto, Respons
     @Override
     public List<ResponseDto> getWithFilters(List<FilterRequestDto> filters) {
         List<T> t = service.getWithFilters(filters);
-        return t.stream().map(Entity::convertToResponseDto).toList();
+        return t.stream().map(e -> e.convertToResponseDto()).toList();
     }
 
     @Override

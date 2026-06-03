@@ -10,6 +10,7 @@ public record SlimVideoGame(
         Integer id,
         String title,
         SystemResponseDto system,
+        // No video game box ids
         Timestamp createdAt,
         Timestamp updatedAt,
         Timestamp deletedAt,

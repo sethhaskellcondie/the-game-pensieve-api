@@ -10,6 +10,7 @@ public record SlimVideoGameBox(
         Integer id,
         String title,
         SystemResponseDto system,
+        // No video game ids
         boolean physical,
         boolean collection,
         Timestamp createdAt,
