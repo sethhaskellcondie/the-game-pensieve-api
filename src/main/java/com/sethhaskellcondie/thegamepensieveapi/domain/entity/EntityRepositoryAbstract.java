@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.entity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterService;
@@ -17,6 +18,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.Types;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The goal of creating an abstract of the repository is to encapsulate the access of the customFieldValueRepository
@@ -99,8 +101,12 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             sql = buildQueryWithCustomFieldJoins((int) customFilterCount) + String.join(" ", whereStatements);
         }
         List<T> entities = jdbcTemplate.query(sql, rowMapper, operands.toArray());
-        for (T entity: entities) {
-            setCustomFieldsValuesForEntity(entity);
+        if (!entities.isEmpty()) {
+            List<Integer> entityIds = entities.stream().map(Entity::getId).toList();
+            Map<Integer, List<CustomFieldValue>> customFieldValuesByEntityId = customFieldValueRepository.getCustomFieldValuesByEntityIdsAndEntityKey(entityIds, entityKey);
+            for (T entity : entities) {
+                entity.setCustomFieldValues(customFieldValuesByEntityId.getOrDefault(entity.getId(), List.of()));
+            }
         }
         return entities;
     }

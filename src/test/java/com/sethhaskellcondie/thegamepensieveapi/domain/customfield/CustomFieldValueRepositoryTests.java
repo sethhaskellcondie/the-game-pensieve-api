@@ -281,6 +281,69 @@ public class CustomFieldValueRepositoryTests {
         );
     }
 
+    @Test
+    public void getWithFilters_MultipleEntitiesEachWithCustomFieldValues_CustomFieldValuesReturnedOnCorrectEntity() {
+        final CustomField textField = customFieldRepository.insertCustomField(new CustomFieldRequestDto("Toy Store", CustomField.TYPE_TEXT, Keychain.TOY_KEY));
+        final CustomField numberField = customFieldRepository.insertCustomField(new CustomFieldRequestDto("Release Year Test 2", CustomField.TYPE_NUMBER, Keychain.TOY_KEY));
+
+        final String toy1Name = "BatchTest_Alpha";
+        final String toy1ToyStoreValue = "ToysRUs";
+        final String toy1ReleaseYearValue = "1985";
+        final CustomFieldValue toy1TextValue = new CustomFieldValue(textField.id(), textField.name(), CustomField.TYPE_TEXT, toy1ToyStoreValue);
+        final CustomFieldValue toy1NumberValue = new CustomFieldValue(numberField.id(), numberField.name(), CustomField.TYPE_NUMBER, toy1ReleaseYearValue);
+        final Toy insertedToy1 = toyRepository.insert(new Toy(null, toy1Name, "SetA", null, null, null, List.of(toy1TextValue, toy1NumberValue)));
+
+        final String toy2Name = "BatchTest_Beta";
+        final String toy2ToyStoreValue = "Target";
+        final String toy2ReleaseYearValue = "1992";
+        final CustomFieldValue toy2TextValue = new CustomFieldValue(textField.id(), textField.name(), CustomField.TYPE_TEXT, toy2ToyStoreValue);
+        final CustomFieldValue toy2NumberValue = new CustomFieldValue(numberField.id(), numberField.name(), CustomField.TYPE_NUMBER, toy2ReleaseYearValue);
+        final Toy insertedToy2 = toyRepository.insert(new Toy(null, toy2Name, "SetB", null, null, null, List.of(toy2TextValue, toy2NumberValue)));
+
+        final String toy3Name = "BatchTest_Gamma";
+        final String toy3ToyStoreValue = "Walmart";
+        final String toy3ReleaseYearValue = "2001";
+        final CustomFieldValue toy3TextValue = new CustomFieldValue(textField.id(), textField.name(), CustomField.TYPE_TEXT, toy3ToyStoreValue);
+        final CustomFieldValue toy3NumberValue = new CustomFieldValue(numberField.id(), numberField.name(), CustomField.TYPE_NUMBER, toy3ReleaseYearValue);
+        final Toy insertedToy3 = toyRepository.insert(new Toy(null, toy3Name, "SetC", null, null, null, List.of(toy3TextValue, toy3NumberValue)));
+
+        final Filter nameContainsFilter = new Filter(Keychain.TOY_KEY, Filter.FIELD_TYPE_TEXT, "name", Filter.OPERATOR_CONTAINS, "BatchTest_", false);
+        final List<Toy> retrievedToys = toyRepository.getWithFilters(List.of(nameContainsFilter));
+
+        assertEquals(3, retrievedToys.size(), "Expected exactly 3 toys returned from batch search.");
+
+        final Toy retrievedToy1 = retrievedToys.stream().filter(t -> t.getId().equals(insertedToy1.getId())).findFirst().orElseThrow();
+        final Toy retrievedToy2 = retrievedToys.stream().filter(t -> t.getId().equals(insertedToy2.getId())).findFirst().orElseThrow();
+        final Toy retrievedToy3 = retrievedToys.stream().filter(t -> t.getId().equals(insertedToy3.getId())).findFirst().orElseThrow();
+
+        final String toyStoreFieldName = textField.name();
+        final String releaseYearFieldName = numberField.name();
+        assertAll(
+                toy1Name + " custom field values were not returned correctly.",
+                () -> assertEquals(2, retrievedToy1.getCustomFieldValues().size()),
+                () -> assertEquals(toy1ToyStoreValue, retrievedToy1.getCustomFieldValues().stream()
+                        .filter(v -> v.getCustomFieldName().equals(toyStoreFieldName)).findFirst().orElseThrow().getValue()),
+                () -> assertEquals(toy1ReleaseYearValue, retrievedToy1.getCustomFieldValues().stream()
+                        .filter(v -> v.getCustomFieldName().equals(releaseYearFieldName)).findFirst().orElseThrow().getValue())
+        );
+        assertAll(
+                toy2Name + " custom field values were not returned correctly.",
+                () -> assertEquals(2, retrievedToy2.getCustomFieldValues().size()),
+                () -> assertEquals(toy2ToyStoreValue, retrievedToy2.getCustomFieldValues().stream()
+                        .filter(v -> v.getCustomFieldName().equals(toyStoreFieldName)).findFirst().orElseThrow().getValue()),
+                () -> assertEquals(toy2ReleaseYearValue, retrievedToy2.getCustomFieldValues().stream()
+                        .filter(v -> v.getCustomFieldName().equals(releaseYearFieldName)).findFirst().orElseThrow().getValue())
+        );
+        assertAll(
+                toy3Name + " custom field values were not returned correctly.",
+                () -> assertEquals(2, retrievedToy3.getCustomFieldValues().size()),
+                () -> assertEquals(toy3ToyStoreValue, retrievedToy3.getCustomFieldValues().stream()
+                        .filter(v -> v.getCustomFieldName().equals(toyStoreFieldName)).findFirst().orElseThrow().getValue()),
+                () -> assertEquals(toy3ReleaseYearValue, retrievedToy3.getCustomFieldValues().stream()
+                        .filter(v -> v.getCustomFieldName().equals(releaseYearFieldName)).findFirst().orElseThrow().getValue())
+        );
+    }
+
     private Toy createNewToyWithCustomFields(List<CustomFieldValue> customFieldValues) {
         return new Toy(null, "ToyName", "ToySet", null, null, null, customFieldValues);
     }
