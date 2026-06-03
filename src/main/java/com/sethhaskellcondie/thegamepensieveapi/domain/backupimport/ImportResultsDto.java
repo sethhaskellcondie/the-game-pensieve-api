@@ -7,10 +7,11 @@ public record ImportResultsDto(int existingCustomFields, int createdCustomFields
                                int existingSystems, int createdSystems,
                                int existingVideoGamesBoxes, int createdVideoGamesBoxes,
                                int existingBoardGameBoxes, int createdBoardGameBoxes,
+                               int existingMetadata, int createdMetadata,
                                ExceptionBackupImport exceptionBackupImport
 ) {
     ImportResultsDto(int existingCustomFields, int createdCustomFields, ExceptionBackupImport exceptionBackupImport) {
-        this(existingCustomFields, createdCustomFields, 0, 0, 0, 0, 0, 0, 0, 0, exceptionBackupImport);
+        this(existingCustomFields, createdCustomFields, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, exceptionBackupImport);
     }
 
     @Override
@@ -27,6 +28,8 @@ public record ImportResultsDto(int existingCustomFields, int createdCustomFields
                     createdVideoGamesBoxes: %d,
                     existingBoardGameBoxes: %d,
                     createdBoardGameBoxes: %d,
+                    existingMetadata: %d,
+                    createdMetadata: %d,
                     exceptions: %d
                     exceptionMessages: %s
                 }
@@ -43,6 +46,8 @@ public record ImportResultsDto(int existingCustomFields, int createdCustomFields
                 this.createdVideoGamesBoxes,
                 this.existingBoardGameBoxes,
                 this.createdBoardGameBoxes,
+                this.existingMetadata,
+                this.createdMetadata,
                 this.exceptionBackupImport.getExceptions().size(),
                 " \n - " + String.join(" \n - ", this.exceptionBackupImport.getMessages())
         );

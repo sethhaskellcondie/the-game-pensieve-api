@@ -26,6 +26,8 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.Video
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBackupImport;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
+import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
+import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.MetadataGateway;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -41,14 +43,17 @@ public class BackupImportService {
     private final ToyService toyService;
     private final VideoGameBoxService videoGameBoxService;
     private final BoardGameBoxService boardGameBoxService;
+    private final MetadataGateway metadataGateway;
 
     protected BackupImportService(CustomFieldRepository customFieldRepository, SystemService systemService, ToyService toyService,
-                                  VideoGameBoxService videoGameBoxService, BoardGameBoxService boardGameBoxService) {
+                                  VideoGameBoxService videoGameBoxService, BoardGameBoxService boardGameBoxService,
+                                  MetadataGateway metadataGateway) {
         this.customFieldRepository = customFieldRepository;
         this.systemService = systemService;
         this.toyService = toyService;
         this.videoGameBoxService = videoGameBoxService;
         this.boardGameBoxService = boardGameBoxService;
+        this.metadataGateway = metadataGateway;
     }
 
     protected BackupDataDto getBackupData() {
@@ -57,8 +62,9 @@ public class BackupImportService {
         List<SystemResponseDto> systems = systemService.getWithFilters(new ArrayList<>()).stream().map(System::convertToResponseDto).toList();
         List<VideoGameBoxResponseDto> videoGameBoxes = videoGameBoxService.getWithFilters(new ArrayList<>()).stream().map(VideoGameBox::convertToResponseDto).toList();
         List<BoardGameBoxResponseDto> boardGameBoxes = boardGameBoxService.getWithFilters(new ArrayList<>()).stream().map(BoardGameBox::convertToResponseDto).toList();
+        List<Metadata> metadata = metadataGateway.getAllMetadata();
 
-        return new BackupDataDto(customFields, toys, systems, videoGameBoxes, boardGameBoxes);
+        return new BackupDataDto(customFields, toys, systems, videoGameBoxes, boardGameBoxes, metadata);
     }
 
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
@@ -81,6 +87,8 @@ public class BackupImportService {
 
         ImportEntityResults boardGameBoxResults = importBoardGameBoxes(backupDataDto.boardGameBoxes(), customFieldIds, exceptionBackupImport);
 
+        ImportEntityResults metadataResults = importMetadata(backupDataDto.metadata(), exceptionBackupImport);
+
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
             exceptionBackupImport.setHeader("There were errors importing Entity data, all valid data was imported, data with errors was skipped.");
         }
@@ -91,6 +99,7 @@ public class BackupImportService {
                 systemResults.existingCount(), systemResults.createdCount(),
                 videoGameBoxResults.existingCount(), videoGameBoxResults.createdCount(),
                 boardGameBoxResults.existingCount(), boardGameBoxResults.createdCount(),
+                metadataResults.existingCount(), metadataResults.createdCount(),
                 exceptionBackupImport
         );
     }
@@ -588,6 +597,32 @@ public class BackupImportService {
         }
 
         return null;
+    }
+
+    private ImportEntityResults importMetadata(List<Metadata> metadataToImport, ExceptionBackupImport exceptionBackupImport) {
+        int existingCount = 0;
+        int createdCount = 0;
+        if (null == metadataToImport) {
+            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
+        }
+        for (Metadata metadata : metadataToImport) {
+            if (null == metadata.key() || metadata.key().trim().isEmpty()) {
+                exceptionBackupImport.addMetadataException("Error importing metadata: A metadata entry is missing a key. Metadata must have a non-empty key.");
+                continue;
+            }
+            try {
+                metadataGateway.getByKey(metadata.key());
+                existingCount++;
+            } catch (ExceptionResourceNotFound ignored) {
+                try {
+                    metadataGateway.createNew(metadata);
+                    createdCount++;
+                } catch (Exception exception) {
+                    exceptionBackupImport.addMetadataException(new Exception("Error importing metadata with key: '" + metadata.key() + "' " + exception.getMessage()));
+                }
+            }
+        }
+        return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
     }
 }
 

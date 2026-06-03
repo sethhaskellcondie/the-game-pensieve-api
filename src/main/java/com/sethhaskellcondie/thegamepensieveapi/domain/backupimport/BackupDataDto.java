@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.Board
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ public record BackupDataDto(List<CustomField> customFields,
                             List<ToyResponseDto> toys,
                             List<SystemResponseDto> systems,
                             List<VideoGameBoxResponseDto> videoGameBoxes,
-                            List<BoardGameBoxResponseDto> boardGameBoxes
+                            List<BoardGameBoxResponseDto> boardGameBoxes,
+                            List<Metadata> metadata
 ) {
 }

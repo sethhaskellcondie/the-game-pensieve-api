@@ -13,6 +13,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRespo
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.Metadata;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,7 +62,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -108,7 +110,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
         customFieldsList.add(duplicateValidCustomField); //duplicate name, no data is created or updated this is based on the name NOT the id
         final int existingCustomFields = 1;
@@ -117,7 +120,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -158,7 +162,8 @@ public class BackupImportGatewayTests {
                 toysList,
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -199,7 +204,8 @@ public class BackupImportGatewayTests {
                 new ArrayList<>(toysList),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
         final int existingToys = 1;
         toysList.add(duplicateToy); //import skipped returned as existing toy
@@ -208,7 +214,8 @@ public class BackupImportGatewayTests {
                 toysList,
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -251,7 +258,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 systemsList,
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -292,7 +300,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 new ArrayList<>(systemsList),
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
         final int existingSystems = 1;
         systemsList.add(duplicateSystem); //import skipped returned as existing system because they share the same name, NOT determined by ID.
@@ -301,7 +310,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 systemsList,
                 initialBackupData.videoGameBoxes(),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -344,7 +354,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 videoGameBoxes,
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -403,7 +414,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 systemsList,
                 videoGameBoxes,
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -475,7 +487,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 systemsList,
                 new ArrayList<>(videoGameBoxes),
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
         final int existingVideoGameBoxes = 1; //This will be returned as existing because it shares the same name and system, NOT because of the provided IDs
         videoGameBoxes.add(duplicateVideoGameBox);
@@ -484,7 +497,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 systemsList,
                 videoGameBoxes,
-                initialBackupData.boardGameBoxes()
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
         );
 
         //Act
@@ -526,7 +540,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                boardGameBoxes
+                boardGameBoxes,
+                initialBackupData.metadata()
         );
 
         //Act
@@ -582,7 +597,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                boardGameBoxes
+                boardGameBoxes,
+                initialBackupData.metadata()
         );
 
         //Act
@@ -656,7 +672,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                new ArrayList<>(boardGameBoxes)
+                new ArrayList<>(boardGameBoxes),
+                initialBackupData.metadata()
         );
         final int existingBoardGameBoxes = 1; //This will be returned as existing because it shares the same title and board game, NOT because of the provided IDs
         boardGameBoxes.add(duplicateBoardGameBox);
@@ -665,7 +682,8 @@ public class BackupImportGatewayTests {
                 initialBackupData.toys(),
                 initialBackupData.systems(),
                 initialBackupData.videoGameBoxes(),
-                boardGameBoxes
+                boardGameBoxes,
+                initialBackupData.metadata()
         );
 
         //Act
@@ -711,10 +729,91 @@ public class BackupImportGatewayTests {
                 () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
                 () -> assertEquals(0, importResult.createdBoardGameBoxes()),
                 () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(0, importResult.createdMetadata()),
+                () -> assertEquals(initialBackupData.metadata().size(), importResult.existingMetadata()),
                 () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
         );
         final BackupDataDto resultsBackupData = gateway.getBackupData();
         validateBackupData(initialBackupData, resultsBackupData);
+    }
+
+    @Test
+    void metadataImport_ValidNewMetadata_MetadataCreated() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final Metadata newMetadata = new Metadata(null, "test_import_key", "{\"setting\": \"value\"}", null, null, null);
+        List<Metadata> metadataList = new ArrayList<>(initialBackupData.metadata());
+        metadataList.add(newMetadata);
+        final int createdMetadata = 1;
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes(),
+                metadataList
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error on valid metadata import.",
+                () -> assertEquals(0, importResult.createdCustomFields()),
+                () -> assertEquals(initialBackupData.customFields().size(), importResult.existingCustomFields()),
+                () -> assertEquals(0, importResult.createdToys()),
+                () -> assertEquals(initialBackupData.toys().size(), importResult.existingToys()),
+                () -> assertEquals(0, importResult.createdSystems()),
+                () -> assertEquals(initialBackupData.systems().size(), importResult.existingSystems()),
+                () -> assertEquals(0, importResult.createdVideoGamesBoxes()),
+                () -> assertEquals(initialBackupData.videoGameBoxes().size(), importResult.existingVideoGamesBoxes()),
+                () -> assertEquals(0, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(createdMetadata, importResult.createdMetadata()),
+                () -> assertEquals(initialBackupData.metadata().size(), importResult.existingMetadata()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
+        );
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        assertEquals(initialBackupData.metadata().size() + createdMetadata, resultsBackupData.metadata().size(),
+                "Unexpected number of metadata entries after import.");
+    }
+
+    @Test
+    void metadataImport_DuplicateMetadata_DuplicatesCountedAsExisting() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange
+        final Metadata newMetadata = new Metadata(null, "test_duplicate_key", "{\"counter\": 1}", null, null, null);
+        List<Metadata> metadataList = new ArrayList<>(initialBackupData.metadata());
+        metadataList.add(newMetadata);
+        final BackupDataDto firstImportData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes(),
+                metadataList
+        );
+
+        //Act - first import creates the new metadata
+        gateway.importBackupData(firstImportData);
+
+        //Now the key exists in the database - import again to confirm it counts as existing
+        final BackupDataDto afterFirstImport = gateway.getBackupData();
+        final ImportResultsDto importResult = gateway.importBackupData(afterFirstImport);
+
+        //Assert - second import should count the new key as existing, not create a new one
+        assertAll(
+                "Error on duplicate metadata import.",
+                () -> assertEquals(0, importResult.createdMetadata()),
+                () -> assertEquals(afterFirstImport.metadata().size(), importResult.existingMetadata()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
+        );
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        assertEquals(afterFirstImport.metadata().size(), resultsBackupData.metadata().size(),
+                "Metadata count should not change when re-importing existing keys.");
     }
 
     // ====================================== Private Validation Methods ======================================
@@ -725,6 +824,7 @@ public class BackupImportGatewayTests {
         validateSystemBackupData(expectedBackupData, actualBackupData);
         validateVideoGameBackupData(expectedBackupData, actualBackupData);
         validateBoardGameBackupData(expectedBackupData, actualBackupData);
+        validateMetadataBackupData(expectedBackupData, actualBackupData);
     }
 
     private void validateCustomFieldBackupData(BackupDataDto expectedData, BackupDataDto actualData) {
@@ -856,6 +956,29 @@ public class BackupImportGatewayTests {
                     () -> assertEquals(expectedValue.getCustomFieldName(), actualValue.getCustomFieldName()),
                     () -> assertEquals(expectedValue.getCustomFieldType(), actualValue.getCustomFieldType()),
                     () -> assertEquals(expectedValue.getValue(), actualValue.getValue())
+            );
+        }
+    }
+
+    private void validateMetadataBackupData(BackupDataDto expectedData, BackupDataDto actualData) {
+        final List<Metadata> expectedMetadata = expectedData.metadata();
+        final List<Metadata> actualMetadata = actualData.metadata();
+        if (null == expectedMetadata || null == actualMetadata) {
+            assertAll(
+                    "If the expected metadata is null then the actual should be as well.",
+                    () -> assertNull(expectedMetadata),
+                    () -> assertNull(actualMetadata)
+            );
+            return;
+        }
+        assertEquals(expectedMetadata.size(), actualMetadata.size(), "Unexpected number of metadata entries returned in BackupDataDto");
+        for (int i = 0; i < expectedMetadata.size(); i++) {
+            final Metadata expectedEntry = expectedMetadata.get(i);
+            final Metadata actualEntry = actualMetadata.get(i);
+            assertAll(
+                    "Mismatched metadata returned in BackupDataDto.",
+                    () -> assertEquals(expectedEntry.key(), actualEntry.key()),
+                    () -> assertEquals(expectedEntry.value(), actualEntry.value())
             );
         }
     }

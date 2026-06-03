@@ -130,11 +130,15 @@ public class BackupImportController extends BaseController {
                 importResults.existingCustomFields(), importResults.createdCustomFields(),
                 importResults.existingToys(), importResults.createdToys(),
                 importResults.existingSystems(), importResults.createdSystems(),
-                importResults.existingCustomFields(), importResults.createdCustomFields()
+                importResults.existingVideoGamesBoxes(), importResults.createdVideoGamesBoxes(),
+                importResults.existingBoardGameBoxes(), importResults.createdBoardGameBoxes(),
+                importResults.existingMetadata(), importResults.createdMetadata()
         );
     }
 }
 
 record FormattedImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys,
-                                  int existingSystems, int createdSystems, int existingVideoGameBoxes, int createdVideoGameBoxes) {
+                                  int existingSystems, int createdSystems, int existingVideoGameBoxes, int createdVideoGameBoxes,
+                                  int existingBoardGameBoxes, int createdBoardGameBoxes,
+                                  int existingMetadata, int createdMetadata) {
 }

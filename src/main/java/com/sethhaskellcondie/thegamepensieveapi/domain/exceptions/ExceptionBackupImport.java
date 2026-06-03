@@ -13,6 +13,7 @@ public class ExceptionBackupImport extends MultiException {
     private final MultiException videoGameExceptions;
     private final MultiException boardGameExceptions;
     private final MultiException boardGameBoxExceptions;
+    private final MultiException metadataExceptions;
 
     public ExceptionBackupImport() {
         super();
@@ -25,6 +26,7 @@ public class ExceptionBackupImport extends MultiException {
         this.videoGameExceptions = new MultiException();
         this.boardGameExceptions = new MultiException();
         this.boardGameBoxExceptions = new MultiException();
+        this.metadataExceptions = new MultiException();
     }
 
     public ExceptionBackupImport(String message) {
@@ -38,6 +40,7 @@ public class ExceptionBackupImport extends MultiException {
         this.videoGameExceptions = new MultiException();
         this.boardGameExceptions = new MultiException();
         this.boardGameBoxExceptions = new MultiException();
+        this.metadataExceptions = new MultiException();
     }
 
     public String getHeader() {
@@ -161,6 +164,22 @@ public class ExceptionBackupImport extends MultiException {
         boardGameBoxExceptions.appendExceptions(exceptions);
     }
 
+    public MultiException getMetadataExceptions() {
+        return metadataExceptions;
+    }
+
+    public void addMetadataException(String message) {
+        metadataExceptions.addException(message);
+    }
+
+    public void addMetadataException(Exception exception) {
+        metadataExceptions.addException(exception);
+    }
+
+    public void addMetadataExceptions(List<Exception> exceptions) {
+        metadataExceptions.appendExceptions(exceptions);
+    }
+
     @Override
     public String getMessage() {
         StringBuilder messageBuilder = new StringBuilder();
@@ -217,7 +236,14 @@ public class ExceptionBackupImport extends MultiException {
             }
             messageBuilder.append(boardGameBoxExceptions.getMessage());
         }
-        
+
+        if (!metadataExceptions.isEmpty()) {
+            if (!messageBuilder.isEmpty()) {
+                messageBuilder.append(" ");
+            }
+            messageBuilder.append(metadataExceptions.getMessage());
+        }
+
         return messageBuilder.toString();
     }
 
@@ -256,7 +282,11 @@ public class ExceptionBackupImport extends MultiException {
         if (!boardGameBoxExceptions.isEmpty()) {
             allMessages.addAll(boardGameBoxExceptions.getMessages());
         }
-        
+
+        if (!metadataExceptions.isEmpty()) {
+            allMessages.addAll(metadataExceptions.getMessages());
+        }
+
         return allMessages;
     }
 
@@ -295,7 +325,11 @@ public class ExceptionBackupImport extends MultiException {
         if (!boardGameBoxExceptions.isEmpty()) {
             allExceptions.addAll(boardGameBoxExceptions.getExceptions());
         }
-        
+
+        if (!metadataExceptions.isEmpty()) {
+            allExceptions.addAll(metadataExceptions.getExceptions());
+        }
+
         return allExceptions;
     }
 
@@ -308,6 +342,7 @@ public class ExceptionBackupImport extends MultiException {
                && videoGameBoxExceptions.isEmpty()
                && videoGameExceptions.isEmpty()
                && boardGameExceptions.isEmpty()
-               && boardGameBoxExceptions.isEmpty();
+               && boardGameBoxExceptions.isEmpty()
+               && metadataExceptions.isEmpty();
     }
 }
