@@ -26,7 +26,8 @@ public class CustomFieldOptionRepository {
                     resultSet.getInt("id"),
                     resultSet.getInt("custom_field_id"),
                     resultSet.getString("name"),
-                    resultSet.getBoolean("is_default")
+                    resultSet.getBoolean("is_default"),
+                    resultSet.getInt("display_order")
             );
 
     public CustomFieldOptionRepository(JdbcTemplate jdbcTemplate) {
@@ -59,7 +60,7 @@ public class CustomFieldOptionRepository {
     }
 
     public List<CustomFieldOption> getOptionsByCustomFieldId(int customFieldId) {
-        final String sql = "SELECT * FROM custom_field_options WHERE custom_field_id = ? AND deleted = false ORDER BY id ASC";
+        final String sql = "SELECT * FROM custom_field_options WHERE custom_field_id = ? AND deleted = false ORDER BY display_order ASC, id ASC";
         return jdbcTemplate.query(sql, rowMapper, customFieldId);
     }
 
@@ -77,25 +78,9 @@ public class CustomFieldOptionRepository {
         }
     }
 
-    public CustomFieldOption updateOptionName(int optionId, String newName) {
-        final String sql = "UPDATE custom_field_options SET name = ? WHERE id = ? AND deleted = false";
-        int rowsUpdated = jdbcTemplate.update(sql, newName, optionId);
-        if (rowsUpdated < 1) {
-            throw new ExceptionResourceNotFound("Update failed", "custom_field_options", optionId);
-        }
-        return getOptionById(optionId);
-    }
-
-    public List<CustomFieldOption> setDefaultOption(int customFieldId, int newDefaultOptionId) {
-        final String clearSql = "UPDATE custom_field_options SET is_default = false WHERE custom_field_id = ? AND deleted = false";
-        jdbcTemplate.update(clearSql, customFieldId);
-
-        final String setSql = "UPDATE custom_field_options SET is_default = true WHERE id = ? AND deleted = false";
-        int rowsUpdated = jdbcTemplate.update(setSql, newDefaultOptionId);
-        if (rowsUpdated < 1) {
-            throw new ExceptionResourceNotFound("Set default failed", "custom_field_options", newDefaultOptionId);
-        }
-        return getOptionsByCustomFieldId(customFieldId);
+    public void updateOption(int optionId, String name, int order, boolean isDefault) {
+        final String sql = "UPDATE custom_field_options SET name = ?, display_order = ?, is_default = ? WHERE id = ? AND deleted = false";
+        jdbcTemplate.update(sql, name, order, isDefault, optionId);
     }
 
     /**

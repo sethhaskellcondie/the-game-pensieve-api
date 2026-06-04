@@ -3,17 +3,17 @@ package com.sethhaskellcondie.thegamepensieveapi.api.controllers;
 import com.sethhaskellcondie.thegamepensieveapi.api.ApiResponse;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldGateway;
-import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldUpdateRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -63,10 +63,10 @@ public class CustomFieldController extends BaseController {
     }
 
     @ResponseBody
-    @PatchMapping("/{id}")
-    public ApiResponse<CustomField> patchName(@PathVariable int id, @RequestBody Map<String, String> requestBody, HttpServletRequest request) throws ExceptionResourceNotFound {
-        final String newName = requestBody.get("name");
-        final CustomField updatedCustomField = gateway.updateName(id, newName);
+    @PutMapping("/{id}")
+    public ApiResponse<CustomField> update(@PathVariable int id, @RequestBody Map<String, CustomFieldUpdateRequestDto> requestBody, HttpServletRequest request) throws ExceptionResourceNotFound {
+        final CustomFieldUpdateRequestDto dto = requestBody.get("custom_field");
+        final CustomField updatedCustomField = gateway.update(id, dto);
         return buildResponse(updatedCustomField, request);
     }
 
@@ -78,47 +78,4 @@ public class CustomFieldController extends BaseController {
         return buildResponse("", request);
     }
 
-    @ResponseBody
-    @PostMapping("/{id}/options")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<CustomField> addOption(
-            @PathVariable int id,
-            @RequestBody Map<String, CustomFieldOptionRequestDto> requestBody,
-            HttpServletRequest request) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
-        final CustomFieldOptionRequestDto dto = requestBody.get("custom_field_option");
-        final CustomField updatedField = gateway.addOption(id, dto.name());
-        return buildResponse(updatedField, request);
-    }
-
-    @ResponseBody
-    @PatchMapping("/{id}/options/{optionId}")
-    public ApiResponse<CustomField> patchOptionName(
-            @PathVariable int id,
-            @PathVariable int optionId,
-            @RequestBody Map<String, String> requestBody,
-            HttpServletRequest request) throws ExceptionResourceNotFound {
-        final String newName = requestBody.get("name");
-        final CustomField updatedField = gateway.updateOptionName(id, optionId, newName);
-        return buildResponse(updatedField, request);
-    }
-
-    @ResponseBody
-    @PatchMapping("/{id}/options/{optionId}/default")
-    public ApiResponse<CustomField> setDefaultOption(
-            @PathVariable int id,
-            @PathVariable int optionId,
-            HttpServletRequest request) throws ExceptionResourceNotFound {
-        final CustomField updatedField = gateway.setDefaultOption(id, optionId);
-        return buildResponse(updatedField, request);
-    }
-
-    @ResponseBody
-    @DeleteMapping("/{id}/options/{optionId}")
-    public ApiResponse<CustomField> deleteOption(
-            @PathVariable int id,
-            @PathVariable int optionId,
-            HttpServletRequest request) throws ExceptionResourceNotFound, ExceptionFailedDbValidation {
-        final CustomField updatedField = gateway.deleteOption(id, optionId);
-        return buildResponse(updatedField, request);
-    }
 }

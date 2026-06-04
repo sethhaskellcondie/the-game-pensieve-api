@@ -43,8 +43,40 @@ public class CustomFieldGateway {
         return repository.getById(id);
     }
 
-    public CustomField updateName(int id, String newName) {
-        return repository.updateName(id, newName);
+    @Transactional
+    public CustomField update(int id, CustomFieldUpdateRequestDto dto) {
+        if (dto.options() != null) {
+            CustomField customField = repository.getById(id);
+            if (!CustomField.isEnumType(customField.type())) {
+                throw new ExceptionFailedDbValidation("Cannot manage options on a custom field of type '" + customField.type()
+                        + "'. Options are only supported for enum types: " + CustomField.getEnumCustomFieldTypes() + ".");
+            }
+            if (dto.options().isEmpty()) {
+                throw new ExceptionFailedDbValidation("Enum type custom fields require at least one option.");
+            }
+            long defaultCount = dto.options().stream().filter(CustomFieldOptionDto::isDefault).count();
+            if (defaultCount != 1) {
+                throw new ExceptionFailedDbValidation("Exactly one option must be marked as the default. Found: " + defaultCount + ".");
+            }
+            List<CustomFieldOption> currentOptions = optionRepository.getOptionsByCustomFieldId(id);
+            List<Integer> incomingIds = dto.options().stream()
+                    .filter(o -> o.id() != null)
+                    .map(CustomFieldOptionDto::id)
+                    .toList();
+            for (CustomFieldOptionDto optionDto : dto.options()) {
+                if (optionDto.id() != null) {
+                    optionRepository.updateOption(optionDto.id(), optionDto.name(), optionDto.order(), optionDto.isDefault());
+                } else {
+                    optionRepository.insertOption(id, optionDto.name(), optionDto.isDefault());
+                }
+            }
+            for (CustomFieldOption current : currentOptions) {
+                if (!incomingIds.contains(current.id())) {
+                    optionRepository.deleteOption(current.id(), id);
+                }
+            }
+        }
+        return repository.update(id, dto.name(), dto.order());
     }
 
     public void deleteById(int id) {
@@ -59,45 +91,4 @@ public class CustomFieldGateway {
         return repository.getAllByKey(entityKey);
     }
 
-    public CustomField addOption(int customFieldId, String name) {
-        CustomField customField = repository.getById(customFieldId);
-        if (!CustomField.isEnumType(customField.type())) {
-            throw new ExceptionFailedDbValidation("Cannot add options to a custom field of type '" + customField.type()
-                    + "'. Options are only supported for enum types: " + CustomField.getEnumCustomFieldTypes() + ".");
-        }
-        List<CustomFieldOption> existingOptions = optionRepository.getOptionsByCustomFieldId(customFieldId);
-        boolean isFirstOption = existingOptions.isEmpty();
-        optionRepository.insertOption(customFieldId, name, isFirstOption);
-        return repository.getById(customFieldId);
-    }
-
-    public CustomField updateOptionName(int customFieldId, int optionId, String newName) {
-        validateOptionOwnership(customFieldId, optionId);
-        optionRepository.updateOptionName(optionId, newName);
-        return repository.getById(customFieldId);
-    }
-
-    public CustomField setDefaultOption(int customFieldId, int optionId) {
-        validateOptionOwnership(customFieldId, optionId);
-        optionRepository.setDefaultOption(customFieldId, optionId);
-        return repository.getById(customFieldId);
-    }
-
-    public CustomField deleteOption(int customFieldId, int optionId) {
-        CustomFieldOption option = validateOptionOwnership(customFieldId, optionId);
-        if (option.isDefault()) {
-            throw new ExceptionFailedDbValidation("Cannot delete the default option (id: " + optionId
-                    + "). Set a different option as the default first.");
-        }
-        optionRepository.deleteOption(optionId, customFieldId);
-        return repository.getById(customFieldId);
-    }
-
-    private CustomFieldOption validateOptionOwnership(int customFieldId, int optionId) {
-        CustomFieldOption option = optionRepository.getOptionById(optionId);
-        if (option.customFieldId() != customFieldId) {
-            throw new ExceptionResourceNotFound("Option id " + optionId + " does not belong to custom field id " + customFieldId + ".");
-        }
-        return option;
-    }
 }

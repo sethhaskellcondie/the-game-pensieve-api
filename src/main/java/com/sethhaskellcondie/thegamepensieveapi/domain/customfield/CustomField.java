@@ -6,7 +6,7 @@ import java.util.List;
 
 //Custom Fields are NOT entities, they don't follow the entity pattern
 //Custom Field is a pseudo-DTO this is why it is allowed to be public and used in the api layer
-public record CustomField(int id, String name, String type, String entityKey, List<CustomFieldOption> options) {
+public record CustomField(int id, String name, String type, String entityKey, int order, List<CustomFieldOption> options) {
 
     //Custom Field Types MUST always also be a Filter Field Type otherwise custom fields wouldn't work as filters
     public static final String TYPE_TEXT         = Filter.FIELD_TYPE_TEXT;
@@ -17,7 +17,11 @@ public record CustomField(int id, String name, String type, String entityKey, Li
     public static final String TYPE_PROGRESS_BAR = Filter.FIELD_TYPE_PROGRESS_BAR;
 
     public static CustomField withoutOptions(int id, String name, String type, String entityKey) {
-        return new CustomField(id, name, type, entityKey, List.of());
+        return new CustomField(id, name, type, entityKey, 0, List.of());
+    }
+
+    public static CustomField withoutOptions(int id, String name, String type, String entityKey, int order) {
+        return new CustomField(id, name, type, entityKey, order, List.of());
     }
 
     public static List<String> getAllCustomFieldTypes() {

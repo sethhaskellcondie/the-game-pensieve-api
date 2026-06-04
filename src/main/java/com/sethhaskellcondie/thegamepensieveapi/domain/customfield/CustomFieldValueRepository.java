@@ -138,7 +138,7 @@ public class CustomFieldValueRepository {
         }
         if (!Objects.equals(customField.name(), value.getCustomFieldName())) {
             try {
-                customField = customFieldRepository.updateName(customField.id(), value.getCustomFieldName());
+                customField = customFieldRepository.update(customField.id(), value.getCustomFieldName(), customField.order());
             } catch (ExceptionResourceNotFound exception) {
                 //We should never hit this code because we just did a get by id.
                 logger.error(ErrorLogs.insertThenRetrieveError("Custom Field", customField.id()));

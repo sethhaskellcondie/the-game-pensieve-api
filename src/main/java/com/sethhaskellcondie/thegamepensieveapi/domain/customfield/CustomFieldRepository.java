@@ -31,7 +31,8 @@ public class CustomFieldRepository {
                     resultSet.getInt("id"),
                     resultSet.getString("name"),
                     resultSet.getString("type"),
-                    resultSet.getString("entity_key")
+                    resultSet.getString("entity_key"),
+                    resultSet.getInt("display_order")
             );
 
     public CustomFieldRepository(JdbcTemplate jdbcTemplate, CustomFieldOptionRepository optionRepository) {
@@ -115,14 +116,14 @@ public class CustomFieldRepository {
     }
 
     public List<CustomField> getAllCustomFields() {
-        final String sql = "SELECT * FROM custom_fields WHERE deleted = false";
+        final String sql = "SELECT * FROM custom_fields WHERE deleted = false ORDER BY display_order ASC, id ASC";
         return jdbcTemplate.query(sql, rowMapper).stream()
                 .map(this::populateOptions)
                 .toList();
     }
 
     public List<CustomField> getAllByKey(String entityKey) {
-        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? AND deleted = false;";
+        final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? AND deleted = false ORDER BY display_order ASC, id ASC";
         return jdbcTemplate.query(sql, rowMapper, entityKey).stream()
                 .map(this::populateOptions)
                 .toList();
@@ -138,11 +139,11 @@ public class CustomFieldRepository {
         return customFieldNameToType;
     }
 
-    public CustomField updateName(int id, String newName) {
+    public CustomField update(int id, String name, int order) {
         final String sql = """
-                            UPDATE custom_fields SET name = ? WHERE id = ?;
+                            UPDATE custom_fields SET name = ?, display_order = ? WHERE id = ?;
                 """;
-        jdbcTemplate.update(sql, newName, id);
+        jdbcTemplate.update(sql, name, order, id);
         return getById(id);
     }
 
@@ -161,7 +162,7 @@ public class CustomFieldRepository {
             return field;
         }
         List<CustomFieldOption> options = optionRepository.getOptionsByCustomFieldId(field.id());
-        return new CustomField(field.id(), field.name(), field.type(), field.entityKey(), options);
+        return new CustomField(field.id(), field.name(), field.type(), field.entityKey(), field.order(), options);
     }
 
     private void customFieldDbValidation(CustomFieldRequestDto customField) {

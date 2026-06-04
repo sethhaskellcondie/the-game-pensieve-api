@@ -936,10 +936,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    patch:
+    put:
       tags:
         - Custom Fields
-      summary: Update custom field name
+      summary: Update a custom field's name and order
       parameters:
         - $ref: '#/components/parameters/EntityId'
       requestBody:
@@ -949,11 +949,61 @@ paths:
             schema:
               type: object
               properties:
-                name:
-                  type: string
-                  description: New name for the custom field
+                custom_field:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: New name for the custom field
+                    order:
+                      type: integer
+                      description: Display order for the custom field
+                    options:
+                      type: array
+                      description: |
+                        Full replacement list of options for enum-type fields (dropdown, radio_button, progress_bar).
+                        Omit this field entirely to leave options unchanged.
+                        Options absent from the list are deleted (values cascade to the default option).
+                        Exactly one option must have isDefault set to true.
+                        Use id: null to create a new option inline.
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            nullable: true
+                            description: ID of an existing option; null to create a new option
+                          name:
+                            type: string
+                            description: Display name of the option
+                          order:
+                            type: integer
+                            description: Display order for the option
+                          isDefault:
+                            type: boolean
+                            description: Whether this option is the default
+                        required:
+                          - name
+                          - order
+                          - isDefault
+                  required:
+                    - name
+                    - order
               required:
-                - name
+                - custom_field
+            example:
+              custom_field:
+                name: "Updated Field Name"
+                order: 2
+                options:
+                  - id: 1
+                    name: "Option A"
+                    order: 0
+                    isDefault: true
+                  - id: null
+                    name: "New Option"
+                    order: 1
+                    isDefault: false
       responses:
         '200':
           description: Custom field updated successfully
@@ -982,171 +1032,6 @@ paths:
                 $ref: '#/components/schemas/SuccessResponse'
         '404':
           description: Custom field not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/custom_fields/{id}/options:
-    post:
-      tags:
-        - Custom Fields
-      summary: Add an option to an enum-type custom field
-      description: |
-        Adds a new option to a custom field of type `dropdown`, `radio_button`, or `progress_bar`.
-        Returns 400 if the custom field is not an enum type.
-      parameters:
-        - $ref: '#/components/parameters/EntityId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                custom_field_option:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      description: Name of the new option
-                      minLength: 1
-                  required:
-                    - name
-              required:
-                - custom_field_option
-            example:
-              custom_field_option:
-                name: "New Option"
-      responses:
-        '201':
-          description: Option added; returns the updated custom field with all options
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CustomFieldDataResponse'
-        '400':
-          description: Custom field is not an enum type
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Custom field not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/custom_fields/{id}/options/{optionId}:
-    patch:
-      tags:
-        - Custom Fields
-      summary: Rename a custom field option
-      parameters:
-        - $ref: '#/components/parameters/EntityId'
-        - name: optionId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          description: Unique identifier of the option
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: New name for the option
-                  minLength: 1
-              required:
-                - name
-            example:
-              name: "Renamed Option"
-      responses:
-        '200':
-          description: Option renamed; returns the updated custom field with all options
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CustomFieldDataResponse'
-        '404':
-          description: Custom field or option not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      tags:
-        - Custom Fields
-      summary: Delete a custom field option
-      description: |
-        Soft-deletes a non-default option. All entity values currently set to this option
-        are automatically reassigned to the field's current default option.
-        Returns 400 if the option is the current default (set a new default first).
-      parameters:
-        - $ref: '#/components/parameters/EntityId'
-        - name: optionId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          description: Unique identifier of the option
-      responses:
-        '200':
-          description: Option deleted; returns the updated custom field with remaining options
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CustomFieldDataResponse'
-        '400':
-          description: Cannot delete the default option
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Custom field or option not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/custom_fields/{id}/options/{optionId}/default:
-    patch:
-      tags:
-        - Custom Fields
-      summary: Set an option as the default
-      description: |
-        Marks the specified option as the default for this custom field.
-        Clears the default flag from any previously-default option.
-        Returns the updated custom field.
-      parameters:
-        - $ref: '#/components/parameters/EntityId'
-        - name: optionId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-          description: Unique identifier of the option to set as default
-      responses:
-        '200':
-          description: Default updated; returns the updated custom field with all options
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CustomFieldDataResponse'
-        '404':
-          description: Custom field or option not found
           content:
             application/json:
               schema:
@@ -1970,11 +1855,15 @@ components:
         isDefault:
           type: boolean
           description: Whether this is the default option for the field
+        order:
+          type: integer
+          description: Display order for the option
       required:
         - id
         - customFieldId
         - name
         - isDefault
+        - order
 
     CustomFieldRequest:
       type: object
@@ -2000,6 +1889,7 @@ components:
           description: |
             Initial option names for enum-type fields (dropdown, radio_button, progress_bar).
             Required and must contain at least one entry when `type` is an enum type.
+            The first option in the list will be set as the default; the default can be changed later via `PATCH /v1/custom_fields/{id}/options/{optionId}/default`.
             Ignored for non-enum types.
           example: ["Option A", "Option B", "Option C"]
       required:
@@ -2023,6 +1913,9 @@ components:
         entityKey:
           type: string
           description: Entity type this field applies to
+        order:
+          type: integer
+          description: Display order for the custom field
         options:
           type: array
           items:
