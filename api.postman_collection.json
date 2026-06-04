@@ -446,13 +446,13 @@
 			"response": []
 		},
 		{
-			"name": "create new custom field",
+			"name": "create new custom field (text)",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"custom_field\": {\r\n        \"name\": \"new custom field\",\r\n        \"type\": \"text\",\r\n        \"entityKey\": \"videoGame\"\r\n        }\r\n}",
+					"raw": "{\r\n    \"custom_field\": {\r\n        \"name\": \"new custom field\",\r\n        \"type\": \"text\",\r\n        \"entityKey\": \"videoGame\"\r\n    }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -460,6 +460,33 @@
 					}
 				},
 				"url": "http://localhost:8080/v1/custom_fields"
+			},
+			"response": []
+		},
+		{
+			"name": "create new custom field (dropdown)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"custom_field\": {\r\n        \"name\": \"Completion Status\",\r\n        \"type\": \"dropdown\",\r\n        \"entityKey\": \"videoGame\",\r\n        \"options\": [\"Not Started\", \"In Progress\", \"Completed\"]\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/custom_fields"
+			},
+			"response": []
+		},
+		{
+			"name": "read one custom field",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/v1/custom_fields/1"
 			},
 			"response": []
 		},
@@ -514,6 +541,60 @@
 					}
 				},
 				"url": "http://localhost:8080/v1/custom_fields/7"
+			},
+			"response": []
+		},
+		{
+			"name": "add option to custom field",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"custom_field_option\": {\r\n        \"name\": \"New Option\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/custom_fields/1/options"
+			},
+			"response": []
+		},
+		{
+			"name": "rename custom field option",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Renamed Option\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/custom_fields/1/options/1"
+			},
+			"response": []
+		},
+		{
+			"name": "set default custom field option",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"url": "http://localhost:8080/v1/custom_fields/1/options/1/default"
+			},
+			"response": []
+		},
+		{
+			"name": "delete custom field option",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://localhost:8080/v1/custom_fields/1/options/2"
 			},
 			"response": []
 		},
