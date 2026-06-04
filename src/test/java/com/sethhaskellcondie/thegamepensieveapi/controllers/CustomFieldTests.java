@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldGateway;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOption;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -148,7 +149,7 @@ public class CustomFieldTests {
     void patchCustomFieldName_HappyPath_CustomFieldReturned() throws Exception {
         final CustomField existingCustomField = resultToResponseDto(factory.postCustomFieldReturnResult());
         final String newName = "patched name!";
-        final CustomField expectedCustomField = new CustomField(existingCustomField.id(), newName, existingCustomField.type(), existingCustomField.entityKey());
+        final CustomField expectedCustomField = CustomField.withoutOptions(existingCustomField.id(), newName, existingCustomField.type(), existingCustomField.entityKey());
 
         final String json = """
                 {
@@ -242,6 +243,167 @@ public class CustomFieldTests {
                 jsonPath("$.data").isEmpty(),
                 jsonPath("$.errors.length()").value(1)
         );
+    }
+
+    @Test
+    void postCustomField_EnumTypes_CustomFieldReturnedWithEmptyOptions() throws Exception {
+        for (String type : CustomField.getEnumCustomFieldTypes()) {
+            final String name = "EnumField-" + type;
+            final ResultActions result = factory.postCustomFieldReturnResult(name, type, "toy");
+
+            result.andExpectAll(
+                    status().isCreated(),
+                    jsonPath("$.data.type").value(type),
+                    jsonPath("$.data.options").isArray(),
+                    jsonPath("$.data.options.length()").value(0)
+            );
+        }
+    }
+
+    @Test
+    void postOption_FirstOption_BecomesDefault() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("DropdownField", CustomField.TYPE_DROPDOWN, "toy");
+        final String optionName = "Option A";
+
+        final ResultActions result = postOption(fieldId, optionName);
+
+        result.andExpectAll(
+                status().isCreated(),
+                jsonPath("$.data.name").value(optionName),
+                jsonPath("$.data.isDefault").value(true),
+                jsonPath("$.data.customFieldId").value(fieldId)
+        );
+    }
+
+    @Test
+    void postOption_SecondOption_IsNotDefault() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("RadioField", CustomField.TYPE_RADIO_BUTTON, "toy");
+        postOption(fieldId, "Option A");
+
+        final ResultActions result = postOption(fieldId, "Option B");
+
+        result.andExpectAll(
+                status().isCreated(),
+                jsonPath("$.data.name").value("Option B"),
+                jsonPath("$.data.isDefault").value(false)
+        );
+    }
+
+    @Test
+    void postOption_NonEnumType_ReturnError() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("TextField", "text", "toy");
+
+        final ResultActions results = mockMvc.perform(
+                post(baseUrlSlash + fieldId + "/options")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"custom_field_option\": {\"name\": \"BadOption\"}}")
+        );
+
+        results.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
+    @Test
+    void patchOptionName_HappyPath_OptionUpdated() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("ProgressField", CustomField.TYPE_PROGRESS_BAR, "toy");
+        final CustomFieldOption option = resultToOptionDto(postOption(fieldId, "Old Name"));
+        final String newName = "New Name";
+
+        final ResultActions results = mockMvc.perform(
+                patch(baseUrlSlash + fieldId + "/options/" + option.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"" + newName + "\"}")
+        );
+
+        results.andExpectAll(
+                status().isOk(),
+                jsonPath("$.data.name").value(newName),
+                jsonPath("$.data.id").value(option.id())
+        );
+    }
+
+    @Test
+    void patchOptionDefault_HappyPath_DefaultChanged() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("DropdownDefault", CustomField.TYPE_DROPDOWN, "toy");
+        final CustomFieldOption optionA = resultToOptionDto(postOption(fieldId, "Option A"));
+        final CustomFieldOption optionB = resultToOptionDto(postOption(fieldId, "Option B"));
+
+        final ResultActions result = mockMvc.perform(
+                patch(baseUrlSlash + fieldId + "/options/" + optionB.id() + "/default")
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                jsonPath("$.data.options[?(@.id == " + optionA.id() + ")].isDefault").value(false),
+                jsonPath("$.data.options[?(@.id == " + optionB.id() + ")].isDefault").value(true)
+        );
+    }
+
+    @Test
+    void deleteOption_NonDefaultOption_OptionDeleted() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("DeleteDropdown", CustomField.TYPE_DROPDOWN, "toy");
+        final CustomFieldOption optionA = resultToOptionDto(postOption(fieldId, "Option A"));
+        final CustomFieldOption optionB = resultToOptionDto(postOption(fieldId, "Option B"));
+
+        mockMvc.perform(delete(baseUrlSlash + fieldId + "/options/" + optionB.id())).andExpect(status().isNoContent());
+
+        final CustomField fieldAfterDelete = resultToResponseDto(mockMvc.perform(get(baseUrlSlash + fieldId)));
+        assertAll(
+                "Option B should be gone; Option A should remain",
+                () -> assertTrue(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == optionA.id())),
+                () -> assertFalse(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == optionB.id()))
+        );
+    }
+
+    @Test
+    void deleteOption_DefaultOption_ReturnError() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("NoDeleteDefault", CustomField.TYPE_DROPDOWN, "toy");
+        final CustomFieldOption defaultOption = resultToOptionDto(postOption(fieldId, "Only Option"));
+
+        final ResultActions result = mockMvc.perform(delete(baseUrlSlash + fieldId + "/options/" + defaultOption.id()));
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
+    @Test
+    void deleteOption_CascadesValuesToDefault() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("CascadeDropdown", CustomField.TYPE_DROPDOWN, "toy");
+        final CustomFieldOption defaultOpt = resultToOptionDto(postOption(fieldId, "Default Option"));
+        final CustomFieldOption otherOpt = resultToOptionDto(postOption(fieldId, "Other Option"));
+
+        mockMvc.perform(delete(baseUrlSlash + fieldId + "/options/" + otherOpt.id())).andExpect(status().isNoContent());
+
+        final ResultActions fieldResult = mockMvc.perform(get(baseUrl));
+        final List<CustomField> fields = factory.extractDataList(fieldResult, new TypeReference<>() { });
+        final CustomField field = fields.stream().filter(f -> f.id() == fieldId).findFirst().orElseThrow();
+        assertAll(
+                "After deleting other option, only default remains",
+                () -> assertTrue(field.options().stream().anyMatch(o -> o.id() == defaultOpt.id())),
+                () -> assertFalse(field.options().stream().anyMatch(o -> o.id() == otherOpt.id()))
+        );
+    }
+
+    private ResultActions postOption(int customFieldId, String optionName) throws Exception {
+        final String json = "{\"custom_field_option\": {\"name\": \"" + optionName + "\"}}";
+        return mockMvc.perform(
+                post(baseUrlSlash + customFieldId + "/options")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        );
+    }
+
+    // ------------------ Private Helper Functions ----------------
+    
+    private CustomFieldOption resultToOptionDto(ResultActions result) throws Exception {
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), CustomFieldOption.class);
     }
 
     private CustomField resultToResponseDto(ResultActions result) throws Exception {
