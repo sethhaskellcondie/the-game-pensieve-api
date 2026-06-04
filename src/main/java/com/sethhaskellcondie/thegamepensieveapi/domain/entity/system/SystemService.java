@@ -18,6 +18,10 @@ public class SystemService extends EntityServiceAbstract<System, SystemRequestDt
         return repository.insert(system);
     }
 
+    public int duplicationCheck(String name) {
+        return getIdByName(name);
+    }
+
     public int getIdByName(String name) {
         SystemRepository systemRepository = (SystemRepository) repository;
         return systemRepository.getIdByName(name);

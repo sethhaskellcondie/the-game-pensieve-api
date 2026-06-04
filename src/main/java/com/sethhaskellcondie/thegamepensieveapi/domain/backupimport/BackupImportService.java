@@ -198,7 +198,7 @@ public class BackupImportService {
 
         for (ToyResponseDto importToy: validatedToys) {
             try {
-                int toyId = toyService.getIdByNameAndSet(importToy.name(), importToy.set());
+                int toyId = toyService.duplicationCheck(importToy.name(), importToy.set());
                 if (toyId > 0) {
                     existingCount++;
                     toyIds.put(importToy.id(), toyId);
@@ -251,7 +251,7 @@ public class BackupImportService {
 
         for (SystemResponseDto importSystem: validatedSystems) {
             try {
-                int systemId = systemService.getIdByName(importSystem.name());
+                int systemId = systemService.duplicationCheck(importSystem.name());
                 if (systemId > 0) {
                     existingCount++;
                     systemIds.put(importSystem.id(), systemId);
@@ -287,7 +287,7 @@ public class BackupImportService {
 
         for (VideoGameBoxResponseDto importBox: validatedBoxes) {
             try {
-                int boxId = videoGameBoxService.getIdByTitleAndSystemId(importBox.title(), importBox.system().id());
+                int boxId = videoGameBoxService.duplicationCheck(importBox.title(), importBox.system().id());
                 if (boxId > 0) {
                     existingCount++;
                     boxIds.put(importBox.id(), boxId);
@@ -493,7 +493,7 @@ public class BackupImportService {
                 if (boardGameId == null) {
                     boardGameId = importBox.boardGame().id();
                 }
-                int boxId = boardGameBoxService.getIdByTitleAndBoardGameId(importBox.title(), boardGameId);
+                int boxId = boardGameBoxService.duplicationCheck(importBox.title(), boardGameId);
                 if (boxId > 0) {
                     existingCount++;
                     boardGameBoxIds.put(importBox.id(), boxId);

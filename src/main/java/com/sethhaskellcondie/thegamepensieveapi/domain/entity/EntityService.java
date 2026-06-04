@@ -21,4 +21,9 @@ public interface EntityService<T extends Entity<RequestDto, ResponseDto>, Reques
     T updateExisting(int id, RequestDto requestDto);
 
     void deleteById(int id);
+
+    // Optional: Some entities will have a duplicationCheck for idempotence on creation,
+    // this should always be called duplicationCheck and should return an integer of the found entity,
+    // The parameters for this function vary
+    //Integer duplicationCheck();
 }

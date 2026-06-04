@@ -121,9 +121,4 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
         }
         throw exceptionMalformedEntity;
     }
-
-    public int getIdByTitleAndSystem(String title, int systemId) {
-        VideoGameRepository videoGameRepository = (VideoGameRepository) repository;
-        return videoGameRepository.getIdByTitleAndSystem(title, systemId);
-    }
 }

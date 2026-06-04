@@ -137,6 +137,10 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
         }
     }
 
+    public int duplicationCheck(String title, int boardGameId) {
+        return getIdByTitleAndBoardGameId(title, boardGameId);
+    }
+
     public int getIdByTitleAndBoardGameId(String title, int boardGameId) {
         BoardGameBoxRepository boardGameBoxRepository = (BoardGameBoxRepository) repository;
         return boardGameBoxRepository.getIdByTitleAndBoardGameId(title, boardGameId);

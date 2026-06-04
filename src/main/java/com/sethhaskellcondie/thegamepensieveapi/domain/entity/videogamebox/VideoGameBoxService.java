@@ -224,6 +224,10 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
         return videoGameBox;
     }
 
+    public int duplicationCheck(String title, int systemId) {
+        return getIdByTitleAndSystemId(title, systemId);
+    }
+
     public int getIdByTitleAndSystemId(String title, int systemId) {
         VideoGameBoxRepository videoGameBoxRepository = (VideoGameBoxRepository) repository;
         return videoGameBoxRepository.getIdByTitleAndSystem(title, systemId);

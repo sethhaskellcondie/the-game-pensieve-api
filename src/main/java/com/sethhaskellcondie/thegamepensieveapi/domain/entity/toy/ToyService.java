@@ -19,6 +19,10 @@ public class ToyService extends EntityServiceAbstract<Toy, ToyRequestDto, ToyRes
         return repository.insert(toy);
     }
 
+    public int duplicationCheck(String name, String set) {
+        return getIdByNameAndSet(name, set);
+    }
+
     public int getIdByNameAndSet(String name, String set) {
         ToyRepository toyRepository = (ToyRepository) repository;
         return toyRepository.getIdByNameAndSet(name, set);
