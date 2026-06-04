@@ -16,6 +16,9 @@ public class Filter {
     public static final String FIELD_TYPE_TEXT = "text";
     public static final String FIELD_TYPE_NUMBER = "number";
     public static final String FIELD_TYPE_BOOLEAN = "boolean";
+    public static final String FIELD_TYPE_DROPDOWN = "dropdown";
+    public static final String FIELD_TYPE_RADIO_BUTTON = "radio_button";
+    public static final String FIELD_TYPE_PROGRESS_BAR = "progress_bar";
     public static final String FIELD_TYPE_TIME = "time";
     public static final String FIELD_TYPE_SYSTEM = "system";
     public static final String FIELD_TYPE_SORT = "sort";

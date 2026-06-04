@@ -93,6 +93,14 @@ public class TestFactory {
         return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), CustomField.class).id();
     }
 
+    public int postCustomFieldReturnId(String name, String type, String entityKey, List<String> options) throws Exception {
+        ResultActions result = postCustomFieldReturnResult(name, type, entityKey, options);
+        final MvcResult mvcResult = result.andReturn();
+        final String responseString = mvcResult.getResponse().getContentAsString();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), CustomField.class).id();
+    }
+
     public ResultActions postCustomFieldReturnResult() throws Exception {
         final String name = "TestCustomField-" + randomString(6);
         final String type = "text";
@@ -102,6 +110,19 @@ public class TestFactory {
 
     public ResultActions postCustomFieldReturnResult(String name, String type, String entityKey) throws Exception {
         final String formattedJson = formatCustomFieldPayload(name, type, entityKey);
+
+        final ResultActions result = mockMvc.perform(
+                post("/v1/custom_fields")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpect(status().isCreated());
+        return result;
+    }
+
+    public ResultActions postCustomFieldReturnResult(String name, String type, String entityKey, List<String> options) throws Exception {
+        final String formattedJson = formatCustomFieldPayload(name, type, entityKey, options);
 
         final ResultActions result = mockMvc.perform(
                 post("/v1/custom_fields")
@@ -124,6 +145,23 @@ public class TestFactory {
                 }
                 """;
         return String.format(json, name, type, entityKey);
+    }
+
+    public String formatCustomFieldPayload(String name, String type, String entityKey, List<String> options) {
+        final String optionsJson = options.stream()
+                .map(o -> "\"" + o + "\"")
+                .collect(java.util.stream.Collectors.joining(", "));
+        final String json = """
+                {
+                    "custom_field": {
+                        "name": "%s",
+                        "type": "%s",
+                        "entityKey": "%s",
+                        "options": [%s]
+                        }
+                }
+                """;
+        return String.format(json, name, type, entityKey, optionsJson);
     }
 
     public String formatCustomFieldValues(List<CustomFieldValue> customFieldValues) {

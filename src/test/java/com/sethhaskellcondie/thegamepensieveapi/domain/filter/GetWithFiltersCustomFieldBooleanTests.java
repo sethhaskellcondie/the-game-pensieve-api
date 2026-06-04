@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.filter;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -43,12 +44,12 @@ public class GetWithFiltersCustomFieldBooleanTests {
     @BeforeEach
     public void setUp() {
         systemRepository = new SystemRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
     }
 
     @Test
     void testCustomFieldBooleanFilters() {
-        final CustomField favoriteCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY));
+        final CustomField favoriteCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY));
 
         CustomFieldValue favoriteTrue = new CustomFieldValue(favoriteCustomField.id(), favoriteCustomField.name(), favoriteCustomField.type(), "true");
         CustomFieldValue favoriteFalse = new CustomFieldValue(favoriteCustomField.id(), favoriteCustomField.name(), favoriteCustomField.type(), "false");

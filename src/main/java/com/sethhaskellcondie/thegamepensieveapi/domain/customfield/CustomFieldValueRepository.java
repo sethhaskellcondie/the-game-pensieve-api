@@ -26,6 +26,7 @@ public class CustomFieldValueRepository {
 
     private final JdbcTemplate jdbcTemplate;
     private final CustomFieldRepository customFieldRepository;
+    private final CustomFieldOptionRepository customFieldOptionRepository;
     private final Logger logger = LoggerFactory.getLogger(CustomFieldRepository.class);
     private final RowMapper<CustomFieldValueDao> customFieldValueDaoRowMapper = (resultSet, rowNumber) ->
             new CustomFieldValueDao(
@@ -48,9 +49,10 @@ public class CustomFieldValueRepository {
             );
 
     //This repository should only be accessed through EntityRepositories
-    public CustomFieldValueRepository(JdbcTemplate jdbcTemplate) {
+    public CustomFieldValueRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldOptionRepository customFieldOptionRepository) {
         this.jdbcTemplate = jdbcTemplate;
-        this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        this.customFieldRepository = customFieldRepository;
+        this.customFieldOptionRepository = customFieldOptionRepository;
     }
 
     public List<CustomFieldValue> getCustomFieldValuesByEntityIdAndEntityKey(int entityId, String entityKey) {
@@ -118,7 +120,7 @@ public class CustomFieldValueRepository {
     private CustomField insertOrUpdateNameOfCustomField(CustomFieldValue value, String entityKey) {
         if (value.getCustomFieldId() <= 0) {
             try {
-                return customFieldRepository.insertCustomField(new CustomFieldRequestDto(value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
+                return customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(value.getCustomFieldName(), value.getCustomFieldType(), entityKey));
             } catch (ExceptionFailedDbValidation exception) {
                 throw new ExceptionCustomFieldValue("Cannot create new custom field needed to insert a new value: " + exception.getMessage(), exception);
             }
@@ -183,6 +185,13 @@ public class CustomFieldValueRepository {
                 }
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
             }
+            case CustomField.TYPE_DROPDOWN, CustomField.TYPE_RADIO_BUTTON, CustomField.TYPE_PROGRESS_BAR -> {
+                if (!customFieldOptionRepository.isValidOptionName(customFieldValue.getCustomFieldId(), customFieldValue.getValue())) {
+                    throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: '" + customFieldValue.getValue()
+                            + "' is not a valid option for custom field id " + customFieldValue.getCustomFieldId() + ".")));
+                }
+                return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null);
+            }
             default -> {
                 //This is just a sanity check the type will have been matched against the found CustomField earlier in the process
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: unknown Custom Field Type provided: " + customFieldValue.getCustomFieldType()
@@ -195,7 +204,9 @@ public class CustomFieldValueRepository {
 record CustomFieldValueDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber) {
 
     CustomFieldValue convertToValue(String customFieldName, String customFieldType) {
-        if (Objects.equals(customFieldType, CustomField.TYPE_TEXT) || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
+        if (Objects.equals(customFieldType, CustomField.TYPE_TEXT)
+                || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)
+                || CustomField.getEnumCustomFieldTypes().contains(customFieldType)) {
             return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueText);
         }
         return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueNumber.toString());
@@ -205,7 +216,9 @@ record CustomFieldValueDao(int customFieldId, int entityId, String entityKey, St
 record CustomFieldValueJoinCustomFieldDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber, boolean deleted, String customFieldName, String customFieldType) {
 
     CustomFieldValue convertToValue() {
-        if (Objects.equals(customFieldType, CustomField.TYPE_TEXT) || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
+        if (Objects.equals(customFieldType, CustomField.TYPE_TEXT)
+                || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)
+                || CustomField.getEnumCustomFieldTypes().contains(customFieldType)) {
             return new CustomFieldValue(customFieldId, customFieldName, customFieldType, valueText);
         }
         return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, valueNumber.toString());

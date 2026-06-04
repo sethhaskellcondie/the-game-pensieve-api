@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.filter;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -43,12 +44,12 @@ public class GetWithFiltersCustomFieldTextTests {
     @BeforeEach
     public void setUp() {
         systemRepository = new SystemRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
     }
 
     @Test
     void testCustomFieldsTextFilters() {
-        final CustomField publisherCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY));
+        final CustomField publisherCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY));
 
         final CustomFieldValue nintendo = new CustomFieldValue(publisherCustomField.id(), publisherCustomField.name(), publisherCustomField.type(), "nintendo");
         final CustomFieldValue sega = new CustomFieldValue(publisherCustomField.id(), publisherCustomField.name(), publisherCustomField.type(), "sega sammy");

@@ -33,7 +33,6 @@ public class CustomFieldValueRepositoryTests {
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
-
     //since the CustomFieldValueRepository is only accessed through an EntityRepository we will run the tests through the ToyRepository
     protected ToyRepository toyRepository;
     protected CustomFieldRepository customFieldRepository;
@@ -41,7 +40,7 @@ public class CustomFieldValueRepositoryTests {
     @BeforeEach
     public void setUp() {
         toyRepository = new ToyRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
     }
 
     @Test
@@ -159,7 +158,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValuesOnInsert_ExistingCustomFieldTypeMismatch_ExceptionThrown() {
         final String customFieldName = "Custom!";
         //TYPE_TEXT should match TYPE_BOOLEAN in the value
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_TEXT, Keychain.TOY_KEY));
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_TEXT, Keychain.TOY_KEY));
         final CustomFieldValue newValueTypeMismatch = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_BOOLEAN, "true");
         final Toy newToy = createNewToyWithCustomFields(List.of(newValueTypeMismatch));
 
@@ -169,7 +168,7 @@ public class CustomFieldValueRepositoryTests {
     @Test
     public void upsertValuesOnInsert_ExistingCustomFieldNewInvalidNumberValue_ExceptionThrown() {
         final String customFieldName = "Custom Whole Number!";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_NUMBER, Keychain.TOY_KEY));
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_NUMBER, Keychain.TOY_KEY));
         final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_NUMBER, "InvalidNumber"); //the value should be able to convert to an int.
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
@@ -179,7 +178,7 @@ public class CustomFieldValueRepositoryTests {
     @Test
     public void upsertValuesOnInsert_ExistingCustomFieldNewInvalidBooleanValue_ExceptionThrown() {
         final String customFieldName = "Custom Boolean!";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.TOY_KEY));
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.TOY_KEY));
         final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), customFieldName, CustomField.TYPE_BOOLEAN, "InvalidBoolean"); //the value should be 'true' or 'false'
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
@@ -190,7 +189,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValuesOnInsert_ExistingCustomFieldUpdatedNameOnNewValue_CustomFieldUpdatedValueCreated() {
         final String updatedCustomFieldName = "UpdatedName";
         final String customFieldValueText = "Valid Text";
-        final CustomField existingCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto("Old Custom Field Name", CustomField.TYPE_TEXT, Keychain.TOY_KEY));
+        final CustomField existingCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Old Custom Field Name", CustomField.TYPE_TEXT, Keychain.TOY_KEY));
         final CustomFieldValue newValue = new CustomFieldValue(existingCustomField.id(), updatedCustomFieldName, CustomField.TYPE_TEXT, customFieldValueText);
         final Toy newToy = createNewToyWithCustomFields(List.of(newValue));
 
@@ -283,8 +282,8 @@ public class CustomFieldValueRepositoryTests {
 
     @Test
     public void getWithFilters_MultipleEntitiesEachWithCustomFieldValues_CustomFieldValuesReturnedOnCorrectEntity() {
-        final CustomField textField = customFieldRepository.insertCustomField(new CustomFieldRequestDto("Toy Store", CustomField.TYPE_TEXT, Keychain.TOY_KEY));
-        final CustomField numberField = customFieldRepository.insertCustomField(new CustomFieldRequestDto("Release Year Test 2", CustomField.TYPE_NUMBER, Keychain.TOY_KEY));
+        final CustomField textField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Toy Store", CustomField.TYPE_TEXT, Keychain.TOY_KEY));
+        final CustomField numberField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Release Year Test 2", CustomField.TYPE_NUMBER, Keychain.TOY_KEY));
 
         final String toy1Name = "BatchTest_Alpha";
         final String toy1ToyStoreValue = "ToysRUs";
@@ -341,6 +340,114 @@ public class CustomFieldValueRepositoryTests {
                         .filter(v -> v.getCustomFieldName().equals(toyStoreFieldName)).findFirst().orElseThrow().getValue()),
                 () -> assertEquals(toy3ReleaseYearValue, retrievedToy3.getCustomFieldValues().stream()
                         .filter(v -> v.getCustomFieldName().equals(releaseYearFieldName)).findFirst().orElseThrow().getValue())
+        );
+    }
+
+    @Test
+    public void upsertValues_DropdownTypeValidOption_ValueStoredAndRetrieved() {
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField dropdownField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Status", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY));
+        final String optionName = "In Progress";
+        optionRepository.insertOption(dropdownField.id(), optionName, true);
+
+        final CustomFieldValue value = new CustomFieldValue(dropdownField.id(), dropdownField.name(), CustomField.TYPE_DROPDOWN, optionName);
+        final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
+
+        assertEquals(1, inserted.getCustomFieldValues().size());
+        final CustomFieldValue returned = inserted.getCustomFieldValues().get(0);
+        assertAll(
+                "Dropdown custom field value was not stored and retrieved correctly.",
+                () -> assertEquals(dropdownField.id(), returned.getCustomFieldId()),
+                () -> assertEquals(dropdownField.name(), returned.getCustomFieldName()),
+                () -> assertEquals(CustomField.TYPE_DROPDOWN, returned.getCustomFieldType()),
+                () -> assertEquals(optionName, returned.getValue())
+        );
+    }
+
+    @Test
+    public void upsertValues_DropdownTypeInvalidOption_ThrowsMalformedEntity() {
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField dropdownField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Category", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY));
+        optionRepository.insertOption(dropdownField.id(), "Valid Option", true);
+
+        final CustomFieldValue invalidValue = new CustomFieldValue(dropdownField.id(), dropdownField.name(), CustomField.TYPE_DROPDOWN, "Nonexistent Option");
+        final Toy toyWithInvalidValue = createNewToyWithCustomFields(List.of(invalidValue));
+
+        assertThrows(
+                ExceptionMalformedEntity.class,
+                () -> toyRepository.insert(toyWithInvalidValue)
+        );
+    }
+
+    @Test
+    public void upsertValues_RadioButtonTypeValidOption_ValueStoredAndRetrieved() {
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField radioField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Size", CustomField.TYPE_RADIO_BUTTON, Keychain.TOY_KEY));
+        final String optionName = "Large";
+        optionRepository.insertOption(radioField.id(), optionName, true);
+
+        final CustomFieldValue value = new CustomFieldValue(radioField.id(), radioField.name(), CustomField.TYPE_RADIO_BUTTON, optionName);
+        final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
+
+        assertEquals(1, inserted.getCustomFieldValues().size());
+        final CustomFieldValue returned = inserted.getCustomFieldValues().get(0);
+        assertAll(
+                "Radio button custom field value was not stored and retrieved correctly.",
+                () -> assertEquals(radioField.id(), returned.getCustomFieldId()),
+                () -> assertEquals(radioField.name(), returned.getCustomFieldName()),
+                () -> assertEquals(CustomField.TYPE_RADIO_BUTTON, returned.getCustomFieldType()),
+                () -> assertEquals(optionName, returned.getValue())
+        );
+    }
+
+    @Test
+    public void upsertValues_RadioButtonTypeInvalidOption_ThrowsMalformedEntity() {
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField radioField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Color", CustomField.TYPE_RADIO_BUTTON, Keychain.TOY_KEY));
+        optionRepository.insertOption(radioField.id(), "Red", true);
+
+        final CustomFieldValue invalidValue = new CustomFieldValue(radioField.id(), radioField.name(), CustomField.TYPE_RADIO_BUTTON, "Nonexistent Option");
+        final Toy toyWithInvalidValue = createNewToyWithCustomFields(List.of(invalidValue));
+
+        assertThrows(
+                ExceptionMalformedEntity.class,
+                () -> toyRepository.insert(toyWithInvalidValue)
+        );
+    }
+
+    @Test
+    public void upsertValues_ProgressBarTypeValidOption_ValueStoredAndRetrieved() {
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField progressField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Completion", CustomField.TYPE_PROGRESS_BAR, Keychain.TOY_KEY));
+        final String optionName = "50%";
+        optionRepository.insertOption(progressField.id(), optionName, true);
+
+        final CustomFieldValue value = new CustomFieldValue(progressField.id(), progressField.name(), CustomField.TYPE_PROGRESS_BAR, optionName);
+        final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
+
+        assertEquals(1, inserted.getCustomFieldValues().size());
+        final CustomFieldValue returned = inserted.getCustomFieldValues().get(0);
+        assertAll(
+                "Progress bar custom field value was not stored and retrieved correctly.",
+                () -> assertEquals(progressField.id(), returned.getCustomFieldId()),
+                () -> assertEquals(progressField.name(), returned.getCustomFieldName()),
+                () -> assertEquals(CustomField.TYPE_PROGRESS_BAR, returned.getCustomFieldType()),
+                () -> assertEquals(optionName, returned.getValue())
+        );
+    }
+
+    @Test
+    public void upsertValues_ProgressBarTypeInvalidOption_ThrowsMalformedEntity() {
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField progressField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Stage", CustomField.TYPE_PROGRESS_BAR, Keychain.TOY_KEY));
+        optionRepository.insertOption(progressField.id(), "Not Started", true);
+
+        final CustomFieldValue invalidValue = new CustomFieldValue(progressField.id(), progressField.name(), CustomField.TYPE_PROGRESS_BAR, "Nonexistent Option");
+        final Toy toyWithInvalidValue = createNewToyWithCustomFields(List.of(invalidValue));
+
+        assertThrows(
+                ExceptionMalformedEntity.class,
+                () -> toyRepository.insert(toyWithInvalidValue)
         );
     }
 

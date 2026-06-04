@@ -24,17 +24,19 @@ import java.util.Map;
 @Repository
 public class CustomFieldRepository {
     private final JdbcTemplate jdbcTemplate;
+    private final CustomFieldOptionRepository optionRepository;
     private final Logger logger = LoggerFactory.getLogger(CustomFieldRepository.class);
     private final RowMapper<CustomField> rowMapper = (resultSet, rowNumber) ->
-            new CustomField(
+            CustomField.withoutOptions(
                     resultSet.getInt("id"),
                     resultSet.getString("name"),
                     resultSet.getString("type"),
                     resultSet.getString("entity_key")
             );
 
-    public CustomFieldRepository(JdbcTemplate jdbcTemplate) {
+    public CustomFieldRepository(JdbcTemplate jdbcTemplate, CustomFieldOptionRepository optionRepository) {
         this.jdbcTemplate = jdbcTemplate;
+        this.optionRepository = optionRepository;
     }
 
     public CustomField insertCustomField(CustomFieldRequestDto customField) {
@@ -69,14 +71,14 @@ public class CustomFieldRepository {
         try {
             customField = jdbcTemplate.queryForObject(
                     sql,
-                    new Object[]{id}, //args to bind to the sql ?
-                    new int[]{Types.BIGINT}, //the types of the objects to bind to the sql
+                    new Object[]{id},
+                    new int[]{Types.BIGINT},
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound("custom_fields", id, exception);
         }
-        return customField;
+        return populateOptions(customField);
     }
 
     public CustomField getDeletedById(int id) {
@@ -85,8 +87,8 @@ public class CustomFieldRepository {
         try {
             customField = jdbcTemplate.queryForObject(
                     sql,
-                    new Object[]{id}, //args to bind to the sql ?
-                    new int[]{Types.BIGINT}, //the types of the objects to bind to the sql
+                    new Object[]{id},
+                    new int[]{Types.BIGINT},
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
@@ -101,25 +103,29 @@ public class CustomFieldRepository {
         try {
             customField = jdbcTemplate.queryForObject(
                     sql,
-                    new Object[]{entityKey, customFieldName}, //args to bind to the sql ?
-                    new int[]{Types.VARCHAR, Types.VARCHAR}, //the types of the objects to bind to the sql
+                    new Object[]{entityKey, customFieldName},
+                    new int[]{Types.VARCHAR, Types.VARCHAR},
                     rowMapper
             );
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound("Custom Field (deleted = false) not found with given entity key and name. entity_key: " + entityKey
                     + " name: " + customFieldName + ".", exception);
         }
-        return customField;
+        return populateOptions(customField);
     }
 
     public List<CustomField> getAllCustomFields() {
         final String sql = "SELECT * FROM custom_fields WHERE deleted = false";
-        return jdbcTemplate.query(sql, rowMapper);
+        return jdbcTemplate.query(sql, rowMapper).stream()
+                .map(this::populateOptions)
+                .toList();
     }
 
     public List<CustomField> getAllByKey(String entityKey) {
         final String sql = "SELECT * FROM custom_fields WHERE entity_key = ? AND deleted = false;";
-        return jdbcTemplate.query(sql, rowMapper, entityKey);
+        return jdbcTemplate.query(sql, rowMapper, entityKey).stream()
+                .map(this::populateOptions)
+                .toList();
     }
 
     public Map<String, String> getCustomFieldsAsFilterFields(String entityKey) {
@@ -148,6 +154,14 @@ public class CustomFieldRepository {
         if (rowsUpdated < 1) {
             throw new ExceptionResourceNotFound("Delete failed", "custom_fields", id);
         }
+    }
+
+    private CustomField populateOptions(CustomField field) {
+        if (field == null || !CustomField.isEnumType(field.type())) {
+            return field;
+        }
+        List<CustomFieldOption> options = optionRepository.getOptionsByCustomFieldId(field.id());
+        return new CustomField(field.id(), field.name(), field.type(), field.entityKey(), options);
     }
 
     private void customFieldDbValidation(CustomFieldRequestDto customField) {

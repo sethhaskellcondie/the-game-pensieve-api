@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.filter;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -43,12 +44,12 @@ public class GetWithFiltersCustomFieldNumberTests {
     @BeforeEach
     public void setUp() {
         systemRepository = new SystemRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
     }
 
     @Test
     void testCustomFieldsNumberFilters() {
-        final CustomField releaseDateCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
+        final CustomField releaseDateCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
 
         CustomFieldValue releaseDate1991 = new CustomFieldValue(releaseDateCustomField.id(), releaseDateCustomField.name(), releaseDateCustomField.type(), "1991");
         CustomFieldValue releaseDate1992 = new CustomFieldValue(releaseDateCustomField.id(), releaseDateCustomField.name(), releaseDateCustomField.type(), "1992");
