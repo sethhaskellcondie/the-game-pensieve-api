@@ -467,6 +467,50 @@ public class VideoGameBoxTests {
         );
     }
 
+    @Test
+    void postVideoGameBox_DuplicateVideoGameBoxFound_ReturnBadRequest() throws Exception {
+        final String duplicateTitle = "Duplicate Video Game Box Title";
+        final SystemResponseDto system = factory.postSystem();
+        final VideoGameRequestDto newGame = new VideoGameRequestDto("Duplicate Box Game", system.id(), new ArrayList<>());
+        factory.postVideoGameBoxReturnResult(duplicateTitle, system.id(), new ArrayList<>(), List.of(newGame), false, new ArrayList<>());
+
+        final VideoGameRequestDto anotherGame = new VideoGameRequestDto("Duplicate Box Game 2", system.id(), new ArrayList<>());
+        final String formattedJson = factory.formatVideoGameBoxPayload(duplicateTitle, system.id(), new ArrayList<>(), List.of(anotherGame), false, new ArrayList<>());
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
+    @Test
+    void postVideoGameBox_DuplicateVideoGameFound_ReturnBadRequest() throws Exception {
+        final String duplicateGameTitle = "Duplicate Video Game Title";
+        final SystemResponseDto system = factory.postSystem();
+        final VideoGameRequestDto duplicateGame = new VideoGameRequestDto(duplicateGameTitle, system.id(), new ArrayList<>());
+        factory.postVideoGameBoxReturnResult("First Box", system.id(), new ArrayList<>(), List.of(duplicateGame), false, new ArrayList<>());
+
+        final VideoGameRequestDto sameDuplicateGame = new VideoGameRequestDto(duplicateGameTitle, system.id(), new ArrayList<>());
+        final String formattedJson = factory.formatVideoGameBoxPayload("Second Box", system.id(), new ArrayList<>(), List.of(sameDuplicateGame), false, new ArrayList<>());
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
     // ------------------------- Private Helper Methods ------------------------------
 
     private SlimVideoGame convertToExpectedSlimVideoGameResponse(VideoGameRequestDto requestDto, SystemResponseDto expectedSystem) {

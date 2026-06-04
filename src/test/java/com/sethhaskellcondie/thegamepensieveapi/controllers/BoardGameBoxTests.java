@@ -367,6 +367,45 @@ public class BoardGameBoxTests {
         );
     }
 
+    @Test
+    void postBoardGameBox_DuplicateBoardGameFound_ReturnBadRequest() throws Exception {
+        final String duplicateTitle = "Duplicate Board Game Title";
+        factory.postBoardGameBoxReturnResult(duplicateTitle, false, false, null, null, null);
+
+        final String formattedJson = factory.formatBoardGameBoxPayload(duplicateTitle, false, false, null, null, null);
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
+    @Test
+    void postBoardGameBox_DuplicateBoardGameBoxFound_ReturnBadRequest() throws Exception {
+        final String duplicateTitle = "Duplicate Board Game Box Title";
+        final ResultActions firstResult = factory.postBoardGameBoxReturnResult(duplicateTitle, false, false, null, null, null);
+        final BoardGameBoxResponseDto existingBox = factory.resultToDto(firstResult, BoardGameBoxResponseDto.class);
+
+        final String formattedJson = factory.formatBoardGameBoxPayload(duplicateTitle, false, false, null, existingBox.boardGame().id(), null);
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
     // ------------------------- Private Helper Methods ------------------------------
 
     public void validateBoardGameBoxResponseBody(ResultActions result, List<BoardGameBoxResponseDto> expectedBoardGameBoxes) throws Exception {

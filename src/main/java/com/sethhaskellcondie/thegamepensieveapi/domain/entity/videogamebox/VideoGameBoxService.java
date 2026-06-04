@@ -9,6 +9,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVide
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterService;
@@ -60,6 +61,10 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
     @Override
     @Transactional
     public VideoGameBox createNew(VideoGameBoxRequestDto requestDto) {
+        if (duplicationCheck(requestDto.title(), requestDto.systemId()) > 0) {
+            throw new ExceptionFailedDbValidation("VideoGameBox with title: '" + requestDto.title() + "' and systemId: " + requestDto.systemId()
+                    + " was already found in the database. To update it, make an update request.");
+        }
         ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
         final VideoGameBox videoGameBox = new VideoGameBox().updateFromRequestDto(requestDto);
         List<SlimVideoGame> relatedVideoGames = new ArrayList<>();

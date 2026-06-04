@@ -276,6 +276,26 @@ public class ToyTests {
         );
     }
 
+    @Test
+    void postToy_DuplicateFound_ReturnBadRequest() throws Exception {
+        final String duplicateName = "Duplicate Toy";
+        final String duplicateSet = "Duplicate Set";
+        factory.postToyReturnResult(duplicateName, duplicateSet, new ArrayList<>());
+
+        final String formattedJson = factory.formatToyPayload(duplicateName, duplicateSet, new ArrayList<>());
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
+        );
+    }
+
     // ------------------------- Private Helper Methods ------------------------------
 
     private ToyResponseDto resultToResponseDto(ResultActions result) throws Exception {

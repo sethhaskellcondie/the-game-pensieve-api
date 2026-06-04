@@ -4,6 +4,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterService;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,19 @@ public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGame
 
     @Override
     public BoardGame createNew(BoardGameRequestDto boardGameRequestDto) {
+        if (duplicationCheck(boardGameRequestDto.title()) > 0) {
+            throw new ExceptionFailedDbValidation("BoardGame with title: '" + boardGameRequestDto.title() + "' was already found in the database. To update it, make an update request.");
+        }
         BoardGame boardGame = new BoardGame().updateFromRequestDto(boardGameRequestDto);
         return repository.insert(boardGame);
+    }
+
+    public int duplicationCheck(String title) {
+        return getIdByTitle(title);
+    }
+
+    public int getIdByTitle(String title) {
+        BoardGameRepository boardGameRepository = (BoardGameRepository) repository;
+        return boardGameRepository.getIdByTitle(title);
     }
 }

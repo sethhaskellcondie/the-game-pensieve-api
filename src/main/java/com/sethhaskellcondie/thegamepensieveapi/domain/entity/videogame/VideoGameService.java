@@ -12,6 +12,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterService;
@@ -56,6 +57,10 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
 
     @Override
     public VideoGame createNew(VideoGameRequestDto requestDto) {
+        if (duplicationCheck(requestDto.title(), requestDto.systemId()) > 0) {
+            throw new ExceptionFailedDbValidation("VideoGame with title: '" + requestDto.title() + "' and systemId: " + requestDto.systemId()
+                    + " was already found in the database. To update it, make an update request.");
+        }
         final VideoGame videoGame = new VideoGame().updateFromRequestDto(requestDto);
         final VideoGame validatedVideoGame = validateSystem(videoGame);
         final VideoGame savedVideoGame = repository.insert(validatedVideoGame);
@@ -85,6 +90,15 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
                     + videoGame.getTitle() + "' had systemId: " + videoGame.getSystemId() + " but couldn't get a valid system from the database with that id.", e);
         }
         return videoGame;
+    }
+
+    public int duplicationCheck(String title, int systemId) {
+        return getIdByTitleAndSystemId(title, systemId);
+    }
+
+    public int getIdByTitleAndSystemId(String title, int systemId) {
+        VideoGameRepository videoGameRepository = (VideoGameRepository) repository;
+        return videoGameRepository.getIdByTitleAndSystem(title, systemId);
     }
 
     public VideoGame validateRelatedObjects(VideoGame videoGame) {

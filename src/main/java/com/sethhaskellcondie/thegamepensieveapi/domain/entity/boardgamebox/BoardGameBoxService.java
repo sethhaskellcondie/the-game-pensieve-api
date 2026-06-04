@@ -8,6 +8,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGam
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameService;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.MultiException;
@@ -72,19 +73,17 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
             boardGameId = requestDto.boardGameId();
         }
         if (boardGameId == 0) {
-            BoardGame boardGame = new BoardGame();
             List<CustomFieldValue> boardGameCustomFields = new ArrayList<>();
             String boardGameTitle = requestDto.title();
-            
+
             if (requestDto.boardGame() != null) {
                 boardGameTitle = requestDto.boardGame().title();
                 if (requestDto.boardGame().customFieldValues() != null) {
                     boardGameCustomFields = requestDto.boardGame().customFieldValues();
                 }
             }
-            
-            boardGame.updateFromRequestDto(new BoardGameRequestDto(boardGameTitle, boardGameCustomFields));
-            boardGame = boardGameRepository.insert(boardGame);
+
+            BoardGame boardGame = boardGameService.createNew(new BoardGameRequestDto(boardGameTitle, boardGameCustomFields));
             newBoardGameBox.setBoardGame(boardGame);
         } else {
             try {
@@ -93,6 +92,10 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
             } catch (ExceptionResourceNotFound exception) {
                 throw new ExceptionMalformedEntity("Cannot create new BoardGameBox, the provided boardGameId: " + boardGameId
                         + " is not a valid boardGameId. Provide 'null' as the boardGameId to create a new Board Game", exception);
+            }
+            if (duplicationCheck(requestDto.title(), boardGameId) > 0) {
+                throw new ExceptionFailedDbValidation("BoardGameBox with title: '" + requestDto.title() + "' and boardGameId: " + boardGameId
+                        + " was already found in the database. To update it, make an update request.");
             }
         }
         final BoardGameBox insertedBoardGameBox = repository.insert(newBoardGameBox);
