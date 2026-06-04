@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Custom fields are not entities they belong to entities.
  * The custom field endpoints are mostly used for set up work, making sure that the custom fields are set up as intended before entering in other entity's data.
  * Custom fields must contain a valid type, and a unique name.
- * Custom fields cannot be PUT (overwritten) only the name can be PATCHed.
  */
 
 @SpringBootTest
@@ -65,7 +65,7 @@ public class CustomFieldTests {
 
         final ResultActions result = factory.postCustomFieldReturnResult(expectedName, expectedType, expectedEntityKey);
 
-        validateCustomFieldResponseBody(result, expectedName, expectedType, expectedEntityKey);
+        validateCustomFieldResponseBody(result, expectedName, expectedType, expectedEntityKey, 0);
     }
 
     @Test
@@ -146,36 +146,86 @@ public class CustomFieldTests {
     }
 
     @Test
-    void patchCustomFieldName_HappyPath_CustomFieldReturned() throws Exception {
+    void putCustomField_HappyPath_NameAndOrderUpdated() throws Exception {
         final CustomField existingCustomField = resultToResponseDto(factory.postCustomFieldReturnResult());
-        final String newName = "patched name!";
-        final CustomField expectedCustomField = CustomField.withoutOptions(existingCustomField.id(), newName, existingCustomField.type(), existingCustomField.entityKey());
+        final String newName = "updated name!";
+        final int newOrder = 5;
 
         final String json = """
                 {
-                    "name": "%s"
+                    "custom_field": {
+                        "name": "%s",
+                        "order": %d
+                    }
                 }
                 """;
-        final String formattedJson = String.format(json, newName);
+        final String formattedJson = String.format(json, newName, newOrder);
         final ResultActions result = mockMvc.perform(
-                patch(baseUrlSlash + existingCustomField.id())
+                put(baseUrlSlash + existingCustomField.id())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(formattedJson)
         );
 
-        result.andExpect(status().isOk());
-        validateCustomFieldResponseBody(result, expectedCustomField);
+        result.andExpectAll(
+                status().isOk(),
+                jsonPath("$.data.id").value(existingCustomField.id()),
+                jsonPath("$.data.name").value(newName),
+                jsonPath("$.data.order").value(newOrder)
+        );
     }
 
     @Test
-    void patchCustomFieldName_InvalidId_ReturnError() throws Exception {
+    void putCustomField_ProgressBarWithOptions_OptionOrderUpdated() throws Exception {
+        final int fieldId = factory.postCustomFieldReturnId("ProgressBar Order Test", CustomField.TYPE_PROGRESS_BAR, "toy",
+                List.of("Option A", "Option B", "Option C"));
+        final CustomField field = resultToResponseDto(mockMvc.perform(get(baseUrlSlash + fieldId)));
+        final CustomFieldOption optionA = field.options().get(0);
+        final CustomFieldOption optionB = field.options().get(1);
+        final CustomFieldOption optionC = field.options().get(2);
+
         final String json = """
                 {
-                    "name": "validName"
+                    "custom_field": {
+                        "name": "%s",
+                        "order": 0,
+                        "options": [
+                            {"id": %d, "order": 2},
+                            {"id": %d, "order": 1},
+                            {"id": %d, "order": 0}
+                        ]
+                    }
+                }
+                """;
+        final String formattedJson = String.format(json, field.name(), optionA.id(), optionB.id(), optionC.id());
+        final ResultActions result = mockMvc.perform(
+                put(baseUrlSlash + fieldId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formattedJson)
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                jsonPath("$.data.options[0].name").value(optionC.name()),
+                jsonPath("$.data.options[0].order").value(0),
+                jsonPath("$.data.options[1].name").value(optionB.name()),
+                jsonPath("$.data.options[1].order").value(1),
+                jsonPath("$.data.options[2].name").value(optionA.name()),
+                jsonPath("$.data.options[2].order").value(2)
+        );
+    }
+
+    @Test
+    void putCustomField_InvalidId_ReturnError() throws Exception {
+        final String json = """
+                {
+                    "custom_field": {
+                        "name": "validName",
+                        "order": 1
+                    }
                 }
                 """;
         final ResultActions result = mockMvc.perform(
-                patch(baseUrlSlash + "-1")
+                put(baseUrlSlash + "-1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
         );
@@ -231,7 +281,7 @@ public class CustomFieldTests {
 
         final ResultActions result = factory.postCustomFieldReturnResult(existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
 
-        validateCustomFieldResponseBody(result, existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey());
+        validateCustomFieldResponseBody(result, existingCustomField.name(), existingCustomField.type(), existingCustomField.entityKey(), 0);
     }
 
     @Test
@@ -257,8 +307,10 @@ public class CustomFieldTests {
                     jsonPath("$.data.options.length()").value(2),
                     jsonPath("$.data.options[0].name").value("Option A"),
                     jsonPath("$.data.options[0].isDefault").value(true),
+                    jsonPath("$.data.options[0].order").value(0),
                     jsonPath("$.data.options[1].name").value("Option B"),
-                    jsonPath("$.data.options[1].isDefault").value(false)
+                    jsonPath("$.data.options[1].isDefault").value(false),
+                    jsonPath("$.data.options[1].order").value(0)
             );
         }
     }
@@ -289,8 +341,10 @@ public class CustomFieldTests {
                 status().isCreated(),
                 jsonPath("$.data.id").value(fieldId),
                 jsonPath("$.data.options.length()").value(2),
+                jsonPath("$.data.options[0].order").value(0),
                 jsonPath("$.data.options[1].name").value(optionName),
-                jsonPath("$.data.options[1].isDefault").value(false)
+                jsonPath("$.data.options[1].isDefault").value(false),
+                jsonPath("$.data.options[1].order").value(0)
         );
     }
 
@@ -311,25 +365,6 @@ public class CustomFieldTests {
     }
 
     @Test
-    void patchOptionName_HappyPath_OptionUpdated() throws Exception {
-        final int fieldId = factory.postCustomFieldReturnId("ProgressField", CustomField.TYPE_PROGRESS_BAR, "toy", List.of("Initial Option"));
-        final CustomFieldOption option = resultToOptionDto(postOption(fieldId, "Old Name"));
-        final String newName = "New Name";
-
-        final ResultActions result = mockMvc.perform(
-                patch(baseUrlSlash + fieldId + "/options/" + option.id())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\": \"" + newName + "\"}")
-        );
-
-        result.andExpectAll(
-                status().isOk(),
-                jsonPath("$.data.id").value(fieldId),
-                jsonPath("$.data.options[?(@.id == " + option.id() + ")].name").value(newName)
-        );
-    }
-
-    @Test
     void patchOptionDefault_HappyPath_DefaultChanged() throws Exception {
         final int fieldId = factory.postCustomFieldReturnId("DropdownDefault", CustomField.TYPE_DROPDOWN, "toy", List.of("Option A"));
         final CustomFieldOption optionA = resultToOptionDto(mockMvc.perform(get(baseUrlSlash + fieldId)));
@@ -342,7 +377,9 @@ public class CustomFieldTests {
         result.andExpectAll(
                 status().isOk(),
                 jsonPath("$.data.options[?(@.id == " + optionA.id() + ")].isDefault").value(false),
-                jsonPath("$.data.options[?(@.id == " + optionB.id() + ")].isDefault").value(true)
+                jsonPath("$.data.options[?(@.id == " + optionA.id() + ")].order").value(0),
+                jsonPath("$.data.options[?(@.id == " + optionB.id() + ")].isDefault").value(true),
+                jsonPath("$.data.options[?(@.id == " + optionB.id() + ")].order").value(0)
         );
     }
 
@@ -359,7 +396,7 @@ public class CustomFieldTests {
 
         assertAll(
                 "Option B should be gone; Option A should remain",
-                () -> assertTrue(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == optionA.id())),
+                () -> assertTrue(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == optionA.id() && o.order() == 0)),
                 () -> assertFalse(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == optionB.id()))
         );
     }
@@ -390,7 +427,7 @@ public class CustomFieldTests {
 
         assertAll(
                 "After deleting other option, only default remains",
-                () -> assertTrue(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == defaultOpt.id())),
+                () -> assertTrue(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == defaultOpt.id() && o.order() == 0)),
                 () -> assertFalse(fieldAfterDelete.options().stream().anyMatch(o -> o.id() == otherOpt.id()))
         );
     }
@@ -422,23 +459,13 @@ public class CustomFieldTests {
         return objectMapper.treeToValue(objectMapper.readTree(responseString).get("data"), CustomField.class);
     }
 
-    private void validateCustomFieldResponseBody(ResultActions result, String expectedName, String expectedType, String expectedEntityKey) throws Exception {
+    private void validateCustomFieldResponseBody(ResultActions result, String expectedName, String expectedType, String expectedEntityKey, int expectedOrder) throws Exception {
         result.andExpectAll(
                 jsonPath("$.data.id").isNotEmpty(),
                 jsonPath("$.data.name").value(expectedName),
                 jsonPath("$.data.type").value(expectedType),
                 jsonPath("$.data.entityKey").value(expectedEntityKey),
-                jsonPath("$.errors").isEmpty(),
-                jsonPath("$.roundTripMs").isNotEmpty()
-        );
-    }
-
-    private void validateCustomFieldResponseBody(ResultActions result, CustomField customField) throws Exception {
-        result.andExpectAll(
-                jsonPath("$.data.id").value(customField.id()),
-                jsonPath("$.data.name").value(customField.name()),
-                jsonPath("$.data.type").value(customField.type()),
-                jsonPath("$.data.entityKey").value(customField.entityKey()),
+                jsonPath("$.data.order").value(expectedOrder),
                 jsonPath("$.errors").isEmpty(),
                 jsonPath("$.roundTripMs").isNotEmpty()
         );
