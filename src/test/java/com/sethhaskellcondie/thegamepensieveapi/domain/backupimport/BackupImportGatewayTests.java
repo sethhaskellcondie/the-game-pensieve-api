@@ -47,10 +47,10 @@ public class BackupImportGatewayTests {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
         //Arrange
-        final CustomField validCustomField = new CustomField(100, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
-        final CustomField duplicateValidCustomField = new CustomField(100, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
-        final CustomField zeroIdCustomField = new CustomField(0, "Zero ID Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
-        final CustomField negativeIdCustomField = new CustomField(-1, "Negative ID Custom Field", CustomField.TYPE_NUMBER, Keychain.TOY_KEY);
+        final CustomField validCustomField = CustomField.withoutOptions(100, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final CustomField duplicateValidCustomField = CustomField.withoutOptions(100, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final CustomField zeroIdCustomField = CustomField.withoutOptions(0, "Zero ID Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final CustomField negativeIdCustomField = CustomField.withoutOptions(-1, "Negative ID Custom Field", CustomField.TYPE_NUMBER, Keychain.TOY_KEY);
         final int customFieldErrors = 3;
         List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
         customFieldsList.add(validCustomField); //valid but will be skipped
@@ -100,8 +100,8 @@ public class BackupImportGatewayTests {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
         //Arrange
-        final CustomField validCustomField = new CustomField(100, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
-        final CustomField duplicateValidCustomField = new CustomField(200, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final CustomField validCustomField = CustomField.withoutOptions(100, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
+        final CustomField duplicateValidCustomField = CustomField.withoutOptions(200, "Valid Custom Field", CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY);
         List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
         customFieldsList.add(validCustomField); //valid and created as new
         final int createdCustomFields = 1;
@@ -387,7 +387,7 @@ public class BackupImportGatewayTests {
 
         //Arrange
         final int validCustomFieldBoxCustomFieldId = 987;
-        final CustomField validVideoGameBoxCustomField = new CustomField(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, Keychain.VIDEO_GAME_BOX_KEY);
+        final CustomField validVideoGameBoxCustomField = CustomField.withoutOptions(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, Keychain.VIDEO_GAME_BOX_KEY);
         final CustomFieldValue validCustomFieldValue = new CustomFieldValue(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, "123");
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
         final SystemResponseDto validSystem = new SystemResponseDto(Keychain.SYSTEM_KEY, 98,  "Valid", 7, false, null, null, null, new ArrayList<>());
@@ -448,10 +448,11 @@ public class BackupImportGatewayTests {
         //Arrange
         final int validVideoGameBoxCustomFieldId = 554;
         final String validVideoGameBoxCustomFieldName = "Valid For Box";
-        final CustomField validVideoGameBoxCustomField = new CustomField(validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, Keychain.VIDEO_GAME_BOX_KEY);
+        final CustomField validVideoGameBoxCustomField = CustomField.withoutOptions(
+                validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, Keychain.VIDEO_GAME_BOX_KEY);
         final int validVideoGameCustomFieldId = 556;
         final String validVideoGameCustomFieldName = "Valid For Game";
-        final CustomField validVideoGameCustomField = new CustomField(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, Keychain.VIDEO_GAME_KEY);
+        final CustomField validVideoGameCustomField = CustomField.withoutOptions(validVideoGameCustomFieldId, validVideoGameCustomFieldName, CustomField.TYPE_TEXT, Keychain.VIDEO_GAME_KEY);
 
         final CustomFieldValue validBoxCustomFieldValue1 = new CustomFieldValue(validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "123");
         final CustomFieldValue validBoxCustomFieldValue2 = new CustomFieldValue(validVideoGameBoxCustomFieldId, validVideoGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "1234");
@@ -577,7 +578,7 @@ public class BackupImportGatewayTests {
 
         //Arrange
         final int validCustomFieldBoxCustomFieldId = 987;
-        final CustomField validBoardGameBoxCustomField = new CustomField(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, Keychain.BOARD_GAME_BOX_KEY);
+        final CustomField validBoardGameBoxCustomField = CustomField.withoutOptions(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, Keychain.BOARD_GAME_BOX_KEY);
         final CustomFieldValue validCustomFieldValue = new CustomFieldValue(validCustomFieldBoxCustomFieldId, "Valid", CustomField.TYPE_NUMBER, "123");
         final CustomFieldValue missingCustomFieldValue = new CustomFieldValue(999, "Missing Custom Field", CustomField.TYPE_NUMBER, "123");
         final SlimBoardGame invalidBoardGame = new SlimBoardGame(234, "", null, null, null,
@@ -633,10 +634,11 @@ public class BackupImportGatewayTests {
         //Arrange
         final int validBoardGameBoxCustomFieldId = 554;
         final String validBoardGameBoxCustomFieldName = "Valid For Box";
-        final CustomField validBoardGameBoxCustomField = new CustomField(validBoardGameBoxCustomFieldId, validBoardGameBoxCustomFieldName, CustomField.TYPE_NUMBER, Keychain.BOARD_GAME_BOX_KEY);
+        final CustomField validBoardGameBoxCustomField = CustomField.withoutOptions(
+                validBoardGameBoxCustomFieldId, validBoardGameBoxCustomFieldName, CustomField.TYPE_NUMBER, Keychain.BOARD_GAME_BOX_KEY);
         final int validBoardGameCustomFieldId = 556;
         final String validBoardGameCustomFieldName = "Valid For Game";
-        final CustomField validBoardGameCustomField = new CustomField(validBoardGameCustomFieldId, validBoardGameCustomFieldName, CustomField.TYPE_TEXT, Keychain.BOARD_GAME_KEY);
+        final CustomField validBoardGameCustomField = CustomField.withoutOptions(validBoardGameCustomFieldId, validBoardGameCustomFieldName, CustomField.TYPE_TEXT, Keychain.BOARD_GAME_KEY);
 
         final CustomFieldValue validBoxCustomFieldValue1 = new CustomFieldValue(validBoardGameBoxCustomFieldId, validBoardGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "123");
         final CustomFieldValue validBoxCustomFieldValue2 = new CustomFieldValue(validBoardGameBoxCustomFieldId, validBoardGameBoxCustomFieldName, CustomField.TYPE_NUMBER, "1234");

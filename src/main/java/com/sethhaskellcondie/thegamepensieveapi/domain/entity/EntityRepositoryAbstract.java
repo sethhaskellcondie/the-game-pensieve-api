@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.entity;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
@@ -40,8 +41,9 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
 
     protected EntityRepositoryAbstract(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate);
-        this.customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        CustomFieldOptionRepository customFieldOptionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        this.customFieldRepository = new CustomFieldRepository(jdbcTemplate, customFieldOptionRepository);
+        this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate, this.customFieldRepository, customFieldOptionRepository);
         this.baseQuery = this.getBaseQueryExcludeDeleted();
         this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereIsDeleted();
         this.baseQueryIncludeDeleted = this.getBaseQuery(true);

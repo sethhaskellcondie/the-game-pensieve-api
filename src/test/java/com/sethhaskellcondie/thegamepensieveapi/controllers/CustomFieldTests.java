@@ -398,7 +398,7 @@ public class CustomFieldTests {
     }
 
     // ------------------ Private Helper Functions ----------------
-    
+
     private CustomFieldOption resultToOptionDto(ResultActions result) throws Exception {
         final MvcResult mvcResult = result.andReturn();
         final String responseString = mvcResult.getResponse().getContentAsString();
