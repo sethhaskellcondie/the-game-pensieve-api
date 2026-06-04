@@ -130,7 +130,7 @@ public class BackupImportService {
             }
             if (null == savedCustomField) {
                 try {
-                    savedCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customField.name(), customField.type(), customField.entityKey()));
+                    savedCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customField.name(), customField.type(), customField.entityKey()));
                     createdCount++;
                 } catch (Exception exception) {
                     exceptionBackupImport.addCustomFieldException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"

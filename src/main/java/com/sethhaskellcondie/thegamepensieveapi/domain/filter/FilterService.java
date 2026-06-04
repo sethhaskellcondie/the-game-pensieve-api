@@ -152,6 +152,13 @@ public class FilterService {
             case FIELD_TYPE_BOOLEAN -> {
                 filters.add(OPERATOR_EQUALS);
             }
+            case Filter.FIELD_TYPE_DROPDOWN, Filter.FIELD_TYPE_RADIO_BUTTON, Filter.FIELD_TYPE_PROGRESS_BAR -> {
+                filters.add(OPERATOR_EQUALS);
+                filters.add(OPERATOR_NOT_EQUALS);
+                filters.add(OPERATOR_CONTAINS);
+                filters.add(OPERATOR_STARTS_WITH);
+                filters.add(OPERATOR_ENDS_WITH);
+            }
             //Not implementing sort on system yet, because we are filtering on the ID not the name or any visible text or numbers
             case FIELD_TYPE_SYSTEM -> {
                 filters.add(OPERATOR_EQUALS);
@@ -378,6 +385,16 @@ public class FilterService {
                     case OPERATOR_LESS_THAN_EQUAL_TO -> whereStatement = " AND " + valuesAlias + ".value_number <= ?";
                     case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY " + valuesAlias + ".value_number ASC";
                     case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY " + valuesAlias + ".value_number DESC";
+                    default -> whereStatement = "";
+                }
+            }
+            case CustomField.TYPE_DROPDOWN, CustomField.TYPE_RADIO_BUTTON, CustomField.TYPE_PROGRESS_BAR -> {
+                switch (filter.getOperator()) {
+                    case OPERATOR_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_text = ?";
+                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_text <> ?";
+                    case OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> whereStatement = " AND " + valuesAlias + ".value_text LIKE ?";
+                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY " + valuesAlias + ".value_text ASC";
+                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY " + valuesAlias + ".value_text DESC";
                     default -> whereStatement = "";
                 }
             }
