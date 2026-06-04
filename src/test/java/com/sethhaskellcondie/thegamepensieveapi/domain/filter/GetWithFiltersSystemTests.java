@@ -11,6 +11,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.Video
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +69,7 @@ public class GetWithFiltersSystemTests {
         systemRepository = new SystemRepository(jdbcTemplate);
         videoGameRepository = new TestVideoGameRepository(jdbcTemplate);
         videoGameBoxRepository = new TestVideoGameBoxRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
         filterService = new FilterService(customFieldRepository);
         videoGameService = new VideoGameService(videoGameRepository, filterService, systemRepository, videoGameBoxRepository);
         videoGameBoxService = new VideoGameBoxService(videoGameBoxRepository, filterService, systemRepository, videoGameService);

@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.filter;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -41,7 +42,7 @@ public class GetWithFiltersMultipleCustomFieldFiltersTests {
     @BeforeEach
     public void setUp() {
         systemRepository = new SystemRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
     }
 
     @Test
