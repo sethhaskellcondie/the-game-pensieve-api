@@ -49,10 +49,10 @@ public class GetWithFiltersMultipleCustomFieldFiltersTests {
     void testMultipleCustomFieldFiltersReturnCorrectResults() {
         String maxPlayersFieldName = "Max Players";
         final CustomField maxPlayersField = customFieldRepository.insertCustomField(
-                new CustomFieldRequestDto(maxPlayersFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
+                CustomFieldRequestDto.withoutOptions(maxPlayersFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
         String localMultiplayerFieldName = "Local Multiplayer";
         final CustomField localMultiplayerField = customFieldRepository.insertCustomField(
-                new CustomFieldRequestDto(localMultiplayerFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY));
+                CustomFieldRequestDto.withoutOptions(localMultiplayerFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY));
 
         CustomFieldValue maxPlayers1 = createCfValue(maxPlayersField, "1");
         CustomFieldValue maxPlayers2 = createCfValue(maxPlayersField, "2");
@@ -93,9 +93,9 @@ public class GetWithFiltersMultipleCustomFieldFiltersTests {
     @Test
     void testDeletedCustomFieldsAreExcluded() {
         final CustomField deletedField = customFieldRepository.insertCustomField(
-                new CustomFieldRequestDto("Deleted Field", CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
+                CustomFieldRequestDto.withoutOptions("Deleted Field", CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
         final CustomField activeField = customFieldRepository.insertCustomField(
-                new CustomFieldRequestDto("Active Field", CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
+                CustomFieldRequestDto.withoutOptions("Active Field", CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
 
         CustomFieldValue deletedFieldValue = createCfValue(deletedField, "42");
         CustomFieldValue activeFieldValue = createCfValue(activeField, "42");

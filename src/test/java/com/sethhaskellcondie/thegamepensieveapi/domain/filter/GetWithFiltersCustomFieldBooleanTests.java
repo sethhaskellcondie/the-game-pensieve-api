@@ -49,7 +49,7 @@ public class GetWithFiltersCustomFieldBooleanTests {
 
     @Test
     void testCustomFieldBooleanFilters() {
-        final CustomField favoriteCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY));
+        final CustomField favoriteCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_BOOLEAN, Keychain.SYSTEM_KEY));
 
         CustomFieldValue favoriteTrue = new CustomFieldValue(favoriteCustomField.id(), favoriteCustomField.name(), favoriteCustomField.type(), "true");
         CustomFieldValue favoriteFalse = new CustomFieldValue(favoriteCustomField.id(), favoriteCustomField.name(), favoriteCustomField.type(), "false");

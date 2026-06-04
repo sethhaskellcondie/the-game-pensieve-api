@@ -49,7 +49,7 @@ public class GetWithFiltersCustomFieldNumberTests {
 
     @Test
     void testCustomFieldsNumberFilters() {
-        final CustomField releaseDateCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
+        final CustomField releaseDateCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_NUMBER, Keychain.SYSTEM_KEY));
 
         CustomFieldValue releaseDate1991 = new CustomFieldValue(releaseDateCustomField.id(), releaseDateCustomField.name(), releaseDateCustomField.type(), "1991");
         CustomFieldValue releaseDate1992 = new CustomFieldValue(releaseDateCustomField.id(), releaseDateCustomField.name(), releaseDateCustomField.type(), "1992");

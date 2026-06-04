@@ -49,7 +49,7 @@ public class GetWithFiltersCustomFieldTextTests {
 
     @Test
     void testCustomFieldsTextFilters() {
-        final CustomField publisherCustomField = customFieldRepository.insertCustomField(new CustomFieldRequestDto(customFieldName, CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY));
+        final CustomField publisherCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customFieldName, CustomField.TYPE_TEXT, Keychain.SYSTEM_KEY));
 
         final CustomFieldValue nintendo = new CustomFieldValue(publisherCustomField.id(), publisherCustomField.name(), publisherCustomField.type(), "nintendo");
         final CustomFieldValue sega = new CustomFieldValue(publisherCustomField.id(), publisherCustomField.name(), publisherCustomField.type(), "sega sammy");
