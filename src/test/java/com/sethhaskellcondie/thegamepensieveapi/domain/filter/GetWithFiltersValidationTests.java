@@ -70,10 +70,10 @@ public class GetWithFiltersValidationTests {
     }
 
     @Test
-    void validateAndOrderFilters_TooManyOrderByLimitAndOffsetFilters_ReturnExceptionWithMultipleErrors() {
+    void validateAndOrderFilters_TooManyLimitAndOffsetFilters_ReturnExceptionWithMultipleErrors() {
         final List<Filter> filters = List.of(
                 new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_NUMBER, "generation", Filter.OPERATOR_ORDER_BY, "asc", false),
-                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_NUMBER, "generation", Filter.OPERATOR_ORDER_BY_DESC, "desc", false), //only one order by filter is allowed
+                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_NUMBER, "generation", Filter.OPERATOR_ORDER_BY_DESC, "desc", false), //multiple order_by filters are allowed
                 new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_PAGINATION, Filter.PAGINATION_FIELDS, Filter.OPERATOR_LIMIT, "3", false),
                 new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_PAGINATION, Filter.PAGINATION_FIELDS, Filter.OPERATOR_LIMIT, "4", false), //only one limit filter is allowed
                 new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_PAGINATION, Filter.PAGINATION_FIELDS, Filter.OPERATOR_OFFSET, "1", false),
@@ -82,7 +82,7 @@ public class GetWithFiltersValidationTests {
 
         ExceptionInvalidFilter exception = assertThrows(ExceptionInvalidFilter.class, () -> systemRepository.getWithFilters(filters));
 
-        assertEquals(3, exception.getMessages().size(), "Unexpected number of errors returned while testing the allowed number of 'order_by,' 'limit,' and 'offset' filters.");
+        assertEquals(2, exception.getMessages().size(), "Unexpected number of errors returned while testing the allowed number of 'limit' and 'offset' filters.");
     }
 
     @Test

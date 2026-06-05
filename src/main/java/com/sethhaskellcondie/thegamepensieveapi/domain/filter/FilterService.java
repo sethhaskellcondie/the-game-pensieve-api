@@ -296,19 +296,13 @@ public class FilterService {
 
     private static List<Filter> orderFilters(List<Filter> filters, ExceptionInvalidFilter exceptionInvalidFilter) throws ExceptionInvalidFilter {
         List<Filter> whereFilters = new ArrayList<>();
-        Filter orderByFilter = null;
+        List<Filter> sortFilters = new ArrayList<>();
         Filter limitFilter = null;
         Filter offsetFilter = null;
 
         for (Filter filter : filters) {
             switch (filter.getOperator()) {
-                case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> {
-                    if (null == orderByFilter) {
-                        orderByFilter = filter;
-                    } else {
-                        exceptionInvalidFilter.addException("No more than one 'order_by' or 'order_by_desc' filter allowed in a single request");
-                    }
-                }
+                case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> sortFilters.add(filter);
                 case OPERATOR_LIMIT -> {
                     if (null == limitFilter) {
                         limitFilter = filter;
@@ -323,9 +317,7 @@ public class FilterService {
                         exceptionInvalidFilter.addException("No more than one 'offset' filter allowed in a single request");
                     }
                 }
-                default -> {
-                    whereFilters.add(filter);
-                }
+                default -> whereFilters.add(filter);
             }
         }
 
@@ -337,14 +329,21 @@ public class FilterService {
             throw exceptionInvalidFilter;
         }
 
-        whereFilters.add(orderByFilter);
-        whereFilters.add(limitFilter);
-        whereFilters.add(offsetFilter);
-        return whereFilters.stream().filter(Objects::nonNull).toList();
+        whereFilters.addAll(sortFilters);
+        if (limitFilter != null) {
+            whereFilters.add(limitFilter);
+        }
+        if (offsetFilter != null) {
+            whereFilters.add(offsetFilter);
+        }
+        return whereFilters;
     }
 
     public static List<String> formatWhereStatements(List<Filter> filters) {
         List<String> whereStatements = new ArrayList<>();
+        List<String> sortParts = new ArrayList<>();
+        String limitStatement = null;
+        String offsetStatement = null;
         int customFieldIndex = 1;
         for (Filter filter : filters) {
             if (filter.isCustom()) {
@@ -353,11 +352,31 @@ public class FilterService {
                 String fieldsAlias = "fields" + customFieldIndex;
                 String valuesAlias = "values" + customFieldIndex;
                 whereStatements.add(" AND " + fieldsAlias + ".name = '" + filter.getField() + "'");
-                whereStatements.add(getCustomFilterWhereStatement(filter, valuesAlias));
+                String statement = getCustomFilterWhereStatement(filter, valuesAlias);
+                if (filter.getOperator().equals(OPERATOR_ORDER_BY) || filter.getOperator().equals(OPERATOR_ORDER_BY_DESC)) {
+                    sortParts.add(statement.substring(" ORDER BY ".length()));
+                } else {
+                    whereStatements.add(statement);
+                }
                 customFieldIndex++;
             } else {
-                whereStatements.add(getWhereStatement(filter));
+                String statement = getWhereStatement(filter);
+                switch (filter.getOperator()) {
+                    case OPERATOR_ORDER_BY, OPERATOR_ORDER_BY_DESC -> sortParts.add(statement.substring(" ORDER BY ".length()));
+                    case OPERATOR_LIMIT -> limitStatement = statement;
+                    case OPERATOR_OFFSET -> offsetStatement = statement;
+                    default -> whereStatements.add(statement);
+                }
             }
+        }
+        if (!sortParts.isEmpty()) {
+            whereStatements.add(" ORDER BY " + String.join(", ", sortParts));
+        }
+        if (limitStatement != null) {
+            whereStatements.add(limitStatement);
+        }
+        if (offsetStatement != null) {
+            whereStatements.add(offsetStatement);
         }
         return whereStatements;
     }

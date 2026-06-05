@@ -66,6 +66,9 @@ public class GetWithFiltersTextPaginationAndSortTests {
         testPaginationFilterOffsetLimitAndSortDesc(2, 3, List.of(n64, snes, nes));
         //Testing the order filters is the same as offset, limit, and sort, instead the filters are mixed up before getting passed to getWithFilters() and they are sorted correctly before the query.
         testOrderFilters(2, 3, List.of(n64, snes, nes));
+
+        //Multi-sort: primary sort by handheld ASC (all false, so all tie), tiebreaker by generation ASC
+        testMultiSort(List.of(nes, snes, n64, gameBoy, superGameBoy));
     }
 
     void testNoFilters(int expectedResults) {
@@ -201,6 +204,22 @@ public class GetWithFiltersTextPaginationAndSortTests {
         assertEquals(expectedResults.size(), results.size(), "Wrong number of results returned when testing the order of the filters.");
         for (int i = 0; i < results.size(); i++) {
             assertEquals(expectedResults.get(i), results.get(i));
+        }
+    }
+
+    void testMultiSort(List<System> expectedResults) {
+        // Primary sort: handheld ASC (all items are handheld=false, so all tie on this field)
+        // Tiebreaker: generation ASC — confirms the secondary sort determines the final order
+        final List<Filter> filters = List.of(
+                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_BOOLEAN, "handheld", Filter.OPERATOR_ORDER_BY, "unused", false),
+                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_NUMBER, "generation", Filter.OPERATOR_ORDER_BY, "unused", false)
+        );
+
+        final List<System> results = systemRepository.getWithFilters(filters);
+
+        assertEquals(expectedResults.size(), results.size(), "Wrong number of results returned when testing multi-sort.");
+        for (int i = 0; i < results.size(); i++) {
+            assertEquals(expectedResults.get(i), results.get(i), "Wrong item at index " + i + " when testing multi-sort.");
         }
     }
 
