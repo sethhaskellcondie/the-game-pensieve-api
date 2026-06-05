@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -22,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("test-container")
 @AutoConfigureMockMvc
+@Transactional
 public class MetadataTests {
 
     @Autowired
@@ -81,7 +83,7 @@ public class MetadataTests {
                 .andExpect(jsonPath("$.errors[0]").value(containsString("Value must be valid JSON")));
     }
 
-    //TODO test only works when run independently not as part of the test suite, will fix later ;)
+    @Test
     void getMetadataByKey_KeyFound_MetadataReturnedCorrectly() throws Exception {
         final String testKey = "getTestKey";
         final String testValue = "{\"getProperty1\":\"getValue1\",\"getProperty2\":\"getValue2\"}";
