@@ -31,6 +31,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.MetadataGateway;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -494,6 +495,7 @@ public class BackupImportService {
         Map<Integer, Integer> boardGameBoxIds = new HashMap<>(boardGameBoxesToBeImported.size());
         Map<Integer, Integer> boardGameIds = new HashMap<>(boardGameBoxesToBeImported.size());
         List<BoardGameBoxResponseDto> validatedBoxes = validateBoardGameBoxes(boardGameBoxesToBeImported, customFieldIds, exceptionBackupImport);
+        validatedBoxes.sort(Comparator.comparing(BoardGameBoxResponseDto::isExpansion)); //import base set boxes first, then expansions after that
 
         for (BoardGameBoxResponseDto importBox : validatedBoxes) {
             try {
@@ -507,9 +509,6 @@ public class BackupImportService {
                     boardGameBoxIds.put(importBox.id(), boxId);
                 } else {
                     Integer existingBoardGameId = boardGameIds.get(importBox.boardGame().id());
-                    // This will fail if the base set is not imported before the expansion...
-                    // To fix this I would need to do another loop after all the board games are imported
-                    // TODO fix this in the future
                     Integer baseSetId = boardGameIds.get(importBox.baseSetId());
                     BoardGameRequestDto gameToBeCreated = null;
                     if (null == existingBoardGameId) {

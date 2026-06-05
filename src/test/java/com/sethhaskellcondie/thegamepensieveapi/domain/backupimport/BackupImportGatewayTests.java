@@ -667,8 +667,9 @@ public class BackupImportGatewayTests {
         customFieldsList.add(validBoardGameCustomField);
         List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
         final int createdBoardGameBoxes = 2;
-        boardGameBoxes.add(validBoardGameBox1);
+        // expectedResult must match the insertion order after sorting (non-expansions first)
         boardGameBoxes.add(validBoardGameBox2);
+        boardGameBoxes.add(validBoardGameBox1);
         final BackupDataDto expectedResult = new BackupDataDto(
                 customFieldsList,
                 initialBackupData.toys(),
