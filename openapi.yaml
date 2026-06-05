@@ -29,7 +29,7 @@ info:
     - **Boolean filters**: equals
     - **Time filters**: since, before
     - **System filters**: equals, not_equals (for video games and video game boxes)
-    - **Sort and Pagination**: order_by, limit, offset
+    - **Sort and Pagination**: order_by, order_by_desc, limit, offset — multiple sort filters are supported and applied in request order
   version: 1.0.0
   contact:
     name: The Game Pensieve API Support
@@ -1372,7 +1372,7 @@ components:
             - **Boolean fields**: equals
             - **Time fields**: since, before
             - **System fields**: equals, not_equals (for system_id on video games and video game boxes)
-            - **Sort fields**: order_by, order_by_desc
+            - **Sort fields**: order_by, order_by_desc — multiple sort filters are allowed and applied in the order they appear in the request array (first = primary sort, second = tiebreaker, etc.)
             - **Pagination fields**: limit, offset
         operand:
           type: string
@@ -1983,7 +1983,7 @@ components:
             - **Boolean fields**: ["equals"]
             - **Time fields**: ["since", "before"]
             - **System fields**: ["equals", "not_equals"]
-            - **Sort fields**: ["order_by", "order_by_desc"]
+            - **Sort fields**: ["order_by", "order_by_desc"] — multiple sort filters may be combined; order in the request array determines priority
             - **Pagination fields**: ["limit", "offset"]
       example:
         type: "videoGame"
