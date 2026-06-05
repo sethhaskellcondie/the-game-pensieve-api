@@ -348,7 +348,7 @@ public class CustomFieldValueRepositoryTests {
         final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
         final CustomField dropdownField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Status", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY));
         final String optionName = "In Progress";
-        optionRepository.insertOption(dropdownField.id(), optionName, true);
+        optionRepository.insertOption(dropdownField.id(), optionName, true, 0);
 
         final CustomFieldValue value = new CustomFieldValue(dropdownField.id(), dropdownField.name(), CustomField.TYPE_DROPDOWN, optionName);
         final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
@@ -368,7 +368,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValues_DropdownTypeInvalidOption_ThrowsMalformedEntity() {
         final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
         final CustomField dropdownField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Category", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY));
-        optionRepository.insertOption(dropdownField.id(), "Valid Option", true);
+        optionRepository.insertOption(dropdownField.id(), "Valid Option", true, 0);
 
         final CustomFieldValue invalidValue = new CustomFieldValue(dropdownField.id(), dropdownField.name(), CustomField.TYPE_DROPDOWN, "Nonexistent Option");
         final Toy toyWithInvalidValue = createNewToyWithCustomFields(List.of(invalidValue));
@@ -384,7 +384,7 @@ public class CustomFieldValueRepositoryTests {
         final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
         final CustomField radioField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Size", CustomField.TYPE_RADIO_BUTTON, Keychain.TOY_KEY));
         final String optionName = "Large";
-        optionRepository.insertOption(radioField.id(), optionName, true);
+        optionRepository.insertOption(radioField.id(), optionName, true, 0);
 
         final CustomFieldValue value = new CustomFieldValue(radioField.id(), radioField.name(), CustomField.TYPE_RADIO_BUTTON, optionName);
         final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
@@ -404,7 +404,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValues_RadioButtonTypeInvalidOption_ThrowsMalformedEntity() {
         final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
         final CustomField radioField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Color", CustomField.TYPE_RADIO_BUTTON, Keychain.TOY_KEY));
-        optionRepository.insertOption(radioField.id(), "Red", true);
+        optionRepository.insertOption(radioField.id(), "Red", true, 0);
 
         final CustomFieldValue invalidValue = new CustomFieldValue(radioField.id(), radioField.name(), CustomField.TYPE_RADIO_BUTTON, "Nonexistent Option");
         final Toy toyWithInvalidValue = createNewToyWithCustomFields(List.of(invalidValue));
@@ -420,7 +420,7 @@ public class CustomFieldValueRepositoryTests {
         final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
         final CustomField progressField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Completion", CustomField.TYPE_PROGRESS_BAR, Keychain.TOY_KEY));
         final String optionName = "50%";
-        optionRepository.insertOption(progressField.id(), optionName, true);
+        optionRepository.insertOption(progressField.id(), optionName, true, 0);
 
         final CustomFieldValue value = new CustomFieldValue(progressField.id(), progressField.name(), CustomField.TYPE_PROGRESS_BAR, optionName);
         final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
@@ -440,7 +440,7 @@ public class CustomFieldValueRepositoryTests {
     public void upsertValues_ProgressBarTypeInvalidOption_ThrowsMalformedEntity() {
         final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
         final CustomField progressField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("Stage", CustomField.TYPE_PROGRESS_BAR, Keychain.TOY_KEY));
-        optionRepository.insertOption(progressField.id(), "Not Started", true);
+        optionRepository.insertOption(progressField.id(), "Not Started", true, 0);
 
         final CustomFieldValue invalidValue = new CustomFieldValue(progressField.id(), progressField.name(), CustomField.TYPE_PROGRESS_BAR, "Nonexistent Option");
         final Toy toyWithInvalidValue = createNewToyWithCustomFields(List.of(invalidValue));

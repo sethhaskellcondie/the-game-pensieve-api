@@ -293,7 +293,7 @@ public class CustomFieldTests {
     }
 
     @Test
-    void postEnumCustomField_WithOptions_FirstOptionIsDefault() throws Exception {
+    void postEnumCustomField_WithOptions_ExplicitDefaultAndOrderReturned() throws Exception {
         for (String type : CustomField.getEnumCustomFieldTypes()) {
             final String name = "EnumField-" + type;
             final List<String> options = List.of("Option A", "Option B");
@@ -307,7 +307,33 @@ public class CustomFieldTests {
                     jsonPath("$.data.options[0].order").value(0),
                     jsonPath("$.data.options[1].name").value("Option B"),
                     jsonPath("$.data.options[1].isDefault").value(false),
-                    jsonPath("$.data.options[1].order").value(0)
+                    jsonPath("$.data.options[1].order").value(1)
+            );
+        }
+    }
+
+    @Test
+    void postEnumCustomField_NoDefaultInOptions_ReturnError() throws Exception {
+        for (String type : CustomField.getEnumCustomFieldTypes()) {
+            final String json = """
+                    {
+                        "custom_field": {
+                            "name": "NoDefault-%s",
+                            "type": "%s",
+                            "entityKey": "toy",
+                            "options": [
+                                {"id": null, "name": "Option A", "order": 0, "isDefault": false}
+                            ]
+                        }
+                    }
+                    """.formatted(type, type);
+            mockMvc.perform(
+                    post(baseUrl)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json)
+            ).andExpectAll(
+                    status().isBadRequest(),
+                    jsonPath("$.errors.length()").value(1)
             );
         }
     }

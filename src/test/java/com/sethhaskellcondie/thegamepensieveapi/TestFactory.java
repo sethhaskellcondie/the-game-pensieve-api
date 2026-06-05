@@ -148,8 +148,10 @@ public class TestFactory {
     }
 
     public String formatCustomFieldPayload(String name, String type, String entityKey, List<String> options) {
-        final String optionsJson = options.stream()
-                .map(o -> "\"" + o + "\"")
+        final String optionsJson = java.util.stream.IntStream.range(0, options.size())
+                .mapToObj(i -> String.format(
+                        "{\"id\": null, \"name\": \"%s\", \"order\": %d, \"isDefault\": %b}",
+                        options.get(i), i, i == 0))
                 .collect(java.util.stream.Collectors.joining(", "));
         final String json = """
                 {

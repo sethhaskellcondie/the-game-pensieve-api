@@ -34,9 +34,9 @@ public class CustomFieldOptionRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public CustomFieldOption insertOption(int customFieldId, String name, boolean isDefault) {
+    public CustomFieldOption insertOption(int customFieldId, String name, boolean isDefault, int order) {
         final String sql = """
-                INSERT INTO custom_field_options(custom_field_id, name, is_default) VALUES (?, ?, ?);
+                INSERT INTO custom_field_options(custom_field_id, name, is_default, display_order) VALUES (?, ?, ?, ?);
                 """;
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -45,6 +45,7 @@ public class CustomFieldOptionRepository {
                     ps.setInt(1, customFieldId);
                     ps.setString(2, name);
                     ps.setBoolean(3, isDefault);
+                    ps.setInt(4, order);
                     return ps;
                 },
                 keyHolder

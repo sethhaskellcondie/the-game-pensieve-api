@@ -25,11 +25,15 @@ public class CustomFieldGateway {
                 throw new ExceptionFailedDbValidation("Enum type custom fields require at least one option. "
                         + "Include an 'options' list with at least one option name in the request.");
             }
+            long defaultCount = customField.options().stream().filter(CustomFieldOptionDto::isDefault).count();
+            if (defaultCount != 1) {
+                throw new ExceptionFailedDbValidation("Exactly one option must be marked as the default. Found: " + defaultCount + ".");
+            }
         }
         CustomField saved = repository.insertCustomField(customField);
         if (customField.options() != null) {
-            for (int i = 0; i < customField.options().size(); i++) {
-                optionRepository.insertOption(saved.id(), customField.options().get(i), i == 0);
+            for (CustomFieldOptionDto option : customField.options()) {
+                optionRepository.insertOption(saved.id(), option.name(), option.isDefault(), option.order());
             }
         }
         return repository.getById(saved.id());
@@ -67,7 +71,7 @@ public class CustomFieldGateway {
                 if (optionDto.id() != null) {
                     optionRepository.updateOption(optionDto.id(), optionDto.name(), optionDto.order(), optionDto.isDefault());
                 } else {
-                    optionRepository.insertOption(id, optionDto.name(), optionDto.isDefault());
+                    optionRepository.insertOption(id, optionDto.name(), optionDto.isDefault(), optionDto.order());
                 }
             }
             for (CustomFieldOption current : currentOptions) {
