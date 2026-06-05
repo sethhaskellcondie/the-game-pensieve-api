@@ -174,12 +174,15 @@ public class BackupImportService {
         if (null == toysToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
-        //TODO validate name...somewhere
         Map<Integer, Integer> toyIds = new HashMap<>(toysToBeImported.size());
 
         List<ToyResponseDto> validatedToys = new ArrayList<>(toysToBeImported.size());
         for (ToyResponseDto validatingToy : toysToBeImported) {
             boolean skipped = false;
+            if (null == validatingToy.name() || validatingToy.name().trim().isEmpty()) {
+                skipped = true;
+                exceptionBackupImport.addToyException(new Exception("Error importing toy data: Toy must have a name, but name was missing or empty."));
+            }
             for (CustomFieldValue value: validatingToy.customFieldValues()) {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                 if (null == customFieldId) {
@@ -224,7 +227,6 @@ public class BackupImportService {
     private ImportEntityResults importSystems(List<SystemResponseDto> systemsToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
-        //TODO validate name somewhere...
         if (null == systemsToBeImported) {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
@@ -233,6 +235,10 @@ public class BackupImportService {
         List<SystemResponseDto> validatedSystems = new ArrayList<>(systemsToBeImported.size());
         for (SystemResponseDto validatingSystem: systemsToBeImported) {
             boolean skipped = false;
+            if (null == validatingSystem.name() || validatingSystem.name().trim().isEmpty()) {
+                skipped = true;
+                exceptionBackupImport.addSystemException(new Exception("Error importing system data: System must have a name, but name was missing or empty."));
+            }
             for (CustomFieldValue value: validatingSystem.customFieldValues()) {
                 Integer customFieldId = customFieldIds.get(value.getCustomFieldId());
                 if (null == customFieldId) {
@@ -337,11 +343,13 @@ public class BackupImportService {
                                                                  Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds,
                                                                  ExceptionBackupImport exceptionBackupImport) {
 
-        //TODO validate the title...somewhere
-
         List<VideoGameBoxResponseDto> validatedBoxes = new ArrayList<>(videoGameBoxes.size());
         for (VideoGameBoxResponseDto videoGameBox : videoGameBoxes) {
             boolean skipped = false;
+            if (null == videoGameBox.title() || videoGameBox.title().trim().isEmpty()) {
+                skipped = true;
+                exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: Video game box must have a title, but title was missing or empty."));
+            }
             Integer systemId = systemIds.get(videoGameBox.system().id());
             if (null == systemId) {
                 skipped = true;
