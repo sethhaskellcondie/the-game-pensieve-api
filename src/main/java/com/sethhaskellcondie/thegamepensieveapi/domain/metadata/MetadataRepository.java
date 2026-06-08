@@ -27,9 +27,9 @@ public class MetadataRepository {
                     resultSet.getInt("id"),
                     resultSet.getString("key"),
                     resultSet.getString("value"),
-                    resultSet.getTimestamp("created_at").toLocalDateTime(),
-                    resultSet.getTimestamp("updated_at").toLocalDateTime(),
-                    resultSet.getTimestamp("deleted_at") != null ? resultSet.getTimestamp("deleted_at").toLocalDateTime() : null
+                    resultSet.getTimestamp("created_at"),
+                    resultSet.getTimestamp("updated_at"),
+                    resultSet.getTimestamp("deleted_at")
             );
 
     public MetadataRepository(JdbcTemplate jdbcTemplate) {

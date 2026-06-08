@@ -25,6 +25,7 @@ import java.util.Map;
 public class BackupImportController extends BaseController {
 
     private final BackupImportGateway gateway;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final String backupDataPath = "backup.json";
 
     public BackupImportController(BackupImportGateway gateway) {
@@ -34,7 +35,6 @@ public class BackupImportController extends BaseController {
     @PostMapping("v1/function/backup")
     public ApiResponse<BackupDataDto> backupJsonToFile(HttpServletRequest request) {
         final File file = new File(backupDataPath);
-        final ObjectMapper objectMapper = new ObjectMapper();
         final BackupDataDto backupDataDto = gateway.getBackupData();
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, backupDataDto);
@@ -53,7 +53,6 @@ public class BackupImportController extends BaseController {
             final BackupDataDto backupData;
             try {
                 final byte[] fileData = Files.readAllBytes(Paths.get(backupDataPath));
-                final ObjectMapper objectMapper = new ObjectMapper();
                 backupData = objectMapper.readValue(fileData, BackupDataDto.class);
             } catch (IOException e) {
                 throw new ExceptionInternalError("Failed to read backup data from file: " + backupDataPath, e);
@@ -90,7 +89,6 @@ public class BackupImportController extends BaseController {
             final BackupDataDto sampleData;
             try {
                 final byte[] fileData = Files.readAllBytes(Paths.get("sampleData.json"));
-                final ObjectMapper objectMapper = new ObjectMapper();
                 sampleData = objectMapper.readValue(fileData, BackupDataDto.class);
             } catch (IOException e) {
                 throw new ExceptionInternalError("Failed to read sample data from file sampleData.json: " + e.getMessage(), e);
@@ -112,7 +110,6 @@ public class BackupImportController extends BaseController {
             final BackupDataDto myCollectionData;
             try {
                 final byte[] fileData = Files.readAllBytes(Paths.get("myCollection.json"));
-                final ObjectMapper objectMapper = new ObjectMapper();
                 myCollectionData = objectMapper.readValue(fileData, BackupDataDto.class);
             } catch (IOException e) {
                 throw new ExceptionInternalError("Failed to read collection data from file: myCollection.json", e);
