@@ -7,6 +7,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldVa
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.SlimBoardGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBox;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxService;
@@ -44,16 +45,18 @@ public class BackupImportService {
     private final ToyService toyService;
     private final VideoGameBoxService videoGameBoxService;
     private final BoardGameBoxService boardGameBoxService;
+    private final BoardGameService boardGameService;
     private final MetadataGateway metadataGateway;
 
     protected BackupImportService(CustomFieldRepository customFieldRepository, SystemService systemService, ToyService toyService,
                                   VideoGameBoxService videoGameBoxService, BoardGameBoxService boardGameBoxService,
-                                  MetadataGateway metadataGateway) {
+                                  BoardGameService boardGameService, MetadataGateway metadataGateway) {
         this.customFieldRepository = customFieldRepository;
         this.systemService = systemService;
         this.toyService = toyService;
         this.videoGameBoxService = videoGameBoxService;
         this.boardGameBoxService = boardGameBoxService;
+        this.boardGameService = boardGameService;
         this.metadataGateway = metadataGateway;
     }
 
@@ -499,16 +502,22 @@ public class BackupImportService {
 
         for (BoardGameBoxResponseDto importBox : validatedBoxes) {
             try {
-                Integer boardGameId = boardGameIds.get(importBox.boardGame().id());
-                if (boardGameId == null) {
-                    boardGameId = importBox.boardGame().id();
+                Integer realBoardGameId = boardGameIds.get(importBox.boardGame().id());
+                if (realBoardGameId == null) {
+                    int foundGameId = boardGameService.duplicationCheck(importBox.boardGame().title());
+                    if (foundGameId > 0) {
+                        realBoardGameId = foundGameId;
+                        boardGameIds.put(importBox.boardGame().id(), foundGameId);
+                    }
                 }
-                int boxId = boardGameBoxService.duplicationCheck(importBox.title(), boardGameId);
+                int boxId = (realBoardGameId != null)
+                        ? boardGameBoxService.duplicationCheck(importBox.title(), realBoardGameId)
+                        : -1;
                 if (boxId > 0) {
                     existingCount++;
                     boardGameBoxIds.put(importBox.id(), boxId);
                 } else {
-                    Integer existingBoardGameId = boardGameIds.get(importBox.boardGame().id());
+                    Integer existingBoardGameId = realBoardGameId;
                     Integer baseSetId = boardGameIds.get(importBox.baseSetId());
                     BoardGameRequestDto gameToBeCreated = null;
                     if (null == existingBoardGameId) {

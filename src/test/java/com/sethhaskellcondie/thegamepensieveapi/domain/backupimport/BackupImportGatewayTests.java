@@ -628,6 +628,47 @@ public class BackupImportGatewayTests {
     }
 
     @Test
+    void boardGameBoxImport_ReimportWithDifferentFileIds_CountedAsExisting() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange adjust the ids in the file so that they do not match the ids that are in the database.
+        final SlimBoardGame gameFirstImport = new SlimBoardGame(301, "Reimport Test Game", null, null, null, List.of());
+        final BoardGameBoxResponseDto boxFirstImport = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 701,
+                "Reimport Test Box", false, true, null, gameFirstImport, null, null, null, List.of());
+        final List<BoardGameBoxResponseDto> firstBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        firstBoxes.add(boxFirstImport);
+        final ImportResultsDto firstResult = gateway.importBackupData(new BackupDataDto(
+                initialBackupData.customFields(), initialBackupData.toys(), initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(), firstBoxes, initialBackupData.metadata()));
+        assertAll(
+                "Setup import should create exactly the new board game box with no errors.",
+                () -> assertEquals(1, firstResult.createdBoardGameBoxes()),
+                () -> assertEquals(0, firstResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size()),
+                () -> assertEquals(0, firstResult.exceptionBackupImport().getBoardGameExceptions().getExceptions().size())
+        );
+        final BackupDataDto afterFirstImport = gateway.getBackupData();
+
+        //Act
+        final SlimBoardGame gameSecondImport = new SlimBoardGame(9302, "Reimport Test Game", null, null, null, List.of());
+        final BoardGameBoxResponseDto boxSecondImport = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 9701,
+                "Reimport Test Box", false, true, null, gameSecondImport, null, null, null, List.of());
+        final List<BoardGameBoxResponseDto> secondBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        secondBoxes.add(boxSecondImport);
+        final ImportResultsDto secondResult = gateway.importBackupData(new BackupDataDto(
+                initialBackupData.customFields(), initialBackupData.toys(), initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(), secondBoxes, initialBackupData.metadata()));
+
+        //Assert
+        assertAll(
+                "Re-importing a board game box with different file ids must be idempotent.",
+                () -> assertEquals(0, secondResult.createdBoardGameBoxes()),
+                () -> assertEquals(afterFirstImport.boardGameBoxes().size(), secondResult.existingBoardGameBoxes()),
+                () -> assertEquals(0, secondResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size()),
+                () -> assertEquals(0, secondResult.exceptionBackupImport().getBoardGameExceptions().getExceptions().size())
+        );
+    }
+
+    @Test
     void boardGameImport_ValidAndDuplicateBoardGamesAndBoxes_ValidDataImportedDuplicateReturned() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
