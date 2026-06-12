@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -453,6 +454,57 @@ public class CustomFieldValueRepositoryTests {
         assertThrows(
                 ExceptionMalformedEntity.class,
                 () -> toyRepository.insert(toyWithInvalidValue)
+        );
+    }
+
+    @Test
+    public void renameOption_ExistingValueReferencesOption_ValueReflectsNewNameAndEntityStillSaves() {
+        //This reproduces the original bug: before values referenced the option by id, renaming an option
+        //orphaned every stored value (it still held the old name) and re-saving the entity failed validation.
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField dropdownField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("RenameStatus", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY));
+        final CustomFieldOption option = optionRepository.insertOption(dropdownField.id(), "Old Name", true, 0);
+
+        final CustomFieldValue value = new CustomFieldValue(dropdownField.id(), dropdownField.name(), CustomField.TYPE_DROPDOWN, null, option.id());
+        final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
+        final int toyId = inserted.getId();
+
+        //rename the option in place
+        optionRepository.updateOption(option.id(), "New Name", 0, true);
+
+        //the existing value now resolves to the new name with the same option id - nothing was orphaned
+        final Toy reread = toyRepository.getById(toyId);
+        final CustomFieldValue rereadValue = reread.getCustomFieldValues().get(0);
+        assertAll(
+                "Renaming an option must update existing values through the reference, not orphan them.",
+                () -> assertEquals("New Name", rereadValue.getValue()),
+                () -> assertEquals(option.id(), rereadValue.getValueOptionId())
+        );
+
+        //and the entity must still be savable (this threw an ExceptionMalformedEntity before the refactor)
+        assertDoesNotThrow(() -> toyRepository.update(reread), "Re-saving an entity after an option rename should succeed.");
+    }
+
+    @Test
+    public void deleteOption_ValueReferencesDeletedOption_ReassignedToDefaultOption() {
+        final CustomFieldOptionRepository optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomField dropdownField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions("CascadeStatus", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY));
+        final CustomFieldOption defaultOption = optionRepository.insertOption(dropdownField.id(), "Default", true, 0);
+        final CustomFieldOption otherOption = optionRepository.insertOption(dropdownField.id(), "Other", false, 1);
+
+        final CustomFieldValue value = new CustomFieldValue(dropdownField.id(), dropdownField.name(), CustomField.TYPE_DROPDOWN, null, otherOption.id());
+        final Toy inserted = toyRepository.insert(createNewToyWithCustomFields(List.of(value)));
+        final int toyId = inserted.getId();
+
+        //deleting the referenced non-default option reassigns the value to the default option
+        optionRepository.deleteOption(otherOption.id(), dropdownField.id());
+
+        final Toy reread = toyRepository.getById(toyId);
+        final CustomFieldValue rereadValue = reread.getCustomFieldValues().get(0);
+        assertAll(
+                "Deleting a referenced option must reassign existing values to the default option.",
+                () -> assertEquals(defaultOption.id(), rereadValue.getValueOptionId()),
+                () -> assertEquals("Default", rereadValue.getValue())
         );
     }
 
