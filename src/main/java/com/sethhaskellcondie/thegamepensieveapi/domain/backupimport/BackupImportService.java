@@ -1,6 +1,8 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.backupimport;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOption;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
@@ -41,6 +43,7 @@ import java.util.Objects;
 @Service
 public class BackupImportService {
     private final CustomFieldRepository customFieldRepository;
+    private final CustomFieldOptionRepository customFieldOptionRepository;
     private final SystemService systemService;
     private final ToyService toyService;
     private final VideoGameBoxService videoGameBoxService;
@@ -48,10 +51,12 @@ public class BackupImportService {
     private final BoardGameService boardGameService;
     private final MetadataGateway metadataGateway;
 
-    protected BackupImportService(CustomFieldRepository customFieldRepository, SystemService systemService, ToyService toyService,
+    protected BackupImportService(CustomFieldRepository customFieldRepository, CustomFieldOptionRepository customFieldOptionRepository,
+                                  SystemService systemService, ToyService toyService,
                                   VideoGameBoxService videoGameBoxService, BoardGameBoxService boardGameBoxService,
                                   BoardGameService boardGameService, MetadataGateway metadataGateway) {
         this.customFieldRepository = customFieldRepository;
+        this.customFieldOptionRepository = customFieldOptionRepository;
         this.systemService = systemService;
         this.toyService = toyService;
         this.videoGameBoxService = videoGameBoxService;
@@ -135,6 +140,13 @@ public class BackupImportService {
             if (null == savedCustomField) {
                 try {
                     savedCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customField.name(), customField.type(), customField.entityKey()));
+                    //insertCustomField does not persist options, so recreate them here from the backup. Without this the enum
+                    //field is created with no options and every entity value that references one fails validation on import.
+                    if (CustomField.isEnumType(customField.type()) && null != customField.options()) {
+                        for (CustomFieldOption option : customField.options()) {
+                            customFieldOptionRepository.insertOption(savedCustomField.id(), option.name(), option.isDefault(), option.order());
+                        }
+                    }
                     createdCount++;
                 } catch (Exception exception) {
                     exceptionBackupImport.addCustomFieldException(new Exception("Error Importing Custom Field Data: Provided custom field with name: '"

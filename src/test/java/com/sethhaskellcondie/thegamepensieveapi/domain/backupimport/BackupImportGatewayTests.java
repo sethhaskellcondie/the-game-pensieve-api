@@ -21,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOption;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 
 /**
@@ -860,7 +861,92 @@ public class BackupImportGatewayTests {
                 "Metadata count should not change when re-importing existing keys.");
     }
 
+    @Test
+    void customFieldImport_EnumTypesWithOptions_OptionsRecreatedAndValuesRoundTrip() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange - one custom field of each enum type, each with options, and a toy that selects one option.
+        //The file ids (7100/7200/7300) and option ids (0) are deliberately misaligned with the ids the database
+        //will assign, proving import resolves the relationships by name rather than by the ids in the backup file.
+        final CustomField dropdownField = new CustomField(7100, "Phase1 Dropdown Status", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY, 0,
+                List.of(new CustomFieldOption(0, 7100, "New", true, 0), new CustomFieldOption(0, 7100, "Used", false, 1)));
+        final CustomFieldValue dropdownValue = new CustomFieldValue(7100, "Phase1 Dropdown Status", CustomField.TYPE_DROPDOWN, "Used");
+        final ToyResponseDto dropdownToy = new ToyResponseDto(Keychain.TOY_KEY, 7101, "Phase1 Dropdown Toy", "Phase1 Set", null, null, null, List.of(dropdownValue));
+
+        final CustomField radioField = new CustomField(7200, "Phase1 Radio Rating", CustomField.TYPE_RADIO_BUTTON, Keychain.TOY_KEY, 0,
+                List.of(new CustomFieldOption(0, 7200, "Low", true, 0), new CustomFieldOption(0, 7200, "High", false, 1)));
+        final CustomFieldValue radioValue = new CustomFieldValue(7200, "Phase1 Radio Rating", CustomField.TYPE_RADIO_BUTTON, "High");
+        final ToyResponseDto radioToy = new ToyResponseDto(Keychain.TOY_KEY, 7201, "Phase1 Radio Toy", "Phase1 Set", null, null, null, List.of(radioValue));
+
+        final CustomField progressField = new CustomField(7300, "Phase1 Progress Completion", CustomField.TYPE_PROGRESS_BAR, Keychain.TOY_KEY, 0,
+                List.of(new CustomFieldOption(0, 7300, "Started", true, 0), new CustomFieldOption(0, 7300, "Finished", false, 1)));
+        final CustomFieldValue progressValue = new CustomFieldValue(7300, "Phase1 Progress Completion", CustomField.TYPE_PROGRESS_BAR, "Finished");
+        final ToyResponseDto progressToy = new ToyResponseDto(Keychain.TOY_KEY, 7301, "Phase1 Progress Toy", "Phase1 Set", null, null, null, List.of(progressValue));
+
+        final List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
+        customFieldsList.add(dropdownField);
+        customFieldsList.add(radioField);
+        customFieldsList.add(progressField);
+        final int createdCustomFields = 3;
+        final List<ToyResponseDto> toysList = new ArrayList<>(initialBackupData.toys());
+        toysList.add(dropdownToy);
+        toysList.add(radioToy);
+        toysList.add(progressToy);
+        final int createdToys = 3;
+        final BackupDataDto importData = new BackupDataDto(
+                customFieldsList,
+                toysList,
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert - the enum fields and the toys that reference their options must all import cleanly.
+        assertAll(
+                "Enum custom fields with options (and the toy values that reference them) must round-trip through import.",
+                () -> assertEquals(createdCustomFields, importResult.createdCustomFields()),
+                () -> assertEquals(createdToys, importResult.createdToys()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getCustomFieldExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getToyExceptions().getExceptions().size()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
+        );
+
+        //Re-export and confirm the options were recreated on the imported fields and the selected values resolved correctly.
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        assertEnumFieldHasOptions(resultsBackupData, "Phase1 Dropdown Status", List.of("New", "Used"));
+        assertEnumFieldHasOptions(resultsBackupData, "Phase1 Radio Rating", List.of("Low", "High"));
+        assertEnumFieldHasOptions(resultsBackupData, "Phase1 Progress Completion", List.of("Started", "Finished"));
+        assertToyCustomFieldValue(resultsBackupData, "Phase1 Dropdown Toy", "Used");
+        assertToyCustomFieldValue(resultsBackupData, "Phase1 Radio Toy", "High");
+        assertToyCustomFieldValue(resultsBackupData, "Phase1 Progress Toy", "Finished");
+    }
+
     // ====================================== Private Validation Methods ======================================
+
+    private void assertEnumFieldHasOptions(BackupDataDto backupData, String customFieldName, List<String> expectedOptionNames) {
+        final CustomField field = backupData.customFields().stream()
+                .filter(customField -> customField.name().equals(customFieldName))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Imported custom field '" + customFieldName + "' was not found in the exported backup data."));
+        final List<String> actualOptionNames = field.options().stream().map(CustomFieldOption::name).toList();
+        assertEquals(expectedOptionNames, actualOptionNames,
+                "Imported enum custom field '" + customFieldName + "' did not have its options recreated.");
+    }
+
+    private void assertToyCustomFieldValue(BackupDataDto backupData, String toyName, String expectedValue) {
+        final ToyResponseDto toy = backupData.toys().stream()
+                .filter(t -> t.name().equals(toyName))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Imported toy '" + toyName + "' was not found in the exported backup data."));
+        assertEquals(1, toy.customFieldValues().size(), "Imported toy '" + toyName + "' should have exactly one custom field value.");
+        assertEquals(expectedValue, toy.customFieldValues().get(0).getValue(),
+                "Imported toy '" + toyName + "' did not resolve to the expected option value.");
+    }
+
 
     private void validateBackupData(BackupDataDto expectedBackupData, BackupDataDto actualBackupData) {
         validateCustomFieldBackupData(expectedBackupData, actualBackupData);
