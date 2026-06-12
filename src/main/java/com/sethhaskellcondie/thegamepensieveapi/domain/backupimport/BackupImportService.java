@@ -78,23 +78,25 @@ public class BackupImportService {
 
     protected ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
         final Map<Integer, Integer> customFieldIds;
+        final Map<Integer, Integer> optionIds;
         ExceptionBackupImport exceptionBackupImport = new ExceptionBackupImport();
 
-        final ImportEntityResults customFieldResults = importCustomFields(backupDataDto.customFields(), exceptionBackupImport);
+        final CustomFieldImportResults customFieldResults = importCustomFields(backupDataDto.customFields(), exceptionBackupImport);
         //There is no point trying to import the rest of the data if the custom fields are broken, if any error are detected then return early importing no data.
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
             exceptionBackupImport.setHeader("There were errors importing Custom Fields. No additional data imported.");
             return new ImportResultsDto(customFieldResults.existingCount(), customFieldResults.createdCount(), exceptionBackupImport);
         }
-        customFieldIds = customFieldResults.entityIds();
+        customFieldIds = customFieldResults.customFieldIds();
+        optionIds = customFieldResults.optionIds();
 
-        ImportEntityResults toyResults = importToys(backupDataDto.toys(), customFieldIds, exceptionBackupImport);
+        ImportEntityResults toyResults = importToys(backupDataDto.toys(), customFieldIds, optionIds, exceptionBackupImport);
 
-        ImportEntityResults systemResults = importSystems(backupDataDto.systems(), customFieldIds, exceptionBackupImport);
+        ImportEntityResults systemResults = importSystems(backupDataDto.systems(), customFieldIds, optionIds, exceptionBackupImport);
 
-        ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto.videoGameBoxes(), customFieldIds, systemResults.entityIds(), exceptionBackupImport);
+        ImportEntityResults videoGameBoxResults = importVideoGameBoxes(backupDataDto.videoGameBoxes(), customFieldIds, optionIds, systemResults.entityIds(), exceptionBackupImport);
 
-        ImportEntityResults boardGameBoxResults = importBoardGameBoxes(backupDataDto.boardGameBoxes(), customFieldIds, exceptionBackupImport);
+        ImportEntityResults boardGameBoxResults = importBoardGameBoxes(backupDataDto.boardGameBoxes(), customFieldIds, optionIds, exceptionBackupImport);
 
         ImportEntityResults metadataResults = importMetadata(backupDataDto.metadata(), exceptionBackupImport);
 
@@ -113,16 +115,18 @@ public class BackupImportService {
         );
     }
 
-    private ImportEntityResults importCustomFields(final List<CustomField> customFields, ExceptionBackupImport exceptionBackupImport) {
+    private CustomFieldImportResults importCustomFields(final List<CustomField> customFields, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
 
         validateCustomFieldIds(customFields, exceptionBackupImport);
         if (!exceptionBackupImport.getExceptions().isEmpty()) {
-            return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
+            return new CustomFieldImportResults(new HashMap<>(), new HashMap<>(), existingCount, createdCount);
         }
 
         final Map<Integer, Integer> customFieldIds = new HashMap<>(customFields.size());
+        //Maps an option id from the backup file to the option id assigned in the database, so enum entity values can be remapped.
+        final Map<Integer, Integer> optionIds = new HashMap<>();
         for (CustomField customField : customFields) {
             CustomField savedCustomField;
             try {
@@ -156,9 +160,42 @@ public class BackupImportService {
             if (null != savedCustomField) {
                 //The first ID comes from the import and is used to determine relationships with other objects to be imported, and the second is the new ID after being written to the database.
                 customFieldIds.put(customField.id(), savedCustomField.id());
+                mapOptionIds(customField, savedCustomField.id(), optionIds);
             }
         }
-        return new ImportEntityResults(customFieldIds, existingCount, createdCount);
+        return new CustomFieldImportResults(customFieldIds, optionIds, existingCount, createdCount);
+    }
+
+    //Builds the backup-option-id -> database-option-id mapping for an enum field by matching options on their name
+    //(custom_field_options has a UNIQUE (custom_field_id, name) constraint, so the name is a stable natural key).
+    private void mapOptionIds(CustomField importedField, int savedFieldId, Map<Integer, Integer> optionIds) {
+        if (!CustomField.isEnumType(importedField.type()) || null == importedField.options()) {
+            return;
+        }
+        final Map<String, Integer> savedOptionIdsByName = new HashMap<>();
+        for (CustomFieldOption savedOption : customFieldRepository.getById(savedFieldId).options()) {
+            savedOptionIdsByName.put(savedOption.name(), savedOption.id());
+        }
+        for (CustomFieldOption importedOption : importedField.options()) {
+            final Integer savedOptionId = savedOptionIdsByName.get(importedOption.name());
+            if (null != savedOptionId) {
+                optionIds.put(importedOption.id(), savedOptionId);
+            }
+        }
+    }
+
+    //Returns an error message if an enum value's option reference cannot be remapped, otherwise remaps it in place and returns null.
+    private String remapValueOptionId(CustomFieldValue value, Map<Integer, Integer> optionIds) {
+        if (!CustomField.isEnumType(value.getCustomFieldType())) {
+            return null;
+        }
+        final Integer newOptionId = optionIds.get(value.getValueOptionId());
+        if (null == newOptionId) {
+            return "the custom field value named '" + value.getCustomFieldName() + "' referenced an option (valueOptionId '"
+                    + value.getValueOptionId() + "') that was not found in the import data.";
+        }
+        value.setValueOptionId(newOptionId);
+        return null;
     }
 
     private void validateCustomFieldIds(final List<CustomField> customFields, ExceptionBackupImport exceptionBackupImport) {
@@ -184,7 +221,7 @@ public class BackupImportService {
         }
     }
 
-    private ImportEntityResults importToys(List<ToyResponseDto> toysToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importToys(List<ToyResponseDto> toysToBeImported, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> optionIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
         if (null == toysToBeImported) {
@@ -208,6 +245,12 @@ public class BackupImportService {
                         + "' and custom field ID provided on the toy as '" + value.getCustomFieldId() + "'."));
                 } else {
                     value.setCustomFieldId(customFieldId);
+                    final String optionError = remapValueOptionId(value, optionIds);
+                    if (null != optionError) {
+                        skipped = true;
+                        exceptionBackupImport.addToyException(new Exception("Error Importing Toy Data: for toy with name: '"
+                            + validatingToy.name() + "' and set '" + validatingToy.set() + "' " + optionError));
+                    }
                 }
             }
             if (!skipped) {
@@ -240,7 +283,8 @@ public class BackupImportService {
         return new ImportEntityResults(toyIds, existingCount, createdCount);
     }
 
-    private ImportEntityResults importSystems(List<SystemResponseDto> systemsToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importSystems(List<SystemResponseDto> systemsToBeImported, Map<Integer, Integer> customFieldIds,
+                                              Map<Integer, Integer> optionIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
         if (null == systemsToBeImported) {
@@ -264,6 +308,12 @@ public class BackupImportService {
                         + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
                     value.setCustomFieldId(customFieldId);
+                    final String optionError = remapValueOptionId(value, optionIds);
+                    if (null != optionError) {
+                        skipped = true;
+                        exceptionBackupImport.addSystemException(new Exception("Error importing system data: for system named: '"
+                            + validatingSystem.name() + "' " + optionError));
+                    }
                 }
             }
             if (!skipped) {
@@ -296,7 +346,7 @@ public class BackupImportService {
     }
 
     private ImportEntityResults importVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxToBeImported,
-                                                     Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds,
+                                                     Map<Integer, Integer> customFieldIds, Map<Integer, Integer> optionIds, Map<Integer, Integer> systemIds,
                                                      ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
@@ -304,7 +354,7 @@ public class BackupImportService {
             return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
         }
         Map<Integer, Integer> boxIds = new HashMap<>(videoGameBoxToBeImported.size());
-        List<VideoGameBoxResponseDto> validatedBoxes = validateVideoGameBoxes(videoGameBoxToBeImported, customFieldIds, systemIds, exceptionBackupImport);
+        List<VideoGameBoxResponseDto> validatedBoxes = validateVideoGameBoxes(videoGameBoxToBeImported, customFieldIds, optionIds, systemIds, exceptionBackupImport);
         Map<Integer, Integer> gameIds = new HashMap<>(videoGameBoxToBeImported.size());
 
         for (VideoGameBoxResponseDto importBox: validatedBoxes) {
@@ -316,7 +366,7 @@ public class BackupImportService {
                     continue;
                 }
 
-                ValidatedVideoGameResults validatedVideoGameResults = validateVideoGames(importBox.videoGames(), customFieldIds, systemIds, gameIds, exceptionBackupImport);
+                ValidatedVideoGameResults validatedVideoGameResults = validateVideoGames(importBox.videoGames(), customFieldIds, optionIds, systemIds, gameIds, exceptionBackupImport);
                 if (validatedVideoGameResults.newGames().isEmpty() && validatedVideoGameResults.existingIds().isEmpty()) {
                     exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: Video Game Box with title: '"
                             + importBox.title() + "' had no valid Video Games included with the import data. Video Game Boxes must include at least one valid video game."));
@@ -356,7 +406,7 @@ public class BackupImportService {
     }
 
     private List<VideoGameBoxResponseDto> validateVideoGameBoxes(List<VideoGameBoxResponseDto> videoGameBoxes,
-                                                                 Map<Integer, Integer> customFieldIds, Map<Integer, Integer> systemIds,
+                                                                 Map<Integer, Integer> customFieldIds, Map<Integer, Integer> optionIds, Map<Integer, Integer> systemIds,
                                                                  ExceptionBackupImport exceptionBackupImport) {
 
         List<VideoGameBoxResponseDto> validatedBoxes = new ArrayList<>(videoGameBoxes.size());
@@ -408,6 +458,12 @@ public class BackupImportService {
                         + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
                     value.setCustomFieldId(customFieldId);
+                    final String optionError = remapValueOptionId(value, optionIds);
+                    if (null != optionError) {
+                        skipped = true;
+                        exceptionBackupImport.addVideoGameBoxException(new Exception("Error importing video game box data: for video game box titled: '"
+                            + videoGameBox.title() + "' " + optionError));
+                    }
                 }
             }
 
@@ -425,7 +481,7 @@ public class BackupImportService {
         return validatedBoxes;
     }
 
-    private ValidatedVideoGameResults validateVideoGames(List<SlimVideoGame> videoGamesToImport, Map<Integer, Integer> customFieldIds,
+    private ValidatedVideoGameResults validateVideoGames(List<SlimVideoGame> videoGamesToImport, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> optionIds,
                                                          Map<Integer, Integer> systemIds, Map<Integer, Integer> videoGameIds,
                                                          ExceptionBackupImport exceptionBackupImport) {
         List<Integer> importedVideoGamesIds = new ArrayList<>(videoGamesToImport.size());
@@ -482,6 +538,12 @@ public class BackupImportService {
                             + "' The custom field must be included on the import and not just existing in the database."));
                     } else {
                         value.setCustomFieldId(customFieldId);
+                        final String optionError = remapValueOptionId(value, optionIds);
+                        if (null != optionError) {
+                            skipped = true;
+                            exceptionBackupImport.addVideoGameException(new Exception("Error importing video game data: for video game titled: '"
+                                + validatingGame.title() + "' " + optionError));
+                        }
                     }
                 }
 
@@ -501,7 +563,8 @@ public class BackupImportService {
         return new ValidatedVideoGameResults(importedVideoGamesIds, newGames);
     }
 
-    private ImportEntityResults importBoardGameBoxes(List<BoardGameBoxResponseDto> boardGameBoxesToBeImported, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private ImportEntityResults importBoardGameBoxes(List<BoardGameBoxResponseDto> boardGameBoxesToBeImported, Map<Integer, Integer> customFieldIds,
+                                                     Map<Integer, Integer> optionIds, ExceptionBackupImport exceptionBackupImport) {
         int existingCount = 0;
         int createdCount = 0;
         if (null == boardGameBoxesToBeImported) {
@@ -509,7 +572,7 @@ public class BackupImportService {
         }
         Map<Integer, Integer> boardGameBoxIds = new HashMap<>(boardGameBoxesToBeImported.size());
         Map<Integer, Integer> boardGameIds = new HashMap<>(boardGameBoxesToBeImported.size());
-        List<BoardGameBoxResponseDto> validatedBoxes = validateBoardGameBoxes(boardGameBoxesToBeImported, customFieldIds, exceptionBackupImport);
+        List<BoardGameBoxResponseDto> validatedBoxes = validateBoardGameBoxes(boardGameBoxesToBeImported, customFieldIds, optionIds, exceptionBackupImport);
         validatedBoxes.sort(Comparator.comparing(BoardGameBoxResponseDto::isExpansion)); //import base set boxes first, then expansions after that
 
         for (BoardGameBoxResponseDto importBox : validatedBoxes) {
@@ -557,7 +620,8 @@ public class BackupImportService {
         return new ImportEntityResults(boardGameBoxIds, existingCount, createdCount);
     }
 
-    private List<BoardGameBoxResponseDto> validateBoardGameBoxes(List<BoardGameBoxResponseDto> boardGameBoxes, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private List<BoardGameBoxResponseDto> validateBoardGameBoxes(List<BoardGameBoxResponseDto> boardGameBoxes, Map<Integer, Integer> customFieldIds,
+                                                                 Map<Integer, Integer> optionIds, ExceptionBackupImport exceptionBackupImport) {
         List<BoardGameBoxResponseDto> validatedBoxes = new ArrayList<>(boardGameBoxes.size());
 
         for (BoardGameBoxResponseDto boardGameBox : boardGameBoxes) {
@@ -570,7 +634,7 @@ public class BackupImportService {
 
             // Validate board game (parent game) if it exists
             if (null != boardGameBox.boardGame()) {
-                BoardGameRequestDto validatedGame = validateBoardGame(boardGameBox.boardGame(), customFieldIds, exceptionBackupImport);
+                BoardGameRequestDto validatedGame = validateBoardGame(boardGameBox.boardGame(), customFieldIds, optionIds, exceptionBackupImport);
                 if (null == validatedGame) {
                     skipped = true;
                 }
@@ -585,6 +649,12 @@ public class BackupImportService {
                         + "' The custom field must be included on the import and not just existing in the database."));
                 } else {
                     value.setCustomFieldId(customFieldId);
+                    final String optionError = remapValueOptionId(value, optionIds);
+                    if (null != optionError) {
+                        skipped = true;
+                        exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data: for board game box titled: '"
+                            + boardGameBox.title() + "' " + optionError));
+                    }
                 }
             }
 
@@ -596,7 +666,7 @@ public class BackupImportService {
         return validatedBoxes;
     }
 
-    private BoardGameRequestDto validateBoardGame(SlimBoardGame boardGame, Map<Integer, Integer> customFieldIds, ExceptionBackupImport exceptionBackupImport) {
+    private BoardGameRequestDto validateBoardGame(SlimBoardGame boardGame, Map<Integer, Integer> customFieldIds, Map<Integer, Integer> optionIds, ExceptionBackupImport exceptionBackupImport) {
         if (null == boardGame) {
             return null;
         }
@@ -617,6 +687,12 @@ public class BackupImportService {
                     + "' The custom field must be included on the import and not just existing in the database."));
             } else {
                 value.setCustomFieldId(customFieldId);
+                final String optionError = remapValueOptionId(value, optionIds);
+                if (null != optionError) {
+                    valid = false;
+                    exceptionBackupImport.addBoardGameException(new Exception("Error importing board game data: for board game with title: '"
+                        + boardGame.title() + "' " + optionError));
+                }
             }
         }
 
@@ -655,4 +731,5 @@ public class BackupImportService {
 }
 
 record ImportEntityResults(Map<Integer, Integer> entityIds, int existingCount, int createdCount) { }
+record CustomFieldImportResults(Map<Integer, Integer> customFieldIds, Map<Integer, Integer> optionIds, int existingCount, int createdCount) { }
 record ValidatedVideoGameResults(List<Integer> existingIds, Map<Integer, VideoGameRequestDto> newGames) { }

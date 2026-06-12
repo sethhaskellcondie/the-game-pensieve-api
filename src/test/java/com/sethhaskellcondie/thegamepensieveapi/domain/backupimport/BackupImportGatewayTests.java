@@ -865,22 +865,22 @@ public class BackupImportGatewayTests {
     void customFieldImport_EnumTypesWithOptions_OptionsRecreatedAndValuesRoundTrip() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 
-        //Arrange - one custom field of each enum type, each with options, and a toy that selects one option.
-        //The file ids (7100/7200/7300) and option ids (0) are deliberately misaligned with the ids the database
-        //will assign, proving import resolves the relationships by name rather than by the ids in the backup file.
+        //Arrange - one custom field of each enum type, each with options, and a toy that selects one option by its id.
+        //The field ids (7100/7200/7300) and option ids (7110.., 7210.., 7310..) are deliberately misaligned with the ids
+        //the database will assign, proving import resolves fields by name and remaps the enum value option references.
         final CustomField dropdownField = new CustomField(7100, "Phase1 Dropdown Status", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY, 0,
-                List.of(new CustomFieldOption(0, 7100, "New", true, 0), new CustomFieldOption(0, 7100, "Used", false, 1)));
-        final CustomFieldValue dropdownValue = new CustomFieldValue(7100, "Phase1 Dropdown Status", CustomField.TYPE_DROPDOWN, "Used");
+                List.of(new CustomFieldOption(7110, 7100, "New", true, 0), new CustomFieldOption(7111, 7100, "Used", false, 1)));
+        final CustomFieldValue dropdownValue = new CustomFieldValue(7100, "Phase1 Dropdown Status", CustomField.TYPE_DROPDOWN, "Used", 7111);
         final ToyResponseDto dropdownToy = new ToyResponseDto(Keychain.TOY_KEY, 7101, "Phase1 Dropdown Toy", "Phase1 Set", null, null, null, List.of(dropdownValue));
 
         final CustomField radioField = new CustomField(7200, "Phase1 Radio Rating", CustomField.TYPE_RADIO_BUTTON, Keychain.TOY_KEY, 0,
-                List.of(new CustomFieldOption(0, 7200, "Low", true, 0), new CustomFieldOption(0, 7200, "High", false, 1)));
-        final CustomFieldValue radioValue = new CustomFieldValue(7200, "Phase1 Radio Rating", CustomField.TYPE_RADIO_BUTTON, "High");
+                List.of(new CustomFieldOption(7210, 7200, "Low", true, 0), new CustomFieldOption(7211, 7200, "High", false, 1)));
+        final CustomFieldValue radioValue = new CustomFieldValue(7200, "Phase1 Radio Rating", CustomField.TYPE_RADIO_BUTTON, "High", 7211);
         final ToyResponseDto radioToy = new ToyResponseDto(Keychain.TOY_KEY, 7201, "Phase1 Radio Toy", "Phase1 Set", null, null, null, List.of(radioValue));
 
         final CustomField progressField = new CustomField(7300, "Phase1 Progress Completion", CustomField.TYPE_PROGRESS_BAR, Keychain.TOY_KEY, 0,
-                List.of(new CustomFieldOption(0, 7300, "Started", true, 0), new CustomFieldOption(0, 7300, "Finished", false, 1)));
-        final CustomFieldValue progressValue = new CustomFieldValue(7300, "Phase1 Progress Completion", CustomField.TYPE_PROGRESS_BAR, "Finished");
+                List.of(new CustomFieldOption(7310, 7300, "Started", true, 0), new CustomFieldOption(7311, 7300, "Finished", false, 1)));
+        final CustomFieldValue progressValue = new CustomFieldValue(7300, "Phase1 Progress Completion", CustomField.TYPE_PROGRESS_BAR, "Finished", 7311);
         final ToyResponseDto progressToy = new ToyResponseDto(Keychain.TOY_KEY, 7301, "Phase1 Progress Toy", "Phase1 Set", null, null, null, List.of(progressValue));
 
         final List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());

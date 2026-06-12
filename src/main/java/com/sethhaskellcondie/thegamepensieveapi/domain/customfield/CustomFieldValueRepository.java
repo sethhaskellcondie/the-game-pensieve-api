@@ -34,7 +34,8 @@ public class CustomFieldValueRepository {
                     resultSet.getInt("entity_id"),
                     resultSet.getString("entity_key"),
                     resultSet.getString("value_text"),
-                    resultSet.getInt("value_number")
+                    resultSet.getInt("value_number"),
+                    (Integer) resultSet.getObject("value_option_id")
             );
     private final RowMapper<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaoRowMapper = (resultSet, rowNumber) ->
             new CustomFieldValueJoinCustomFieldDao(
@@ -43,9 +44,11 @@ public class CustomFieldValueRepository {
                     resultSet.getString("entity_key"),
                     resultSet.getString("value_text"),
                     resultSet.getInt("value_number"),
+                    (Integer) resultSet.getObject("value_option_id"),
                     resultSet.getBoolean("deleted"),
                     resultSet.getString("name"),
-                    resultSet.getString("type")
+                    resultSet.getString("type"),
+                    resultSet.getString("option_name")
             );
 
     //This repository should only be accessed through EntityRepositories
@@ -57,8 +60,13 @@ public class CustomFieldValueRepository {
 
     public List<CustomFieldValue> getCustomFieldValuesByEntityIdAndEntityKey(int entityId, String entityKey) {
         final String sql = """
-                    SELECT * FROM custom_field_values
+                    SELECT custom_field_values.custom_field_id, custom_field_values.entity_id, custom_field_values.entity_key,
+                           custom_field_values.value_text, custom_field_values.value_number, custom_field_values.value_option_id,
+                           custom_fields.deleted, custom_fields.name, custom_fields.type,
+                           custom_field_options.name AS option_name
+                        FROM custom_field_values
                         JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id
+                        LEFT JOIN custom_field_options ON custom_field_values.value_option_id = custom_field_options.id
                         WHERE custom_field_values.entity_id = ? AND custom_field_values.entity_key = ? AND custom_fields.deleted = false;
                 """;
         List<CustomFieldValueJoinCustomFieldDao> customFieldValueJoinCustomFieldDaos = jdbcTemplate.query(sql, customFieldValueJoinCustomFieldDaoRowMapper, entityId, entityKey);
@@ -67,8 +75,12 @@ public class CustomFieldValueRepository {
 
     public Map<Integer, List<CustomFieldValue>> getCustomFieldValuesByEntityIdsAndEntityKey(List<Integer> entityIds, String entityKey) {
         String placeholders = entityIds.stream().map(id -> "?").collect(Collectors.joining(", "));
-        final String sql = "SELECT * FROM custom_field_values"
+        final String sql = "SELECT custom_field_values.custom_field_id, custom_field_values.entity_id, custom_field_values.entity_key,"
+                + " custom_field_values.value_text, custom_field_values.value_number, custom_field_values.value_option_id,"
+                + " custom_fields.deleted, custom_fields.name, custom_fields.type, custom_field_options.name AS option_name"
+                + " FROM custom_field_values"
                 + " JOIN custom_fields ON custom_field_values.custom_field_id = custom_fields.id"
+                + " LEFT JOIN custom_field_options ON custom_field_values.value_option_id = custom_field_options.id"
                 + " WHERE custom_field_values.entity_id IN (" + placeholders + ")"
                 + " AND custom_field_values.entity_key = ? AND custom_fields.deleted = false;";
         Object[] params = new Object[entityIds.size() + 1];
@@ -97,21 +109,30 @@ public class CustomFieldValueRepository {
         value.setCustomFieldId(relatedCustomField.id());
         CustomFieldValueDao valueDao = convertToDao(value, entityId, entityKey);
         if (null == getDaoByCustomFieldIdAndEntityId(value.getCustomFieldId(), entityId, false)) {
-            return insertDao(valueDao).convertToValue(relatedCustomField.name(), relatedCustomField.type());
+            return convertDaoToValue(insertDao(valueDao), relatedCustomField.name(), relatedCustomField.type());
         }
 
         final String sql = """
-                            UPDATE custom_field_values SET value_text = ?, value_number = ? WHERE custom_field_id = ? AND entity_id = ?;
+                            UPDATE custom_field_values SET value_text = ?, value_number = ?, value_option_id = ? WHERE custom_field_id = ? AND entity_id = ?;
                 """;
-        jdbcTemplate.update(sql, valueDao.valueText(), valueDao.valueNumber(), valueDao.customFieldId(), valueDao.entityId());
-        return value;
+        jdbcTemplate.update(sql, valueDao.valueText(), valueDao.valueNumber(), valueDao.valueOptionId(), valueDao.customFieldId(), valueDao.entityId());
+        return convertDaoToValue(valueDao, relatedCustomField.name(), relatedCustomField.type());
+    }
+
+    //Enum values store only the option id, so resolve the option name here for the response; other types delegate to the DAO.
+    private CustomFieldValue convertDaoToValue(CustomFieldValueDao valueDao, String customFieldName, String customFieldType) {
+        if (CustomField.isEnumType(customFieldType)) {
+            final String optionName = customFieldOptionRepository.getOptionById(valueDao.valueOptionId()).name();
+            return new CustomFieldValue(valueDao.customFieldId(), customFieldName, customFieldType, optionName, valueDao.valueOptionId());
+        }
+        return valueDao.convertToValue(customFieldName, customFieldType);
     }
 
     private CustomFieldValueDao insertDao(CustomFieldValueDao valueDao) {
         final String sql = """
-                            INSERT INTO custom_field_values(custom_field_id, entity_id, entity_key, value_text, value_number) VALUES (?, ?, ?, ?, ?);
+                            INSERT INTO custom_field_values(custom_field_id, entity_id, entity_key, value_text, value_number, value_option_id) VALUES (?, ?, ?, ?, ?, ?);
                 """;
-        jdbcTemplate.update(sql, valueDao.customFieldId(), valueDao.entityId(), valueDao.entityKey(), valueDao.valueText(), valueDao.valueNumber());
+        jdbcTemplate.update(sql, valueDao.customFieldId(), valueDao.entityId(), valueDao.entityKey(), valueDao.valueText(), valueDao.valueNumber(), valueDao.valueOptionId());
 
         return getDaoByCustomFieldIdAndEntityId(valueDao.customFieldId(), valueDao.entityId(), true);
     }
@@ -170,27 +191,27 @@ public class CustomFieldValueRepository {
     private CustomFieldValueDao convertToDao(CustomFieldValue customFieldValue, int entityId, String entityKey) {
         switch (customFieldValue.getCustomFieldType()) {
             case CustomField.TYPE_TEXT -> {
-                return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null);
+                return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null, null);
             }
             case CustomField.TYPE_NUMBER -> {
                 try {
-                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, null, Integer.parseInt(customFieldValue.getValue()));
+                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, null, Integer.parseInt(customFieldValue.getValue()), null);
                 } catch (NumberFormatException exception) {
                     throw new ExceptionMalformedEntity("Malformed Custom Field Value: if the Custom Field Type is number the value must be a valid Integer.", exception);
                 }
             }
             case CustomField.TYPE_BOOLEAN -> {
                 if (Objects.equals(customFieldValue.getValue(), "true") || Objects.equals(customFieldValue.getValue(), "false")) {
-                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null);
+                    return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null, null);
                 }
                 throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: if the Custom Field Type is boolean the value must be exactly 'true' or 'false'.")));
             }
             case CustomField.TYPE_DROPDOWN, CustomField.TYPE_RADIO_BUTTON, CustomField.TYPE_PROGRESS_BAR -> {
-                if (!customFieldOptionRepository.isValidOptionName(customFieldValue.getCustomFieldId(), customFieldValue.getValue())) {
-                    throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: '" + customFieldValue.getValue()
+                if (!customFieldOptionRepository.isValidOptionId(customFieldValue.getCustomFieldId(), customFieldValue.getValueOptionId())) {
+                    throw new ExceptionMalformedEntity(List.of(new Exception("Malformed Custom Field Value: valueOptionId '" + customFieldValue.getValueOptionId()
                             + "' is not a valid option for custom field id " + customFieldValue.getCustomFieldId() + ".")));
                 }
-                return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, customFieldValue.getValue(), null);
+                return new CustomFieldValueDao(customFieldValue.getCustomFieldId(), entityId, entityKey, null, null, customFieldValue.getValueOptionId());
             }
             default -> {
                 //This is just a sanity check the type will have been matched against the found CustomField earlier in the process
@@ -201,25 +222,28 @@ public class CustomFieldValueRepository {
     }
 }
 
-record CustomFieldValueDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber) {
+record CustomFieldValueDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber, Integer valueOptionId) {
 
+    //Enum types are resolved in the repository (this DAO has no option name), they must not be routed here.
     CustomFieldValue convertToValue(String customFieldName, String customFieldType) {
         if (Objects.equals(customFieldType, CustomField.TYPE_TEXT)
-                || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)
-                || CustomField.getEnumCustomFieldTypes().contains(customFieldType)) {
+                || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
             return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueText);
         }
         return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, this.valueNumber.toString());
     }
 }
 
-record CustomFieldValueJoinCustomFieldDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber, boolean deleted, String customFieldName, String customFieldType) {
+record CustomFieldValueJoinCustomFieldDao(int customFieldId, int entityId, String entityKey, String valueText, Integer valueNumber, Integer valueOptionId,
+                                          boolean deleted, String customFieldName, String customFieldType, String optionName) {
 
     CustomFieldValue convertToValue() {
         if (Objects.equals(customFieldType, CustomField.TYPE_TEXT)
-                || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)
-                || CustomField.getEnumCustomFieldTypes().contains(customFieldType)) {
+                || Objects.equals(customFieldType, CustomField.TYPE_BOOLEAN)) {
             return new CustomFieldValue(customFieldId, customFieldName, customFieldType, valueText);
+        }
+        if (CustomField.getEnumCustomFieldTypes().contains(customFieldType)) {
+            return new CustomFieldValue(customFieldId, customFieldName, customFieldType, optionName, valueOptionId);
         }
         return new CustomFieldValue(this.customFieldId, customFieldName, customFieldType, valueNumber.toString());
     }

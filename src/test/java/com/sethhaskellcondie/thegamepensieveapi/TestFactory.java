@@ -66,6 +66,11 @@ public class TestFactory {
                     () -> assertEquals(expectedValue.getValue(), returnedValue.getValue())
                 );
             }
+            //Enum values carry the selected option id; only assert it when the test supplied an expected one.
+            if (expectedValue.getValueOptionId() != null) {
+                assertEquals(expectedValue.getValueOptionId(), returnedValue.getValueOptionId(),
+                        "The returned custom field value option id did not match the expected option id.");
+            }
         }
     }
 
@@ -183,27 +188,19 @@ public class TestFactory {
     }
 
     private String formatCustomField(CustomFieldValue value, boolean last) {
-        String customFieldString;
-        if (last) {
-            customFieldString = """
+        final String customFieldString = """
                     {
                         "customFieldId": %d,
                         "customFieldName": "%s",
                         "customFieldType": "%s",
-                        "value": "%s"
-                    }
+                        "value": "%s",
+                        "valueOptionId": %s
+                    }%s
                 """;
-        } else {
-            customFieldString = """
-                    {
-                        "customFieldId": %d,
-                        "customFieldName": "%s",
-                        "customFieldType": "%s",
-                        "value": "%s"
-                    },
-                """;
-        }
-        return String.format(customFieldString, value.getCustomFieldId(), value.getCustomFieldName(), value.getCustomFieldType(), value.getValue());
+        //Enum type values are written by their option id (valueOptionId); other types leave it null.
+        final String valueOptionId = value.getValueOptionId() == null ? "null" : value.getValueOptionId().toString();
+        return String.format(customFieldString, value.getCustomFieldId(), value.getCustomFieldName(), value.getCustomFieldType(),
+                value.getValue(), valueOptionId, last ? "" : ",");
     }
 
     public SystemResponseDto postSystem() throws Exception {

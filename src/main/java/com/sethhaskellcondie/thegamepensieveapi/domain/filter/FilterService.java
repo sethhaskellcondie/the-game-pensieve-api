@@ -152,12 +152,10 @@ public class FilterService {
             case FIELD_TYPE_BOOLEAN -> {
                 filters.add(OPERATOR_EQUALS);
             }
+            //Enum types filter on the selected option's ID (like system), so only equals/not-equals apply and sorting is not supported
             case Filter.FIELD_TYPE_DROPDOWN, Filter.FIELD_TYPE_RADIO_BUTTON, Filter.FIELD_TYPE_PROGRESS_BAR -> {
                 filters.add(OPERATOR_EQUALS);
                 filters.add(OPERATOR_NOT_EQUALS);
-                filters.add(OPERATOR_CONTAINS);
-                filters.add(OPERATOR_STARTS_WITH);
-                filters.add(OPERATOR_ENDS_WITH);
             }
             //Not implementing sort on system yet, because we are filtering on the ID not the name or any visible text or numbers
             case FIELD_TYPE_SYSTEM -> {
@@ -184,7 +182,8 @@ public class FilterService {
         }
         // The 'all_fields' placeholder (FIELD_TYPE_SORT) only advertises in the metadata that sorting is supported;
         // it is not a real column, so it must never be granted the sort operators or it generates invalid SQL.
-        if (includeSort && !Objects.equals(fieldType, FIELD_TYPE_SORT)) {
+        // Enum types are excluded as well: they sort on the option ID, which is creation order, not anything meaningful to a user.
+        if (includeSort && !Objects.equals(fieldType, FIELD_TYPE_SORT) && !CustomField.isEnumType(fieldType)) {
             filters.add(OPERATOR_ORDER_BY);
             filters.add(OPERATOR_ORDER_BY_DESC);
         }
@@ -225,6 +224,8 @@ public class FilterService {
                 case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION -> exceptionInvalidFilter = additionalNumberAndPaginationFilterValidation(filter, exceptionInvalidFilter);
                 case FIELD_TYPE_BOOLEAN -> exceptionInvalidFilter = additionalBooleanFilterValidation(filter, exceptionInvalidFilter);
                 case FIELD_TYPE_SYSTEM -> exceptionInvalidFilter = additionalSystemFilterValidation(filter, exceptionInvalidFilter);
+                case Filter.FIELD_TYPE_DROPDOWN, Filter.FIELD_TYPE_RADIO_BUTTON, Filter.FIELD_TYPE_PROGRESS_BAR ->
+                        exceptionInvalidFilter = additionalOptionFilterValidation(filter, exceptionInvalidFilter);
                 case FIELD_TYPE_TIME -> exceptionInvalidFilter = additionalTimeValidation(filter, exceptionInvalidFilter);
                 default -> { }
             }
@@ -280,6 +281,15 @@ public class FilterService {
             parseInt(filter.getOperand());
         } catch (NumberFormatException exception) {
             exceptionInvalidFilter.addException("System filters must include whole numbers as operands (system IDs).");
+        }
+        return exceptionInvalidFilter;
+    }
+
+    private static ExceptionInvalidFilter additionalOptionFilterValidation(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
+        try {
+            parseInt(filter.getOperand());
+        } catch (NumberFormatException exception) {
+            exceptionInvalidFilter.addException("Enum (dropdown, radio button, progress bar) filters must include whole numbers as operands (option IDs).");
         }
         return exceptionInvalidFilter;
     }
@@ -410,12 +420,10 @@ public class FilterService {
                 }
             }
             case CustomField.TYPE_DROPDOWN, CustomField.TYPE_RADIO_BUTTON, CustomField.TYPE_PROGRESS_BAR -> {
+                //Enum types reference the selected option by id (like system filters): only equals/not-equals, no sort.
                 switch (filter.getOperator()) {
-                    case OPERATOR_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_text = ?";
-                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_text <> ?";
-                    case OPERATOR_CONTAINS, OPERATOR_STARTS_WITH, OPERATOR_ENDS_WITH -> whereStatement = " AND " + valuesAlias + ".value_text LIKE ?";
-                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY " + valuesAlias + ".value_text ASC";
-                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY " + valuesAlias + ".value_text DESC";
+                    case OPERATOR_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_option_id = ?";
+                    case OPERATOR_NOT_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_option_id <> ?";
                     default -> whereStatement = "";
                 }
             }
@@ -465,7 +473,8 @@ public class FilterService {
 
     private static Object castOperand(Filter filter) {
         switch (filter.getType()) {
-            case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION, FIELD_TYPE_SYSTEM -> {
+            case FIELD_TYPE_NUMBER, FIELD_TYPE_PAGINATION, FIELD_TYPE_SYSTEM,
+                 Filter.FIELD_TYPE_DROPDOWN, Filter.FIELD_TYPE_RADIO_BUTTON, Filter.FIELD_TYPE_PROGRESS_BAR -> {
                 try {
                     return parseInt(filter.getOperand());
                 } catch (NumberFormatException exception) {

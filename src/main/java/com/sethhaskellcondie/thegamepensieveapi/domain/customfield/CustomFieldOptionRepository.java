@@ -86,17 +86,17 @@ public class CustomFieldOptionRepository {
 
     /**
      * Soft-deletes the option and reassigns all custom_field_values that reference
-     * the deleted option's name to the current default option's name.
+     * the deleted option's id to the current default option's id.
      */
     public void deleteOption(int optionId, int customFieldId) {
         final String reassignSql = """
                 UPDATE custom_field_values
-                   SET value_text = (
-                       SELECT name FROM custom_field_options
+                   SET value_option_id = (
+                       SELECT id FROM custom_field_options
                         WHERE custom_field_id = ? AND is_default = true AND deleted = false
                    )
                  WHERE custom_field_id = ?
-                   AND value_text = (SELECT name FROM custom_field_options WHERE id = ?)
+                   AND value_option_id = ?
                 """;
         jdbcTemplate.update(reassignSql, customFieldId, customFieldId, optionId);
 
@@ -107,9 +107,12 @@ public class CustomFieldOptionRepository {
         }
     }
 
-    public boolean isValidOptionName(int customFieldId, String name) {
-        final String sql = "SELECT COUNT(*) FROM custom_field_options WHERE custom_field_id = ? AND name = ? AND deleted = false";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, customFieldId, name);
+    public boolean isValidOptionId(int customFieldId, Integer optionId) {
+        if (null == optionId) {
+            return false;
+        }
+        final String sql = "SELECT COUNT(*) FROM custom_field_options WHERE custom_field_id = ? AND id = ? AND deleted = false";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, customFieldId, optionId);
         return count != null && count > 0;
     }
 }
