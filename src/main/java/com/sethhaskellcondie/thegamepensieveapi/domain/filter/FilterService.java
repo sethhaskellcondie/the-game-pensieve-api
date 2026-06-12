@@ -182,7 +182,9 @@ public class FilterService {
                 return new ArrayList<>();
             }
         }
-        if (includeSort) {
+        // The 'all_fields' placeholder (FIELD_TYPE_SORT) only advertises in the metadata that sorting is supported;
+        // it is not a real column, so it must never be granted the sort operators or it generates invalid SQL.
+        if (includeSort && !Objects.equals(fieldType, FIELD_TYPE_SORT)) {
             filters.add(OPERATOR_ORDER_BY);
             filters.add(OPERATOR_ORDER_BY_DESC);
         }

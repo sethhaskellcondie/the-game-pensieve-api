@@ -221,6 +221,24 @@
 			"response": []
 		},
 		{
+			"name": "read all systems sorted",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filters\": [\r\n        {\r\n            \"key\": \"system\",\r\n            \"field\": \"generation\",\r\n            \"operator\": \"order_by\",\r\n            \"operand\": \"\"\r\n        },\r\n        {\r\n            \"key\": \"system\",\r\n            \"field\": \"name\",\r\n            \"operator\": \"order_by\",\r\n            \"operand\": \"\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/v1/systems/function/search"
+			},
+			"response": []
+		},
+		{
 			"name": "update one system",
 			"request": {
 				"method": "PUT",

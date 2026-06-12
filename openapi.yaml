@@ -1367,7 +1367,12 @@ components:
           description: Entity type to filter
         field:
           type: string
-          description: Field name to filter on
+          description: |
+            Field name to filter or sort on. For sorting, set this to the actual column you want to
+            order by (e.g. "name", "generation") together with the order_by/order_by_desc operator —
+            do NOT use the "all_fields" placeholder here. "all_fields" only appears in the filter
+            metadata to advertise that sorting is supported; sending it as a real sort field is
+            rejected with a validation error.
         operator:
           type: string
           enum: [equals, not_equals, contains, starts_with, ends_with, greater_than, less_than, greater_than_equal_to, less_than_equal_to, since, before, order_by, order_by_desc, limit, offset]
@@ -1389,6 +1394,7 @@ components:
             - **Boolean**: "true" or "false"
             - **Time**: ISO datetime string (e.g., "2023-01-01T00:00:00")
             - **System**: System ID as string (e.g., "1")
+            - **Sort (order_by, order_by_desc)**: operand is ignored; the column to sort by comes from the field
       required:
         - key
         - field
@@ -1974,7 +1980,7 @@ components:
             - **boolean**: Boolean fields supporting equality operations
             - **time**: Timestamp fields supporting temporal operations
             - **system**: System ID fields supporting equality operations (video games and video game boxes only)
-            - **sort**: Special field for result ordering
+            - **sort**: Marker ("all_fields") advertising that result ordering is supported. To sort, send order_by/order_by_desc with an actual column in the field — not "all_fields" itself.
             - **pagination**: Special field for result limiting
         filters:
           type: object
