@@ -21,7 +21,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -168,10 +167,15 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
         }
         if (!gameListIds.isEmpty()) {
             final String inClause = String.join(",", Collections.nCopies(gameListIds.size(), "?"));
-            final String deleteSql = String.format("DELETE FROM video_game_to_video_game_box WHERE video_game_id IN (%s)", inClause);
-            final Object[] args = gameListIds.toArray();
-            int[] argTypes = new int[gameListIds.size()];
-            Arrays.fill(argTypes, Types.INTEGER);
+            final String deleteSql = String.format("DELETE FROM video_game_to_video_game_box WHERE video_game_box_id = ? AND video_game_id IN (%s)", inClause);
+            final Object[] args = new Object[gameListIds.size() + 1];
+            final int[] argTypes = new int[gameListIds.size() + 1];
+            args[0] = videoGameBox.getId();
+            argTypes[0] = Types.INTEGER;
+            for (int i = 0; i < gameListIds.size(); i++) {
+                args[i + 1] = gameListIds.get(i);
+                argTypes[i + 1] = Types.INTEGER;
+            }
             jdbcTemplate.update(deleteSql, args, argTypes);
         }
     }

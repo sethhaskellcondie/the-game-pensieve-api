@@ -389,6 +389,46 @@ public class VideoGameTests {
     }
 
     @Test
+    void updateExistingVideoGameBox_RemoveGameThatBelongsToOtherBoxes_OnlyRemovedFromThisBox() throws Exception {
+        final String sharedGameTitle = "Super Mario Bros.";
+        final SystemResponseDto relatedSystem = factory.postSystem();
+        final boolean isPhysical = true;
+
+        //create box A containing the shared game, this is the box the game should stay linked to
+        final String boxTitleA = "Super Mario Collection A";
+        final VideoGameRequestDto sharedGame = new VideoGameRequestDto(sharedGameTitle, relatedSystem.id(), new ArrayList<>());
+        final ResultActions resultA = factory.postVideoGameBoxReturnResult(boxTitleA, relatedSystem.id(), new ArrayList<>(), List.of(sharedGame), isPhysical, new ArrayList<>());
+        final VideoGameBoxResponseDto boxA = factory.resultToDto(resultA, VideoGameBoxResponseDto.class);
+        final SlimVideoGame slimSharedGame = boxA.videoGames().get(0);
+
+        //create box B containing the same shared game plus a second game so the box still has a game after the removal
+        final String boxTitleB = "Super Mario Collection B";
+        final String keeperGameTitle = "Duck Hunt";
+        final VideoGameRequestDto keeperGame = new VideoGameRequestDto(keeperGameTitle, relatedSystem.id(), new ArrayList<>());
+        final ResultActions resultB = factory.postVideoGameBoxReturnResult(boxTitleB, relatedSystem.id(), List.of(slimSharedGame.id()), List.of(keeperGame), isPhysical, new ArrayList<>());
+        final VideoGameBoxResponseDto boxB = factory.resultToDto(resultB, VideoGameBoxResponseDto.class);
+        final int keeperGameId = boxB.videoGames().stream()
+                .filter(game -> keeperGameTitle.equals(game.title()))
+                .findFirst()
+                .orElseThrow()
+                .id();
+
+        //update box B to remove the shared game, keeping only the second game
+        final String updatePayload = factory.formatVideoGameBoxPayload(boxTitleB, relatedSystem.id(), List.of(keeperGameId), new ArrayList<>(), isPhysical, new ArrayList<>());
+        final ResultActions updateResult = mockMvc.perform(
+                put(videoGameBoxUrlSlash + boxB.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePayload)
+        );
+        updateResult.andExpect(status().isOk());
+
+        //the shared game should still exist and should still belong to box A, it was only removed from box B
+        final ResultActions getVideoGameResult = mockMvc.perform(get(baseUrlSlash + slimSharedGame.id()));
+        getVideoGameResult.andExpect(status().isOk());
+        validateVideoGameResponseBody(getVideoGameResult, sharedGameTitle, relatedSystem, List.of(convertToExpectedSlimVideoGameBox(boxA, relatedSystem)), new ArrayList<>());
+    }
+
+    @Test
     void getAllVideoGames_NoResultFilter_EmptyArrayReturned() throws Exception {
         final Filter filter = new Filter(Keychain.VIDEO_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "NoResults", false);
         final String formattedJson = factory.formatFiltersPayload(filter);
