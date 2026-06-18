@@ -1625,9 +1625,13 @@ paths:
         `data`). The import is idempotent: existing records are matched by their natural keys — custom
         fields by name+entity, toys by name+set, systems by name, video/board games by title,
         metadata by key — rather than by the ids in the payload, so re-importing the same backup
-        creates nothing new and only increments the `existing*` counts. Parent references inside the
-        payload (e.g. a video game's system, a board game box's base set) are resolved by
-        name/title, not by the file's ids, so ids may safely differ from the live database.
+        creates nothing new and only increments the `existing*` counts. One exception: when an
+        existing metadata key holds a blank stub value (null, empty/whitespace, or JSON that parses
+        to null, `{}`, `[]`, or an empty string — the placeholder a client may pre-seed), the
+        imported value overwrites it and is tallied under `createdMetadata` instead of
+        `existingMetadata`. Parent references inside the payload (e.g. a video game's system, a board
+        game box's base set) are resolved by name/title, not by the file's ids, so ids may safely
+        differ from the live database.
 
         Only one import may run at a time; a concurrent attempt returns **409 Conflict**. Per-record
         failures do not fail the whole request — they are reported in `exceptionBackupImport` and the

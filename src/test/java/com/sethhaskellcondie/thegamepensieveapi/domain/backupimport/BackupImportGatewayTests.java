@@ -862,6 +862,59 @@ public class BackupImportGatewayTests {
     }
 
     @Test
+    void metadataImport_ExistingBlankStub_ValueOverwritten() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange - seed an empty placeholder stub the way the front end would (valid but empty JSON object).
+        final String stubKey = "test_stub_key";
+        final Metadata stub = new Metadata(null, stubKey, "{}", null, null, null);
+        List<Metadata> stubList = new ArrayList<>(initialBackupData.metadata());
+        stubList.add(stub);
+        gateway.importBackupData(new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes(),
+                stubList
+        ));
+
+        //Now import real data for the same key - it should overwrite the stub rather than be skipped as existing.
+        final String realValue = "{\"setting\": \"value\"}";
+        final Metadata realMetadata = new Metadata(null, stubKey, realValue, null, null, null);
+        final BackupDataDto afterStub = gateway.getBackupData();
+        List<Metadata> overwriteList = new ArrayList<>(initialBackupData.metadata());
+        overwriteList.add(realMetadata);
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(new BackupDataDto(
+                afterStub.customFields(),
+                afterStub.toys(),
+                afterStub.systems(),
+                afterStub.videoGameBoxes(),
+                afterStub.boardGameBoxes(),
+                overwriteList
+        ));
+
+        //Assert - the stub is overwritten (counted as created), no new row added, and the stored value is the real value.
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        final String storedValue = resultsBackupData.metadata().stream()
+                .filter(m -> stubKey.equals(m.key()))
+                .map(Metadata::value)
+                .findFirst()
+                .orElse(null);
+        assertAll(
+                "Error overwriting blank metadata stub on import.",
+                () -> assertEquals(1, importResult.createdMetadata(), "Overwriting a blank stub should count as created."),
+                () -> assertEquals(initialBackupData.metadata().size(), importResult.existingMetadata()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size()),
+                () -> assertEquals(afterStub.metadata().size(), resultsBackupData.metadata().size(),
+                        "Overwriting a stub should not add a new metadata row."),
+                () -> assertEquals(realValue, storedValue, "The blank stub value should be overwritten with the imported value.")
+        );
+    }
+
+    @Test
     void customFieldImport_EnumTypesWithOptions_OptionsRecreatedAndValuesRoundTrip() {
         final BackupDataDto initialBackupData = gateway.getBackupData();
 

@@ -1,5 +1,8 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.backupimport;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOption;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
@@ -50,6 +53,7 @@ public class BackupImportService {
     private final BoardGameBoxService boardGameBoxService;
     private final BoardGameService boardGameService;
     private final MetadataGateway metadataGateway;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     protected BackupImportService(CustomFieldRepository customFieldRepository, CustomFieldOptionRepository customFieldOptionRepository,
                                   SystemService systemService, ToyService toyService,
@@ -714,19 +718,53 @@ public class BackupImportService {
                 exceptionBackupImport.addMetadataException("Error importing metadata: A metadata entry is missing a key. Metadata must have a non-empty key.");
                 continue;
             }
+            Metadata existing;
             try {
-                metadataGateway.getByKey(metadata.key());
-                existingCount++;
+                existing = metadataGateway.getByKey(metadata.key());
             } catch (ExceptionResourceNotFound ignored) {
-                try {
+                existing = null;
+            }
+            try {
+                if (null == existing) {
                     metadataGateway.createNew(metadata);
                     createdCount++;
-                } catch (Exception exception) {
-                    exceptionBackupImport.addMetadataException(new Exception("Error importing metadata with key: '" + metadata.key() + "' " + exception.getMessage()));
+                } else if (isBlankStub(existing.value())) {
+                    //The front end seeds empty placeholder rows for keys it expects to exist. Treat those stubs as
+                    //absent and overwrite them with the imported value; a stub that was skipped would silently drop the import.
+                    metadataGateway.updateValue(metadata);
+                    createdCount++;
+                } else {
+                    existingCount++;
                 }
+            } catch (Exception exception) {
+                exceptionBackupImport.addMetadataException(new Exception("Error importing metadata with key: '" + metadata.key() + "' " + exception.getMessage()));
             }
         }
         return new ImportEntityResults(new HashMap<>(), existingCount, createdCount);
+    }
+
+    //A blank stub is an existing metadata value that holds no real data: null, empty/whitespace text, or JSON that
+    //parses to null, an empty object, an empty array, or an empty string. A value that fails to parse is treated as
+    //real data (not a stub) so we never clobber something unexpected.
+    private boolean isBlankStub(String value) {
+        if (null == value || value.trim().isEmpty()) {
+            return true;
+        }
+        try {
+            JsonNode node = objectMapper.readTree(value);
+            if (null == node || node.isNull() || node.isMissingNode()) {
+                return true;
+            }
+            if (node.isContainerNode()) {
+                return node.isEmpty();
+            }
+            if (node.isTextual()) {
+                return node.asText().trim().isEmpty();
+            }
+            return false;
+        } catch (JsonProcessingException ignored) {
+            return false;
+        }
     }
 }
 
