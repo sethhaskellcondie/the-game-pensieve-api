@@ -7130,14 +7130,6 @@
       "deletedAt": null
     },
     {
-      "id": 3,
-      "key": "home_shortcuts",
-      "value": "{\"shortcuts\": [{\"id\": \"79677e51-8cd1-4efc-af58-c6a206d42fc4\", \"name\": \"NES Backlog\", \"entity\": \"video_game\", \"filters\": [{\"field\": \"Release Year\", \"operand\": \"2000\", \"operator\": \"greater_than\"}], \"category_ids\": [\"8eebb022-51f8-45f2-ba0f-4fec4b27daa2\"]}], \"categories\": [{\"id\": \"8eebb022-51f8-45f2-ba0f-4fec4b27daa2\", \"name\": \"Test Category\", \"order\": 0}, {\"id\": \"5a87553d-f9c0-4ee0-a577-86baf6dbc630\", \"name\": \"Next Category\", \"order\": 0}]}",
-      "createdAt": "2026-06-15T17:51:48.495+00:00",
-      "updatedAt": "2026-06-15T18:03:43.986+00:00",
-      "deletedAt": null
-    },
-    {
       "id": 2,
       "key": "default_sort_options",
       "value": "{\"toy\": [], \"system\": [{\"field\": \"generation\", \"direction\": \"asc\"}, {\"field\": \"Release Year\", \"direction\": \"asc\"}, {\"field\": \"name\", \"direction\": \"asc\"}], \"board_game\": [], \"video_game\": [{\"field\": \"title\", \"direction\": \"asc\"}, {\"field\": \"system_id\", \"direction\": \"asc\"}, {\"field\": \"Developer\", \"direction\": \"asc\"}], \"board_game_box\": [], \"video_game_box\": []}",

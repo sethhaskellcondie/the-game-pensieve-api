@@ -26,6 +26,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.SlimVideoGame;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameRequestDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBoxResponseDto;
@@ -49,6 +50,7 @@ public class BackupImportService {
     private final CustomFieldOptionRepository customFieldOptionRepository;
     private final SystemService systemService;
     private final ToyService toyService;
+    private final VideoGameService videoGameService;
     private final VideoGameBoxService videoGameBoxService;
     private final BoardGameBoxService boardGameBoxService;
     private final BoardGameService boardGameService;
@@ -57,12 +59,14 @@ public class BackupImportService {
 
     protected BackupImportService(CustomFieldRepository customFieldRepository, CustomFieldOptionRepository customFieldOptionRepository,
                                   SystemService systemService, ToyService toyService,
-                                  VideoGameBoxService videoGameBoxService, BoardGameBoxService boardGameBoxService,
-                                  BoardGameService boardGameService, MetadataGateway metadataGateway) {
+                                  VideoGameService videoGameService, VideoGameBoxService videoGameBoxService,
+                                  BoardGameBoxService boardGameBoxService, BoardGameService boardGameService,
+                                  MetadataGateway metadataGateway) {
         this.customFieldRepository = customFieldRepository;
         this.customFieldOptionRepository = customFieldOptionRepository;
         this.systemService = systemService;
         this.toyService = toyService;
+        this.videoGameService = videoGameService;
         this.videoGameBoxService = videoGameBoxService;
         this.boardGameBoxService = boardGameBoxService;
         this.boardGameService = boardGameService;
@@ -531,6 +535,19 @@ public class BackupImportService {
                             validatingGame.deletedAt(),
                             validatingGame.customFieldValues()
                     );
+                }
+
+                if (!skipped) {
+                    //The same physical game (title + system) can be referenced by more than one box, sometimes under
+                    //different file ids. The videoGameIds map only catches reuse already seen this run; this check
+                    //catches a game an earlier box already created (or that pre-existed) so we reuse it instead of
+                    //trying to insert a duplicate, which the unique (title, system) constraint would reject.
+                    int existingDbGameId = videoGameService.duplicationCheck(validatingGame.title(), systemId);
+                    if (existingDbGameId > 0) {
+                        importedVideoGamesIds.add(existingDbGameId);
+                        videoGameIds.put(validatingGame.id(), existingDbGameId);
+                        continue;
+                    }
                 }
 
                 for (CustomFieldValue value : validatingGame.customFieldValues()) {

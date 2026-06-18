@@ -59179,49 +59179,6 @@
         "value" : "Not Yet"
       } ]
     }, {
-      "id" : 487,
-      "title" : "Chip N Dale Rescue Rangers",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1759175137670,
-        "updatedAt" : 1759175137670,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1759175141455,
-      "updatedAt" : 1759175141455,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 9,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Backlog"
-      }, {
-        "customFieldId" : 15,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "false"
-      }, {
-        "customFieldId" : 16,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Not Yet"
-      } ]
-    }, {
       "id" : 488,
       "title" : "TaleSpin",
       "system" : {
@@ -59865,7 +59822,7 @@
       } ]
     },
     "videoGames" : [ {
-      "id" : 494,
+      "id" : 198,
       "title" : "Dynamite Headdy",
       "system" : {
         "key" : "system",
@@ -67182,49 +67139,6 @@
         "customFieldName" : "Stream Completion",
         "customFieldType" : "text",
         "value" : "Complete"
-      } ]
-    }, {
-      "id" : 97,
-      "title" : "Mega Man 4",
-      "system" : {
-        "key" : "system",
-        "id" : 1,
-        "name" : "NES",
-        "generation" : 3,
-        "handheld" : false,
-        "createdAt" : 1759175137670,
-        "updatedAt" : 1759175137670,
-        "deletedAt" : null,
-        "customFieldValues" : [ {
-          "customFieldId" : 2,
-          "customFieldName" : "Release Year",
-          "customFieldType" : "number",
-          "value" : "1985"
-        }, {
-          "customFieldId" : 3,
-          "customFieldName" : "Company",
-          "customFieldType" : "text",
-          "value" : "Nintendo"
-        } ]
-      },
-      "createdAt" : 1759175138301,
-      "updatedAt" : 1759175138301,
-      "deletedAt" : null,
-      "customFieldValues" : [ {
-        "customFieldId" : 9,
-        "customFieldName" : "Completion Level",
-        "customFieldType" : "text",
-        "value" : "Complete"
-      }, {
-        "customFieldId" : 15,
-        "customFieldName" : "Hall of Fame",
-        "customFieldType" : "boolean",
-        "value" : "true"
-      }, {
-        "customFieldId" : 16,
-        "customFieldName" : "Stream Completion",
-        "customFieldType" : "text",
-        "value" : "Victory"
       } ]
     }, {
       "id" : 97,
