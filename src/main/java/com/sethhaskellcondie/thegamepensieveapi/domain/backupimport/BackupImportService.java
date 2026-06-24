@@ -152,6 +152,9 @@ public class BackupImportService {
             if (null == savedCustomField) {
                 try {
                     savedCustomField = customFieldRepository.insertCustomField(CustomFieldRequestDto.withoutOptions(customField.name(), customField.type(), customField.entityKey()));
+                    //insertCustomField omits display_order by design, so restore the order from the backup here. Without this
+                    //every imported custom field resets to display_order 0 and the user's column ordering is lost.
+                    savedCustomField = customFieldRepository.update(savedCustomField.id(), savedCustomField.name(), customField.order());
                     //insertCustomField does not persist options, so recreate them here from the backup. Without this the enum
                     //field is created with no options and every entity value that references one fails validation on import.
                     if (CustomField.isEnumType(customField.type()) && null != customField.options()) {

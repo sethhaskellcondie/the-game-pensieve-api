@@ -21,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOption;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 
@@ -42,6 +43,9 @@ public class BackupImportGatewayTests {
 
     @Autowired
     private BackupImportGateway gateway;
+
+    @Autowired
+    private CustomFieldGateway customFieldGateway;
 
     @Test
     void customFieldImport_InvalidCustomFields_NoDataImported() {
@@ -978,7 +982,75 @@ public class BackupImportGatewayTests {
         assertToyCustomFieldValue(resultsBackupData, "Phase1 Progress Toy", "Finished");
     }
 
+    @Test
+    void customFieldImport_PreservesDisplayOrder() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange - custom fields with non-zero, distinct display orders (and options with distinct orders). This proves
+        //the custom field's own display_order survives a backup -> import round-trip, not just its options' order.
+        final CustomField textField = new CustomField(7400, "Phase2 Ordered Text", CustomField.TYPE_TEXT, Keychain.TOY_KEY, 5, List.of());
+        final CustomField dropdownField = new CustomField(7500, "Phase2 Ordered Dropdown", CustomField.TYPE_DROPDOWN, Keychain.TOY_KEY, 2,
+                List.of(new CustomFieldOption(7510, 7500, "First", true, 0), new CustomFieldOption(7511, 7500, "Second", false, 1)));
+
+        final List<CustomField> customFieldsList = new ArrayList<>(initialBackupData.customFields());
+        customFieldsList.add(textField);
+        customFieldsList.add(dropdownField);
+        final int createdCustomFields = 2;
+        final BackupDataDto importData = new BackupDataDto(
+                customFieldsList,
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                initialBackupData.boardGameBoxes(),
+                initialBackupData.metadata()
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert - the fields import cleanly.
+        assertAll(
+                "Custom fields with display orders must import without exceptions.",
+                () -> assertEquals(createdCustomFields, importResult.createdCustomFields()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
+        );
+
+        //Re-export and confirm the display order on the field itself (and its options) was preserved.
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        final CustomField importedText = findCustomFieldByName(resultsBackupData, "Phase2 Ordered Text");
+        final CustomField importedDropdown = findCustomFieldByName(resultsBackupData, "Phase2 Ordered Dropdown");
+        try {
+            assertAll(
+                    "Custom field display order must survive a backup -> import round-trip.",
+                    () -> assertEquals(5, importedText.order(), "Imported custom field did not preserve its display order."),
+                    () -> assertEquals(2, importedDropdown.order(), "Imported enum custom field did not preserve its display order."),
+                    () -> assertEquals(0, findOptionByName(importedDropdown, "First").order(), "Imported option did not preserve its display order."),
+                    () -> assertEquals(1, findOptionByName(importedDropdown, "Second").order(), "Imported option did not preserve its display order.")
+            );
+        } finally {
+            //This class shares one database across tests with no rollback; sibling tests assume newly added custom fields
+            //sort last in the export (true only at display_order 0). Clean up these non-zero-ordered fields so they don't
+            //perturb that ordering assumption.
+            customFieldGateway.deleteById(importedText.id());
+            customFieldGateway.deleteById(importedDropdown.id());
+        }
+    }
+
     // ====================================== Private Validation Methods ======================================
+
+    private CustomField findCustomFieldByName(BackupDataDto backupData, String customFieldName) {
+        return backupData.customFields().stream()
+                .filter(customField -> customField.name().equals(customFieldName))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Imported custom field '" + customFieldName + "' was not found in the exported backup data."));
+    }
+
+    private CustomFieldOption findOptionByName(CustomField customField, String optionName) {
+        return customField.options().stream()
+                .filter(option -> option.name().equals(optionName))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Imported option '" + optionName + "' was not found on custom field '" + customField.name() + "'."));
+    }
 
     private void assertEnumFieldHasOptions(BackupDataDto backupData, String customFieldName, List<String> expectedOptionNames) {
         final CustomField field = backupData.customFields().stream()
@@ -1029,7 +1101,8 @@ public class BackupImportGatewayTests {
                     "Mismatched custom field data returned in BackupDataDto.",
                     () -> assertEquals(expectedCustomField.name(), actualCustomField.name()),
                     () -> assertEquals(expectedCustomField.type(), actualCustomField.type()),
-                    () -> assertEquals(expectedCustomField.entityKey(), actualCustomField.entityKey())
+                    () -> assertEquals(expectedCustomField.entityKey(), actualCustomField.entityKey()),
+                    () -> assertEquals(expectedCustomField.order(), actualCustomField.order())
             );
         }
     }
