@@ -6,7 +6,10 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -42,13 +45,30 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
 
     @Override
     public List<VideoGame> getWithFilters(List<Filter> filters) {
-        List<VideoGame> gamesWithNoIds = super.getWithFilters(filters);
-        List<VideoGame> gamesWithIds = new ArrayList<>();
-        for (VideoGame game : gamesWithNoIds) {
-            game.setVideoGameBoxIds(getRelatedBoxIds(game.getId()));
-            gamesWithIds.add(game);
+        final List<VideoGame> games = super.getWithFilters(filters);
+        setRelatedBoxIds(games);
+        return games;
+    }
+
+    //Batch load the related box ids for every game in one query (instead of one query per game) to avoid N+1 queries.
+    private void setRelatedBoxIds(List<VideoGame> games) {
+        if (games.isEmpty()) {
+            return;
         }
-        return gamesWithIds;
+        final List<Integer> gameIds = games.stream().map(VideoGame::getId).toList();
+        final String placeholders = String.join(", ", Collections.nCopies(gameIds.size(), "?"));
+        final String sql = "SELECT video_game_id, video_game_box_id FROM video_game_to_video_game_box WHERE video_game_id IN ("
+                + placeholders + ") ORDER BY video_game_box_id";
+        final List<int[]> pairs = jdbcTemplate.query(sql,
+                (resultSet, rowNumber) -> new int[]{resultSet.getInt("video_game_id"), resultSet.getInt("video_game_box_id")},
+                gameIds.toArray());
+        final Map<Integer, List<Integer>> boxIdsByGameId = new HashMap<>();
+        for (int[] pair : pairs) {
+            boxIdsByGameId.computeIfAbsent(pair[0], key -> new ArrayList<>()).add(pair[1]);
+        }
+        for (VideoGame game : games) {
+            game.setVideoGameBoxIds(boxIdsByGameId.getOrDefault(game.getId(), new ArrayList<>()));
+        }
     }
 
     @Override

@@ -18,6 +18,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -131,6 +133,37 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     @Override
     public T getById(int id) {
         return queryById(id, baseQuery);
+    }
+
+    /**
+     * Batch equivalent of {@link #getById(int)}: fetch every (non-deleted) entity whose id is in the list with a single
+     * query and load all of their custom field values in a single query. Used to avoid N+1 queries when hydrating
+     * related objects. Returns an empty list when given no ids; ids that don't match an entity are simply absent.
+     */
+    public List<T> getByIds(List<Integer> ids) {
+        return queryByIds(ids, baseQuery);
+    }
+
+    public List<T> getByIdsIncludeDeleted(List<Integer> ids) {
+        return queryByIds(ids, baseQueryIncludeDeleted);
+    }
+
+    private List<T> queryByIds(List<Integer> ids, String baseSql) {
+        if (null == ids || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        final List<Integer> distinctIds = ids.stream().distinct().toList();
+        final String placeholders = String.join(", ", Collections.nCopies(distinctIds.size(), "?"));
+        final String sql = baseSql + " AND id IN (" + placeholders + ") ";
+        final List<T> entities = jdbcTemplate.query(sql, rowMapper, distinctIds.toArray());
+        if (!entities.isEmpty()) {
+            final List<Integer> entityIds = entities.stream().map(Entity::getId).toList();
+            final Map<Integer, List<CustomFieldValue>> customFieldValuesByEntityId = customFieldValueRepository.getCustomFieldValuesByEntityIdsAndEntityKey(entityIds, entityKey);
+            for (T entity : entities) {
+                entity.setCustomFieldValues(customFieldValuesByEntityId.getOrDefault(entity.getId(), List.of()));
+            }
+        }
+        return entities;
     }
 
     @Override

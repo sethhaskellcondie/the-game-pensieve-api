@@ -1,7 +1,9 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.SlimVideoGameBox;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.VideoGameBox;
@@ -32,12 +34,37 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
 
     @Override
     public List<VideoGame> getWithFilters(List<FilterRequestDto> dtoFilters) {
+        final List<VideoGame> videoGames = super.getWithFilters(dtoFilters);
+        if (videoGames.isEmpty()) {
+            return videoGames;
+        }
+
+        //Batch load every related box and system once (instead of per-game) to avoid N+1 queries, then hydrate each
+        //game from the in-memory maps. This is the list equivalent of validateRelatedObjects() used by getById().
+        final List<Integer> boxIds = videoGames.stream().flatMap(game -> game.getVideoGameBoxIds().stream()).distinct().toList();
+        final Map<Integer, VideoGameBox> boxesById = new HashMap<>();
+        for (VideoGameBox box : videoGameBoxRepository.getByIds(boxIds)) {
+            boxesById.put(box.getId(), box);
+        }
+        final List<Integer> systemIds = new ArrayList<>();
+        videoGames.forEach(game -> systemIds.add(game.getSystemId()));
+        boxesById.values().forEach(box -> systemIds.add(box.getSystemId()));
+        final Map<Integer, System> systemsById = getSystemsByIds(systemIds);
+
+        final Map<Integer, SlimVideoGameBox> slimBoxesById = new HashMap<>();
+        for (VideoGameBox box : boxesById.values()) {
+            final System boxSystem = systemsById.get(box.getSystemId());
+            if (null != boxSystem) {
+                box.setSystem(boxSystem);
+            }
+            slimBoxesById.put(box.getId(), box.convertToSlimVideoGameBox());
+        }
+
         final List<Exception> exceptions = new ArrayList<>();
-        final List<VideoGame> videoGamesWithoutSystemsVerified = super.getWithFilters(dtoFilters);
         final List<VideoGame> verifiedVideoGames = new ArrayList<>();
-        for (VideoGame videoGame : videoGamesWithoutSystemsVerified) {
+        for (VideoGame videoGame : videoGames) {
             try {
-                validateRelatedObjects(videoGame);
+                hydrateRelatedObjects(videoGame, systemsById, slimBoxesById);
                 verifiedVideoGames.add(videoGame);
             } catch (Exception e) {
                 exceptions.add(e);
@@ -47,6 +74,68 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
             throw new ExceptionMalformedEntity(exceptions);
         }
         return verifiedVideoGames;
+    }
+
+    //The batch-loaded equivalent of validateRelatedObjects(): hydrate a single game from the prefetched maps,
+    //preserving the same malformed-entity checks (missing system, no related boxes, missing related box).
+    private void hydrateRelatedObjects(VideoGame videoGame, Map<Integer, System> systemsById, Map<Integer, SlimVideoGameBox> slimBoxesById) {
+        final ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
+        final System system = systemsById.get(videoGame.getSystemId());
+        if (null != system) {
+            videoGame.setSystem(system);
+        } else {
+            exceptionMalformedEntity.addException(new Exception("Problem getting video games from the database, video game with title: '"
+                    + videoGame.getTitle() + "' had systemId: " + videoGame.getSystemId() + " but couldn't get a valid system from the database with that id."));
+        }
+        if (videoGame.getVideoGameBoxIds().isEmpty()) {
+            exceptionMalformedEntity.addException("Problem getting video game with title " + videoGame.getTitle()
+                    + " from the database, no related video game box objects found in the database.");
+            throw exceptionMalformedEntity;
+        }
+        final List<SlimVideoGameBox> videoGameBoxes = new ArrayList<>();
+        for (Integer videoGameBoxId : videoGame.getVideoGameBoxIds()) {
+            final SlimVideoGameBox slimVideoGameBox = slimBoxesById.get(videoGameBoxId);
+            if (null != slimVideoGameBox) {
+                videoGameBoxes.add(slimVideoGameBox);
+            } else {
+                exceptionMalformedEntity.addException("Problem getting video game with title " + videoGame.getTitle()
+                    + " from the database, related video game box with id " + videoGameBoxId
+                    + " failed when trying to retrieve a video game box with that id from the database.");
+            }
+        }
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
+        }
+        videoGame.setVideoGameBoxes(videoGameBoxes);
+    }
+
+    private Map<Integer, System> getSystemsByIds(List<Integer> systemIds) {
+        final Map<Integer, System> systemsById = new HashMap<>();
+        for (System system : systemRepository.getByIdsIncludeDeleted(systemIds)) {
+            systemsById.put(system.getId(), system);
+        }
+        return systemsById;
+    }
+
+    /**
+     * Batch load the slim view of many video games at once (game + its system, no boxes) for use by the
+     * VideoGameBoxService when hydrating the games inside a list of boxes. This avoids calling getById() per game,
+     * which would re-hydrate every game's own boxes just to build a slim view that doesn't include them.
+     */
+    public Map<Integer, SlimVideoGame> getSlimVideoGamesByIds(List<Integer> videoGameIds) {
+        final VideoGameRepository videoGameRepository = (VideoGameRepository) repository;
+        final List<VideoGame> videoGames = videoGameRepository.getByIds(videoGameIds);
+        final List<Integer> systemIds = videoGames.stream().map(VideoGame::getSystemId).toList();
+        final Map<Integer, System> systemsById = getSystemsByIds(systemIds);
+        final Map<Integer, SlimVideoGame> slimVideoGamesById = new HashMap<>();
+        for (VideoGame videoGame : videoGames) {
+            final System system = systemsById.get(videoGame.getSystemId());
+            if (null != system) {
+                videoGame.setSystem(system);
+            }
+            slimVideoGamesById.put(videoGame.getId(), videoGame.convertToSlimVideoGame());
+        }
+        return slimVideoGamesById;
     }
 
     @Override

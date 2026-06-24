@@ -17,8 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto>
@@ -36,12 +38,26 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
 
     @Override
     public List<VideoGameBox> getWithFilters(List<FilterRequestDto> dtoFilters) {
+        final List<VideoGameBox> videoGameBoxes = super.getWithFilters(dtoFilters);
+        if (videoGameBoxes.isEmpty()) {
+            return videoGameBoxes;
+        }
+
+        //Batch load every related game (as a slim view) and box system once (instead of per-box) to avoid N+1 queries,
+        //then hydrate each box from the in-memory maps. This is the list equivalent of validateSystemAndVideoGamesList().
+        final List<Integer> gameIds = videoGameBoxes.stream().flatMap(box -> box.getVideoGameIds().stream()).distinct().toList();
+        final Map<Integer, SlimVideoGame> slimGamesById = videoGameService.getSlimVideoGamesByIds(gameIds);
+        final Map<Integer, System> systemsById = new HashMap<>();
+        for (System system : systemRepository.getByIdsIncludeDeleted(videoGameBoxes.stream().map(VideoGameBox::getSystemId).toList())) {
+            systemsById.put(system.getId(), system);
+        }
+
         final List<Exception> exceptions = new ArrayList<>();
-        final List<VideoGameBox> unverifiedBoxes = super.getWithFilters(dtoFilters);
         final List<VideoGameBox> verifiedBoxes = new ArrayList<>();
-        for (VideoGameBox videoGameBox : unverifiedBoxes) {
+        for (VideoGameBox videoGameBox : videoGameBoxes) {
             try {
-                verifiedBoxes.add(validateSystemAndVideoGamesList(videoGameBox));
+                hydrateSystemAndVideoGamesList(videoGameBox, systemsById, slimGamesById);
+                verifiedBoxes.add(videoGameBox);
             } catch (Exception e) {
                 exceptions.add(e);
             }
@@ -50,6 +66,38 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
             throw new ExceptionMalformedEntity(exceptions);
         }
         return verifiedBoxes;
+    }
+
+    //The batch-loaded equivalent of validateSystemAndVideoGamesList(): hydrate a single box from the prefetched maps,
+    //preserving the same malformed-entity checks (missing system, no related games, missing related game).
+    private void hydrateSystemAndVideoGamesList(VideoGameBox videoGameBox, Map<Integer, System> systemsById, Map<Integer, SlimVideoGame> slimGamesById) {
+        final System system = systemsById.get(videoGameBox.getSystemId());
+        if (null == system) {
+            throw new ExceptionMalformedEntity("Error - Problem getting video game box from the database, video game box with title: '"
+                    + videoGameBox.getTitle() + "' had systemId: " + videoGameBox.getSystemId() + " but couldn't get a valid system from the database with that id.");
+        }
+        videoGameBox.setSystem(system);
+
+        final ExceptionMalformedEntity exceptionMalformedEntity = new ExceptionMalformedEntity();
+        if (videoGameBox.getVideoGameIds().isEmpty()) {
+            exceptionMalformedEntity.addException("Attempted to validate the video games for video game box with title: '" + videoGameBox.getTitle()
+                    + "', but there were not video game ids found on that object");
+            throw exceptionMalformedEntity;
+        }
+        final List<SlimVideoGame> videoGames = new ArrayList<>();
+        for (Integer videoGameId : videoGameBox.getVideoGameIds()) {
+            final SlimVideoGame slimVideoGame = slimGamesById.get(videoGameId);
+            if (null != slimVideoGame) {
+                videoGames.add(slimVideoGame);
+            } else {
+                exceptionMalformedEntity.addException("Attempted to validate the video games for video game box with title: '" + videoGameBox.getTitle()
+                        + "', but there was an error getting video game data for video game with id " + videoGameId + ".");
+            }
+        }
+        if (!exceptionMalformedEntity.isEmpty()) {
+            throw exceptionMalformedEntity;
+        }
+        videoGameBox.setVideoGames(videoGames);
     }
 
     @Override

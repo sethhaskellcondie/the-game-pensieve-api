@@ -114,6 +114,20 @@ public class GetWithFiltersSystemTests {
     }
 
     @Test
+    void getByIds_VariousIdLists_ReturnsMatchingEntities() {
+        //Covers the batch getByIds() helper added in EntityRepositoryAbstract: distinct existing ids are returned once,
+        //unknown ids are simply absent, and an empty/unknown-only input returns an empty list.
+        final System nes = systemRepository.insert(new System(null, "GetByIdsNES", 3, false, null, null, null, new ArrayList<>()));
+        final System snes = systemRepository.insert(new System(null, "GetByIdsSNES", 4, false, null, null, null, new ArrayList<>()));
+
+        final List<System> systems = systemRepository.getByIds(List.of(nes.getId(), snes.getId(), nes.getId(), Integer.MAX_VALUE));
+        assertEquals(2, systems.size(), "getByIds should return one entity per distinct existing id and ignore unknown ids.");
+
+        assertEquals(0, systemRepository.getByIds(List.of()).size(), "getByIds with no ids should return an empty list.");
+        assertEquals(0, systemRepository.getByIds(List.of(Integer.MAX_VALUE)).size(), "getByIds with only unknown ids should return an empty list.");
+    }
+
+    @Test
     void getWithFilters_VideoGameWithNoRelatedBoxes_ThrowsMalformedEntity() {
         //Defensive read-path behavior the batch-loading refactor MUST preserve: if a persisted video
         //game has no related video game boxes, VideoGameService.getWithFilters aggregates the problem

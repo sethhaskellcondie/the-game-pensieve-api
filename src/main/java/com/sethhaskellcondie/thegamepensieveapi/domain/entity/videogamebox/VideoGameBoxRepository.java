@@ -22,7 +22,9 @@ import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Integer.valueOf;
 
@@ -47,13 +49,38 @@ public class VideoGameBoxRepository extends EntityRepositoryAbstract<VideoGameBo
 
     @Override
     public List<VideoGameBox> getWithFilters(List<Filter> filters) {
-        List<VideoGameBox> boxesWithNoIds = super.getWithFilters(filters);
-        List<VideoGameBox> boxesWithIds = new ArrayList<>();
-        for (VideoGameBox gameBox : boxesWithNoIds) {
-            gameBox.setVideoGameIds(getVideoGameIdsForBoxId(gameBox.getId()));
-            boxesWithIds.add(gameBox);
+        final List<VideoGameBox> boxes = super.getWithFilters(filters);
+        setRelatedVideoGameIds(boxes);
+        return boxes;
+    }
+
+    @Override
+    public List<VideoGameBox> getByIds(List<Integer> ids) {
+        final List<VideoGameBox> boxes = super.getByIds(ids);
+        setRelatedVideoGameIds(boxes);
+        return boxes;
+    }
+
+    //Batch load the related game ids for every box in one query (instead of one query per box) to avoid N+1 queries.
+    //The game ids are needed so that each box recomputes is_collection from its actual game count (see setVideoGameIds).
+    private void setRelatedVideoGameIds(List<VideoGameBox> boxes) {
+        if (boxes.isEmpty()) {
+            return;
         }
-        return boxesWithIds;
+        final List<Integer> boxIds = boxes.stream().map(VideoGameBox::getId).toList();
+        final String placeholders = String.join(", ", Collections.nCopies(boxIds.size(), "?"));
+        final String sql = "SELECT video_game_box_id, video_game_id FROM video_game_to_video_game_box WHERE video_game_box_id IN ("
+                + placeholders + ") ORDER BY video_game_id";
+        final List<int[]> pairs = jdbcTemplate.query(sql,
+                (resultSet, rowNumber) -> new int[]{resultSet.getInt("video_game_box_id"), resultSet.getInt("video_game_id")},
+                boxIds.toArray());
+        final Map<Integer, List<Integer>> gameIdsByBoxId = new HashMap<>();
+        for (int[] pair : pairs) {
+            gameIdsByBoxId.computeIfAbsent(pair[0], key -> new ArrayList<>()).add(pair[1]);
+        }
+        for (VideoGameBox box : boxes) {
+            box.setVideoGameIds(gameIdsByBoxId.getOrDefault(box.getId(), new ArrayList<>()));
+        }
     }
 
     @Override
