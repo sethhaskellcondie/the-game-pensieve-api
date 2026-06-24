@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -286,6 +287,89 @@ public class VideoGameTests {
                 content().contentType(MediaType.APPLICATION_JSON)
         );
         validateVideoGameResponseBody(resultActions, List.of(convertToVideoGameResponseDto(slimVideoGame3, List.of(responseDto3))));
+    }
+
+    @Test
+    void getAllVideoGames_GameInMultipleBoxes_EachGameKeepsItsOwnBoxes() throws Exception {
+        //Regression guard for the batch-loading refactor: in a LIST response each video game must be
+        //hydrated with ITS OWN related boxes, system, and custom field values. Game A belongs to two
+        //boxes; Game B belongs to one. A cross-wiring bug in batch id->entity mapping would assign a
+        //game the wrong boxes/system/custom fields, which this test would catch.
+        final String customFieldName = "BatchGuardNumber";
+        final String customFieldType = "number";
+        final int customFieldId = factory.postCustomFieldReturnId(customFieldName, customFieldType, Keychain.VIDEO_GAME_KEY);
+
+        final SystemResponseDto systemA = factory.postSystem();
+        final SystemResponseDto systemB = factory.postSystem();
+
+        //Game A on systemA, belongs to two boxes
+        final List<CustomFieldValue> customFieldValuesA = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "1"));
+        final VideoGameRequestDto newGameA = new VideoGameRequestDto("BatchGuardGame A", systemA.id(), customFieldValuesA);
+        final ResultActions boxResult1 = factory.postVideoGameBoxReturnResult("BatchGuard Box 1", systemA.id(), new ArrayList<>(), List.of(newGameA), true, new ArrayList<>());
+        final VideoGameBoxResponseDto boxDto1 = factory.resultToDto(boxResult1, VideoGameBoxResponseDto.class);
+        final SlimVideoGame slimGameA = boxDto1.videoGames().get(0);
+
+        final ResultActions boxResult2 = factory.postVideoGameBoxReturnResult("BatchGuard Box 2", systemA.id(), List.of(slimGameA.id()), new ArrayList<>(), true, new ArrayList<>());
+        final VideoGameBoxResponseDto boxDto2 = factory.resultToDto(boxResult2, VideoGameBoxResponseDto.class);
+
+        //Game B on systemB, belongs to one box
+        final List<CustomFieldValue> customFieldValuesB = List.of(new CustomFieldValue(customFieldId, customFieldName, customFieldType, "2"));
+        final VideoGameRequestDto newGameB = new VideoGameRequestDto("BatchGuardGame B", systemB.id(), customFieldValuesB);
+        final ResultActions boxResult3 = factory.postVideoGameBoxReturnResult("BatchGuard Box 3", systemB.id(), new ArrayList<>(), List.of(newGameB), false, new ArrayList<>());
+        final VideoGameBoxResponseDto boxDto3 = factory.resultToDto(boxResult3, VideoGameBoxResponseDto.class);
+        final SlimVideoGame slimGameB = boxDto3.videoGames().get(0);
+
+        final Filter filter = new Filter(Keychain.VIDEO_GAME_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "BatchGuardGame", false);
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(factory.formatFiltersPayload(filter))
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        final List<VideoGameResponseDto> expectedResponse = List.of(
+                convertToVideoGameResponseDto(slimGameA, List.of(boxDto1, boxDto2)),
+                convertToVideoGameResponseDto(slimGameB, List.of(boxDto3))
+        );
+        validateVideoGameResponseBody(result, expectedResponse);
+    }
+
+    @Test
+    void getAllVideoGames_PaginationLimit_ReturnsHydratedLimitedSubset() throws Exception {
+        //Regression guard: pagination must still return a correctly hydrated subset after the
+        //batch-loading refactor (the batch step runs on the already-paginated result set).
+        final String gamePrefix = "PaginatedGuardGame";
+        final SystemResponseDto system = factory.postSystem();
+        for (int i = 1; i <= 3; i++) {
+            final VideoGameRequestDto newGame = new VideoGameRequestDto(gamePrefix + " " + i, system.id(), new ArrayList<>());
+            factory.postVideoGameBoxReturnResult("Paginated Guard Game Box " + i, system.id(), new ArrayList<>(), List.of(newGame), true, new ArrayList<>());
+        }
+
+        final List<Filter> filters = List.of(
+                new Filter(Keychain.VIDEO_GAME_KEY, Filter.FIELD_TYPE_TEXT, "title", Filter.OPERATOR_STARTS_WITH, gamePrefix, false),
+                new Filter(Keychain.VIDEO_GAME_KEY, Filter.FIELD_TYPE_PAGINATION, Filter.PAGINATION_FIELDS, Filter.OPERATOR_LIMIT, "2", false)
+        );
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(factory.formatFiltersPayload(filters))
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        final List<VideoGameResponseDto> returnedGames = factory.extractDataList(result, new TypeReference<List<VideoGameResponseDto>>() { });
+        assertEquals(2, returnedGames.size(), "The pagination limit filter should restrict the video game list to two results.");
+        for (VideoGameResponseDto game : returnedGames) {
+            assertAll(
+                    "Each paginated video game should be fully hydrated.",
+                    () -> assertEquals(Keychain.VIDEO_GAME_KEY, game.key()),
+                    () -> factory.validateSystem(system, game.system()),
+                    () -> assertFalse(game.videoGameBoxes().isEmpty(), "Paginated video game should still include its related boxes.")
+            );
+        }
     }
 
     @Test

@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -282,6 +283,75 @@ public class VideoGameBoxTests {
                 content().contentType(MediaType.APPLICATION_JSON)
         );
         validateVideoGameBoxResponseBody(resultActions, List.of(gameBoxDto3));
+    }
+
+    @Test
+    void getAllVideoGameBoxes_BoxWithMultipleGames_EachBoxKeepsItsOwnGames() throws Exception {
+        //Regression guard for the batch-loading refactor: in a LIST response each box must be hydrated
+        //with ITS OWN games, system, and custom fields. Box 1 contains two games (on different systems);
+        //Box 2 contains one. A cross-wiring bug in batch id->entity mapping would give a box the wrong
+        //games/systems, which this test would catch.
+        final SystemResponseDto boxSystem1 = factory.postSystem();
+        final SystemResponseDto boxSystem2 = factory.postSystem();
+        final SystemResponseDto gameSystemA = factory.postSystem();
+        final SystemResponseDto gameSystemB = factory.postSystem();
+
+        final VideoGameRequestDto gameA = new VideoGameRequestDto("BatchBoxGuard Game A", gameSystemA.id(), new ArrayList<>());
+        final VideoGameRequestDto gameB = new VideoGameRequestDto("BatchBoxGuard Game B", gameSystemB.id(), new ArrayList<>());
+        final ResultActions boxResult1 = factory.postVideoGameBoxReturnResult("BatchBoxGuard Box 1", boxSystem1.id(), new ArrayList<>(), List.of(gameA, gameB), true, new ArrayList<>());
+        final VideoGameBoxResponseDto boxDto1 = factory.resultToDto(boxResult1, VideoGameBoxResponseDto.class);
+
+        final VideoGameRequestDto gameC = new VideoGameRequestDto("BatchBoxGuard Game C", gameSystemA.id(), new ArrayList<>());
+        final ResultActions boxResult2 = factory.postVideoGameBoxReturnResult("BatchBoxGuard Box 2", boxSystem2.id(), new ArrayList<>(), List.of(gameC), false, new ArrayList<>());
+        final VideoGameBoxResponseDto boxDto2 = factory.resultToDto(boxResult2, VideoGameBoxResponseDto.class);
+
+        final Filter filter = new Filter(Keychain.VIDEO_GAME_BOX_KEY, "text", "title", Filter.OPERATOR_STARTS_WITH, "BatchBoxGuard Box", false);
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(factory.formatFiltersPayload(filter))
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        validateVideoGameBoxResponseBody(result, List.of(boxDto1, boxDto2));
+    }
+
+    @Test
+    void getAllVideoGameBoxes_PaginationLimit_ReturnsHydratedLimitedSubset() throws Exception {
+        //Regression guard: pagination must still return a correctly hydrated subset after the
+        //batch-loading refactor (the batch step runs on the already-paginated result set).
+        final String boxPrefix = "PaginatedGuardBox";
+        final SystemResponseDto system = factory.postSystem();
+        for (int i = 1; i <= 3; i++) {
+            final VideoGameRequestDto game = new VideoGameRequestDto(boxPrefix + " Game " + i, system.id(), new ArrayList<>());
+            factory.postVideoGameBoxReturnResult(boxPrefix + " " + i, system.id(), new ArrayList<>(), List.of(game), true, new ArrayList<>());
+        }
+
+        final List<Filter> filters = List.of(
+                new Filter(Keychain.VIDEO_GAME_BOX_KEY, Filter.FIELD_TYPE_TEXT, "title", Filter.OPERATOR_STARTS_WITH, boxPrefix + " ", false),
+                new Filter(Keychain.VIDEO_GAME_BOX_KEY, Filter.FIELD_TYPE_PAGINATION, Filter.PAGINATION_FIELDS, Filter.OPERATOR_LIMIT, "2", false)
+        );
+        final ResultActions result = mockMvc.perform(post(baseUrl + "/function/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(factory.formatFiltersPayload(filters))
+        );
+
+        result.andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON)
+        );
+        final List<VideoGameBoxResponseDto> returnedBoxes = factory.extractDataList(result, new TypeReference<List<VideoGameBoxResponseDto>>() { });
+        assertEquals(2, returnedBoxes.size(), "The pagination limit filter should restrict the video game box list to two results.");
+        for (VideoGameBoxResponseDto box : returnedBoxes) {
+            assertAll(
+                    "Each paginated video game box should be fully hydrated.",
+                    () -> assertEquals(Keychain.VIDEO_GAME_BOX_KEY, box.key()),
+                    () -> factory.validateSystem(system, box.system()),
+                    () -> assertFalse(box.videoGames().isEmpty(), "Paginated video game box should still include its related games.")
+            );
+        }
     }
 
     @Test

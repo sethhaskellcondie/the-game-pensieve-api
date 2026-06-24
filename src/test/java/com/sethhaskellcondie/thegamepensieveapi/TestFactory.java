@@ -75,19 +75,27 @@ public class TestFactory {
     }
 
     public String formatFiltersPayload(Filter filter) {
+        return formatFiltersPayload(List.of(filter));
+    }
+
+    public String formatFiltersPayload(List<Filter> filters) {
+        final String filterTemplate = """
+                {
+                  "key": "%s",
+                  "field": "%s",
+                  "operator": "%s",
+                  "operand": "%s"
+                }""";
+        final List<String> filterStrings = new ArrayList<>();
+        for (Filter filter : filters) {
+            filterStrings.add(String.format(filterTemplate, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand()));
+        }
         final String json = """
                 {
-                  "filters": [
-                    {
-                      "key": "%s",
-                      "field": "%s",
-                      "operator": "%s",
-                      "operand": "%s"
-                    }
-                  ]
+                  "filters": [%s]
                 }
                 """;
-        return String.format(json, filter.getKey(), filter.getField(), filter.getOperator(), filter.getOperand());
+        return String.format(json, String.join(",", filterStrings));
     }
 
     public int postCustomFieldReturnId(String name, String type, String entityKey) throws Exception {

@@ -13,6 +13,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.Video
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * This is part of an extensive set of tests on the GetWithFilters() call
@@ -109,6 +111,22 @@ public class GetWithFiltersSystemTests {
         testVideoGameBoxSystemNotEquals(nes.getId(), 2);
         testVideoGameBoxSystemNotEquals(snes.getId(), 3);
         testVideoGameBoxSystemNotEquals(genesis.getId(), 3);
+    }
+
+    @Test
+    void getWithFilters_VideoGameWithNoRelatedBoxes_ThrowsMalformedEntity() {
+        //Defensive read-path behavior the batch-loading refactor MUST preserve: if a persisted video
+        //game has no related video game boxes, VideoGameService.getWithFilters aggregates the problem
+        //into an ExceptionMalformedEntity (see validateRelatedObjects). This state cannot be produced
+        //through the controllers/public API because writes maintain referential integrity (removing a
+        //game's last box deletes the game), so it is forced here by deleting the join rows directly.
+        final System system = systemRepository.insert(new System(null, "MalformedGuardSystem", 1, false, null, null, null, new ArrayList<>()));
+        createVideoGameBox("Malformed Guard Box", system.getId(), true, List.of("Malformed Guard Game"));
+
+        //remove the join rows so the persisted video game is left with no related boxes
+        jdbcTemplate.update("DELETE FROM video_game_to_video_game_box");
+
+        assertThrows(ExceptionMalformedEntity.class, () -> videoGameService.getWithFilters(List.of()));
     }
 
     // Video Game filtering tests
