@@ -107,7 +107,25 @@ docker buildx inspect --bootstrap
      .
    ```
 
-Note: The frontend image (sethcondie/the-game-pensieve-web:latest) should be built from the frontend repository using:
+## Frontend (React / Next.js)
+The frontend is a Next.js (React) application (repo: `the-game-pensieve-web-v2`). It
+replaces the previous Angular/nginx static build — it now runs as a Node server
+(`next start`) and listens on container port **3000**.
+
+Key differences from the old Angular frontend:
+- It is a server, not a static site. The browser talks to the Next.js server,
+  which proxies calls to the backend via its own Route Handlers (`/api/*`).
+- The backend URL is read **server-side only** from `API_BASE_URL`, including the
+  `/v1` prefix (e.g. `http://localhost:8080/v1`). It is required at **runtime**, not
+  build time, so a single image can be pointed at any backend. The app throws on
+  startup if `API_BASE_URL` is unset outside of development. An optional `API_TOKEN`
+  may be supplied for Bearer auth. See the frontend's `.env.example` for details.
+
+The image is built with `output: "standalone"` (set in `next.config.ts`) and a
+multi-stage `Dockerfile` (both already present in the frontend repo).
+
+Build and push the frontend image for multiple platforms — run this **from the
+frontend repository** (`the-game-pensieve-web-v2`):
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 \
   -t sethcondie/the-game-pensieve-web:latest \
@@ -120,4 +138,6 @@ After these steps are complete, anyone can run the entire project with the produ
 ```bash
 docker compose -f compose.production.yaml up
 ```
-The frontend will run on localhost:4200
+The frontend will run on localhost:4200 (host port 4200 maps to the Next.js server's
+container port 3000). The compose files set `API_BASE_URL=http://backend:8080/v1` so
+the frontend container reaches the backend over the compose network.

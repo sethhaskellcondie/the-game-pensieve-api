@@ -4,7 +4,7 @@ This project is like a pensieve but just for information on games in a collectio
 
 ## Related Links
 - A video presentation of this project, presented as if I would present this in a technical job interview: https://youtu.be/7wByiXr5nDI
-- The front end code repository: https://github.com/sethhaskellcondie/the-game-pensieve-web
+- The front end code repository (React / Next.js): https://github.com/sethhaskellcondie/the-game-pensieve-web-v2
 
 ## How to Run This Project Locally Without Cloning
 This project has images that are stored on the docker hub and can be pull to use this system without cloning the project.
