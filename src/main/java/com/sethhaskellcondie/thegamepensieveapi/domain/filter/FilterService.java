@@ -152,7 +152,8 @@ public class FilterService {
             case FIELD_TYPE_BOOLEAN -> {
                 filters.add(OPERATOR_EQUALS);
             }
-            //Enum types filter on the selected option's ID (like system), so only equals/not-equals apply and sorting is not supported
+            //Enum types filter on the selected option's ID (like system), so only equals/not-equals apply for filtering.
+            //Sorting IS supported and is added below; it orders by the selected option's display_order, not the option id.
             case Filter.FIELD_TYPE_DROPDOWN, Filter.FIELD_TYPE_RADIO_BUTTON, Filter.FIELD_TYPE_PROGRESS_BAR -> {
                 filters.add(OPERATOR_EQUALS);
                 filters.add(OPERATOR_NOT_EQUALS);
@@ -182,8 +183,8 @@ public class FilterService {
         }
         // The 'all_fields' placeholder (FIELD_TYPE_SORT) only advertises in the metadata that sorting is supported;
         // it is not a real column, so it must never be granted the sort operators or it generates invalid SQL.
-        // Enum types are excluded as well: they sort on the option ID, which is creation order, not anything meaningful to a user.
-        if (includeSort && !Objects.equals(fieldType, FIELD_TYPE_SORT) && !CustomField.isEnumType(fieldType)) {
+        // Enum types ARE sortable: they sort on the selected option's display_order (see getCustomFilterWhereStatement).
+        if (includeSort && !Objects.equals(fieldType, FIELD_TYPE_SORT)) {
             filters.add(OPERATOR_ORDER_BY);
             filters.add(OPERATOR_ORDER_BY_DESC);
         }
@@ -286,6 +287,10 @@ public class FilterService {
     }
 
     private static ExceptionInvalidFilter additionalOptionFilterValidation(Filter filter, ExceptionInvalidFilter exceptionInvalidFilter) {
+        //Sort operators ignore the operand (it orders by the option's display_order), so don't require a numeric option id.
+        if (Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY) || Objects.equals(filter.getOperator(), OPERATOR_ORDER_BY_DESC)) {
+            return exceptionInvalidFilter;
+        }
         try {
             parseInt(filter.getOperand());
         } catch (NumberFormatException exception) {
@@ -363,8 +368,9 @@ public class FilterService {
                 // so that multiple custom field filters don't contradict each other in the WHERE clause.
                 String fieldsAlias = "fields" + customFieldIndex;
                 String valuesAlias = "values" + customFieldIndex;
+                String optionsAlias = "options" + customFieldIndex;
                 whereStatements.add(" AND " + fieldsAlias + ".name = '" + filter.getField() + "'");
-                String statement = getCustomFilterWhereStatement(filter, valuesAlias);
+                String statement = getCustomFilterWhereStatement(filter, valuesAlias, optionsAlias);
                 if (filter.getOperator().equals(OPERATOR_ORDER_BY) || filter.getOperator().equals(OPERATOR_ORDER_BY_DESC)) {
                     sortParts.add(statement.substring(" ORDER BY ".length()));
                 } else {
@@ -393,7 +399,7 @@ public class FilterService {
         return whereStatements;
     }
 
-    private static String getCustomFilterWhereStatement(Filter filter, String valuesAlias) {
+    private static String getCustomFilterWhereStatement(Filter filter, String valuesAlias, String optionsAlias) {
         final String whereStatement;
         switch (filter.getType()) {
             case CustomField.TYPE_TEXT, CustomField.TYPE_BOOLEAN -> {
@@ -420,10 +426,13 @@ public class FilterService {
                 }
             }
             case CustomField.TYPE_DROPDOWN, CustomField.TYPE_RADIO_BUTTON, CustomField.TYPE_PROGRESS_BAR -> {
-                //Enum types reference the selected option by id (like system filters): only equals/not-equals, no sort.
+                //Enum types reference the selected option by id (like system filters) for equals/not-equals,
+                //but sort by the option's display_order (joined in as optionsAlias) so values sort in user-defined order.
                 switch (filter.getOperator()) {
                     case OPERATOR_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_option_id = ?";
                     case OPERATOR_NOT_EQUALS -> whereStatement = " AND " + valuesAlias + ".value_option_id <> ?";
+                    case OPERATOR_ORDER_BY -> whereStatement = " ORDER BY " + optionsAlias + ".display_order ASC";
+                    case OPERATOR_ORDER_BY_DESC -> whereStatement = " ORDER BY " + optionsAlias + ".display_order DESC";
                     default -> whereStatement = "";
                 }
             }

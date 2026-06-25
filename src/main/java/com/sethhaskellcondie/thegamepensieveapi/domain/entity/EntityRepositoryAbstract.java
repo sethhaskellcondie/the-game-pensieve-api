@@ -125,6 +125,10 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             builder.append(" JOIN custom_fields AS fields").append(i)
               .append(" ON values").append(i).append(".custom_field_id = fields").append(i).append(".id")
               .append(" AND fields").append(i).append(".deleted = false");
+            // LEFT JOIN so non-enum custom field filters (value_option_id IS NULL) keep their rows; enum sorts
+            // use options<i>.display_order to order by the selected option's user-defined position.
+            builder.append(" LEFT JOIN custom_field_options AS options").append(i)
+              .append(" ON values").append(i).append(".value_option_id = options").append(i).append(".id");
         }
         builder.append(" WHERE ").append(tableName).append(".deleted_at IS NULL");
         return builder.toString();
