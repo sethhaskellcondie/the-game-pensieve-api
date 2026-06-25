@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.filter;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInvalidFilter;
 import org.junit.jupiter.api.Test;
 
@@ -54,5 +55,33 @@ public class FilterServiceSortTests {
 
         assertTrue(generatedSql.contains("ORDER BY systems.generation ASC, systems.name ASC"),
                 "Expected a valid ORDER BY referencing real columns. Generated: " + generatedSql);
+    }
+
+    /**
+     * Enum custom fields (dropdown, radio button, progress bar) store the selected option as a reference to
+     * custom_field_options.id, so sorting them by the raw option id would be meaningless creation order.
+     * Instead the sort must order by the option's display_order, which lives on the custom_field_options table
+     * joined in as options&lt;n&gt;.
+     */
+    @Test
+    void orderByEnumCustomField_GeneratesDisplayOrderOrderBy() {
+        final String fieldName = "Status";
+        final CustomField statusField = new CustomField(1, fieldName, CustomField.TYPE_DROPDOWN, Keychain.SYSTEM_KEY, 0, List.of());
+
+        final List<Filter> ascending = List.of(
+                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_DROPDOWN, fieldName, Filter.OPERATOR_ORDER_BY, "unused", true)
+        );
+        final List<Filter> validatedAscending = assertDoesNotThrow(() -> FilterService.validateAndOrderFilters(ascending, List.of(statusField)));
+        final String ascendingSql = String.join("", FilterService.formatWhereStatements(validatedAscending));
+        assertTrue(ascendingSql.contains("ORDER BY options1.display_order ASC"),
+                "Enum custom field ascending sort should order by the option display_order. Generated: " + ascendingSql);
+
+        final List<Filter> descending = List.of(
+                new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_DROPDOWN, fieldName, Filter.OPERATOR_ORDER_BY_DESC, "unused", true)
+        );
+        final List<Filter> validatedDescending = assertDoesNotThrow(() -> FilterService.validateAndOrderFilters(descending, List.of(statusField)));
+        final String descendingSql = String.join("", FilterService.formatWhereStatements(validatedDescending));
+        assertTrue(descendingSql.contains("ORDER BY options1.display_order DESC"),
+                "Enum custom field descending sort should order by the option display_order. Generated: " + descendingSql);
     }
 }
