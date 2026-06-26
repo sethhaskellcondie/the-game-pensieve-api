@@ -9,6 +9,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInval
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -36,6 +37,15 @@ public class ApiControllerAdvice {
     @ResponseBody
     public Map<String, List<String>> handleRuntimeException(RuntimeException e) {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Something went wrong. Generic RuntimeException Caught.", e.getMessage()));
+        return body.formatError();
+    }
+
+    //----Handle Authentication Errors----
+    @ExceptionHandler(value = {AuthenticationException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseBody
+    public Map<String, List<String>> handleAuthenticationException(AuthenticationException e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
         return body.formatError();
     }
 

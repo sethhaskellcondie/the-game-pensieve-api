@@ -45,6 +45,111 @@
 			"response": []
 		},
 		{
+			"name": "auth - register",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"collector@example.com\",\n    \"password\": \"Sup3rSecret!\"\n}"
+				},
+				"url": "http://localhost:8080/v1/auth/register"
+			},
+			"response": []
+		},
+		{
+			"name": "auth - login (captures tokens)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var json = pm.response.json();",
+							"if (json && json.data) {",
+							"    pm.collectionVariables.set(\"token\", json.data.accessToken);",
+							"    pm.collectionVariables.set(\"refreshToken\", json.data.refreshToken);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"collector@example.com\",\n    \"password\": \"Sup3rSecret!\"\n}"
+				},
+				"url": "http://localhost:8080/v1/auth/login"
+			},
+			"response": []
+		},
+		{
+			"name": "auth - refresh (rotates tokens)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var json = pm.response.json();",
+							"if (json && json.data) {",
+							"    pm.collectionVariables.set(\"token\", json.data.accessToken);",
+							"    pm.collectionVariables.set(\"refreshToken\", json.data.refreshToken);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}"
+				},
+				"url": "http://localhost:8080/v1/auth/refresh"
+			},
+			"response": []
+		},
+		{
 			"name": "create new toy",
 			"request": {
 				"method": "POST",
@@ -927,6 +1032,18 @@
 					"}"
 				]
 			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
 		}
 	]
 }
