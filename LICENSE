@@ -1,16 +1,23 @@
-MIT License
+Copyright (c) 2023-2026 Seth Condie. All Rights Reserved.
 
-Copyright (c) 2023 Seth Condie
+This software and its associated source code and documentation (the "Software")
+are the proprietary property of Seth Condie. No license, right, or permission is
+granted to any person to use, copy, modify, merge, publish, distribute,
+sublicense, sell, or create derivative works of the Software, in whole or in
+part, except with the prior written permission of the copyright holder.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Viewing this source code through the platform on which it is hosted does not
+grant any of the rights described above.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+PRIOR LICENSE NOTICE
+
+Versions of the Software distributed prior to this license were made available
+under the MIT License. Those prior versions remain available under the terms of
+the MIT License, and nothing in this license revokes or limits any rights that
+were already granted under it. The terms below apply to this version of the
+Software and to all subsequent versions.
+
+DISCLAIMER OF WARRANTY
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

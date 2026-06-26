@@ -1,4 +1,5 @@
-# From Local App to Hosted Paid Service — The Decision Record
+# Hello World
+### From Local App to Hosted Paid Service — The Decision Record
 
 A brief record of **how** and **why** we decided to turn The Game Pensieve from a single-user app
 that runs locally into a hosted, multi-tenant service with paid accounts.
