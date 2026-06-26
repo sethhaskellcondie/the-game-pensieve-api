@@ -75,13 +75,13 @@ Requirements:
 - Finally clone the project to your local machine
 
 Commands:
-- If you installed postgres locally start the postgres database, the default username is 'postgres', the default password is 'root'
+- If you install postgres locally to start the postgres database, the default username is 'postgres', the default password is 'root'
 - Else start the docker container for postgres 
 - Then run the project through your preferred IDE or follow the commands in the run in docker section above to create a jar of the project and then run it.
 - You can access the api on port 8080
 - The test endpoint localhost:8080/v1/heartbeat will return the string "thump thump" when working correctly.
 
 ### Additional Information
-Check the Notes.md file for more information on the design and documentation of this project
+Check the documentation directory for more information on this project.
 
 Note: This project uses test containers for integration tests, on some computers the tests will fail because the testcontainers are not all starting if this is the case the load can be reduced by commenting out the (GetWithFilters...Tests.java) series of tests.
