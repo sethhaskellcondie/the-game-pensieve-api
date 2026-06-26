@@ -98,6 +98,72 @@ public class TestFactory {
         return String.format(json, String.join(",", filterStrings));
     }
 
+    // --- Auth helpers ---
+    // Auth endpoints take a flat request body (no entity-key wrapper) and return tokens under $.data.
+
+    public String randomEmail() {
+        return "user-" + randomString(8) + "@example.com";
+    }
+
+    public String formatRegisterPayload(String email, String password) {
+        final String json = """
+                {
+                    "email": "%s",
+                    "password": "%s"
+                }
+                """;
+        return String.format(json, email, password);
+    }
+
+    public String formatLoginPayload(String email, String password) {
+        final String json = """
+                {
+                    "email": "%s",
+                    "password": "%s"
+                }
+                """;
+        return String.format(json, email, password);
+    }
+
+    public String formatRefreshPayload(String refreshToken) {
+        final String json = """
+                {
+                    "refreshToken": "%s"
+                }
+                """;
+        return String.format(json, refreshToken);
+    }
+
+    public ResultActions registerReturnResult(String email, String password) throws Exception {
+        return mockMvc.perform(
+                post("/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formatRegisterPayload(email, password))
+        );
+    }
+
+    public ResultActions loginReturnResult(String email, String password) throws Exception {
+        return mockMvc.perform(
+                post("/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(formatLoginPayload(email, password))
+        );
+    }
+
+    /**
+     * Read a token field (e.g. "accessToken" or "refreshToken") out of the $.data of an auth response.
+     * Used by the secured-profile tests; surfaces a clear failure if the token field is absent.
+     */
+    public String extractToken(ResultActions result, String fieldName) throws Exception {
+        final String responseString = result.andReturn().getResponse().getContentAsString();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final JsonNode dataNode = objectMapper.readTree(responseString).get("data");
+        if (dataNode == null || dataNode.get(fieldName) == null) {
+            throw new IllegalStateException("Expected auth token field '" + fieldName + "' was not present in the response: " + responseString);
+        }
+        return dataNode.get(fieldName).asText();
+    }
+
     public int postCustomFieldReturnId(String name, String type, String entityKey) throws Exception {
         ResultActions result = postCustomFieldReturnResult(name, type, entityKey);
         final MvcResult mvcResult = result.andReturn();
