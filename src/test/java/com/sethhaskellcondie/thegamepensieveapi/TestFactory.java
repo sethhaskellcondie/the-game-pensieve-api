@@ -47,9 +47,15 @@ public class TestFactory {
 
     public void validateCustomFieldValues(List<CustomFieldValue> returnedValues, List<CustomFieldValue> expectedValues) {
         assertEquals(expectedValues.size(), returnedValues.size(), "The number of returned custom field values did not matched the number of expected custom field values.");
-        for (int i = 0; i < returnedValues.size(); i++) {
-            CustomFieldValue returnedValue = returnedValues.get(i);
-            CustomFieldValue expectedValue = expectedValues.get(i);
+        // Custom field value order is not part of the API contract (the underlying query has no ORDER BY), so compare
+        // as an unordered set keyed by field name — a custom field appears at most once per entity.
+        final List<CustomFieldValue> sortedReturned = returnedValues.stream()
+                .sorted(java.util.Comparator.comparing(CustomFieldValue::getCustomFieldName)).toList();
+        final List<CustomFieldValue> sortedExpected = expectedValues.stream()
+                .sorted(java.util.Comparator.comparing(CustomFieldValue::getCustomFieldName)).toList();
+        for (int i = 0; i < sortedReturned.size(); i++) {
+            CustomFieldValue returnedValue = sortedReturned.get(i);
+            CustomFieldValue expectedValue = sortedExpected.get(i);
             if (expectedValue.getCustomFieldId() == 0 || returnedValue.getCustomFieldId() == 0) {
                 assertAll(
                     "The returned custom field values didn't match the expected custom field values.",

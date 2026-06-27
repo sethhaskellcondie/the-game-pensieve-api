@@ -35,6 +35,12 @@ info:
     - **500 Internal Server Error** — an unexpected error; the array contains a generic message followed by the underlying exception message.
     - **200 OK with populated `errors`** — the backup/import endpoints report partial failures here: the import still returns HTTP 200, but `errors` lists the records that could not be processed. Always inspect `errors` on these endpoints even on a 200.
 
+    ## Data Ownership & Multi-Tenancy
+    All collection data (systems, toys, video games and boxes, board games and boxes, custom fields and their options/values, and metadata) is **owned by a single account and isolated per owner**. Ownership is enforced in the database with PostgreSQL Row-Level Security, so a request can only ever read or write the caller's own rows — the isolation holds even against direct SQL.
+    - **Secured build** (`secured` profile): the owner is the authenticated user (from the `Bearer` token). Reads, searches, and writes are automatically scoped to that user; another owner's records are invisible (a read by id returns **404**, and they never appear in list/search results). Ownership is assigned by the server on create — there is no `owner` field in any request or response body.
+    - **Default (unsecured) build**: anonymous requests resolve to a single seeded, world-readable **showcase** owner, preserving the original single-collection behavior for the public site. The showcase owner's records are **not** visible to an authenticated user — each user sees only their own.
+    - Metadata keys are unique **per owner** (two owners may each use the same key).
+
     ## Timestamps
     All `createdAt`, `updatedAt`, and `deletedAt` fields are serialized as **epoch milliseconds** (a JSON integer, e.g. `1757970298640`), not ISO-8601 strings. `deletedAt` is `null` for records that have not been soft-deleted. This applies uniformly to entities, custom fields, metadata, and backup exports.
 

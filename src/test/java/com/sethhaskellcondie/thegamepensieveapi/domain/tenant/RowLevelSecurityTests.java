@@ -39,8 +39,8 @@ public class RowLevelSecurityTests {
 
     @Test
     void rawSelect_AsOwner_ReturnsOnlyOwnRows() {
-        final int ownerA = insertUser(false);
-        final int ownerB = insertUser(false);
+        final int ownerA = insertUser();
+        final int ownerB = insertUser();
         insertSystem("A-One", ownerA);
         insertSystem("A-Two", ownerA);
         insertSystem("B-One", ownerB);
@@ -56,8 +56,8 @@ public class RowLevelSecurityTests {
 
     @Test
     void rawSelect_AsShowcaseOwner_ReturnsShowcaseRows() {
-        final int showcaseOwner = insertUser(true);
-        final int ownerA = insertUser(false);
+        final int showcaseOwner = showcaseOwnerId();
+        final int ownerA = insertUser();
         insertSystem("Showcase-One", showcaseOwner);
         insertSystem("A-One", ownerA);
 
@@ -72,8 +72,8 @@ public class RowLevelSecurityTests {
 
     @Test
     void rawSelect_AsOwner_DoesNotSeeShowcaseRows() {
-        final int showcaseOwner = insertUser(true);
-        final int ownerA = insertUser(false);
+        final int showcaseOwner = showcaseOwnerId();
+        final int ownerA = insertUser();
         insertSystem("Showcase-One", showcaseOwner);
         insertSystem("A-One", ownerA);
 
@@ -88,7 +88,7 @@ public class RowLevelSecurityTests {
 
     @Test
     void rawInsert_OmittingOwnerId_StampsCurrentOwner() {
-        final int ownerA = insertUser(false);
+        final int ownerA = insertUser();
 
         assumeOwner(ownerA);
         // Mirrors the repositories' hand-built INSERTs, which never name owner_id: the column DEFAULT must
@@ -103,8 +103,8 @@ public class RowLevelSecurityTests {
 
     @Test
     void rawSelect_AsOwner_ReturnsOnlyOwnMetadata() {
-        final int ownerA = insertUser(false);
-        final int ownerB = insertUser(false);
+        final int ownerA = insertUser();
+        final int ownerB = insertUser();
         insertMetadata("a.setting", ownerA);
         insertMetadata("b.setting", ownerB);
 
@@ -117,12 +117,17 @@ public class RowLevelSecurityTests {
 
     // ------------------------------- Private helpers -------------------------------
 
-    /** Seeds a user (as the superuser test role) and returns its id. One user may be the public showcase. */
-    private int insertUser(boolean publicShowcase) {
+    /** Seeds a normal (non-showcase) user as the superuser test role and returns its id. */
+    private int insertUser() {
         final String email = "rls-" + java.util.UUID.randomUUID() + "@example.com";
         return jdbcTemplate.queryForObject(
-                "INSERT INTO users(email, password_hash, enabled, is_public_showcase) VALUES (?, '!', true, ?) RETURNING id",
-                Integer.class, email, publicShowcase);
+                "INSERT INTO users(email, password_hash, enabled) VALUES (?, '!', true) RETURNING id",
+                Integer.class, email);
+    }
+
+    /** The public showcase owner is seeded by the V1_13 migration; resolve it rather than creating another. */
+    private int showcaseOwnerId() {
+        return jdbcTemplate.queryForObject("SELECT id FROM users WHERE is_public_showcase", Integer.class);
     }
 
     private void insertSystem(String name, int ownerId) {
@@ -145,6 +150,6 @@ public class RowLevelSecurityTests {
      */
     private void assumeOwner(int ownerId) {
         jdbcTemplate.execute("SET LOCAL ROLE app_rls");
-        jdbcTemplate.update("SELECT set_config('app.current_owner', ?, true)", String.valueOf(ownerId));
+        jdbcTemplate.queryForObject("SELECT set_config('app.current_owner', ?, true)", String.class, String.valueOf(ownerId));
     }
 }

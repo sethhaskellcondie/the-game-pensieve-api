@@ -54,8 +54,8 @@ public class RepositoryRowLevelSecurityTests {
 
     @Test
     void getWithFilters_AsOwner_ReturnsOnlyOwnRows() {
-        final int ownerA = insertUser(false);
-        final int ownerB = insertUser(false);
+        final int ownerA = insertUser();
+        final int ownerB = insertUser();
         insertSystemAsOwner("A-One", ownerA);
         insertSystemAsOwner("A-Two", ownerA);
         insertSystemAsOwner("B-One", ownerB);
@@ -71,8 +71,8 @@ public class RepositoryRowLevelSecurityTests {
 
     @Test
     void getById_OtherUsersSystem_ThrowsNotFound() {
-        final int ownerA = insertUser(false);
-        final int ownerB = insertUser(false);
+        final int ownerA = insertUser();
+        final int ownerB = insertUser();
         assumeOwner(ownerB);
         final int bSystemId = systemRepository.insert(newSystem("B-Only")).getId();
 
@@ -83,7 +83,7 @@ public class RepositoryRowLevelSecurityTests {
 
     @Test
     void insert_OmittingOwnerId_StampsCurrentOwner() {
-        final int ownerA = insertUser(false);
+        final int ownerA = insertUser();
 
         assumeOwner(ownerA);
         // SystemRepository.insert builds an INSERT that never names owner_id; the column DEFAULT must stamp it.
@@ -95,8 +95,8 @@ public class RepositoryRowLevelSecurityTests {
 
     @Test
     void getWithFilters_AsOwner_DoesNotSeeShowcaseRows() {
-        final int showcaseOwner = insertUser(true);
-        final int ownerA = insertUser(false);
+        final int showcaseOwner = showcaseOwnerId();
+        final int ownerA = insertUser();
         insertSystemAsOwner("Showcase-One", showcaseOwner);
         insertSystemAsOwner("A-One", ownerA);
 
@@ -120,18 +120,15 @@ public class RepositoryRowLevelSecurityTests {
         systemRepository.insert(newSystem(name));
     }
 
-    /**
-     * Seeds a user through the production {@link UserRepository} (as the superuser test role) and returns its id.
-     * The public-showcase flag is set with a follow-up update because {@code UserRepository} has no setter for it —
-     * in production the showcase owner is seeded by the V1_13 migration.
-     */
-    private int insertUser(boolean publicShowcase) {
+    /** Seeds a normal (non-showcase) user through the production {@link UserRepository} and returns its id. */
+    private int insertUser() {
         final String email = "rls-repo-" + java.util.UUID.randomUUID() + "@example.com";
-        final int id = userRepository.insert(email, "!");
-        if (publicShowcase) {
-            jdbcTemplate.update("UPDATE users SET is_public_showcase = true WHERE id = ?", id);
-        }
-        return id;
+        return userRepository.insert(email, "!");
+    }
+
+    /** The public showcase owner is seeded by the V1_13 migration; resolve it rather than creating another. */
+    private int showcaseOwnerId() {
+        return jdbcTemplate.queryForObject("SELECT id FROM users WHERE is_public_showcase", Integer.class);
     }
 
     /**
@@ -140,6 +137,6 @@ public class RepositoryRowLevelSecurityTests {
      */
     private void assumeOwner(int ownerId) {
         jdbcTemplate.execute("SET LOCAL ROLE app_rls");
-        jdbcTemplate.update("SELECT set_config('app.current_owner', ?, true)", String.valueOf(ownerId));
+        jdbcTemplate.queryForObject("SELECT set_config('app.current_owner', ?, true)", String.class, String.valueOf(ownerId));
     }
 }

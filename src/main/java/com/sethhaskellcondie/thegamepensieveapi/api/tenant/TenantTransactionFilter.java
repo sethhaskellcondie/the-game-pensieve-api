@@ -1,0 +1,91 @@
+package com.sethhaskellcondie.thegamepensieveapi.api.tenant;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+/**
+ * Wires the per-request tenant boundary. For every tenant-scoped request this filter:
+ * <ol>
+ *   <li>resolves the owner id (while still running with full privileges, before the demotion below);</li>
+ *   <li>opens a transaction and, on that connection, drops to the restricted {@code app_rls} role and sets the
+ *       {@code app.current_owner} session variable — both transaction-local ({@code SET LOCAL} /
+ *       {@code set_config(..., true)}) so nothing leaks across pooled connections;</li>
+ *   <li>runs the rest of the chain inside that transaction.</li>
+ * </ol>
+ *
+ * <p>Because {@code JdbcTemplate} reuses the thread-bound transactional connection, every repository call and every
+ * {@code @Transactional} service method in the request observes the role + owner, and Row-Level Security scopes all
+ * reads and writes to that owner. Registered to run after Spring Security's filter chain (so the
+ * {@code SecurityContext} is populated) and active in both the default and {@code secured} profiles.
+ *
+ * <p>The public auth endpoints and heartbeat are skipped: they read/write {@code users}/{@code refresh_tokens},
+ * which {@code app_rls} cannot access, and must run with the application's normal privileges.
+ */
+public class TenantTransactionFilter extends OncePerRequestFilter {
+
+    private final OwnerResolver ownerResolver;
+    private final TransactionTemplate transactionTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public TenantTransactionFilter(OwnerResolver ownerResolver, TransactionTemplate transactionTemplate, JdbcTemplate jdbcTemplate) {
+        this.ownerResolver = ownerResolver;
+        this.transactionTemplate = transactionTemplate;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        final String path = request.getRequestURI();
+        return path.startsWith("/v1/auth/") || path.equals("/v1/heartbeat");
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        final Integer ownerId = ownerResolver.resolveOwnerId();
+        TenantContext.set(ownerId);
+        try {
+            transactionTemplate.executeWithoutResult(status -> {
+                jdbcTemplate.execute("SET LOCAL ROLE app_rls");
+                // set_config returns the applied value, so it must be queried, not run as an update.
+                jdbcTemplate.queryForObject("SELECT set_config('app.current_owner', ?, true)", String.class, String.valueOf(ownerId));
+                try {
+                    filterChain.doFilter(request, response);
+                } catch (IOException | ServletException e) {
+                    // Carry the servlet exception out of the transactional callback so the transaction rolls back;
+                    // it is unwrapped below to preserve servlet semantics.
+                    throw new TenantFilterException(e);
+                }
+            });
+        } catch (TenantFilterException e) {
+            final Throwable cause = e.getCause();
+            if (cause instanceof IOException ioException) {
+                throw ioException;
+            }
+            if (cause instanceof ServletException servletException) {
+                throw servletException;
+            }
+            throw new ServletException(cause);
+        } catch (UnexpectedRollbackException ignored) {
+            // An inner @Transactional component (e.g. a handled validation failure) marked the request transaction
+            // rollback-only. The error response is already written and rolling back is the correct outcome.
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    /** Internal carrier so a checked servlet exception can escape the transactional callback and trigger a rollback. */
+    private static final class TenantFilterException extends RuntimeException {
+        private TenantFilterException(Throwable cause) {
+            super(cause);
+        }
+    }
+}

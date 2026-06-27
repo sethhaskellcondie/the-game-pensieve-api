@@ -14,6 +14,7 @@ This document describes the design of the Game Pensieve API and the conventions 
 - [Metadata](#metadata)
 - [Response Body Format](#response-body-format)
 - [Configuration and Profiles](#configuration-and-profiles)
+- [Multi-Tenancy and Row-Level Security](#multi-tenancy-and-row-level-security)
 - [Database and Migrations](#database-and-migrations)
 - [Testing Strategy](#testing-strategy)
 - [Where to Find the Requirements](#where-to-find-the-requirements)
@@ -172,6 +173,56 @@ Global settings live in `application.properties` and apply to every profile. Pro
 | `filter-tests1`–`filter-tests8` | Filter integration tests, split across profiles | Testcontainers |
 
 The default credentials in local/docker are user `postgres`, password `root`. Override the active profile with `spring.profiles.active`.
+
+## Multi-Tenancy and Row-Level Security
+
+### The problem
+
+The system began as a single-user portfolio app where every row was visible to everyone. To run it as a hosted, paid service, each user's collection must be **isolated** — one account can never see or modify another's data — while one curated collection stays **publicly readable** as a showcase for the marketing/guest site. The isolation needs to be strong enough that it holds even against a hand-written `SELECT *`, not just against the application's own queries.
+
+### The model: owner_id + PostgreSQL Row-Level Security
+
+Every tenant-scoped table (`systems`, `toys`, `video_games`, `video_game_boxes`, `video_game_to_video_game_box`, `board_games`, `board_game_boxes`, `custom_fields`, `custom_field_options`, `custom_field_values`, `metadata`) carries an `owner_id` referencing `users(id)`. Isolation is enforced **in the database** with Row-Level Security (RLS), so it cannot be forgotten in application SQL. Each table has one `FOR ALL` policy:
+
+```sql
+USING       (owner_id = NULLIF(current_setting('app.current_owner', true), '')::int)
+WITH CHECK  (owner_id = NULLIF(current_setting('app.current_owner', true), '')::int)
+```
+
+`USING` gates which rows are readable/updatable/deletable; `WITH CHECK` gates inserted/updated rows. The current owner is read from a per-request **session variable**, `app.current_owner`. When it is unset the predicate is `NULL` → false: no rows visible, no writes allowed (**fail-closed**). There is deliberately **no showcase carve-out** in the policy — an authenticated user sees only their own rows; the showcase is reached only because anonymous requests are *resolved to* the showcase owner (below).
+
+### Why a separate database role
+
+The application connects to Postgres as a **superuser**, and superusers bypass RLS even with `FORCE`. So the migration (`V1_14`) creates a dedicated, privilege-limited role **`app_rls`** (`NOLOGIN NOSUPERUSER NOBYPASSRLS`) that is granted only DML on the tenant tables — notably **no** access to `users`/`refresh_tokens`. Each request *assumes* this role for the duration of one transaction; because `app_rls` is a non-superuser, the policies actually bind.
+
+### The per-request flow
+
+The boundary is established by `TenantTransactionFilter` in `api/tenant/`, registered to run **after** Spring Security (so the `SecurityContext` is populated). For each tenant-scoped request it:
+
+1. **Resolves the owner** (`OwnerResolver`) — *before* dropping privileges, since this reads `users`: the authenticated user's id (`Bearer` principal → `users.id` by email), or the seeded **showcase owner** for an anonymous request.
+2. **Opens a transaction** and, on that connection, runs `SET LOCAL ROLE app_rls` and `set_config('app.current_owner', <id>, true)`. Both are transaction-local, so nothing leaks across pooled connections.
+3. **Proceeds the chain inside that transaction.** Because `JdbcTemplate` reuses the thread-bound transactional connection, every repository call and every `@Transactional` service method observes the role + owner, and RLS scopes all of it.
+
+The public auth endpoints (`/v1/auth/**`) and `/v1/heartbeat` are **skipped** — they read/write `users`/`refresh_tokens`, which `app_rls` cannot touch, so they must run with the application's normal privileges.
+
+### Insert stamping and the showcase owner
+
+`owner_id` is never set by application code. Each column has a DEFAULT that stamps it from the session:
+
+```sql
+owner_id INTEGER NOT NULL DEFAULT
+    COALESCE(NULLIF(current_setting('app.current_owner', true), '')::int, showcase_owner_id())
+```
+
+So ordinary inserts are stamped with the current owner, and writes that have no request context (the migration's own backfill, or raw `@JdbcTest` inserts) fall back to the showcase owner. The **showcase owner is identified by a flag, not a hard-coded id**: `users.is_public_showcase` (a partial unique index guarantees exactly one). It is resolved on demand — by the `showcase_owner_id()` SQL function in DEFAULTs, and by `OwnerResolver` (cached) for anonymous requests — so the SERIAL id can differ per environment without anything breaking.
+
+### Interaction with tests
+
+`@JdbcTest` repository tests load only the JDBC slice, so the filter never runs; they connect as the superuser (bypassing RLS) and their inserts are stamped to the showcase owner by the COALESCE fallback — so they needed no changes. The dedicated tenancy tests (`domain/tenant/RowLevelSecurityTests`, `RepositoryRowLevelSecurityTests`, and `controllers/MultiTenancyTests`) instead `SET LOCAL ROLE app_rls` and set `app.current_owner` explicitly to prove isolation holds — including against a raw `SELECT *`.
+
+### Known limitation / future hardening
+
+Because the app logs in as a superuser, isolation depends on *every* tenant DB access happening inside the request transaction that assumed `app_rls`. Any code path that touches tenant tables outside it (a future `@Scheduled`/CLI job) would run as the superuser and bypass RLS, and must demote explicitly. The complete fix is to have the application **log in as a non-superuser role** (with Flyway migrating as the owner); then RLS binds unconditionally and the footgun disappears.
 
 ## Database and Migrations
 
