@@ -224,6 +224,40 @@ So ordinary inserts are stamped with the current owner, and writes that have no 
 
 Because the app logs in as a superuser, isolation depends on *every* tenant DB access happening inside the request transaction that assumed `app_rls`. Any code path that touches tenant tables outside it (a future `@Scheduled`/CLI job) would run as the superuser and bypass RLS, and must demote explicitly. The complete fix is to have the application **log in as a non-superuser role** (with Flyway migrating as the owner); then RLS binds unconditionally and the footgun disappears.
 
+## Entitlements and Access Tiers
+
+A backend-owned entitlement model (migration `V1_15`) gates capability per request. It is the deliberate "work around the payment processor" design: access is driven by fields an operator can set by hand long before any Paddle integration exists, and Paddle (a later phase) will simply automate writes to these same fields.
+
+### The fields and the rule
+
+`users` carries `plan` (`free`/`paid`), `subscription_status` (`trialing`/`active`/`past_due`/`canceled`/null), `access_until` (a timestamp), and nullable Paddle ids + `last_event_id` (reserved for the future webhook). **Effective access is gated by `access_until` alone** — a request is *paid* while `access_until` is in the future. `plan`/`subscription_status` are informational and for Paddle reconciliation; this keeps trials trivial (a trial just sets `access_until`, `plan` stays `free`). The three tiers:
+
+- **Guest** — an anonymous request (resolves to the showcase owner). Reads and filters the showcase; cannot write.
+- **Paid** — authenticated with `access_until` in the future (trial or paid). Full read/filter/write of own data.
+- **Lapsed** — authenticated with no current access window. May read and **list** own data (empty `filters`) and back it up, but a **filtered** search returns **402** and any write returns **403**.
+
+### Where it is enforced
+
+Status is resolved once per request in `OwnerResolver.resolveOwner()` — in the **same `users` lookup that resolves the owner id, before the connection drops to `app_rls`** (which has no grant on `users`). It is stashed in `TenantContext` alongside the owner id. `EntitlementService` reads that request-scoped value (never the DB, so it is safe inside the demoted transaction) and the gates live in `EntityGatewayAbstract`: `getWithFilters` rejects a lapsed filtered query (402), and `createNew`/`updateExisting`/`deleteById` require paid (403). Reads-by-id are ungated (RLS already scopes the row). Enforcement is **only active under the `secured` profile** — the default permit-all build reports full access, preserving the single-user behavior.
+
+New accounts are auto-granted a trial on registration: `AuthService.register` stamps `access_until = now + entitlement.trial-days` (default 30, env `ENTITLEMENT_TRIAL_DAYS`) with `subscription_status='trialing'`.
+
+### Admin path (manual, pre-Paddle)
+
+Until the Paddle webhook lands, grant/extend/revoke entitlement with a direct SQL update (run as the app login/superuser role; `users` is not under RLS):
+
+```sql
+-- Grant/extend 1 year of paid access:
+UPDATE users SET plan = 'paid', subscription_status = 'active',
+    access_until = now() + interval '1 year' WHERE email = 'customer@example.com';
+
+-- Revoke (account becomes Lapsed on its next request):
+UPDATE users SET subscription_status = 'canceled', access_until = NULL
+    WHERE email = 'customer@example.com';
+```
+
+Because status is resolved per request, the change takes effect on the account's very next request — no re-login required.
+
 ## Database and Migrations
 
 Persistence is PostgreSQL 16, accessed through Spring's JDBC Template (no ORM). Schema changes are managed by **Flyway**; migrations live in `src/main/resources/migrations` and follow the `V{major}_{minor}__Description.sql` naming convention (e.g. `V1_5__CreateVideoGameTables.sql`). `spring.flyway.validateMigrationNaming=true` is on, so misnamed files will fail the build.

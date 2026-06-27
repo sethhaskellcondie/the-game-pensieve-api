@@ -30,6 +30,8 @@ info:
     Status codes used:
     - **400 Bad Request** — input/validation failure (blank required field, malformed entity, invalid custom field value, duplicate that violates a uniqueness rule, invalid filter). Also returned when registering an email that already has an account.
     - **401 Unauthorized** — authentication failed or is missing. Returned only when the API is running with the `secured` profile: a protected route was called without a valid `Bearer` access token, or `/v1/auth/login`/`/v1/auth/refresh` were given bad credentials or an invalid/expired refresh token. In the default (unsecured) build no route requires authentication and 401 is never returned.
+    - **402 Payment Required** — (`secured` profile only) a **lapsed** account sent a **filtered** `/{entity}/function/search` request. Lapsed accounts may still list their own data with an empty `filters` array; any non-empty filter needs an active subscription. See *Access Tiers* below.
+    - **403 Forbidden** — (`secured` profile only) a **lapsed** account attempted a write (create/update/delete). Writes require an active subscription. (An anonymous write is rejected earlier with 401.)
     - **404 Not Found** — the requested resource (or an unknown route) does not exist.
     - **409 Conflict** — an import is already in progress (the import endpoints take a global lock).
     - **500 Internal Server Error** — an unexpected error; the array contains a generic message followed by the underlying exception message.
@@ -37,9 +39,15 @@ info:
 
     ## Data Ownership & Multi-Tenancy
     All collection data (systems, toys, video games and boxes, board games and boxes, custom fields and their options/values, and metadata) is **owned by a single account and isolated per owner**. Ownership is enforced in the database with PostgreSQL Row-Level Security, so a request can only ever read or write the caller's own rows — the isolation holds even against direct SQL.
-    - **Secured build** (`secured` profile): the owner is the authenticated user (from the `Bearer` token). Reads, searches, and writes are automatically scoped to that user; another owner's records are invisible (a read by id returns **404**, and they never appear in list/search results). Ownership is assigned by the server on create — there is no `owner` field in any request or response body.
+    - **Secured build** (`secured` profile): the owner is the authenticated user (from the `Bearer` token). Reads, searches, and writes are automatically scoped to that user; another owner's records are invisible (a read by id returns **404**, and they never appear in list/search results). Ownership is assigned by the server on create — there is no `owner` field in any request or response body. The **showcase** owner's data is world-readable: under the secured profile the read surface — `GET /v1/{entity}/{id}`, `POST /v1/{entity}/function/search`, and `GET /v1/filters/{entity}` — is reachable **without a token** (anonymous requests resolve to the showcase owner); writes always require authentication.
     - **Default (unsecured) build**: anonymous requests resolve to a single seeded, world-readable **showcase** owner, preserving the original single-collection behavior for the public site. The showcase owner's records are **not** visible to an authenticated user — each user sees only their own.
     - Metadata keys are unique **per owner** (two owners may each use the same key).
+
+    ## Access Tiers & Entitlements (secured profile)
+    Under the `secured` profile, each request resolves to one of three tiers, derived from backend entitlement fields on the account (not from any payment processor). A new account is auto-granted a **trial** on registration (a configurable window, default 30 days), so it starts in the **Paid** tier and lapses automatically when the window ends. An operator can extend or revoke access at any time by setting the account's `access_until`.
+    - **Guest** (anonymous → showcase): may read and filter the **showcase** data only; cannot write (a write is **401**).
+    - **Paid** (authenticated, access window active — trial or paid): full read, filter, and write of their own data.
+    - **Lapsed** (authenticated, access window expired): may read and **list** their own data (an empty `filters` array) and back it up, but a **filtered** search returns **402** and any write returns **403**.
 
     ## Timestamps
     All `createdAt`, `updatedAt`, and `deletedAt` fields are serialized as **epoch milliseconds** (a JSON integer, e.g. `1757970298640`), not ISO-8601 strings. `deletedAt` is `null` for records that have not been soft-deleted. This applies uniformly to entities, custom fields, metadata, and backup exports.

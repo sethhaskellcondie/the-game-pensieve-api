@@ -50,8 +50,12 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        final Integer ownerId = ownerResolver.resolveOwnerId();
+        // Resolve owner AND entitlement status here, before the transaction drops to app_rls — that read of the
+        // users table needs the application's normal privileges (app_rls has no grant on users).
+        final OwnerContext owner = ownerResolver.resolveOwner();
+        final Integer ownerId = owner.ownerId();
         TenantContext.set(ownerId);
+        TenantContext.setStatus(owner.status());
         try {
             transactionTemplate.executeWithoutResult(status -> {
                 jdbcTemplate.execute("SET LOCAL ROLE app_rls");
@@ -78,6 +82,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
             // An inner @Transactional component (e.g. a handled validation failure) marked the request transaction
             // rollback-only. The error response is already written and rolling back is the correct outcome.
         } finally {
+            TenantContext.clearStatus();
             TenantContext.clear();
         }
     }

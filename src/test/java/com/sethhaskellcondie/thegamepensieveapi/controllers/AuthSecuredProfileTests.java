@@ -51,6 +51,17 @@ public class AuthSecuredProfileTests {
         return mockMvc.perform(request);
     }
 
+    // A write route is protected under the secured profile (the showcase read surface is now public).
+    private ResultActions createSystem(String bearerToken) throws Exception {
+        var request = post("/v1/systems")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(factory.formatSystemPayload("Sys-" + java.util.UUID.randomUUID().toString().substring(0, 8), 1, false, null));
+        if (bearerToken != null) {
+            request = request.header("Authorization", "Bearer " + bearerToken);
+        }
+        return mockMvc.perform(request);
+    }
+
     // --- Public carve-outs: still reachable without a token under the secured profile ---
 
     @Test
@@ -59,16 +70,16 @@ public class AuthSecuredProfileTests {
                 .andExpect(status().isOk());
     }
 
-    // --- Protected routes require authentication ---
+    // --- Protected (write) routes require authentication ---
 
     @Test
     void getProtectedRoute_NoAuth_Secured_Returns401() throws Exception {
-        searchSystems(null).andExpect(status().isUnauthorized());
+        createSystem(null).andExpect(status().isUnauthorized());
     }
 
     @Test
     void protectedRoute_InvalidToken_Returns401() throws Exception {
-        searchSystems("not-a-real-jwt").andExpect(status().isUnauthorized());
+        createSystem("not-a-real-jwt").andExpect(status().isUnauthorized());
     }
 
     @Test

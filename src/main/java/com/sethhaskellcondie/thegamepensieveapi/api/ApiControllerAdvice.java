@@ -4,9 +4,11 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionBacku
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionCustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionImportInProgress;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionForbidden;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInputValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInvalidFilter;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionPaymentRequired;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
@@ -46,6 +48,23 @@ public class ApiControllerAdvice {
     @ResponseBody
     public Map<String, List<String>> handleAuthenticationException(AuthenticationException e) {
         FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of(e.getMessage()));
+        return body.formatError();
+    }
+
+    //----Handle Entitlement Errors----
+    @ExceptionHandler(value = {ExceptionPaymentRequired.class})
+    @ResponseStatus(HttpStatus.PAYMENT_REQUIRED)
+    @ResponseBody
+    public Map<String, List<String>> handleExceptionPaymentRequired(ExceptionPaymentRequired e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
+        return body.formatError();
+    }
+
+    @ExceptionHandler(value = {ExceptionForbidden.class})
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public Map<String, List<String>> handleExceptionForbidden(ExceptionForbidden e) {
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(e.getMessages());
         return body.formatError();
     }
 

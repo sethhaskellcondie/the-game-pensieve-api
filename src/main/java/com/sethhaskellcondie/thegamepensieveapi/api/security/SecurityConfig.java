@@ -4,6 +4,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -28,6 +29,27 @@ public class SecurityConfig {
         "/v1/auth/register",
         "/v1/auth/login",
         "/v1/auth/refresh",
+    };
+
+    // Guest (anonymous => showcase owner) read surface. Reads of a single resource and filtered searches are
+    // opened so the public showcase is browsable without a token; writes stay authenticated (anonymous => 401).
+    // Enumerated per entity (rather than a /v1/*/... wildcard) so future non-entity routes aren't exposed.
+    private static final String[] PUBLIC_READ_BY_ID = {
+        "/v1/systems/*",
+        "/v1/toys/*",
+        "/v1/videoGames/*",
+        "/v1/videoGameBoxes/*",
+        "/v1/boardGames/*",
+        "/v1/boardGameBoxes/*",
+    };
+
+    private static final String[] PUBLIC_SEARCH = {
+        "/v1/systems/function/search",
+        "/v1/toys/function/search",
+        "/v1/videoGames/function/search",
+        "/v1/videoGameBoxes/function/search",
+        "/v1/boardGames/function/search",
+        "/v1/boardGameBoxes/function/search",
     };
 
     @Bean
@@ -58,6 +80,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_READ_BY_ID).permitAll()
+                        .requestMatchers(HttpMethod.POST, PUBLIC_SEARCH).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/filters/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(authenticationEntryPoint))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

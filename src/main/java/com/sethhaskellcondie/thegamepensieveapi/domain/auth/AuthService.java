@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HexFormat;
 
@@ -33,6 +34,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final long refreshTokenExpirationMs;
+    private final long trialDays;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(
@@ -40,13 +42,15 @@ public class AuthService {
             RefreshTokenRepository refreshTokenRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            @Value("${jwt.refresh-token-expiration}") long refreshTokenExpirationMs
+            @Value("${jwt.refresh-token-expiration}") long refreshTokenExpirationMs,
+            @Value("${entitlement.trial-days}") long trialDays
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.refreshTokenExpirationMs = refreshTokenExpirationMs;
+        this.trialDays = trialDays;
     }
 
     public RegisterResponseDto register(RegisterRequestDto requestDto) throws ExceptionFailedDbValidation {
@@ -60,7 +64,9 @@ public class AuthService {
         if (userRepository.existsByEmail(email)) {
             throw new ExceptionFailedDbValidation("Registration failed, an account with email: '" + email + "' already exists.");
         }
-        final int id = userRepository.insert(email, passwordEncoder.encode(requestDto.password()));
+        // Auto-grant a trial: stamp an access window so the new account resolves to PAID until it expires.
+        final Timestamp trialAccessUntil = Timestamp.from(Instant.now().plus(trialDays, ChronoUnit.DAYS));
+        final int id = userRepository.insert(email, passwordEncoder.encode(requestDto.password()), trialAccessUntil, "trialing");
         return new RegisterResponseDto(id, email);
     }
 
