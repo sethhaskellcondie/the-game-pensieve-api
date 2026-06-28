@@ -80,6 +80,40 @@ This launches three containers: the backend API, the Flyway migrations, and the 
 
 The API is served on port `8080`.
 
+### Security Modes
+
+Authentication is controlled by the `secured` Spring profile. The application always runs with the `local` profile (which provides the database connection settings); adding `secured` switches authentication on.
+
+**Unsecured (default)** — every request is permitted, matching the public showcase behavior. This is the default because the active profile is `local`, which does not include `secured`.
+
+```bash
+./mvnw spring-boot:run
+```
+
+**Secured** — stateless JWT authentication is enforced. Keep the `local` profile (for the database settings) and add `secured`. Use whichever form is convenient:
+
+```bash
+# Override the active profiles on the command line
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local,secured
+
+# Or via an environment variable
+SPRING_PROFILES_ACTIVE=local,secured ./mvnw spring-boot:run
+
+# Or when running a built jar
+java -jar target/*.jar --spring.profiles.active=local,secured
+```
+
+In secured mode, only the following endpoints stay public; everything else requires a valid Bearer access token (anonymous requests return `401`):
+
+- `GET /v1/heartbeat`
+- `POST /v1/auth/register`, `POST /v1/auth/login`, `POST /v1/auth/refresh`
+- `GET /v1/{entity}/*` (read a single resource) and `POST /v1/{entity}/function/search` (filtered search) for the six entity types
+- `GET /v1/filters/**`
+
+To exercise the protected endpoints locally, register or log in through the auth endpoints to obtain a token, then send it as an `Authorization: Bearer <token>` header.
+
+> The JWT secret falls back to a hardcoded local value for development. Always override `JWT_SECRET` (with a long, random 256-bit value) in any non-local environment.
+
 ### Verifying the API
 
 The heartbeat endpoint confirms the API is running:

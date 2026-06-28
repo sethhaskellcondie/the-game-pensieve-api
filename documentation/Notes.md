@@ -295,6 +295,12 @@ Running the project in Docker spins up three containers:
 
 The production compose file additionally runs the front end. See the README for the exact commands.
 
+### Security Mode in Docker
+
+The Docker deployment runs **unsecured (permit-all)** by design. Both `compose.yaml` and `compose.production.yaml` set `SPRING_PROFILES_ACTIVE: docker` only — they do **not** activate the `secured` profile — so the containerized API serves the public showcase with no authentication, matching the original single-user behavior. (Authentication and the entitlement gates are gated by the `secured` profile; see [Configuration and Profiles](#configuration-and-profiles) and [Entitlements and Access Tiers](#entitlements-and-access-tiers).)
+
+To run the container in secured mode instead, activate both profiles, e.g. `SPRING_PROFILES_ACTIVE: docker,secured`, and override `JWT_SECRET` with a long random value. Leave it as `docker` alone to keep the not-secure deployment.
+
 ## Multiplatform Deployment
 
 The published Docker Hub images are built for both `linux/amd64` and `linux/arm64`.
