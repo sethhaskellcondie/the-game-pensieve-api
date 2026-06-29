@@ -44,7 +44,9 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         final String path = request.getRequestURI();
-        return path.startsWith("/v1/auth/") || path.equals("/v1/heartbeat");
+        // /v1/admin/** is skipped for the same reason as the auth endpoints: it reads/writes the users table,
+        // which the demoted app_rls role cannot access. AdminController authorizes the caller itself.
+        return path.startsWith("/v1/auth/") || path.equals("/v1/heartbeat") || path.startsWith("/v1/admin/");
     }
 
     @Override

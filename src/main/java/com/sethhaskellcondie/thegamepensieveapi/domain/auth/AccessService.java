@@ -24,8 +24,13 @@ import java.util.Set;
  *
  * <p>The matrix is the single source of truth for what each role may do. TRIAL holds the same capabilities as
  * PAID except {@code IMPORT} — a trial can evaluate the app and back up its data, but bulk import is a paid
- * feature. ADMIN currently mirrors PAID; its {@code ACCESS_ADMIN} capability and the admin API land in a later
- * phase.
+ * feature. ADMIN holds every own-data capability plus {@code ACCESS_ADMIN}, the only role that may reach the
+ * admin role-management API.
+ *
+ * <p>{@link #can(Capability)} is the request-scoped check used by the per-request chokepoints (it reads the
+ * role from {@link TenantContext} and is short-circuited off in the default build). {@link #can(Role,
+ * Capability)} is a pure matrix lookup against an explicitly supplied role — used where the request-scoped role
+ * is unavailable, notably the admin routes, which bypass the tenant filter so {@code TenantContext} is empty.
  */
 @Service
 public class AccessService {
@@ -38,7 +43,8 @@ public class AccessService {
         MATRIX.put(Role.TRIAL, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP));
         MATRIX.put(Role.PAID, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT));
         MATRIX.put(Role.LAPSED, Set.of(Capability.BACKUP));
-        MATRIX.put(Role.ADMIN, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT));
+        MATRIX.put(Role.ADMIN, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT,
+                Capability.ACCESS_ADMIN));
     }
 
     private final boolean enforcementEnabled;
@@ -60,6 +66,15 @@ public class AccessService {
         if (!enforcementEnabled) {
             return true;
         }
-        return MATRIX.getOrDefault(currentRole(), Set.of()).contains(capability);
+        return can(currentRole(), capability);
+    }
+
+    /**
+     * Whether the given role holds the given capability — a pure matrix lookup with no request context and no
+     * enforcement short-circuit. Used where the role is resolved explicitly (e.g. authorizing the admin routes,
+     * which bypass the tenant filter so the request-scoped role is unavailable).
+     */
+    public boolean can(Role role, Capability capability) {
+        return MATRIX.getOrDefault(role, Set.of()).contains(capability);
     }
 }

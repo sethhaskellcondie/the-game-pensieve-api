@@ -70,6 +70,24 @@ public class UserRepository {
         }
     }
 
+    /** List every account, ordered by id. Used by the admin role-management API (runs with app privileges,
+     * outside the per-request {@code app_rls} transaction — {@code users} is not under RLS). */
+    public java.util.List<User> findAll() {
+        final String sql = "SELECT " + SELECT_COLUMNS + " FROM users ORDER BY id";
+        return jdbcTemplate.query(sql, getRowMapper());
+    }
+
+    /**
+     * Set or clear a user's {@code role_override} admin pin ({@code null} reverts to auto-derivation). Returns
+     * the number of rows updated so the caller can distinguish a missing user (0) from a successful pin (1).
+     */
+    public int updateRoleOverride(int id, String roleOverride) {
+        final String sql = "UPDATE users SET role_override = ?, updated_at = ? WHERE id = ?";
+        return jdbcTemplate.update(sql,
+                new Object[]{roleOverride, Timestamp.from(Instant.now()), id},
+                new int[]{Types.VARCHAR, Types.TIMESTAMP, Types.INTEGER});
+    }
+
     public boolean existsByEmail(String email) {
         final String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         final Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);

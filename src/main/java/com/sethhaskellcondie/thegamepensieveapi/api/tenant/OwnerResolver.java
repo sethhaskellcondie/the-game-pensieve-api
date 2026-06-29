@@ -43,7 +43,7 @@ public class OwnerResolver {
      * here executes with the application's normal (superuser) privileges.
      *
      * <ul>
-     *   <li>Authenticated → the user's id and {@link #roleFor(User) derived role}.</li>
+     *   <li>Authenticated → the user's id and {@link #deriveRole(User) derived role}.</li>
      *   <li>Anonymous → the seeded public showcase owner, always GUEST.</li>
      * </ul>
      */
@@ -52,7 +52,7 @@ public class OwnerResolver {
         if (authentication != null && authentication.isAuthenticated()
                 && authentication.getPrincipal() instanceof UserDetails userDetails) {
             return userRepository.findByEmail(userDetails.getUsername())
-                    .map(user -> new OwnerContext(user.id(), roleFor(user)))
+                    .map(user -> new OwnerContext(user.id(), deriveRole(user)))
                     .orElseGet(() -> new OwnerContext(showcaseOwnerId(), Role.GUEST));
         }
         return new OwnerContext(showcaseOwnerId(), Role.GUEST);
@@ -63,12 +63,13 @@ public class OwnerResolver {
     }
 
     /**
-     * Derive an authenticated user's role: an admin {@code role_override} pin wins outright; otherwise a future
+     * Derive a user's role: an admin {@code role_override} pin wins outright; otherwise a future
      * {@code access_until} resolves to TRIAL while {@code subscription_status='trialing'} (else PAID), and no
      * current access window resolves to LAPSED. The CHECK constraint on {@code role_override} guarantees the
-     * pinned value is a valid role name.
+     * pinned value is a valid role name. Pure (reads only the user's fields), so it is reused by the admin API
+     * to report each listed user's effective role.
      */
-    private Role roleFor(User user) {
+    public Role deriveRole(User user) {
         if (user.roleOverride() != null) {
             return Role.valueOf(user.roleOverride());
         }
