@@ -13,7 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Phase 2 multi-tenancy contract — the hard database boundary.
+ * This tests the row-level security setup through direct raw SQL statements. Through INSERT and SELECT statements.
+ * This is strictly testing just the RLS policies. The RepositoryRowLevelSecurityTests will test that the Repositories
+ * are implemented the RLS feature correctly, too.
  * <p>
  * Where {@code controllers.MultiTenancyTests} proves isolation through the HTTP API, this proves it at the
  * lowest level: a <strong>raw, handwritten {@code SELECT *}</strong> issued while the connection has assumed
@@ -24,11 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Seeding runs first as the (superuser) test role, which bypasses RLS; we then drop to {@code app_rls} with
  * {@code SET LOCAL ROLE} and read. Everything is transaction-local ({@code SET LOCAL} / {@code set_config(...,
  * true)}) and @JdbcTest rolls the transaction back, so nothing leaks across tests or pooled connections.
- * <p>
- * <strong>Expected to FAIL/ERROR until Part 2 lands.</strong> On current code there is no {@code owner_id}
- * column, no {@code is_public_showcase} flag, no {@code app_rls} role and no RLS policies — so the seeding
- * INSERTs and the {@code SET LOCAL ROLE} below cannot succeed yet. That is the intended red state for the
- * tests-first checkpoint.
  */
 @JdbcTest
 @ActiveProfiles("rls-tests")

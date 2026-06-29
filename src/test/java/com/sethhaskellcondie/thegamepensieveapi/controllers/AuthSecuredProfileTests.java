@@ -101,7 +101,7 @@ public class AuthSecuredProfileTests {
 
     @Test
     void register_DuplicateEmail_Returns400() throws Exception {
-        // Mirrors the project's duplicationCheck() convention: a repeated create is a 400.
+        // Mirrors the project's duplicationCheck() convention: a repeated creation is a 400.
         final String email = factory.randomEmail();
         factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
         factory.registerReturnResult(email, PASSWORD).andExpect(status().isBadRequest());

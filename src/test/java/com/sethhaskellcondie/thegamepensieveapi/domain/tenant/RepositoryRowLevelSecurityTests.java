@@ -20,8 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Phase 2 multi-tenancy contract — isolation through the real repository code path.
- * <p>
  * Sibling of {@link RowLevelSecurityTests}: that suite issues raw SQL to prove the database boundary; this one
  * drives the production {@link SystemRepository} ({@code insert}, {@code getById}, {@code getWithFilters}). The
  * repository SQL carries <strong>no {@code owner_id} predicate</strong> — Row-Level Security alone scopes the
@@ -33,9 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * {@code app_rls} role with {@code app.current_owner} set, exactly as a request would. Users are seeded first as
  * the (superuser) test role, since {@code app_rls} has no grant on the {@code users} table. Everything is
  * transaction-local and @JdbcTest rolls the transaction back.
- * <p>
- * <strong>Expected to FAIL/ERROR until Part 2 lands</strong> (no {@code owner_id}/{@code is_public_showcase}
- * columns, no {@code app_rls} role, no RLS policies yet) — the intended red state for the tests-first checkpoint.
  */
 @JdbcTest
 @ActiveProfiles("rls-tests")
@@ -126,7 +121,7 @@ public class RepositoryRowLevelSecurityTests {
         return userRepository.insert(email, "!", null, null);
     }
 
-    /** The public showcase owner is seeded by the V1_13 migration; resolve it rather than creating another. */
+    /** The V1_13 migration seeds the public showcase owner; resolve it rather than creating another. */
     private int showcaseOwnerId() {
         return jdbcTemplate.queryForObject("SELECT id FROM users WHERE is_public_showcase", Integer.class);
     }

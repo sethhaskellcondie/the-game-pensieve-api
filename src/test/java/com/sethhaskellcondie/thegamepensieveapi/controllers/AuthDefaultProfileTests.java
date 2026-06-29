@@ -16,9 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Pins the permit-all behavior of the default (unsecured) build: the public showcase keeps working with no
- * credentials. These tests MUST stay green even after the {@code secured} profile is added — they are the
- * regression guard for "the default profile requires no authentication".
+ * Pins the permit-all behavior of the default (unsecured) build: the public showcase keeps working with no credentials.
  * <p>
  * Counterpart: {@link AuthSecuredProfileTests} exercises the authenticated {@code secured} build.
  */
@@ -57,7 +55,7 @@ public class AuthDefaultProfileTests {
 
     @Test
     void postEntity_NoAuth_DefaultProfile_Succeeds() throws Exception {
-        // A write with no credentials still works today (postSystemReturnResult asserts 201 Created internally).
+        // Writing with no credentials still works today (postSystemReturnResult asserts 201 Created internally).
         factory.postSystemReturnResult();
     }
 }

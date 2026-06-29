@@ -28,8 +28,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Phase 2 multi-tenancy contract — cross-tenant isolation between two authenticated users.
- * <p>
  * Runs under the {@code secured} profile so that two distinct authenticated owners (A and B) exist. The
  * Phase-2 promise is that one owner's data is completely invisible and immutable to another: searches,
  * reads-by-id, updates, and deletes all behave as though the other owner's rows don't exist.
@@ -175,7 +173,7 @@ public class MultiTenancyTests {
     // ------------------------------- Private helpers -------------------------------
 
     /**
-     * Insert a system owned by the seeded public showcase owner, directly via JDBC (the secured API can't create
+     * Insert a system owned by the seeded public showcase owner directly via JDBC (the secured API can't create
      * showcase-owned rows). The explicit owner_id and the superuser test connection sidestep RLS/the tenant filter,
      * so this seeds a row that an authenticated user should never be able to reach.
      */
