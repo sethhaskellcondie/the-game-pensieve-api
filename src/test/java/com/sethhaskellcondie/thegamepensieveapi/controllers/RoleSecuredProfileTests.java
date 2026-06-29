@@ -234,6 +234,37 @@ public class RoleSecuredProfileTests {
                 .andExpect(status().isPaymentRequired());
     }
 
+    /**
+     * Given a LAPSED account, then it cannot write. Unlike an anonymous GUEST (401 at Spring Security), a LAPSED
+     * caller is authenticated but lacks the WRITE capability, so the gateway rejects the write with 403.
+     */
+    @Test
+    void lapsedAccount_CannotWrite() throws Exception {
+        final String email = factory.randomEmail();
+        final String token = registerAndLogin(email);
+        makeLapsed(email);
+
+        mockMvc.perform(post(SYSTEMS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(factory.formatSystemPayload("Sys-" + uniqueSuffix(), 1, false, null)))
+                .andExpect(status().isForbidden());
+    }
+
+    /** Given a LAPSED account, then it cannot import — authenticated but lacks the IMPORT capability (403). */
+    @Test
+    void lapsedAccount_CannotImport() throws Exception {
+        final String email = factory.randomEmail();
+        final String token = registerAndLogin(email);
+        makeLapsed(email);
+
+        mockMvc.perform(post(IMPORT_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(EMPTY_IMPORT_BODY))
+                .andExpect(status().isForbidden());
+    }
+
     // ------------------------------- Private helpers -------------------------------
 
     private Filter nameFilter(String name) {
