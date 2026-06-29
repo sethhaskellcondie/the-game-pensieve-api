@@ -22,11 +22,10 @@ import java.util.Set;
  * {@link #can(Capability)} reports {@code true} for everything — the single-user public build keeps its
  * unrestricted read/write behavior.
  *
- * <p><strong>Phase 1 (parity):</strong> the matrix reproduces today's behavior. Only {@code FILTER} and
- * {@code WRITE} are enforced at a chokepoint yet, and for those GUEST/PAID/LAPSED match the prior
- * entitlement checks while TRIAL and ADMIN are equivalent to PAID. The remaining rows/capabilities are pinned
- * to their final values in their own later phases (and only then wired to a chokepoint), so there is no
- * observable change this phase.
+ * <p>The matrix is the single source of truth for what each role may do. TRIAL holds the same capabilities as
+ * PAID except {@code IMPORT} — a trial can evaluate the app and back up its data, but bulk import is a paid
+ * feature. ADMIN currently mirrors PAID; its {@code ACCESS_ADMIN} capability and the admin API land in a later
+ * phase.
  */
 @Service
 public class AccessService {
@@ -36,7 +35,7 @@ public class AccessService {
 
     static {
         MATRIX.put(Role.GUEST, Set.of(Capability.FILTER));
-        MATRIX.put(Role.TRIAL, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT));
+        MATRIX.put(Role.TRIAL, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP));
         MATRIX.put(Role.PAID, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT));
         MATRIX.put(Role.LAPSED, Set.of(Capability.BACKUP));
         MATRIX.put(Role.ADMIN, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT));

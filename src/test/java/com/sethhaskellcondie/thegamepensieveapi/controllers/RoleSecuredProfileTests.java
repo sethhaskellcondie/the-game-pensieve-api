@@ -116,6 +116,40 @@ public class RoleSecuredProfileTests {
                 .andExpect(status().isOk());
     }
 
+    /** Given a TRIAL account, then it can back up its data (TRIAL holds the BACKUP capability, like PAID). */
+    @Test
+    void trialAccount_CanBackUpOwnData() throws Exception {
+        final String token = registerAndLogin(factory.randomEmail());
+
+        mockMvc.perform(post(BACKUP_URL).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Given a TRIAL account, then it cannot import — IMPORT is the one capability the TRIAL row lacks relative to
+     * PAID (403). Flipping {@code subscription_status} to {@code 'active'} promotes the <em>same</em> account to
+     * PAID, and because the role is re-derived per request, the next import then succeeds (200).
+     */
+    @Test
+    void trialAccount_CannotImport_untilPromotedToPaid() throws Exception {
+        final String email = factory.randomEmail();
+        final String token = registerAndLogin(email);   // resolves to TRIAL
+
+        mockMvc.perform(post(IMPORT_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(EMPTY_IMPORT_BODY))
+                .andExpect(status().isForbidden());
+
+        makePaid(email);   // active subscription => derives to PAID on the next request
+
+        mockMvc.perform(post(IMPORT_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(EMPTY_IMPORT_BODY))
+                .andExpect(status().isOk());
+    }
+
     // ============================ PAID (authenticated, active subscription) ============================
 
     /**
