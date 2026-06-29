@@ -30,8 +30,8 @@ info:
     Status codes used:
     - **400 Bad Request** — input/validation failure (blank required field, malformed entity, invalid custom field value, duplicate that violates a uniqueness rule, invalid filter). Also returned when registering an email that already has an account.
     - **401 Unauthorized** — authentication failed or is missing. Returned only when the API is running with the `secured` profile: a protected route was called without a valid `Bearer` access token, or `/v1/auth/login`/`/v1/auth/refresh` were given bad credentials or an invalid/expired refresh token. In the default (unsecured) build no route requires authentication and 401 is never returned.
-    - **402 Payment Required** — (`secured` profile only) a **lapsed** account sent a **filtered** `/{entity}/function/search` request. Lapsed accounts may still list their own data with an empty `filters` array; any non-empty filter needs an active subscription. See *Access Tiers* below.
-    - **403 Forbidden** — (`secured` profile only) a **lapsed** account attempted a write (create/update/delete). Writes require an active subscription. (An anonymous write is rejected earlier with 401.)
+    - **402 Payment Required** — (`secured` profile only) a role lacking the **FILTER** capability sent a **filtered** `/{entity}/function/search` request. In practice this is a **LAPSED** account: it may still list its own data with an empty `filters` array, but any non-empty filter needs an active subscription. See *Roles & Capabilities* below.
+    - **403 Forbidden** — (`secured` profile only) the caller's role lacks the capability for the action: a **WRITE** (create/update/delete), a **BACKUP** (`/v1/function/backup`), an **IMPORT** (`/v1/function/import`, `/importFromFile`, `/seedSampleData`, `/seedMyCollection`), or **admin** access (`/v1/admin/**` by a non-ADMIN caller). Anonymous callers are rejected earlier with **401**. See *Roles & Capabilities* below.
     - **404 Not Found** — the requested resource (or an unknown route) does not exist.
     - **409 Conflict** — an import is already in progress (the import endpoints take a global lock).
     - **500 Internal Server Error** — an unexpected error; the array contains a generic message followed by the underlying exception message.
@@ -43,11 +43,28 @@ info:
     - **Default (unsecured) build**: anonymous requests resolve to a single seeded, world-readable **showcase** owner, preserving the original single-collection behavior for the public site. The showcase owner's records are **not** visible to an authenticated user — each user sees only their own.
     - Metadata keys are unique **per owner** (two owners may each use the same key).
 
-    ## Access Tiers & Entitlements (secured profile)
-    Under the `secured` profile, each request resolves to one of three tiers, derived from backend entitlement fields on the account (not from any payment processor). A new account is auto-granted a **trial** on registration (a configurable window, default 30 days), so it starts in the **Paid** tier and lapses automatically when the window ends. An operator can extend or revoke access at any time by setting the account's `access_until`.
-    - **Guest** (anonymous → showcase): may read and filter the **showcase** data only; cannot write (a write is **401**).
-    - **Paid** (authenticated, access window active — trial or paid): full read, filter, and write of their own data.
-    - **Lapsed** (authenticated, access window expired): may read and **list** their own data (an empty `filters` array) and back it up, but a **filtered** search returns **402** and any write returns **403**.
+    ## Roles & Capabilities (secured profile)
+    Under the `secured` profile, each request resolves to one of five **roles**, derived per request from backend fields on the account (never from a payment processor): an admin **role override** if set, otherwise the account's `access_until` / `subscription_status`. A new account is auto-granted a **trial** on registration (a configurable window, default 30 days), so it starts as **TRIAL** and becomes **LAPSED** automatically when the window ends. An operator can pin any account's role through the admin API (`POST /v1/admin/users/{id}/role`); to bootstrap the first admin, run a one-line `UPDATE users SET role_override='ADMIN' WHERE email='you@domain.com'`.
+    - **GUEST** (anonymous → showcase): reads and filters the **showcase** data only; any write/backup/import is rejected at authentication (**401**).
+    - **TRIAL** (new account, trial window active): full read, filter, write, and backup of its own data; **import is paid-only (403)**.
+    - **PAID** (authenticated, active subscription): full read, filter, write, backup, and import of its own data.
+    - **LAPSED** (authenticated, access window expired): may read/list its own data and back it up, but a **filtered** search returns **402** and write/import return **403**.
+    - **ADMIN** (pinned via `role_override`): every own-data capability plus the admin role-management API.
+
+    Capability matrix (✓ = allowed; the denied response is in parentheses):
+
+    | Capability | GUEST | TRIAL | PAID | LAPSED | ADMIN |
+    |---|:--:|:--:|:--:|:--:|:--:|
+    | READ (own/showcase) | ✓ | ✓ | ✓ | ✓ | ✓ |
+    | FILTER (402) | ✓* | ✓ | ✓ | ✗ | ✓ |
+    | WRITE (403) | ✗ | ✓ | ✓ | ✗ | ✓ |
+    | BACKUP (403) | ✗ | ✓ | ✓ | ✓ | ✓ |
+    | IMPORT (403) | ✗ | ✗ | ✓ | ✗ | ✓ |
+    | ACCESS&#95;ADMIN (403) | ✗ | ✗ | ✗ | ✗ | ✓ |
+
+    `*` GUEST filters the public **showcase** only (RLS scopes anonymous requests to the showcase owner); GUEST writes/backup/import are blocked at authentication (**401**) before capabilities apply.
+
+    **Impersonation (deferred):** a future read-only `X-Act-As-Owner: <userId>` header, honored only for an ADMIN caller, will let an admin view another user's collection (READ + FILTER only; WRITE/BACKUP/IMPORT → **403**). Not yet implemented.
 
     ## Timestamps
     All `createdAt`, `updatedAt`, and `deletedAt` fields are serialized as **epoch milliseconds** (a JSON integer, e.g. `1757970298640`), not ISO-8601 strings. `deletedAt` is `null` for records that have not been soft-deleted. This applies uniformly to entities, custom fields, metadata, and backup exports.
@@ -1975,6 +1992,115 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v1/admin/users:
+    get:
+      tags:
+        - Admin
+      summary: List all user accounts (admin only)
+      description: |
+        List every account with its effective role, role override, and billing fields. **Admin only**: the
+        caller must resolve to the `ADMIN` role (pinned via `role_override`); any other authenticated caller
+        receives **403**, and an anonymous caller **401**. These routes bypass the per-request tenant
+        transaction so they can read the `users` table (which the demoted RLS role cannot access).
+      responses:
+        '200':
+          description: The list of user accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminUser'
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                  roundTripMs:
+                    type: integer
+                    format: int64
+        '401':
+          description: Authentication required (anonymous caller)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: The caller does not resolve to the ADMIN role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/admin/users/{id}/role:
+    post:
+      tags:
+        - Admin
+      summary: Set or clear a user's role override (admin only)
+      description: |
+        Pin the target user to a specific role, or clear the pin to revert to auto-derivation. Send
+        `roleOverride` as one of `GUEST`, `TRIAL`, `PAID`, `LAPSED`, `ADMIN`, or `null` to clear. The change
+        takes effect on the target's next request (the role is re-derived per request). **Admin only** (403
+        for non-admins, 401 for anonymous). An unknown role value returns **400**; an unknown user id **404**.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The target user's id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRoleOverrideRequest'
+            example:
+              roleOverride: "PAID"
+      responses:
+        '200':
+          description: The updated user account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AdminUser'
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                  roundTripMs:
+                    type: integer
+                    format: int64
+        '400':
+          description: The role value is not one of the five roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required (anonymous caller)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: The caller does not resolve to the ADMIN role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No user with that id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /v1/metadata:
     post:
       tags:
@@ -2222,7 +2348,7 @@ components:
       properties:
         accessToken:
           type: string
-          description: Short-lived JWT to send as `Authorization: Bearer <accessToken>`
+          description: "Short-lived JWT to send as `Authorization: Bearer <accessToken>`"
         refreshToken:
           type: string
           description: Longer-lived, single-use, revocable token used to obtain a new access token
@@ -3032,6 +3158,43 @@ components:
           all_fields: ["order_by", "order_by_desc"]
           pagination_fields: ["limit", "offset"]
 
+    # Admin Schemas
+    AdminUser:
+      type: object
+      description: A user account as exposed to the admin role-management API.
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        role:
+          type: string
+          enum: [GUEST, TRIAL, PAID, LAPSED, ADMIN]
+          description: The user's effective per-request role (already reflects any role override).
+        roleOverride:
+          type: string
+          enum: [GUEST, TRIAL, PAID, LAPSED, ADMIN]
+          nullable: true
+          description: The admin pin, or null when the role is auto-derived.
+        accessUntil:
+          type: integer
+          format: int64
+          nullable: true
+          description: Access window expiry as epoch milliseconds, or null for no window.
+        subscriptionStatus:
+          type: string
+          nullable: true
+          description: "Informational billing status (e.g. trialing, active, past_due), or null."
+
+    SetRoleOverrideRequest:
+      type: object
+      properties:
+        roleOverride:
+          type: string
+          enum: [GUEST, TRIAL, PAID, LAPSED, ADMIN]
+          nullable: true
+          description: The role to pin the user to, or null to clear the pin and revert to auto-derivation.
+
     # Data Management Schemas
     BackupData:
       type: object
@@ -3256,3 +3419,5 @@ tags:
     description: Get filtering capabilities for entities
   - name: Data Management
     description: Backup, import, and data seeding operations
+  - name: Admin
+    description: Admin-only role management (list users, set/clear a user's role override); requires the ADMIN role

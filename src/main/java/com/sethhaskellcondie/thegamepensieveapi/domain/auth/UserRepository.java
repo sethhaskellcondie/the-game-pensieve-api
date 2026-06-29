@@ -95,7 +95,7 @@ public class UserRepository {
     }
 
     /**
-     * Create a user account. {@code accessUntil}/{@code subscriptionStatus} stamp the caller's entitlement
+     * Create a user account. {@code accessUntil}/{@code subscriptionStatus} stamp the caller's access
      * window (registration grants a trial); {@code plan} is left to the column's {@code 'free'} default.
      */
     public int insert(String email, String passwordHash, Timestamp accessUntil, String subscriptionStatus) {

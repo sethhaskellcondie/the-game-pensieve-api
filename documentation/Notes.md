@@ -224,39 +224,69 @@ So ordinary inserts are stamped with the current owner, and writes that have no 
 
 Because the app logs in as a superuser, isolation depends on *every* tenant DB access happening inside the request transaction that assumed `app_rls`. Any code path that touches tenant tables outside it (a future `@Scheduled`/CLI job) would run as the superuser and bypass RLS, and must demote explicitly. The complete fix is to have the application **log in as a non-superuser role** (with Flyway migrating as the owner); then RLS binds unconditionally and the footgun disappears.
 
-## Entitlements and Access Tiers
+## Roles and Capabilities
 
-A backend-owned entitlement model (migration `V1_15`) gates capability per request. It is the deliberate "work around the payment processor" design: access is driven by fields an operator can set by hand long before any Paddle integration exists, and Paddle (a later phase) will simply automate writes to these same fields.
+A backend-owned **role** model gates capability per request. It is the deliberate "work around the payment processor" design: a role is derived from fields an operator can set by hand long before any Paddle integration exists, and Paddle (a later phase) will simply automate writes to the billing fields the derivation reads.
 
 ### The fields and the rule
 
-`users` carries `plan` (`free`/`paid`), `subscription_status` (`trialing`/`active`/`past_due`/`canceled`/null), `access_until` (a timestamp), and nullable Paddle ids + `last_event_id` (reserved for the future webhook). **Effective access is gated by `access_until` alone** — a request is *paid* while `access_until` is in the future. `plan`/`subscription_status` are informational and for Paddle reconciliation; this keeps trials trivial (a trial just sets `access_until`, `plan` stays `free`). The three tiers:
+`users` carries `plan` (`free`/`paid`), `subscription_status` (`trialing`/`active`/`past_due`/`canceled`/null), `access_until` (a timestamp), nullable Paddle ids + `last_event_id` (reserved for the future webhook) — all from migration `V1_15` — plus a nullable `role_override` (`V1_16`). Each request resolves to one of five roles:
 
-- **Guest** — an anonymous request (resolves to the showcase owner). Reads and filters the showcase; cannot write.
-- **Paid** — authenticated with `access_until` in the future (trial or paid). Full read/filter/write of own data.
-- **Lapsed** — authenticated with no current access window. May read and **list** own data (empty `filters`) and back it up, but a **filtered** search returns **402** and any write returns **403**.
+```
+role_override != NULL                                  -> Role.valueOf(role_override)   // admin pin
+access_until in future + subscription_status='trialing' -> TRIAL
+access_until in future                                  -> PAID
+otherwise (authenticated)                               -> LAPSED
+anonymous request                                       -> GUEST
+```
+
+`plan` is informational / for Paddle reconciliation; trials stay trivial (registration just sets `access_until` + `subscription_status='trialing'`, `plan` stays `free`). What each role may do is the **capability matrix** in `AccessService` (the single source of truth):
+
+| Capability | GUEST | TRIAL | PAID | LAPSED | ADMIN | Denied |
+|---|:--:|:--:|:--:|:--:|:--:|---|
+| READ | ✓ | ✓ | ✓ | ✓ | ✓ | — (RLS-scoped) |
+| FILTER | ✓* | ✓ | ✓ | ✗ | ✓ | 402 |
+| WRITE | ✗ | ✓ | ✓ | ✗ | ✓ | 403 |
+| BACKUP | ✗ | ✓ | ✓ | ✓ | ✓ | 403 |
+| IMPORT | ✗ | ✗ | ✓ | ✗ | ✓ | 403 |
+| ACCESS_ADMIN | ✗ | ✗ | ✗ | ✗ | ✓ | 403 |
+
+`*` GUEST filters the showcase only (RLS scopes anonymous requests to the showcase owner); GUEST writes/backup/import are blocked at Spring Security (401) before capabilities apply.
 
 ### Where it is enforced
 
-Status is resolved once per request in `OwnerResolver.resolveOwner()` — in the **same `users` lookup that resolves the owner id, before the connection drops to `app_rls`** (which has no grant on `users`). It is stashed in `TenantContext` alongside the owner id. `EntitlementService` reads that request-scoped value (never the DB, so it is safe inside the demoted transaction) and the gates live in `EntityGatewayAbstract`: `getWithFilters` rejects a lapsed filtered query (402), and `createNew`/`updateExisting`/`deleteById` require paid (403). Reads-by-id are ungated (RLS already scopes the row). Enforcement is **only active under the `secured` profile** — the default permit-all build reports full access, preserving the single-user behavior.
+The role is resolved once per request in `OwnerResolver.resolveOwner()` (via the pure `deriveRole(User)`) — in the **same `users` lookup that resolves the owner id, before the connection drops to `app_rls`** (which has no grant on `users`). It is stashed in `TenantContext` alongside the owner id. `AccessService.can(...)` reads that request-scoped role (never the DB, so it is safe inside the demoted transaction) and the gates live at the semantic chokepoints: `EntityGatewayAbstract` (`getWithFilters` → FILTER/402, writes → WRITE/403) and `BackupImportGateway` (`getBackupData` → BACKUP/403, `importBackupData` → IMPORT/403). Reads-by-id are ungated (RLS already scopes the row). Enforcement is **only active under the `secured` profile** — the default permit-all build reports full access, preserving the single-user behavior.
 
-New accounts are auto-granted a trial on registration: `AuthService.register` stamps `access_until = now + entitlement.trial-days` (default 30, env `ENTITLEMENT_TRIAL_DAYS`) with `subscription_status='trialing'`.
+New accounts are auto-granted a trial on registration: `AuthService.register` stamps `access_until = now + entitlement.trial-days` (default 30, env `ENTITLEMENT_TRIAL_DAYS`) with `subscription_status='trialing'`, so they resolve to **TRIAL**.
 
-### Admin path (manual, pre-Paddle)
+### Admin role management
 
-Until the Paddle webhook lands, grant/extend/revoke entitlement with a direct SQL update (run as the app login/superuser role; `users` is not under RLS):
+Admins are themselves a role (pinned via `role_override`). The admin API manages roles:
+
+- `GET /v1/admin/users` — list accounts with their effective role, `role_override`, and billing fields.
+- `POST /v1/admin/users/{id}/role` — set `role_override` to one of the five roles, or `null` to revert to auto-derivation.
+
+These routes bypass the tenant transaction filter (they read/write `users`, which `app_rls` cannot touch) and authorize the caller as ADMIN inside the controller. **Bootstrap the first admin** with a one-line SQL update (`users` is not under RLS):
+
+```sql
+UPDATE users SET role_override = 'ADMIN' WHERE email = 'you@domain.com';
+```
+
+Until the Paddle webhook lands, you can also drive the billing fields directly to grant/revoke access (the role re-derives without a pin):
 
 ```sql
 -- Grant/extend 1 year of paid access:
 UPDATE users SET plan = 'paid', subscription_status = 'active',
     access_until = now() + interval '1 year' WHERE email = 'customer@example.com';
 
--- Revoke (account becomes Lapsed on its next request):
+-- Revoke (account becomes LAPSED on its next request):
 UPDATE users SET subscription_status = 'canceled', access_until = NULL
     WHERE email = 'customer@example.com';
 ```
 
-Because status is resolved per request, the change takes effect on the account's very next request — no re-login required.
+Because the role is resolved per request, any of these changes takes effect on the account's very next request — no re-login required.
+
+**Impersonation (deferred):** a future read-only `X-Act-As-Owner: <userId>` header, honored only for ADMIN callers, will let an admin view another user's collection (READ + FILTER only; WRITE/BACKUP/IMPORT → 403). Not yet implemented.
 
 ## Database and Migrations
 
@@ -297,7 +327,7 @@ The production compose file additionally runs the front end. See the README for 
 
 ### Security Mode in Docker
 
-The Docker deployment runs **unsecured (permit-all)** by design. Both `compose.yaml` and `compose.production.yaml` set `SPRING_PROFILES_ACTIVE: docker` only — they do **not** activate the `secured` profile — so the containerized API serves the public showcase with no authentication, matching the original single-user behavior. (Authentication and the entitlement gates are gated by the `secured` profile; see [Configuration and Profiles](#configuration-and-profiles) and [Entitlements and Access Tiers](#entitlements-and-access-tiers).)
+The Docker deployment runs **unsecured (permit-all)** by design. Both `compose.yaml` and `compose.production.yaml` set `SPRING_PROFILES_ACTIVE: docker` only — they do **not** activate the `secured` profile — so the containerized API serves the public showcase with no authentication, matching the original single-user behavior. (Authentication and the role/capability gates are gated by the `secured` profile; see [Configuration and Profiles](#configuration-and-profiles) and [Roles and Capabilities](#roles-and-capabilities).)
 
 To run the container in secured mode instead, activate both profiles, e.g. `SPRING_PROFILES_ACTIVE: docker,secured`, and override `JWT_SECRET` with a long random value. Leave it as `docker` alone to keep the not-secure deployment.
 
