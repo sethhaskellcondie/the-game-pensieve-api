@@ -65,6 +65,7 @@ public class RoleSecuredProfileTests {
     private static final String PASSWORD = "Sup3rSecret!";
     private static final String SYSTEMS_URL = "/v1/systems";
     private static final String BACKUP_URL = "/v1/function/backup";
+    private static final String IMPORT_URL = "/v1/function/import";
 
     @BeforeEach
     void setUp() {
@@ -145,6 +146,26 @@ public class RoleSecuredProfileTests {
         mockMvc.perform(post(SYSTEMS_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(factory.formatSystemPayload("Sys-" + uniqueSuffix(), 1, false, null)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Given a GUEST request, then it cannot back up data. The GUEST role lacks the BACKUP capability (the gate is
+     * centralized in BackupImportGateway), but an anonymous request is already rejected at Spring Security (401)
+     * before it ever reaches that gate.
+     */
+    @Test
+    void guestRequest_CannotBackUp() throws Exception {
+        mockMvc.perform(post(BACKUP_URL))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /** Given a GUEST request, then it cannot import data — anonymous → 401 at Spring Security. */
+    @Test
+    void guestRequest_CannotImport() throws Exception {
+        mockMvc.perform(post(IMPORT_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isUnauthorized());
     }
 
