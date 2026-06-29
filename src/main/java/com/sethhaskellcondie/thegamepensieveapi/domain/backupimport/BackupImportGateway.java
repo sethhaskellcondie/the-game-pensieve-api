@@ -34,6 +34,9 @@ public class BackupImportGateway {
     }
 
     public ImportResultsDto importBackupData(BackupDataDto backupDataDto) {
+        if (!access.can(Capability.IMPORT)) {
+            throw new ExceptionForbidden("Permission denied, import access required.");
+        }
         return service.importBackupData(backupDataDto);
     }
 }

@@ -66,6 +66,9 @@ public class RoleSecuredProfileTests {
     private static final String SYSTEMS_URL = "/v1/systems";
     private static final String BACKUP_URL = "/v1/function/backup";
     private static final String IMPORT_URL = "/v1/function/import";
+    // A well-formed but empty backup; importing it is a valid no-op that returns 200 (creates nothing).
+    private static final String EMPTY_IMPORT_BODY =
+            "{\"data\":{\"customFields\":[],\"toys\":[],\"systems\":[],\"videoGameBoxes\":[],\"boardGameBoxes\":[],\"metadata\":[]}}";
 
     @BeforeEach
     void setUp() {
@@ -110,6 +113,35 @@ public class RoleSecuredProfileTests {
         final String token = registerAndLogin(factory.randomEmail());
 
         searchSystems(token, factory.formatFiltersPayload(nameFilter("anything")))
+                .andExpect(status().isOk());
+    }
+
+    // ============================ PAID (authenticated, active subscription) ============================
+
+    /**
+     * Given a PAID account (active subscription, not a trial), then it holds every own-data capability —
+     * write, filter, backup, and import — the full PAID matrix row minus ACCESS_ADMIN. Import is the capability
+     * newly gated this phase ({@code BackupImportGateway#importBackupData}), and PAID passes it.
+     */
+    @Test
+    void paidAccount_CanWriteFilterBackupAndImport() throws Exception {
+        final String email = factory.randomEmail();
+        final String token = registerAndLogin(email);
+        makePaid(email);
+
+        // write
+        createSystemAs(token, "Paid-System-" + uniqueSuffix());
+        // filter
+        searchSystems(token, factory.formatFiltersPayload(nameFilter("anything")))
+                .andExpect(status().isOk());
+        // backup
+        mockMvc.perform(post(BACKUP_URL).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        // import
+        mockMvc.perform(post(IMPORT_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(EMPTY_IMPORT_BODY))
                 .andExpect(status().isOk());
     }
 
@@ -244,7 +276,28 @@ public class RoleSecuredProfileTests {
                 name, showcaseOwnerId);
     }
 
-    /** Expire a user's access window so they resolve to LAPSED on the next request (the role is read per-request). */
+    /**
+     * Promote a user to an active paid subscription so they resolve to PAID (not TRIAL) on the next request —
+     * a future access window with {@code subscription_status='active'} rather than {@code 'trialing'}.
+     *
+     * <p>This writes the billing columns directly to <em>simulate the (deferred) Paddle billing webhook</em>:
+     * those subscription-state transitions have no in-app code path yet — the only production write to these
+     * columns is the trial grant at registration — so the test stamps the resulting state itself.
+     */
+    private void makePaid(String email) {
+        jdbcTemplate.update(
+                "UPDATE users SET plan = 'paid', subscription_status = 'active', "
+                        + "access_until = now() + interval '30 days' WHERE email = ?",
+                email);
+    }
+
+    /**
+     * Expire a user's access window so they resolve to LAPSED on the next request (the role is read per-request).
+     *
+     * <p>Like {@link #makePaid}, this writes the billing columns directly to <em>simulate the (deferred) Paddle
+     * billing webhook</em> — a past-due subscription whose access window has elapsed — since no in-app code path
+     * performs that transition yet.
+     */
     private void makeLapsed(String email) {
         jdbcTemplate.update(
                 "UPDATE users SET plan = 'paid', subscription_status = 'past_due', "
