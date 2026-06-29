@@ -1,6 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox;
 
-import com.sethhaskellcondie.thegamepensieveapi.domain.auth.EntitlementService;
+import com.sethhaskellcondie.thegamepensieveapi.domain.auth.AccessService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityGatewayAbstract;
 import org.springframework.stereotype.Component;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class VideoGameBoxGateway extends EntityGatewayAbstract<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto>
         implements EntityGateway<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto> {
 
-    public VideoGameBoxGateway(VideoGameBoxService service, EntitlementService entitlements) {
-        super(service, entitlements);
+    public VideoGameBoxGateway(VideoGameBoxService service, AccessService access) {
+        super(service, access);
     }
 }

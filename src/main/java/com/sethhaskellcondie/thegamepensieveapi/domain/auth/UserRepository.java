@@ -29,7 +29,8 @@ public class UserRepository {
 
     // Every column read by the row mapper, in a single place so the two finders stay in sync.
     private static final String SELECT_COLUMNS = "id, email, password_hash, enabled, created_at, updated_at, "
-            + "plan, subscription_status, access_until, paddle_customer_id, paddle_subscription_id, last_event_id";
+            + "plan, subscription_status, access_until, paddle_customer_id, paddle_subscription_id, last_event_id, "
+            + "role_override";
 
     private RowMapper<User> getRowMapper() {
         return (resultSet, rowNumber) -> new User(
@@ -44,7 +45,8 @@ public class UserRepository {
                 resultSet.getTimestamp("access_until"),
                 resultSet.getString("paddle_customer_id"),
                 resultSet.getString("paddle_subscription_id"),
-                resultSet.getString("last_event_id")
+                resultSet.getString("last_event_id"),
+                resultSet.getString("role_override")
         );
     }
 

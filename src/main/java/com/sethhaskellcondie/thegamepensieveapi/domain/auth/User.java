@@ -6,10 +6,10 @@ import java.sql.Timestamp;
  * A user account row. This is a lightweight, security-sensitive model that is intentionally kept out of the
  * generic Entity/Gateway/custom-field stack used by the catalog entities.
  *
- * <p>The entitlement fields ({@code plan}, {@code subscriptionStatus}, {@code accessUntil}, and the Paddle
- * ids) drive the Phase 3 access model. Effective access is gated by {@code accessUntil} alone — a request is
- * PAID while it is in the future (which both a purchase and a trial set); {@code plan}/{@code subscriptionStatus}
- * are informational and reconciled with Paddle later.
+ * <p>The billing fields ({@code plan}, {@code subscriptionStatus}, {@code accessUntil}, and the Paddle ids)
+ * feed the role derivation: a request derives to TRIAL/PAID while {@code accessUntil} is in the future (which
+ * both a purchase and a trial set), else LAPSED; {@code plan} is informational and reconciled with Paddle later.
+ * {@code roleOverride}, when non-null, is an admin pin that overrides that derivation outright.
  */
 public record User(
         Integer id,
@@ -23,6 +23,7 @@ public record User(
         Timestamp accessUntil,
         String paddleCustomerId,
         String paddleSubscriptionId,
-        String lastEventId
+        String lastEventId,
+        String roleOverride
 ) {
 }

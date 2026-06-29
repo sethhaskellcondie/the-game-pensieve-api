@@ -12,14 +12,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Phase 3 tests-first checkpoint — the V1_15 migration shape.
- * <p>
- * Asserts that {@code V1_15__AddBillingToUsers.sql} adds the price-agnostic entitlement columns to
- * {@code users}, backfills existing rows (including the seeded showcase owner) to {@code plan='free'} with a
- * null access window, and enforces the {@code plan} CHECK constraint.
- * <p>
- * <strong>Expected to FAIL/ERROR until V1_15 lands.</strong> On current code the columns do not exist, so the
- * selects below error — the intended red state for the tests-first checkpoint.
+ * Asserts that {@code V1_15__AddBillingToUsers.sql} adds the price-agnostic billing columns to {@code users},
+ * backfills existing rows (including the seeded showcase owner) to {@code plan='free'} with a null access
+ * window, and enforces the {@code plan} CHECK constraint.
+ *
+ * <p>Also asserts the role-based access model's {@code V1_16__AddRoleOverrideToUsers.sql} — a nullable
+ * {@code role_override} admin pin defaulting to NULL (auto-derivation) and constrained to the five roles
+ * ('GUEST','TRIAL','PAID','LAPSED','ADMIN').
+ *
  */
 @JdbcTest
 @ActiveProfiles("rls-tests")
@@ -61,5 +61,36 @@ public class UsersBillingColumnsTests {
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
                 "INSERT INTO users(email, password_hash, enabled, plan) VALUES (?, '!', true, 'bogus')", email),
                 "The plan CHECK constraint should reject values outside ('free','paid').");
+    }
+
+    // ===================== V1_16 role_override (staged red until the migration lands) =====================
+
+    @Test
+    void roleOverrideColumn_DefaultsToNull() {
+        // A user created without an explicit override has none — the role is auto-derived per request.
+        final String email = "role-" + java.util.UUID.randomUUID() + "@example.com";
+        jdbcTemplate.update("INSERT INTO users(email, password_hash, enabled) VALUES (?, '!', true)", email);
+        final String roleOverride = jdbcTemplate.queryForObject(
+                "SELECT role_override FROM users WHERE email = ?", String.class, email);
+        assertNull(roleOverride, "role_override should default to NULL so the role is auto-derived.");
+    }
+
+    @Test
+    void roleOverrideCheckConstraint_AcceptsAValidRole() {
+        // An admin pin to any of the five roles is allowed.
+        final String email = "role-" + java.util.UUID.randomUUID() + "@example.com";
+        jdbcTemplate.update(
+                "INSERT INTO users(email, password_hash, enabled, role_override) VALUES (?, '!', true, 'ADMIN')", email);
+        final String roleOverride = jdbcTemplate.queryForObject(
+                "SELECT role_override FROM users WHERE email = ?", String.class, email);
+        assertEquals("ADMIN", roleOverride, "A role_override of one of the five roles should be accepted and stored.");
+    }
+
+    @Test
+    void roleOverrideCheckConstraint_RejectsUnknownValue() {
+        final String email = "role-" + java.util.UUID.randomUUID() + "@example.com";
+        assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
+                "INSERT INTO users(email, password_hash, enabled, role_override) VALUES (?, '!', true, 'bogus')", email),
+                "The role_override CHECK constraint should reject values outside the five roles.");
     }
 }

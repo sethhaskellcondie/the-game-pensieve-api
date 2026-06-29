@@ -29,31 +29,33 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Phase 3 entitlement access model — the full Guest/Paid/Lapsed matrix under the {@code secured} profile.
+ * Role-based access model under the {@code secured} profile. The five roles — GUEST, TRIAL, PAID, LAPSED,
+ * ADMIN — are auto-derived per request from {@code access_until}/{@code subscription_status} (plus a future
+ * admin {@code role_override} pin), and the capability matrix is the single source of truth for what each may do.
  *
- * <p><strong>Paid (trial)</strong>
+ * <p><strong>TRIAL (newly registered, trial access window)</strong>
  * <ul>
- *   <li>Given a new user makes an account, then that account is marked as paid for a trial period.</li>
- *   <li>Given a paid account, then they can write new rows to the tables.</li>
- *   <li>Given a paid account, then those requests can include filters in them.</li>
+ *   <li>Given a new user makes an account, then that account is granted a trial access window and resolves to TRIAL.</li>
+ *   <li>Given a TRIAL account, then they can write new rows to the tables.</li>
+ *   <li>Given a TRIAL account, then those requests can include filters in them.</li>
  * </ul>
  *
- * <p><strong>Showcase / demo (anonymous)</strong>
+ * <p><strong>GUEST (anonymous showcase request)</strong>
  * <ul>
- *   <li>Given a showcase request, then it can read and filter data — but only the showcase data.</li>
- *   <li>Given a showcase request, then it cannot write to the system.</li>
+ *   <li>Given a GUEST request, then it can read and filter data — but only the showcase data.</li>
+ *   <li>Given a GUEST request, then it cannot write to the system.</li>
  * </ul>
  *
- * <p><strong>Lapsed (authenticated, access window expired)</strong>
+ * <p><strong>LAPSED (authenticated, access window expired)</strong>
  * <ul>
- *   <li>Given a lapsed account, then it can read its own data and back that data up.</li>
- *   <li>Given a lapsed account, then its search requests cannot include filters (402).</li>
+ *   <li>Given a LAPSED account, then it can read its own data and back that data up.</li>
+ *   <li>Given a LAPSED account, then its search requests cannot include filters (402).</li>
  * </ul>
  */
 @SpringBootTest
 @ActiveProfiles({"test-container", "secured"})
 @AutoConfigureMockMvc
-public class EntitlementSecuredProfileTests {
+public class RoleSecuredProfileTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -69,11 +71,11 @@ public class EntitlementSecuredProfileTests {
         factory = new TestFactory(mockMvc);
     }
 
-    // ============================ Paid (trial) ============================
+    // ============================ TRIAL (newly registered) ============================
 
-    /** Given a new user makes an account, then that account is marked as paid for a trial period. */
+    /** Given a new user makes an account, then that account is granted a trial window and resolves to TRIAL. */
     @Test
-    void newAccount_IsMarkedPaidForTrialPeriod() throws Exception {
+    void newAccount_ResolvesToTrialRole() throws Exception {
         final String email = factory.randomEmail();
         factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
 
@@ -84,14 +86,14 @@ public class EntitlementSecuredProfileTests {
 
         assertNotNull(accessUntil, "A newly registered account should be granted a trial access window.");
         assertTrue(accessUntil.toInstant().isAfter(Instant.now()),
-                "The trial access window should extend into the future, so the account resolves to PAID.");
+                "The trial access window should extend into the future.");
         assertEquals("trialing", subscriptionStatus,
-                "A newly registered account should be marked as trialing.");
+                "A newly registered account should be marked as trialing, so it derives to the TRIAL role.");
     }
 
-    /** Given a paid account, then they can write new rows to the tables. */
+    /** Given a TRIAL account, then they can write new rows to the tables. */
     @Test
-    void paidAccount_CanWriteNewRows() throws Exception {
+    void trialAccount_CanWriteNewRows() throws Exception {
         final String token = registerAndLogin(factory.randomEmail());
 
         mockMvc.perform(post(SYSTEMS_URL)
@@ -101,32 +103,32 @@ public class EntitlementSecuredProfileTests {
                 .andExpect(status().isCreated());
     }
 
-    /** Given a paid account, then those requests can include filters in them. */
+    /** Given a TRIAL account, then those requests can include filters in them. */
     @Test
-    void paidAccount_RequestsCanIncludeFilters() throws Exception {
+    void trialAccount_RequestsCanIncludeFilters() throws Exception {
         final String token = registerAndLogin(factory.randomEmail());
 
         searchSystems(token, factory.formatFiltersPayload(nameFilter("anything")))
                 .andExpect(status().isOk());
     }
 
-    // ============================ Showcase / demo (anonymous) ============================
+    // ============================ GUEST (anonymous showcase) ============================
 
-    /** Given a showcase request, then it can read and filter the showcase data. */
+    /** Given a GUEST request, then it can read and filter the showcase data. */
     @Test
-    void showcaseAccount_CanReadAndFilterShowcaseData() throws Exception {
+    void guestRequest_CanReadAndFilterShowcaseData() throws Exception {
         final String showcaseName = "Showcase-System-" + uniqueSuffix();
         seedSystemOwnedByShowcase(showcaseName);
 
         final ResultActions result = searchSystems(null, factory.formatFiltersPayload(nameFilter(showcaseName)))
                 .andExpect(status().isOk());
         assertTrue(extractSystems(result).stream().anyMatch(s -> showcaseName.equals(s.name())),
-                "A showcase (anonymous) request should be able to read and filter the showcase data.");
+                "A GUEST (anonymous) request should be able to read and filter the showcase data.");
     }
 
-    /** Given a showcase request, then it sees only the showcase data — never a private owner's rows. */
+    /** Given a GUEST request, then it sees only the showcase data — never a private owner's rows. */
     @Test
-    void showcaseAccount_SeesOnlyShowcaseData() throws Exception {
+    void guestRequest_SeesOnlyShowcaseData() throws Exception {
         final String privateName = "Private-System-" + uniqueSuffix();
         final String ownerToken = registerAndLogin(factory.randomEmail());
         createSystemAs(ownerToken, privateName);
@@ -134,41 +136,41 @@ public class EntitlementSecuredProfileTests {
         final ResultActions result = searchSystems(null, factory.formatFiltersPayload(nameFilter(privateName)))
                 .andExpect(status().isOk());
         assertFalse(extractSystems(result).stream().anyMatch(s -> privateName.equals(s.name())),
-                "A showcase (anonymous) request must not see another owner's private data.");
+                "A GUEST (anonymous) request must not see another owner's private data.");
     }
 
-    /** Given a showcase request, then it cannot write to the system. */
+    /** Given a GUEST request, then it cannot write to the system (blocked at Spring Security as anonymous → 401). */
     @Test
-    void showcaseAccount_CannotWrite() throws Exception {
+    void guestRequest_CannotWrite() throws Exception {
         mockMvc.perform(post(SYSTEMS_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(factory.formatSystemPayload("Sys-" + uniqueSuffix(), 1, false, null)))
                 .andExpect(status().isUnauthorized());
     }
 
-    // ============================ Lapsed (authenticated, expired) ============================
+    // ============================ LAPSED (authenticated, expired) ============================
 
-    /** Given a lapsed account, then it can read its own data and back that data up. */
+    /** Given a LAPSED account, then it can read its own data and back that data up. */
     @Test
     void lapsedAccount_CanReadAndBackUpOwnData() throws Exception {
         final String email = factory.randomEmail();
         final String token = registerAndLogin(email);
         final String ownName = "Own-System-" + uniqueSuffix();
-        createSystemAs(token, ownName);          // created while still on the trial (PAID)
+        createSystemAs(token, ownName);          // created while still on the trial (TRIAL)
         makeLapsed(email);
 
         // Reads its own data: an unfiltered list still returns the owner's rows.
         final ResultActions list = searchSystems(token, factory.formatFiltersPayload(new ArrayList<Filter>()))
                 .andExpect(status().isOk());
         assertTrue(extractSystems(list).stream().anyMatch(s -> ownName.equals(s.name())),
-                "A lapsed account should still be able to read its own data.");
+                "A LAPSED account should still be able to read its own data.");
 
         // Backs up its data.
         mockMvc.perform(post(BACKUP_URL).header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
 
-    /** Given a lapsed account, then its search requests cannot include filters. */
+    /** Given a LAPSED account, then its search requests cannot include filters. */
     @Test
     void lapsedAccount_CannotIncludeFiltersInSearch() throws Exception {
         final String email = factory.randomEmail();
@@ -185,7 +187,7 @@ public class EntitlementSecuredProfileTests {
         return new Filter(Keychain.SYSTEM_KEY, Filter.FIELD_TYPE_TEXT, "name", Filter.OPERATOR_EQUALS, name, false);
     }
 
-    /** POST a system search; pass a null token for an anonymous (showcase) request. */
+    /** POST a system search; pass a null token for an anonymous (GUEST) request. */
     private ResultActions searchSystems(String token, String filtersPayload) throws Exception {
         var request = post(SYSTEMS_URL + "/function/search")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -221,7 +223,7 @@ public class EntitlementSecuredProfileTests {
                 name, showcaseOwnerId);
     }
 
-    /** Expire a user's access window so they resolve to LAPSED on the next request (entitlement is read per-request). */
+    /** Expire a user's access window so they resolve to LAPSED on the next request (the role is read per-request). */
     private void makeLapsed(String email) {
         jdbcTemplate.update(
                 "UPDATE users SET plan = 'paid', subscription_status = 'past_due', "

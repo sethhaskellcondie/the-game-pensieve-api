@@ -51,7 +51,7 @@ public class ApiControllerAdvice {
         return body.formatError();
     }
 
-    //----Handle Entitlement Errors----
+    //----Handle Access/Capability Errors----
     @ExceptionHandler(value = {ExceptionPaymentRequired.class})
     @ResponseStatus(HttpStatus.PAYMENT_REQUIRED)
     @ResponseBody
