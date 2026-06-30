@@ -286,7 +286,45 @@ UPDATE users SET subscription_status = 'canceled', access_until = NULL
 
 Because the role is resolved per request, any of these changes takes effect on the account's very next request — no re-login required.
 
-**Impersonation (deferred):** a future read-only `X-Act-As-Owner: <userId>` header, honored only for ADMIN callers, will let an admin view another user's collection (READ + FILTER only; WRITE/BACKUP/IMPORT → 403). Not yet implemented.
+### Impersonation ("act as user")
+
+An admin can **act as any user** — see exactly what that user sees and operate inside their tenant — for support and troubleshooting. It is driven by a stateless request header, `X-Act-As-Owner: <userId>`: the admin keeps their own token and the front end attaches the header while impersonating. **Start** = begin sending the header; **stop** = stop sending it. There is no server-side impersonation session and no change to the JWT — the header is not a credential.
+
+**Full act-as, not read-only.** While impersonating, the request adopts the *target's* effective role, so the capability matrix scopes the admin to exactly what that user could do (impersonating a PAID user permits WRITE/BACKUP/IMPORT; a LAPSED user does not). This was a deliberate choice over an earlier read-only sketch: an admin troubleshooting an account often needs to *fix* its data, not just look, and reusing the target's real role keeps the behavior identical to what the user themselves would experience — no separate "impersonation capability set" to keep in sync with the matrix.
+
+#### How the auth check works
+
+This is the subtle part: **two separate checks run against two different identities.**
+
+1. **The impersonation gate — checked against the real admin.** Impersonation never changes who is *authenticated*; the request is still authenticated by the admin's own `Bearer` token, so the Spring Security principal is always the admin. The header is only *honored because* that authenticated caller is already an ADMIN. The gate lives in `OwnerResolver.resolveOwner(String header)`: it resolves the real caller first, then proceeds only if `accessService.can(caller.role(), Capability.ACCESS_ADMIN)` — the pure matrix lookup against the caller's *own* role. A non-admin (or anonymous → GUEST) sending the header fails this check and simply acts as themselves. This is the only place "may this caller impersonate at all?" is asked, and it is always asked of the admin.
+
+2. **The per-operation check — checked against the impersonated target.** Once the gate passes, the resolver returns an `OwnerContext` carrying the *target's* id and `deriveRole(target)`, plus an `Impersonator` record naming the real admin. `TenantTransactionFilter` stashes the **target's** role in `TenantContext` and sets `app.current_owner = targetId`. So every actual operation is authorized as the target: the capability chokepoints (`EntityGatewayAbstract`, `BackupImportGateway`) call `AccessService.can(Capability)`, which reads the target's role from `TenantContext`, and RLS independently scopes all rows to `targetId`. That is what makes it full act-as.
+
+| Question | Whose identity answers it | Where |
+|---|---|---|
+| Authenticated? | Always the admin (their JWT) | Spring Security / `JwtAuthenticationFilter` |
+| May this caller impersonate? | The admin (`ACCESS_ADMIN`) | `OwnerResolver.resolveOwner(header)`, once, up front |
+| May this operation proceed (WRITE/FILTER/…)? | The **target** | `AccessService.can(Capability)` ← `TenantContext` role |
+| Which rows are visible/mutable? | The **target** | RLS via `app.current_owner` |
+
+Because impersonation only flows through the same `OwnerResolver` → `TenantContext` → RLS path that the whole tenant boundary already uses, it required no new enforcement code — just resolving a different owner + role when the gate passes.
+
+#### Reporting: `GET /v1/auth/me`
+
+`/me` lets the front end render the target's view while still showing that an admin is driving. During impersonation it reports the **admin** as the primary `id`/`email`/`role` (always `ADMIN`) and nests the target under an `impersonating` object (`id`, `email`, `role`); for a normal request `impersonating` is `null`.
+
+```json
+{ "id": 1, "email": "admin@x.com", "role": "ADMIN",
+  "impersonating": { "id": 42, "email": "user@x.com", "role": "PAID" } }
+```
+
+#### Edge cases and why
+
+- **Lenient resolution.** A missing/blank/non-numeric header, a non-admin caller, or an unknown target id all fall through to the real caller rather than erroring. This is deliberate: impersonation is resolved inside the servlet filter, *before* `DispatcherServlet`, where a thrown exception would bypass the `@ControllerAdvice` JSON error envelope and surface as an ugly 500. The trusted admin front end picks targets from `GET /v1/admin/users`, and `/me` always reflects the *actual* acting identity (no `impersonating` marker if the header didn't take), so a no-op is observable by the client. The trade-off: an admin impersonating a *deleted* user id silently acts as themselves — a well-behaved front end detects this via `/me`.
+- **The admin control-plane is unaffected.** `/v1/admin/**` bypasses the tenant filter and authorizes via the **no-arg** `OwnerResolver.resolveOwner()`, which ignores the header — so an admin can't lock themselves out of the admin API while a header is set, and impersonation never escalates onto the role-management routes.
+- **Secured profile only.** Under the default permit-all build there is no authentication, so every caller resolves to GUEST and the gate (`ACCESS_ADMIN`) is never met — the header is inert.
+
+Implemented in `api/tenant/` (`OwnerResolver`, `OwnerContext`, `Impersonator`, `TenantTransactionFilter`), `AuthController.me()` + `MeResponseDto`/`Impersonation`, and exercised by `controllers/AdminImpersonationSecuredProfileTests`.
 
 ## Database and Migrations
 

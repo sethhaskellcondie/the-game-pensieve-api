@@ -53,8 +53,9 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         // Resolve owner AND role here, before the transaction drops to app_rls — that read of the users table
-        // needs the application's normal privileges (app_rls has no grant on users).
-        final OwnerContext owner = ownerResolver.resolveOwner();
+        // needs the application's normal privileges (app_rls has no grant on users). The X-Act-As-Owner header
+        // lets an ADMIN caller act as another user (full act-as); it is ignored for everyone else.
+        final OwnerContext owner = ownerResolver.resolveOwner(request.getHeader("X-Act-As-Owner"));
         final Integer ownerId = owner.ownerId();
         TenantContext.set(ownerId);
         TenantContext.setRole(owner.role());

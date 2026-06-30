@@ -40,11 +40,16 @@ import java.util.List;
  * <p><strong>Bootstrap:</strong> there is no seed/env admin — promote the first admin with a one-line SQL
  * update: {@code UPDATE users SET role_override='ADMIN' WHERE email='you@domain.com';}
  *
- * <p><strong>Impersonation — deferred (documented design, not implemented).</strong> A future
- * {@code X-Act-As-Owner: <userId>} request header, honored only when the authenticated caller resolves to
- * ADMIN, would switch the RLS {@code app.current_owner} to the target user in {@code OwnerResolver}/
- * {@code TenantTransactionFilter} and pin a <em>read-only</em> capability set (READ + FILTER only; WRITE,
- * BACKUP, and IMPORT → 403) so an admin can view another user's collection without being able to mutate it.
+ * <p><strong>Impersonation.</strong> An {@code X-Act-As-Owner: <userId>} request header, honored only when the
+ * authenticated caller resolves to ADMIN, switches the acting owner to the target user in
+ * {@link OwnerResolver#resolveOwner(String)} (and thus the RLS {@code app.current_owner} set by
+ * {@code TenantTransactionFilter}). It is <em>full act-as</em>: the request adopts the target's effective role,
+ * so the capability matrix scopes the admin to exactly what that user could do (impersonating a PAID user allows
+ * WRITE/BACKUP/IMPORT; a LAPSED user does not). The header is ignored for non-admins and on these admin routes
+ * themselves (which authorize via the no-arg {@link OwnerResolver#resolveOwner()}), so an admin cannot lock
+ * themselves out of the admin API while impersonating. {@code GET /v1/auth/me} reports the admin as the primary
+ * identity with an {@code impersonating} marker naming the target, so the front end knows an admin is driving;
+ * the admin stops by no longer sending the header.
  */
 @RestController
 @RequestMapping("v1/admin")

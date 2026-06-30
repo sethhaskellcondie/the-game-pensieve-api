@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.api.tenant;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.auth.AccessService;
+import com.sethhaskellcondie.thegamepensieveapi.domain.auth.Capability;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.Role;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.User;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.UserRepository;
@@ -29,18 +31,21 @@ public class OwnerResolver {
 
     private final UserRepository userRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final AccessService accessService;
     // The showcase owner id never changes after V1_13 seeds it; cache the first lookup.
     private final AtomicReference<Integer> showcaseOwnerId = new AtomicReference<>();
 
-    public OwnerResolver(UserRepository userRepository, JdbcTemplate jdbcTemplate) {
+    public OwnerResolver(UserRepository userRepository, JdbcTemplate jdbcTemplate, AccessService accessService) {
         this.userRepository = userRepository;
         this.jdbcTemplate = jdbcTemplate;
+        this.accessService = accessService;
     }
 
     /**
-     * Resolve the owner id and effective {@link Role} for the current request from a single {@code users}
-     * lookup. Runs <em>before</em> the request transaction drops to {@code app_rls}, so the {@code users} read
-     * here executes with the application's normal (superuser) privileges.
+     * Resolve the acting owner id and effective {@link Role} for the current request, ignoring impersonation —
+     * i.e. always the real authenticated caller. Used where impersonation must not apply, notably the admin
+     * control-plane ({@code /v1/admin/**}), so an admin authorizes as themselves even while an
+     * {@code X-Act-As-Owner} header is set. Equivalent to {@link #resolveOwner(String) resolveOwner(null)}.
      *
      * <ul>
      *   <li>Authenticated → the user's id and {@link #deriveRole(User) derived role}.</li>
@@ -48,6 +53,45 @@ public class OwnerResolver {
      * </ul>
      */
     public OwnerContext resolveOwner() {
+        return resolveCaller();
+    }
+
+    /**
+     * Resolve the acting owner id and effective {@link Role} for the current request, honoring admin
+     * impersonation. Runs <em>before</em> the request transaction drops to {@code app_rls}, so the {@code users}
+     * reads here execute with the application's normal (superuser) privileges.
+     *
+     * <p>When {@code actAsOwnerHeader} names an existing user <em>and</em> the authenticated caller is an ADMIN,
+     * the returned context's owner id and role are the <em>impersonated target's</em> — so RLS and the capability
+     * matrix scope the whole request to that user (full act-as) — and the real admin is carried as the
+     * {@link OwnerContext#impersonator()}. Resolution is intentionally lenient: a missing/blank/non-numeric
+     * header, a non-admin caller, or an unknown target id all fall through to the real caller (impersonation is
+     * resolved inside the servlet filter, before {@code DispatcherServlet}, where a thrown exception would bypass
+     * the JSON error envelope; {@code GET /v1/auth/me} always reflects the actual acting identity so a no-op
+     * header is observable by the front end).
+     */
+    public OwnerContext resolveOwner(String actAsOwnerHeader) {
+        final OwnerContext caller = resolveCaller();
+        if (actAsOwnerHeader == null || actAsOwnerHeader.isBlank()
+                || !accessService.can(caller.role(), Capability.ACCESS_ADMIN)) {
+            return caller;
+        }
+        final Integer targetId;
+        try {
+            targetId = Integer.valueOf(actAsOwnerHeader.trim());
+        } catch (NumberFormatException e) {
+            return caller;
+        }
+        // The caller is an authenticated ADMIN, so the security principal's username is the admin's email —
+        // no extra users lookup needed to label the impersonator.
+        final String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findById(targetId)
+                .map(target -> new OwnerContext(target.id(), deriveRole(target), new Impersonator(caller.ownerId(), adminEmail)))
+                .orElse(caller);
+    }
+
+    /** The real authenticated caller (or the showcase GUEST when anonymous), never impersonated. */
+    private OwnerContext resolveCaller() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()
                 && authentication.getPrincipal() instanceof UserDetails userDetails) {

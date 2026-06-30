@@ -62,6 +62,14 @@ public class AuthSecuredProfileTests {
         return mockMvc.perform(request);
     }
 
+    private ResultActions getMe(String bearerToken) throws Exception {
+        var request = get("/v1/auth/me");
+        if (bearerToken != null) {
+            request = request.header("Authorization", "Bearer " + bearerToken);
+        }
+        return mockMvc.perform(request);
+    }
+
     // --- Public carve-outs: still reachable without a token under the secured profile ---
 
     @Test
@@ -89,6 +97,29 @@ public class AuthSecuredProfileTests {
         final String accessToken = factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
 
         searchSystems(accessToken).andExpect(status().isOk());
+    }
+
+    // --- Current user (/v1/auth/me) ---
+
+    @Test
+    void getMe_NoAuth_Secured_Returns401() throws Exception {
+        getMe(null).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getMe_WithBearerToken_ReturnsIdentityAndRole() throws Exception {
+        final String email = factory.randomEmail();
+        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
+        final String accessToken = factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+
+        // A freshly registered account gets a trial window (subscription_status='trialing'), so it resolves to TRIAL.
+        getMe(accessToken).andExpectAll(
+                status().isOk(),
+                jsonPath("$.data.email").value(email),
+                jsonPath("$.data.id").isNumber(),
+                jsonPath("$.data.role").value("TRIAL"),
+                jsonPath("$.errors").isEmpty()
+        );
     }
 
     // --- Registration ---

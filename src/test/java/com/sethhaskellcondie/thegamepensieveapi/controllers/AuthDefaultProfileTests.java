@@ -58,4 +58,16 @@ public class AuthDefaultProfileTests {
         // Writing with no credentials still works today (postSystemReturnResult asserts 201 Created internally).
         factory.postSystemReturnResult();
     }
+
+    @Test
+    void getMe_NoAuth_DefaultProfile_ResolvesToShowcaseGuest() throws Exception {
+        // With no authentication the request resolves to the seeded public showcase owner, which is always GUEST.
+        mockMvc.perform(get("/v1/auth/me"))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.data.id").isNumber(),
+                        jsonPath("$.data.role").value("GUEST"),
+                        jsonPath("$.errors").isEmpty()
+                );
+    }
 }

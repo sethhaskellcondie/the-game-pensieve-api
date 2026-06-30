@@ -269,6 +269,65 @@ paths:
                 errors:
                   - "Invalid refresh token."
 
+  /v1/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get the current caller's identity and effective role
+      description: |
+        Return the authenticated caller's `id`, `email`, and effective `role`. The role is resolved per-request
+        the same way every other request resolves it, so the caller never has to re-derive it from billing state.
+        Under the `secured` profile this requires a valid `Bearer` access token (an anonymous call returns 401).
+        In the default (unsecured) build there is no authentication, so the request resolves to the seeded public
+        showcase owner and always reports the `GUEST` role.
+
+        When an **ADMIN** sends the `X-Act-As-Owner` header, the primary `id`/`email`/`role` report the admin and
+        the `impersonating` field carries the user being acted as. For everyone else the header is ignored and
+        `impersonating` is `null`.
+      parameters:
+        - $ref: '#/components/parameters/ActAsOwner'
+      responses:
+        '200':
+          description: The current caller's identity and effective role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeDataResponse'
+              examples:
+                normal:
+                  summary: A normal authenticated caller
+                  value:
+                    data:
+                      id: 42
+                      email: "collector@example.com"
+                      role: "TRIAL"
+                      impersonating: null
+                    errors: null
+                    roundTripMs: 6
+                impersonating:
+                  summary: An admin impersonating user 42 via X-Act-As-Owner
+                  value:
+                    data:
+                      id: 1
+                      email: "admin@example.com"
+                      role: "ADMIN"
+                      impersonating:
+                        id: 42
+                        email: "collector@example.com"
+                        role: "PAID"
+                    errors: null
+                    roundTripMs: 6
+        '401':
+          description: No valid access token was provided (secured profile only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                data: null
+                errors:
+                  - "Full authentication is required to access this resource."
+
   /v1/toys:
     post:
       tags:
@@ -680,6 +739,11 @@ paths:
       description: |
         Search and filter systems. Common fields include `name` (text), `generation` (number),
         and `handheld` (boolean). Send an empty `filters` array to return all systems.
+
+        Like every tenant-scoped route, this honors the `X-Act-As-Owner` header so an admin can search a user's
+        collection while impersonating (see the parameter and `GET /v1/auth/me`).
+      parameters:
+        - $ref: '#/components/parameters/ActAsOwner'
       requestBody:
         required: true
         content:
@@ -2304,6 +2368,24 @@ components:
         minimum: 1
       description: Unique identifier for the entity
 
+    ActAsOwner:
+      name: X-Act-As-Owner
+      in: header
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+      description: |
+        Admin impersonation ("act as user"). When an **ADMIN** caller sends this header with a target user's id,
+        the request is scoped to that user: Row-Level Security reads/writes the target's data and the capability
+        matrix adopts the target's effective role (**full act-as** — e.g. impersonating a PAID user permits
+        writes, a LAPSED user does not). The header is **ignored** for non-admin callers, for anonymous requests,
+        and on the `/v1/admin/**` routes themselves (so an admin can't lock themselves out of the admin API). It
+        applies to all tenant-scoped routes; `GET /v1/auth/me` reflects the resulting state via its
+        `impersonating` field. Stop impersonating by no longer sending the header. Only meaningful under the
+        `secured` profile.
+
   schemas:
     # Authentication
     RegisterRequest:
@@ -2386,6 +2468,56 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/RegisteredUser'
+        errors:
+          type: 'null'
+        roundTripMs:
+          type: integer
+          format: int64
+
+    CurrentUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: |
+            The caller's id. While impersonating, this (and `email`/`role`) is the **admin's** identity; the
+            impersonated user appears under `impersonating`.
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [GUEST, TRIAL, PAID, LAPSED, ADMIN]
+          description: The caller's effective per-request role. Always `ADMIN` while impersonating.
+        impersonating:
+          nullable: true
+          description: |
+            Present (non-null) only when an admin is impersonating another user via the `X-Act-As-Owner` header.
+            Carries the target user being acted as, so the front end can render that user's view while knowing an
+            admin is driving. `null` for a normal request.
+          allOf:
+            - $ref: '#/components/schemas/ImpersonatedUser'
+
+    ImpersonatedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [GUEST, TRIAL, PAID, LAPSED, ADMIN]
+          description: The impersonated user's effective role (what that user sees in the app).
+
+    MeDataResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CurrentUser'
         errors:
           type: 'null'
         roundTripMs:
