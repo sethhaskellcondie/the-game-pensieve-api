@@ -30,7 +30,7 @@ public class UserRepository {
     // Every column read by the row mapper, in a single place so the two finders stay in sync.
     private static final String SELECT_COLUMNS = "id, email, password_hash, enabled, created_at, updated_at, "
             + "plan, subscription_status, access_until, paddle_customer_id, paddle_subscription_id, last_event_id, "
-            + "role_override";
+            + "role_override, showcase_slug, showcase_name";
 
     private RowMapper<User> getRowMapper() {
         return (resultSet, rowNumber) -> new User(
@@ -46,7 +46,9 @@ public class UserRepository {
                 resultSet.getString("paddle_customer_id"),
                 resultSet.getString("paddle_subscription_id"),
                 resultSet.getString("last_event_id"),
-                resultSet.getString("role_override")
+                resultSet.getString("role_override"),
+                resultSet.getString("showcase_slug"),
+                resultSet.getString("showcase_name")
         );
     }
 
@@ -54,6 +56,20 @@ public class UserRepository {
         final String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE email = ?";
         try {
             final User user = jdbcTemplate.queryForObject(sql, new Object[]{email}, new int[]{Types.VARCHAR}, getRowMapper());
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException ignored) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Find the owner of a public showcase by its slug (the {@code X-Showcase} header value). An indexed lookup —
+     * {@code showcase_slug} is UNIQUE. The caller applies the visibility rule (owner must derive to PAID/ADMIN).
+     */
+    public Optional<User> findByShowcaseSlug(String slug) {
+        final String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE showcase_slug = ?";
+        try {
+            final User user = jdbcTemplate.queryForObject(sql, new Object[]{slug}, new int[]{Types.VARCHAR}, getRowMapper());
             return Optional.ofNullable(user);
         } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();
@@ -86,6 +102,24 @@ public class UserRepository {
         return jdbcTemplate.update(sql,
                 new Object[]{roleOverride, Timestamp.from(Instant.now()), id},
                 new int[]{Types.VARCHAR, Types.TIMESTAMP, Types.INTEGER});
+    }
+
+    /**
+     * Grant or clear a user's public showcase. A null {@code slug} clears the grant (the name goes with it);
+     * the caller validates the slug format and translates a duplicate-slug violation. Returns the number of
+     * rows updated so the caller can distinguish a missing user (0) from a successful grant (1).
+     */
+    public int updateShowcase(int id, String slug, String name) {
+        final String sql = "UPDATE users SET showcase_slug = ?, showcase_name = ?, updated_at = ? WHERE id = ?";
+        return jdbcTemplate.update(sql,
+                new Object[]{slug, slug == null ? null : name, Timestamp.from(Instant.now()), id},
+                new int[]{Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP, Types.INTEGER});
+    }
+
+    /** Every account holding a showcase slug, ordered by slug. The caller applies the visibility rule. */
+    public java.util.List<User> findAllWithShowcaseSlug() {
+        final String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE showcase_slug IS NOT NULL ORDER BY showcase_slug";
+        return jdbcTemplate.query(sql, getRowMapper());
     }
 
     public boolean existsByEmail(String email) {

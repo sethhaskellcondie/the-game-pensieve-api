@@ -767,7 +767,7 @@
 			"response": []
 		},
 		{
-			"name": "import from body (TRIAL account → 403)",
+			"name": "import from body (TRIAL account \u2192 403)",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -1103,6 +1103,126 @@
 				},
 				"description": "ADMIN only. Acts as user 2 (full act-as): the search is scoped to user 2's tenant via Row-Level Security and runs with user 2's effective role. Any tenant-scoped route honors the X-Act-As-Owner header the same way.",
 				"url": "http://localhost:8080/v1/systems/function/search"
+			},
+			"response": []
+		},
+		{
+			"name": "showcases - list directory (public)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"description": "Public, no token required. Lists every visible showcase as {slug, name} \u2014 a showcase is visible while its owner derives to PAID or ADMIN, so a lapsed owner's showcase drops out automatically. Pass a listed slug in the X-Showcase header to browse that collection.",
+				"url": "http://localhost:8080/v1/showcases",
+				"auth": {
+					"type": "noauth"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "showcase - anonymous browse via X-Showcase",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Showcase",
+						"value": "seths-collection"
+					}
+				],
+				"description": "Anonymous, no token. The X-Showcase header switches the request to that showcase owner's collection (GUEST: read + filter only). An unknown slug \u2014 or one whose owner is not currently PAID/ADMIN \u2014 returns 404. Without the header, an anonymous request reads the default showcase. The header also wins for authenticated callers and over X-Act-As-Owner.",
+				"url": "http://localhost:8080/v1/systems/function/search",
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"filters\": []\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"auth": {
+					"type": "noauth"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin - grant user showcase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"description": "ADMIN only. Publishes user 2's collection as a public showcase: slug is the public address (and the entitlement \u2014 this is the manual grant a future Paddle product would automate), name is the directory display title. Slug format: lowercase alphanumerics with single interior hyphens. The showcase resolves only while user 2 derives to PAID.",
+				"url": "http://localhost:8080/v1/admin/users/2/showcase",
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"slug\": \"retro-vault\",\n    \"name\": \"The Retro Vault\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin - grant showcase (duplicate slug -> 400)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"description": "ADMIN only. Slugs are unique across users \u2014 granting a slug another user already holds returns 400: \"Failed Input Validation: The showcase slug 'retro-vault' is already taken.\"",
+				"url": "http://localhost:8080/v1/admin/users/3/showcase",
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"slug\": \"retro-vault\",\n    \"name\": \"Duplicate Address\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin - clear user showcase",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"description": "ADMIN only. A null (or blank) slug unpublishes the showcase \u2014 the slug and name are cleared, the address stops resolving (404), and it drops out of GET /v1/showcases.",
+				"url": "http://localhost:8080/v1/admin/users/2/showcase",
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"slug\": null,\n    \"name\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin - pin second ADMIN (rejected -> 400)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"description": "ADMIN only. At most one account may be pinned ADMIN (partial unique index uq_users_single_admin). With an admin already in place this returns 400: \"Failed Input Validation: An admin already exists. Clear the current admin's role override first.\" Re-pinning the existing admin itself stays a 200 (idempotent same-row update).",
+				"url": "http://localhost:8080/v1/admin/users/2/role",
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"roleOverride\": \"ADMIN\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				}
 			},
 			"response": []
 		}

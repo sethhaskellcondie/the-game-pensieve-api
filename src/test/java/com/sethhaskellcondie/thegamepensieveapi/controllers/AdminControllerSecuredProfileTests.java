@@ -46,6 +46,9 @@ public class AdminControllerSecuredProfileTests {
     @BeforeEach
     void setUp() {
         factory = new TestFactory(mockMvc);
+        // Each test bootstraps its own admin; clear any pin left behind by other tests in the shared database
+        // (the single-admin index uq_users_single_admin allows at most one pinned admin at a time).
+        jdbcTemplate.update("UPDATE users SET role_override = NULL WHERE role_override = 'ADMIN'");
     }
 
     /** Given an ADMIN caller, then GET /v1/admin/users returns the user list including the admin itself. */

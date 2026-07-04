@@ -12,27 +12,27 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Single-admin enforcement under the {@code secured} profile — Phase 1 of the single-admin rollout
- * ({@code localFiles/rollout_single_admin.md}): these tests pin <em>current</em> behavior and are green against
- * unchanged code. Phase 2 adds the {@code uq_users_single_admin} partial unique index and flips the marked
- * expectations in place.
+ * Single-admin enforcement under the {@code secured} profile. Exactly one account may be pinned
+ * {@code role_override='ADMIN'} — the operator — enforced by the {@code uq_users_single_admin} partial unique
+ * index (V1_17) and surfaced by the admin API as a 400 with a friendly message.
  *
- * <p>Expectations:
  * <ul>
- *   <li><strong>FLIPS in Phase 2:</strong> with an admin bootstrapped, pinning {@code ADMIN} on a second user
- *       succeeds today (200) and two admins coexist — Phase 2 turns this into a 400 with a friendly message.</li>
- *   <li><strong>Stays:</strong> re-pinning {@code ADMIN} on the existing admin is an idempotent same-row update
- *       (200 today and after Phase 2).</li>
- *   <li><strong>Stays:</strong> replacing the admin works — the sole admin clears their own pin via the API
- *       (self-demotion stays allowed; 200), and the replacement is pinned via the documented SQL bootstrap,
- *       which is also the recovery path once the unique index exists.</li>
+ *   <li>With an admin bootstrapped, pinning {@code ADMIN} on a second user is rejected (400 via the API, a
+ *       constraint violation via direct SQL) and the second pin never lands.</li>
+ *   <li>Re-pinning {@code ADMIN} on the existing admin is an idempotent same-row update (200).</li>
+ *   <li>Replacing the admin works — the sole admin clears their own pin via the API (self-demotion is allowed;
+ *       there is no lockout logic), and the replacement is pinned via the documented SQL bootstrap, which is
+ *       also the recovery path.</li>
  * </ul>
  */
 @SpringBootTest
@@ -51,15 +51,18 @@ public class SingleAdminSecuredProfileTests {
     @BeforeEach
     void setUp() {
         factory = new TestFactory(mockMvc);
+        // Each test bootstraps its own admin; clear any pin left behind by other tests in the shared database
+        // (the single-admin index would otherwise reject the bootstrap).
+        jdbcTemplate.update("UPDATE users SET role_override = NULL WHERE role_override = 'ADMIN'");
     }
 
     /**
-     * FLIPS in Phase 2: given admin A is bootstrapped, when A pins {@code ADMIN} on user B, then today the pin
-     * succeeds (200) and two admins exist side by side. Phase 2's {@code uq_users_single_admin} index makes this
-     * a 400 ("An admin already exists...") and B's pin must never land.
+     * Given admin A is bootstrapped, when A pins {@code ADMIN} on user B, then the pin is rejected with 400 and
+     * a friendly message — the {@code uq_users_single_admin} index allows at most one pinned admin — and B's pin
+     * never lands. A direct SQL pin fails hard at the same index.
      */
     @Test
-    void pinningSecondAdmin_SucceedsToday_TwoAdminsExist() throws Exception {
+    void pinningSecondAdmin_IsRejected() throws Exception {
         final String adminEmail = factory.randomEmail();
         final String adminToken = registerAndLogin(adminEmail);
         makeAdmin(adminEmail);
@@ -68,12 +71,15 @@ public class SingleAdminSecuredProfileTests {
         registerAndLogin(secondEmail);
 
         setRole(adminToken, userId(secondEmail), "\"ADMIN\"")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.role").value("ADMIN"))
-                .andExpect(jsonPath("$.data.roleOverride").value("ADMIN"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0]").value("Failed Input Validation: An admin already exists. Clear the current admin's role override first."));
 
-        assertEquals(2, pinnedAdminCount(adminEmail, secondEmail),
-                "Today two accounts may hold role_override='ADMIN' at once (flips to 400 in Phase 2).");
+        assertEquals(1, pinnedAdminCount(adminEmail, secondEmail),
+                "The rejected pin must not land: only the original admin holds role_override='ADMIN'.");
+
+        // Manual SQL is stopped by the same index — there is no path to a second admin.
+        assertThrows(DataIntegrityViolationException.class, () -> makeAdmin(secondEmail),
+                "A direct SQL pin of a second admin should violate uq_users_single_admin.");
 
         clearPins(adminEmail, secondEmail);
     }

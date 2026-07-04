@@ -10,6 +10,10 @@ import java.sql.Timestamp;
  * feed the role derivation: a request derives to TRIAL/PAID while {@code accessUntil} is in the future (which
  * both a purchase and a trial set), else LAPSED; {@code plan} is informational and reconciled with Paddle later.
  * {@code roleOverride}, when non-null, is an admin pin that overrides that derivation outright.
+ *
+ * <p>A non-null {@code showcaseSlug} publishes the user's collection as a public showcase at that address
+ * (resolved from the {@code X-Showcase} request header while the owner derives to PAID or ADMIN);
+ * {@code showcaseName} is its display title for the public directory.
  */
 public record User(
         Integer id,
@@ -24,6 +28,8 @@ public record User(
         String paddleCustomerId,
         String paddleSubscriptionId,
         String lastEventId,
-        String roleOverride
+        String roleOverride,
+        String showcaseSlug,
+        String showcaseName
 ) {
 }

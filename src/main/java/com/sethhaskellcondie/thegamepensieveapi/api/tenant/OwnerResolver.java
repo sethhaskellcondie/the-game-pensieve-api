@@ -12,15 +12,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Resolves the owner id for the current request from the {@link org.springframework.security.core.context.SecurityContext}.
  *
  * <ul>
+ *   <li>An {@code X-Showcase: <slug>} request header → that showcase owner's id, GUEST-scoped, for every caller
+ *       (resolved by the tenant filter via {@link #resolveShowcase}; an unknown or not-visible slug is a 404).</li>
  *   <li>An authenticated request → the user's id, looked up by the principal's email.</li>
- *   <li>An anonymous request (the default permit-all build, or before login) → the seeded public showcase owner,
- *       so guests transparently read the showcase.</li>
+ *   <li>An anonymous request (the default permit-all build, or before login) → the seeded <em>default</em>
+ *       showcase owner (the {@code is_public_showcase} row), so guests transparently read the default showcase.</li>
  * </ul>
  *
  * <p>Resolution runs <em>before</em> the request transaction drops to {@code app_rls}, so the {@code users} lookups
@@ -32,7 +35,8 @@ public class OwnerResolver {
     private final UserRepository userRepository;
     private final JdbcTemplate jdbcTemplate;
     private final AccessService accessService;
-    // The showcase owner id never changes after V1_13 seeds it; cache the first lookup.
+    // The default-showcase owner id never changes after V1_13 seeds it; cache the first lookup. (Slug lookups
+    // are per-request indexed reads instead — a slug's visibility depends on the owner's current billing state.)
     private final AtomicReference<Integer> showcaseOwnerId = new AtomicReference<>();
 
     public OwnerResolver(UserRepository userRepository, JdbcTemplate jdbcTemplate, AccessService accessService) {
@@ -88,6 +92,25 @@ public class OwnerResolver {
         return userRepository.findById(targetId)
                 .map(target -> new OwnerContext(target.id(), deriveRole(target), new Impersonator(caller.ownerId(), adminEmail)))
                 .orElse(caller);
+    }
+
+    /**
+     * Resolve a public showcase view by slug (the {@code X-Showcase} header). Returns a GUEST-scoped context for
+     * the showcase owner when the slug names an existing user whose derived role is PAID or ADMIN — hosting a
+     * public showcase is a paid capability, so a lapsed (or trial) owner's slug stays reserved in the database
+     * but stops resolving until they derive to PAID again (the showcase is a renewal hook). Empty when the slug
+     * is unknown or currently not visible; the tenant filter answers both with the same 404.
+     *
+     * <p>GUEST scoping applies to <em>every</em> caller, including authenticated ones — a showcase view is
+     * read+filter only, a separate path from writable admin impersonation ({@code X-Act-As-Owner}).
+     */
+    public Optional<OwnerContext> resolveShowcase(String slug) {
+        return userRepository.findByShowcaseSlug(slug)
+                .filter(owner -> {
+                    final Role ownerRole = deriveRole(owner);
+                    return ownerRole == Role.PAID || ownerRole == Role.ADMIN;
+                })
+                .map(owner -> new OwnerContext(owner.id(), Role.GUEST));
     }
 
     /** The real authenticated caller (or the showcase GUEST when anonymous), never impersonated. */

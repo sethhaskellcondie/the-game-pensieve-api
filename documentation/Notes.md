@@ -251,7 +251,7 @@ anonymous request                                       -> GUEST
 | IMPORT | ✗ | ✗ | ✓ | ✗ | ✓ | 403 |
 | ACCESS_ADMIN | ✗ | ✗ | ✗ | ✗ | ✓ | 403 |
 
-`*` GUEST filters the showcase only (RLS scopes anonymous requests to the showcase owner); GUEST writes/backup/import are blocked at Spring Security (401) before capabilities apply.
+`*` GUEST reads/filters whichever showcase the request resolves to — the default showcase for an anonymous no-header request, or the showcase named by an `X-Showcase: <slug>` header (see [Public showcases](#public-showcases)); GUEST writes/backup/import on anonymous requests are blocked at Spring Security (401) before capabilities apply, and on an authenticated showcase view (`X-Showcase` set) by the capability matrix (403).
 
 ### Where it is enforced
 
@@ -261,16 +261,33 @@ New accounts are auto-granted a trial on registration: `AuthService.register` st
 
 ### Admin role management
 
-Admins are themselves a role (pinned via `role_override`). The admin API manages roles:
+Admins are themselves a role (pinned via `role_override`), and there is **exactly one** — the operator. The `uq_users_single_admin` partial unique index (`V1_17`) allows at most one row pinned `'ADMIN'`: pinning a second via the API is a 400 ("An admin already exists. Clear the current admin's role override first."), and manual SQL fails hard at the index. Self-demotion of the only admin is allowed (no lockout logic); the bootstrap below is the recovery path. The admin API:
 
-- `GET /v1/admin/users` — list accounts with their effective role, `role_override`, and billing fields.
+- `GET /v1/admin/users` — list accounts with their effective role, `role_override`, billing fields, and `showcaseSlug`/`showcaseName`.
 - `POST /v1/admin/users/{id}/role` — set `role_override` to one of the five roles, or `null` to revert to auto-derivation.
+- `POST /v1/admin/users/{id}/showcase` — grant/clear a public showcase (see [Public showcases](#public-showcases)).
 
-These routes bypass the tenant transaction filter (they read/write `users`, which `app_rls` cannot touch) and authorize the caller as ADMIN inside the controller. **Bootstrap the first admin** with a one-line SQL update (`users` is not under RLS):
+These routes bypass the tenant transaction filter (they read/write `users`, which `app_rls` cannot touch) and authorize the caller as ADMIN inside the controller.
 
-```sql
-UPDATE users SET role_override = 'ADMIN' WHERE email = 'you@domain.com';
-```
+#### Bootstrap: claim the seeded default-showcase row
+
+There is no seed/env admin. The operator **claims the seeded `showcase@internal.local` row** (the `is_public_showcase` marker row that owns all pre-existing data) as their own account — it becomes, at once, the single ADMIN, the default showcase's owner, and an ordinary data owner, so the admin logs in and edits the default showcase as their own collection. All pre-existing `owner_id` FKs and the `showcase_owner_id()` function keep working untouched.
+
+The seeded row's `password_hash` is `'!'` — deliberately unusable — and Postgres has no built-in bcrypt, so mint the hash through the app's own encoder rather than baking a credential into a migration. **One-time manual procedure per environment (never automated in a migration):**
+
+1. `POST /v1/auth/register` with the operator's intended password → the app encodes a proper `$2a$…` hash into a throwaway row.
+2. Copy it: `SELECT password_hash FROM users WHERE email = '<throwaway>';`
+3. Claim the seeded row (`showcase_slug`/`showcase_name` are already seeded by `V1_18`):
+   ```sql
+   UPDATE users
+   SET email = 'you@domain.com',
+       password_hash = '<the copied $2a$ hash>',
+       role_override = 'ADMIN'
+   WHERE is_public_showcase;
+   ```
+4. `DELETE FROM users WHERE email = '<throwaway>';`
+
+No billing window is needed — `role_override='ADMIN'` wins in the derivation regardless of `access_until`, so the admin never lapses. The credential lives only in the running database. (This supersedes the earlier "promote any user by email" bootstrap; the claim is exercised end-to-end by `ShowcaseSecuredProfileTests.claimedDefaultShowcase_AdminEditsItAsTheirOwnCollection`.)
 
 Until the Paddle webhook lands, you can also drive the billing fields directly to grant/revoke access (the role re-derives without a pin):
 
@@ -325,6 +342,39 @@ Because impersonation only flows through the same `OwnerResolver` → `TenantCon
 - **Secured profile only.** Under the default permit-all build there is no authentication, so every caller resolves to GUEST and the gate (`ACCESS_ADMIN`) is never met — the header is inert.
 
 Implemented in `api/tenant/` (`OwnerResolver`, `OwnerContext`, `Impersonator`, `TenantTransactionFilter`), `AuthController.me()` + `MeResponseDto`/`Impersonation`, and exercised by `controllers/AdminImpersonationSecuredProfileTests`.
+
+## Public Showcases
+
+**A showcase is a paid user's own collection, made public.** There is no separation between "personal data" and "showcase data" — granting a showcase publishes the collection as-is, and the owner keeps editing it with their normal role's WRITE (no new write path, no new role). Multiple showcases are just multiple users with public collections.
+
+### The model — one column, three concerns
+
+- **`users.showcase_slug` (nullable, UNIQUE, `V1_18`) — the entitlement *and* the address.** Non-null means the collection is public, and the value is where it lives; there is no inconsistent "public but unaddressable" state. Format: `^[a-z0-9](-?[a-z0-9])*$`. `showcase_name` is the display title the public ever sees (never the owner's email).
+- **`plan` — the (future) tier.** Hosting a showcase is a higher paid tier than plain PAID; for now entitlement *is* the admin granting a slug by hand (`POST /v1/admin/users/{id}/showcase`, backend-authoritative). A later Paddle product maps its price to `plan='showcase'` and the visibility rule gains that clause — which preserves a slug across a showcase→paid downgrade (address reserved, showcase hidden).
+- **Derived role — the lapse gate.** A slug **resolves only while its owner derives to PAID or ADMIN**. A lapsed (or trial) owner's slug stays reserved in the database but resolution 404s — the showcase is a renewal hook.
+
+### Viewing: the `X-Showcase: <slug>` header
+
+Viewers switch showcases per request; the BFF maps its `/s/{slug}` routes to the header. Resolution in `TenantTransactionFilter`/`OwnerResolver.resolveShowcase`:
+
+```
+X-Showcase header present:
+    slug resolves AND owner derives to PAID/ADMIN  -> (thatOwner.id, GUEST)   [even if authenticated]
+    slug unknown / owner not PAID-or-ADMIN         -> 404, written by the filter
+no X-Showcase header:
+    authenticated                                  -> (caller.id, deriveRole(caller))  [X-Act-As-Owner may apply]
+    anonymous                                      -> (defaultShowcaseOwnerId, GUEST)
+```
+
+- **The header wins for every caller, authenticated ones included** — logged-in users browse showcases without logging out — and is always **GUEST-scoped**: read + filter only; writes and backup are 403. It also **wins over `X-Act-As-Owner`** when both are present (an explicit read-only view request); writable impersonation is a separate path.
+- The 404 is written directly by the servlet filter (an exception there would bypass the JSON error envelope), with one message for "unknown" and "not visible" so responses don't leak whether a slug exists.
+- `GET /v1/showcases` — a public (`permitAll`, tenant-filter-bypassing) **directory** of every visible showcase as `{slug, name}`, backing the front end's switcher. A showcase drops out of the directory exactly when its slug stops resolving.
+
+### The default showcase
+
+The seeded `is_public_showcase` row is re-documented as the **default-showcase marker**: it is the fallback owner for anonymous no-header requests (and the non-secured build), and `V1_18` seeds its slug/name (`seths-collection` / "Seth's Collection"). The operator claims this row as the single admin (see the bootstrap above) and authors the default showcase as the owner of that data — the earlier idea of impersonating an unloggable showcase user to author it is superseded.
+
+Implemented in `api/tenant/` (slug resolution + GUEST scoping), `ShowcaseController` (directory), `AdminController.setShowcase` (grants), migrations `V1_17`/`V1_18`, and exercised by `controllers/ShowcaseSecuredProfileTests` + `SingleAdminSecuredProfileTests`.
 
 ## Database and Migrations
 

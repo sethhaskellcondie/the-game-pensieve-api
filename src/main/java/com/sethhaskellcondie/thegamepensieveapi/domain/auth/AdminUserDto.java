@@ -7,7 +7,9 @@ import java.sql.Timestamp;
  * role ({@link com.sethhaskellcondie.thegamepensieveapi.api.tenant.OwnerResolver#deriveRole derived} the same
  * way a live request resolves it, so it already reflects any {@code roleOverride} pin); {@code roleOverride} and
  * the billing fields are surfaced alongside so an admin can see why a user resolves the way it does and what
- * clearing the pin would fall back to.
+ * clearing the pin would fall back to. {@code showcaseSlug}/{@code showcaseName} answer "who has a showcase"
+ * at a glance — non-null means the user's collection is published at that address (while they derive to
+ * PAID/ADMIN).
  */
 public record AdminUserDto(
         Integer id,
@@ -15,6 +17,8 @@ public record AdminUserDto(
         Role role,
         String roleOverride,
         Timestamp accessUntil,
-        String subscriptionStatus
+        String subscriptionStatus,
+        String showcaseSlug,
+        String showcaseName
 ) {
 }

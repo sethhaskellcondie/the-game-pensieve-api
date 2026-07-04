@@ -31,6 +31,10 @@ public class SecurityConfig {
         "/v1/auth/refresh",
     };
 
+    // The public showcase directory (GET only): anonymous viewers list the visible showcases to switch between
+    // them with the X-Showcase header. Exposes only slug + display name.
+    private static final String PUBLIC_SHOWCASE_DIRECTORY = "/v1/showcases";
+
     // Guest (anonymous => showcase owner) read surface. Reads of a single resource and filtered searches are
     // opened so the public showcase is browsable without a token; writes stay authenticated (anonymous => 401).
     // Enumerated per entity (rather than a /v1/*/... wildcard) so future non-entity routes aren't exposed.
@@ -83,6 +87,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, PUBLIC_READ_BY_ID).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_SEARCH).permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/filters/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_SHOWCASE_DIRECTORY).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(authenticationEntryPoint))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
