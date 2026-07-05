@@ -3,6 +3,7 @@ package com.sethhaskellcondie.thegamepensieveapi.controllers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupDataDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy.ToyResponseDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
@@ -18,6 +19,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,6 +56,7 @@ public class MultiTenancyTests {
     private static final String PASSWORD = "Sup3rSecret!";
     private static final String SYSTEMS_URL = "/v1/systems";
     private static final String TOYS_URL = "/v1/toys";
+    private static final String BACKUP_URL = "/v1/function/backup";
 
     @BeforeEach
     void setUp() {
@@ -170,6 +174,43 @@ public class MultiTenancyTests {
                 .andExpect(status().isNotFound());
     }
 
+    // ----------------------------- Backup: content isolation -----------------------------
+
+    /**
+     * The backup endpoint returns the caller's entire collection in one payload, so a status code alone can't
+     * prove isolation (the capability tests in {@code RoleSecuredProfileTests} already pin that backup is
+     * permitted). This asserts on the payload itself: owner A's backup carries A's rows and none of user B's
+     * or the showcase owner's — the backup read path is scoped by RLS like every other read.
+     */
+    @Test
+    void backup_ContainsOnlyOwnData() throws Exception {
+        final String tokenA = registerAndLogin();
+        final String tokenB = registerAndLogin();
+        final String systemNameA = "A-System-" + uniqueSuffix();
+        final String toyNameA = "A-Toy-" + uniqueSuffix();
+        final String systemNameB = "B-System-" + uniqueSuffix();
+        final String toyNameB = "B-Toy-" + uniqueSuffix();
+        final String showcaseName = "Showcase-System-" + uniqueSuffix();
+
+        createSystemAs(tokenA, systemNameA);
+        createToyAs(tokenA, toyNameA, "A-Set-" + uniqueSuffix());
+        createSystemAs(tokenB, systemNameB);
+        createToyAs(tokenB, toyNameB, "B-Set-" + uniqueSuffix());
+        seedSystemOwnedByShowcase(showcaseName);
+
+        final BackupDataDto backup = backupAs(tokenA);
+        final Set<String> systemNames = backup.systems().stream().map(SystemResponseDto::name).collect(Collectors.toSet());
+        final Set<String> toyNames = backup.toys().stream().map(ToyResponseDto::name).collect(Collectors.toSet());
+
+        // The backup contains the owner's own rows...
+        assertTrue(systemNames.contains(systemNameA), "Owner A's backup should contain their own system.");
+        assertTrue(toyNames.contains(toyNameA), "Owner A's backup should contain their own toy.");
+        // ...and never another owner's or the showcase owner's.
+        assertFalse(systemNames.contains(systemNameB), "Owner A's backup must not contain user B's system.");
+        assertFalse(toyNames.contains(toyNameB), "Owner A's backup must not contain user B's toy.");
+        assertFalse(systemNames.contains(showcaseName), "Owner A's backup must not contain the showcase owner's system.");
+    }
+
     // ------------------------------- Private helpers -------------------------------
 
     /**
@@ -213,6 +254,12 @@ public class MultiTenancyTests {
                         .content(factory.formatToyPayload(name, set, null)))
                 .andExpect(status().isCreated());
         return factory.resultToDto(result, ToyResponseDto.class);
+    }
+
+    private BackupDataDto backupAs(String token) throws Exception {
+        final ResultActions result = mockMvc.perform(post(BACKUP_URL).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        return factory.resultToDto(result, BackupDataDto.class);
     }
 
     private List<SystemResponseDto> searchSystemsByNameAs(String token, String name) throws Exception {
