@@ -20,19 +20,29 @@ TestContainers shades its own copy of `docker-java-core` and loads this file fro
 
 **Symptom:** Sending a large backup JSON to `POST /v1/function/import` returns HTTP 413.
 
-**Root cause:** The `import` endpoint accepts the full backup payload as a JSON `@RequestBody`. Tomcat's default `maxPostSize` is 2 MB — requests exceeding that are rejected before Spring even processes them. Note: `importFromFile` reads from disk and takes no request body, so it cannot trigger this error.
+**Root cause:** Not confirmed yet. An earlier version of this note blamed Tomcat's default `maxPostSize` (2 MB), but that limit only applies when Tomcat parses **form parameters** (`application/x-www-form-urlencoded`). A JSON `@RequestBody` like the one on `/import` is streamed straight to Spring/Jackson with no default size cap in Tomcat — this is why Spring Boot renamed the property to `max-http-form-post-size` in Boot 2.1. A 413 therefore almost certainly comes from a different layer:
+
+- **Next.js frontend proxy** (most likely) — the web app calls the backend server-side; Next.js caps server action bodies at 1 MB by default (`serverActions.bodySizeLimit`) and returns exactly 413.
+- **A future reverse proxy** — nginx defaults to 1 MB `client_max_body_size` and also returns 413.
+- Hitting the backend directly on `:8080` with a large JSON body should *not* produce a 413.
+
+**Next step before fixing:** Reproduce the 413 twice — once directly against `localhost:8080` and once through the web app — and note which layer rejects it (the `Server` header and error body format will differ).
+
+Note: `importFromFile` reads from disk and takes no request body, so it cannot trigger this error — and it is the path the web UI already uses (`/api/import-from-backup`).
 
 **Options for fix:**
 
-1. **Raise the limit** — Add to `application.properties`:
-   ```properties
-   server.tomcat.max-http-form-post-size=-1
-   ```
-   `-1` removes the size cap entirely. Simplest fix; acceptable for a trusted/internal API.
+1. **Fix the limit at the layer actually rejecting the request** — If the 413 comes from Next.js, add `serverActions: { bodySizeLimit: '50mb' }` to `next.config.ts` (or route the upload through a Route Handler, which has no default cap). No backend change needed. Do NOT use `server.tomcat.max-http-form-post-size` — it does not govern JSON bodies, and an unlimited (`-1`) cap on an authenticated multi-user API would let any user POST an arbitrarily large body that gets fully buffered into heap.
 
-2. **Use `importFromFile`** — Upload the file to the server first (SCP, shared volume, etc.), then call `POST /v1/function/importFromFile`. No request body involved, so no size limit applies. The infrastructure for this already exists in `BackupImportController`.
+2. **Use `importFromFile`** — Place the file on the server first, then call `POST /v1/function/importFromFile`. No request body involved, so no size limit applies. Caveat: in the Docker deployment there is no mounted volume for `backup.json`, so "upload the file" means `docker cp` into the container, where it dies with the container. Operator workaround, not an API capability.
 
-3. **Add a multipart file upload endpoint** — New endpoint accepting `MultipartFile`, writes it to disk as `backup.json`, then delegates to `gateway.importBackupData(...)`. Allows clients to stream large files without a monolithic JSON body; Spring handles chunked transfer automatically.
+3. **Add a multipart file upload endpoint** — New endpoint accepting `MultipartFile`, writes it to disk, then delegates to `gateway.importBackupData(...)`. Multipart limits are explicitly configurable (`spring.servlet.multipart.max-file-size` / `max-request-size`; defaults are 1 MB / 10 MB, so they must be raised deliberately) and the payload can stream to disk instead of buffering in heap. Care needed: acquire the `tryStartImport()` lock *before* writing the file, or concurrent uploads clobber each other's `backup.json`. Still requires option 1 anyway if the 413 originates in the Next.js proxy.
+
+4. **Chunked/batched import** — Split the backup client-side (per entity type or N records per request) and POST multiple smaller `/import` calls. Attractive here because the import is already idempotent (re-POSTing existing records is a no-op), so batches are safely retryable. Care needed: parents must land before children reference them, and each batch separately acquires the import lock.
+
+5. **Gzip the request body** — `Content-Encoding: gzip` plus a decompressing filter; backup JSON compresses 10–20×. Stopgap only: nonstandard for servers to accept, and it just postpones the ceiling.
+
+Whichever option wins, pair it with a deliberate **finite** max body size — `importJsonFromRequestBody` deserializes the entire payload into memory, so an unlimited cap converts a 413 annoyance into an OOM exposure.
 
 ---
 

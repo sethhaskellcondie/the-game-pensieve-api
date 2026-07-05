@@ -17,6 +17,7 @@ This document describes the design of the Game Pensieve API and the conventions 
 - [Multi-Tenancy and Row-Level Security](#multi-tenancy-and-row-level-security)
 - [Database and Migrations](#database-and-migrations)
 - [Testing Strategy](#testing-strategy)
+- [Seeding Multi-Role Test Data](#seeding-multi-role-test-data)
 - [Where to Find the Requirements](#where-to-find-the-requirements)
 - [Docker Runtime Flow](#docker-runtime-flow)
 - [Multiplatform Deployment](#multiplatform-deployment)
@@ -395,6 +396,58 @@ The project uses a **diamond testing strategy**: a broad layer of integration te
 - The filter integration tests are split across the `filter-tests1`–`filter-tests8` profiles to spread the container load.
 
 > On some machines not all containers start reliably. If the suite fails for that reason, reduce the load by commenting out the `GetWithFilters...Tests.java` series.
+
+## Seeding Multi-Role Test Data
+
+The single-user seed endpoints (`/v1/function/seedSampleData`, `/seedMyCollection`) only populate one owner. To exercise every role (GUEST, TRIAL, PAID, LAPSED, ADMIN) and the showcase-switching features against realistic multi-user data, there is a **multi-role seed set** with **two consumers** that must never share a database:
+
+1. **Integration tests** — `SeededUsersFixture` seeds through MockMvc inside the test JVM; `SeededDataMatrixTests` asserts the capability/showcase matrix against it.
+2. **Live environments (dev/staging)** — `scripts/seed-test-data.sh` runs the same choreography over real HTTP for manual testing, front-end work, and smoke checks.
+
+Both load the same eight seed files from `src/main/resources/seeders/` and perform the same choreography, so they never drift. Never point the script at the integration-test database (the suite seeds itself), and never make a test depend on an externally pre-seeded database.
+
+### What gets seeded
+
+One bootstrap admin (`seeder-admin@email.com` / `seeder-admin` by default), eight users, two public showcases, and a populated default showcase (via `sampleData.json`):
+
+| Email | Password | Pinned role | Seed file | Showcase |
+| --- | --- | --- | --- | --- |
+| `trial1@email.com` / `trial2@email.com` | `trial1` / `trial2` | TRIAL | seedTrialData1/2.json | — |
+| `paid1@email.com` / `paid2@email.com` | `paid1` / `paid2` | PAID | seedPaidData1/2.json | — |
+| `lapsed1@email.com` / `lapsed2@email.com` | `lapsed1` / `lapsed2` | LAPSED | seedLapsedData1/2.json | — |
+| `showcase1@email.com` / `showcase2@email.com` | `showcase1` / `showcase2` | PAID | seedShowcaseData1/2.json | `showcase-one` / `showcase-two` |
+
+### The choreography (shared by both consumers)
+
+1. **Bootstrap the admin:** register it, pin it with the one SQL statement the API cannot perform (`UPDATE users SET role_override='ADMIN' WHERE email=...`), and log in.
+2. **Per user:** register (tolerating the duplicate-email 400 on re-runs) → admin pins **PAID** (a new registration derives to TRIAL, which lacks IMPORT) → log in as the user and `POST /v1/function/import` with the seed file wrapped under a `"data"` key (the user's own token makes RLS stamp every row to that owner) → admin pins the **final role**. Final roles are always pinned, never cleared back to derivation — a derived TRIAL silently lapses when its `access_until` window passes, rotting the fixtures.
+3. **Showcase grants:** `POST /v1/admin/users/{id}/showcase` for the two showcase users (the slug *is* the entitlement; they stay pinned PAID so the showcases remain visible).
+4. **Default showcase:** the seeded `showcase@internal.local` row is unloggable, so the admin imports for it through writable impersonation — pin it PAID (impersonation adopts the *target's* role; unpinned it derives to LAPSED, and the import would 403), `POST /v1/function/seedSampleData` with `X-Act-As-Owner: <its id>`, then clear the pin.
+
+Everything is idempotent and rerunnable: registration tolerates "already exists", imports resolve existing rows by name/title, and pins/grants re-apply cleanly.
+
+### Running the integration-test consumer
+
+```bash
+./mvnw test -Dtest=SeededDataMatrixTests
+```
+
+Docker must be running (Testcontainers). The suite runs under its own `seeded-tests` Spring profile — a dedicated Testcontainers database, mirroring the `filter-tests`/`import-tests` pattern — so its fixed emails and slugs never collide with the other suites, and it seeds **once per class** (eight ~220KB imports are too heavy per test). It also runs as part of the full `./mvnw test` suite. To seed the same data in another test class, reuse `SeededUsersFixture` under the same `{"seeded-tests", "secured"}` profiles.
+
+### Running the live-environment consumer
+
+```bash
+# Against the local compose stack (API in secured mode, db container running):
+./scripts/seed-test-data.sh
+
+# Everything is parameterized via environment variables:
+BASE_URL=https://dev.example.com \
+ADMIN_EMAIL=ops@example.com ADMIN_PASSWORD='...' \
+SQL_CMD="psql -h dev-db.example.com -U postgres -d pensieve-db" \
+./scripts/seed-test-data.sh
+```
+
+Requires `curl` and `jq`. Preconditions: the API must be running with the `secured` profile active and its working directory at the repo root (for the `seedSampleData` step), and **no admin may exist yet** unless it is the account the script registers — the `uq_users_single_admin` index makes the bootstrap `UPDATE` fail loudly if a different admin (e.g. the claimed default-showcase row from the bootstrap above) already holds the pin. The script targets fresh dev databases; it ends by smoke-asserting the full role/showcase matrix (trial import → 403, lapsed filter → 402, second admin → 400, showcase switching, unknown slug → 404), so a seeded environment is also a verified one. Any unexpected response exits non-zero.
 
 ## Where to Find the Requirements
 
