@@ -39,7 +39,7 @@ info:
 
     ## Data Ownership & Multi-Tenancy
     All collection data (systems, toys, video games and boxes, board games and boxes, custom fields and their options/values, and metadata) is **owned by a single account and isolated per owner**. Ownership is enforced in the database with PostgreSQL Row-Level Security, so a request can only ever read or write the caller's own rows — the isolation holds even against direct SQL.
-    - **Secured build** (`secured` profile): the owner is the authenticated user (from the `Bearer` token). Reads, searches, and writes are automatically scoped to that user; another owner's records are invisible (a read by id returns **404**, and they never appear in list/search results). Ownership is assigned by the server on create — there is no `owner` field in any request or response body. **Showcase** data is world-readable: under the secured profile the read surface — `GET /v1/{entity}/{id}`, `POST /v1/{entity}/function/search`, and `GET /v1/filters/{entity}` — is reachable **without a token** (anonymous requests resolve to the **default showcase** owner); writes always require authentication.
+    - **Secured build** (`secured` profile): the owner is the authenticated user (from the `Bearer` token). Reads, searches, and writes are automatically scoped to that user; another owner's records are invisible (a read by id returns **404**, and they never appear in list/search results). Ownership is assigned by the server on create — there is no `owner` field in any request or response body. **Showcase** data is world-readable: under the secured profile the read surface — `GET /v1/{entity}/{id}`, `POST /v1/{entity}/function/search`, `GET /v1/filters/{entity}`, and the custom-field definitions (`GET /v1/custom_fields/entity/{key}` and `GET /v1/custom_fields`) — is reachable **without a token** (anonymous requests resolve to the **default showcase** owner); writes always require authentication.
     - **Default (unsecured) build**: anonymous requests resolve to the single seeded, world-readable **default showcase** owner, preserving the original single-collection behavior for the public site. The showcase owner's records are **not** visible to an authenticated user — each user sees only their own.
     - Metadata keys are unique **per owner** (two owners may each use the same key).
 
@@ -1601,6 +1601,13 @@ paths:
       tags:
         - Custom Fields
       summary: Get all custom fields
+      description: |
+        List every custom-field definition for the resolved owner. Part of the anonymous, showcase-scoped read
+        surface: reachable **without a token** and honors the `X-Showcase` header (GUEST-scoped; unknown or
+        not-visible slug → **404**); anonymous requests with no header resolve to the **default showcase** owner.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ShowcaseView'
       responses:
         '200':
           description: List of all custom fields
@@ -1615,13 +1622,27 @@ paths:
                       $ref: '#/components/schemas/CustomFieldResponse'
                   errors:
                     type: 'null'
+        '404':
+          description: The `X-Showcase` header named a slug that does not exist or is not currently visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/custom_fields/entity/{key}:
     get:
       tags:
         - Custom Fields
       summary: Get custom fields by entity key
-      description: Retrieve all custom fields associated with a specific entity type
+      description: |
+        Retrieve the custom-field definitions for a specific entity type — the front end builds its
+        custom-field columns from these.
+
+        Part of the anonymous, showcase-scoped read surface: reachable **without a token** and, like the
+        entity read/search/filters routes, it honors the `X-Showcase` header (browse a public showcase,
+        GUEST-scoped; unknown or not-visible slug → **404**). Anonymous requests with no header resolve to the
+        **default showcase** owner. Writes (`POST`/`PUT`/`DELETE`) stay authenticated.
+      security: []
       parameters:
         - name: key
           in: path
@@ -1630,9 +1651,10 @@ paths:
             type: string
             enum: [toy, system, videoGame, videoGameBox, boardGame, boardGameBox]
           description: Entity key to get custom fields for
+        - $ref: '#/components/parameters/ShowcaseView'
       responses:
         '200':
-          description: List of custom fields for the entity
+          description: List of custom-field definitions for the entity
           content:
             application/json:
               schema:
@@ -1645,7 +1667,7 @@ paths:
                   errors:
                     type: 'null'
         '404':
-          description: Invalid entity key
+          description: Invalid entity key, or the `X-Showcase` header named a slug that does not exist or is not currently visible
           content:
             application/json:
               schema:

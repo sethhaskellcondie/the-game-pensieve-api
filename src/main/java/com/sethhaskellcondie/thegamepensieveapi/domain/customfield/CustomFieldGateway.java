@@ -1,7 +1,10 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.customfield;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.auth.AccessService;
+import com.sethhaskellcondie.thegamepensieveapi.domain.auth.Capability;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionForbidden;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,14 +15,17 @@ import java.util.List;
 public class CustomFieldGateway {
     private final CustomFieldRepository repository;
     private final CustomFieldOptionRepository optionRepository;
+    private final AccessService access;
 
-    public CustomFieldGateway(CustomFieldRepository repository, CustomFieldOptionRepository optionRepository) {
+    public CustomFieldGateway(CustomFieldRepository repository, CustomFieldOptionRepository optionRepository, AccessService access) {
         this.repository = repository;
         this.optionRepository = optionRepository;
+        this.access = access;
     }
 
     @Transactional
     public CustomField createNew(CustomFieldRequestDto customField) {
+        requireWrite();
         if (CustomField.isEnumType(customField.type())) {
             if (customField.options() == null || customField.options().isEmpty()) {
                 throw new ExceptionFailedDbValidation("Enum type custom fields require at least one option. "
@@ -49,6 +55,7 @@ public class CustomFieldGateway {
 
     @Transactional
     public CustomField update(int id, CustomFieldUpdateRequestDto dto) {
+        requireWrite();
         if (dto.options() != null) {
             CustomField customField = repository.getById(id);
             if (!CustomField.isEnumType(customField.type())) {
@@ -84,6 +91,7 @@ public class CustomFieldGateway {
     }
 
     public void deleteById(int id) {
+        requireWrite();
         repository.deleteById(id);
     }
 
@@ -93,6 +101,16 @@ public class CustomFieldGateway {
                     + ". Valid keys are: [" + String.join(", ", Keychain.getAllKeys()) + "]");
         }
         return repository.getAllByKey(entityKey);
+    }
+
+    // Custom fields are read-only on the public showcase read surface: reads (getAllByEntityKey / getAllCustomFields
+    // / getById) are ungated so an anonymous or X-Showcase (GUEST) viewer can browse an owner's definitions, but
+    // mutations require the WRITE capability. A GUEST showcase view lacks it (403); enforcement is off in the default
+    // permit-all build, so the single-user public build keeps unrestricted writes. Mirrors EntityGatewayAbstract.
+    private void requireWrite() {
+        if (!access.can(Capability.WRITE)) {
+            throw new ExceptionForbidden("An active subscription is required to create, update, or delete data.");
+        }
     }
 
 }

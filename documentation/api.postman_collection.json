@@ -679,7 +679,14 @@
 			"name": "read custom fields by entity key",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "X-Showcase",
+						"value": "seths-collection",
+						"disabled": true
+					}
+				],
+				"description": "Returns the custom-field definitions the front end builds its columns from. Part of the anonymous, showcase-scoped read surface: no token required. Enable the X-Showcase header to read a public showcase owner's definitions (GUEST; unknown or not-visible slug -> 404); with no header an anonymous request reads the default showcase. Writes (POST/PUT/DELETE) still require a token, and a showcase view rejects them with 403.",
 				"url": "http://localhost:8080/v1/custom_fields/entity/toy"
 			},
 			"response": []

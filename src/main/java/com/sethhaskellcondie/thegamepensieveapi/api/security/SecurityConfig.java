@@ -56,6 +56,15 @@ public class SecurityConfig {
         "/v1/boardGameBoxes/function/search",
     };
 
+    // Custom-field definitions (GET only) join the guest read surface: the public showcase renders its owner's
+    // custom-field columns from these, so — like the entity read/search/filters routes — they must be reachable
+    // without a token and are X-Showcase-scoped by the tenant filter + RLS. Writes (POST/PUT/DELETE) are not
+    // listed, so they fall through to authenticated() and a GUEST showcase view is rejected in the gateway.
+    private static final String[] PUBLIC_CUSTOM_FIELDS_READ = {
+        "/v1/custom_fields",
+        "/v1/custom_fields/entity/*",
+    };
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -86,6 +95,7 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_READ_BY_ID).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_SEARCH).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_CUSTOM_FIELDS_READ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/filters/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_SHOWCASE_DIRECTORY).permitAll()
                         .anyRequest().authenticated())
