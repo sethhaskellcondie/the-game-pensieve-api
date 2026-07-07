@@ -974,6 +974,70 @@
 			"response": []
 		},
 		{
+			"name": "read showcase ui-settings (X-Showcase)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Showcase",
+						"value": "seths-collection",
+						"disabled": true
+					}
+				],
+				"description": "Part of the anonymous, showcase-scoped read surface: no token required. Enable the X-Showcase header to read a public showcase as a GUEST. On a showcase view ui-settings returns the fixed guest payload (beginner mode on, all other modes off, both default views \"list\", every standard field shown) regardless of the owner's own stored settings, and is served even if the owner has no ui-settings row. Unknown or not-visible slug -> 404. Writes require a token and a showcase view rejects them with 403.",
+				"url": "http://localhost:8080/v1/metadata/ui-settings"
+			},
+			"response": []
+		},
+		{
+			"name": "read showcase default_sort_options (X-Showcase)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Showcase",
+						"value": "seths-collection",
+						"disabled": true
+					}
+				],
+				"description": "Part of the anonymous, showcase-scoped read surface: no token required. Enable the X-Showcase header to read a public showcase as a GUEST. Unlike ui-settings, default_sort_options passes through to the owner's own row (via RLS), so a guest mirrors and stays in sync with the owner's configured default sort. A key the owner has not set -> 404; unknown or not-visible slug -> 404.",
+				"url": "http://localhost:8080/v1/metadata/default_sort_options"
+			},
+			"response": []
+		},
+		{
+			"name": "read showcase saved-filters (X-Showcase)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Showcase",
+						"value": "seths-collection",
+						"disabled": true
+					}
+				],
+				"description": "Part of the anonymous, showcase-scoped read surface: no token required. Enable the X-Showcase header to read a public showcase as a GUEST. Passes through to the owner's own row (via RLS), so a guest mirrors and stays in sync with the saved filters the owner configured for the showcase. A key the owner has not set -> 404; unknown or not-visible slug -> 404.",
+				"url": "http://localhost:8080/v1/metadata/saved-filters"
+			},
+			"response": []
+		},
+		{
+			"name": "read showcase saved-filter-categories (X-Showcase)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Showcase",
+						"value": "seths-collection",
+						"disabled": true
+					}
+				],
+				"description": "Part of the anonymous, showcase-scoped read surface: no token required. Enable the X-Showcase header to read a public showcase as a GUEST. Passes through to the owner's own row (via RLS), so a guest mirrors and stays in sync with the saved-filter categories the owner configured for the showcase. A key the owner has not set -> 404; unknown or not-visible slug -> 404.",
+				"url": "http://localhost:8080/v1/metadata/saved-filter-categories"
+			},
+			"response": []
+		},
+		{
 			"name": "update metadata value",
 			"request": {
 				"method": "PATCH",

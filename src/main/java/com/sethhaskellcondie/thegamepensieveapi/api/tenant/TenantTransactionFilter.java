@@ -81,6 +81,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
         final Integer ownerId = owner.ownerId();
         TenantContext.set(ownerId);
         TenantContext.setRole(owner.role());
+        TenantContext.setShowcaseView(owner.showcase());
         try {
             transactionTemplate.executeWithoutResult(status -> {
                 jdbcTemplate.execute("SET LOCAL ROLE app_rls");
@@ -107,6 +108,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
             // An inner @Transactional component (e.g. a handled validation failure) marked the request transaction
             // rollback-only. The error response is already written and rolling back is the correct outcome.
         } finally {
+            TenantContext.clearShowcaseView();
             TenantContext.clearRole();
             TenantContext.clear();
         }

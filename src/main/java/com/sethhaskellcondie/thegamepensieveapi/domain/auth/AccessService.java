@@ -59,6 +59,16 @@ public class AccessService {
     }
 
     /**
+     * Whether the current request is a public showcase view (an {@code X-Showcase} slug). Distinct from
+     * {@code currentRole() == GUEST}: the default permit-all build resolves anonymous callers to GUEST too, but only
+     * a genuine showcase view sets this — so read overrides keyed on it (e.g. the guest UI settings) never affect
+     * the single-user build's own settings. Independent of {@link #enforcementEnabled}, unlike {@link #can(Capability)}.
+     */
+    public boolean isShowcaseView() {
+        return TenantContext.isShowcaseView();
+    }
+
+    /**
      * Whether the current request's role holds the given capability. When enforcement is off (the default
      * permit-all build) every caller has full access, so this always returns {@code true}.
      */

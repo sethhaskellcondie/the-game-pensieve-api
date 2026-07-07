@@ -110,7 +110,7 @@ public class OwnerResolver {
                     final Role ownerRole = deriveRole(owner);
                     return ownerRole == Role.PAID || ownerRole == Role.ADMIN;
                 })
-                .map(owner -> new OwnerContext(owner.id(), Role.GUEST));
+                .map(owner -> OwnerContext.showcase(owner.id()));
     }
 
     /** The real authenticated caller (or the showcase GUEST when anonymous), never impersonated. */

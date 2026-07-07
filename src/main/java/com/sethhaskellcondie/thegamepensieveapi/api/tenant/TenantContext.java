@@ -17,6 +17,9 @@ public final class TenantContext {
 
     private static final ThreadLocal<Integer> OWNER = new ThreadLocal<>();
     private static final ThreadLocal<Role> ROLE = new ThreadLocal<>();
+    // True only for an X-Showcase public showcase view — a distinct signal from the GUEST role (the default
+    // permit-all build resolves anonymous callers to GUEST too, but never sets this).
+    private static final ThreadLocal<Boolean> SHOWCASE_VIEW = new ThreadLocal<>();
 
     private TenantContext() {
     }
@@ -43,5 +46,17 @@ public final class TenantContext {
 
     public static void clearRole() {
         ROLE.remove();
+    }
+
+    public static void setShowcaseView(boolean showcaseView) {
+        SHOWCASE_VIEW.set(showcaseView);
+    }
+
+    public static boolean isShowcaseView() {
+        return Boolean.TRUE.equals(SHOWCASE_VIEW.get());
+    }
+
+    public static void clearShowcaseView() {
+        SHOWCASE_VIEW.remove();
     }
 }

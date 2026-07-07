@@ -65,6 +65,19 @@ public class SecurityConfig {
         "/v1/custom_fields/entity/*",
     };
 
+    // The metadata keys the public showcase renders from (GET only) join the guest read surface. A showcase view is
+    // served the fixed guest ui-settings and reads the owner's own default_sort_options, saved-filters, and
+    // saved-filter-categories (mirrored via RLS), so a guest sees the owner's configured showcase — all must be
+    // reachable without a token. Only these keys are opened (not a /v1/metadata/* wildcard, nor the list-all GET) so
+    // a showcase visitor can't enumerate the owner's other metadata. Writes (POST/PATCH/DELETE) are not listed, so
+    // they fall through to authenticated() and a GUEST showcase view is rejected in the gateway.
+    private static final String[] PUBLIC_METADATA_READ = {
+        "/v1/metadata/ui-settings",
+        "/v1/metadata/default_sort_options",
+        "/v1/metadata/saved-filters",
+        "/v1/metadata/saved-filter-categories",
+    };
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -96,6 +109,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, PUBLIC_READ_BY_ID).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_SEARCH).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_CUSTOM_FIELDS_READ).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_METADATA_READ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/filters/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_SHOWCASE_DIRECTORY).permitAll()
                         .anyRequest().authenticated())
