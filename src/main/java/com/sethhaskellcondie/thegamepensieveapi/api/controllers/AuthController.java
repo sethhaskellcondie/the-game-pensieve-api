@@ -17,6 +17,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.auth.UserRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionFailedDbValidation;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
 import jakarta.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -85,12 +86,22 @@ public class AuthController extends BaseController {
                 .orElseThrow(() -> new ExceptionResourceNotFound("User", caller.ownerId()));
         final MeResponseDto responseDto;
         if (caller.impersonator() != null) {
+            // The primary identity is the admin's, so report the admin's own access window (not the target's).
+            final User adminUser = userRepository.findById(caller.impersonator().adminId())
+                    .orElseThrow(() -> new ExceptionResourceNotFound("User", caller.impersonator().adminId()));
             final Impersonation impersonating = new Impersonation(actingUser.id(), actingUser.email(), caller.role());
             responseDto = new MeResponseDto(
-                    caller.impersonator().adminId(), caller.impersonator().adminEmail(), Role.ADMIN, impersonating);
+                    caller.impersonator().adminId(), caller.impersonator().adminEmail(), Role.ADMIN,
+                    toEpochMillis(adminUser.accessUntil()), impersonating);
         } else {
-            responseDto = new MeResponseDto(actingUser.id(), actingUser.email(), caller.role());
+            responseDto = new MeResponseDto(
+                    actingUser.id(), actingUser.email(), caller.role(), toEpochMillis(actingUser.accessUntil()));
         }
         return buildResponse(responseDto, request);
+    }
+
+    /** The access window as epoch milliseconds for the wire, or null when the account has no window. */
+    private static Long toEpochMillis(Timestamp accessUntil) {
+        return accessUntil == null ? null : accessUntil.getTime();
     }
 }

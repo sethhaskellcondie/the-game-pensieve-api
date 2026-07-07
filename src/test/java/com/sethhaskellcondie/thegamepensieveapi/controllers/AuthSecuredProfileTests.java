@@ -112,12 +112,14 @@ public class AuthSecuredProfileTests {
         factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
         final String accessToken = factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
 
-        // A freshly registered account gets a trial window (subscription_status='trialing'), so it resolves to TRIAL.
+        // A freshly registered account gets a trial window (subscription_status='trialing'), so it resolves to TRIAL
+        // and carries a non-null accessUntil (the trial expiry, epoch milliseconds).
         getMe(accessToken).andExpectAll(
                 status().isOk(),
                 jsonPath("$.data.email").value(email),
                 jsonPath("$.data.id").isNumber(),
                 jsonPath("$.data.role").value("TRIAL"),
+                jsonPath("$.data.accessUntil").isNumber(),
                 jsonPath("$.errors").isEmpty()
         );
     }
