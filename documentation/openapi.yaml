@@ -119,7 +119,10 @@ paths:
       tags:
         - System
       summary: Health check endpoint
-      description: Simple health check. Returns the string "thump thump" inside the standard response envelope.
+      description: |
+        Simple health check. Returns a `message` of "thump thump" alongside `secureMode`, which reports the
+        security posture the server is enforcing: `true` when the backend runs the authenticated (`secured`
+        profile) build where protected routes require a Bearer token, `false` for the default permit-all build.
       security: []
       responses:
         '200':
@@ -130,15 +133,24 @@ paths:
                 type: object
                 properties:
                   data:
-                    type: string
-                    example: "thump thump"
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "thump thump"
+                      secureMode:
+                        type: boolean
+                        description: True when the backend is running the authenticated (`secured` profile) build.
+                        example: false
                   errors:
                     type: 'null'
                   roundTripMs:
                     type: integer
                     format: int64
               example:
-                data: "thump thump"
+                data:
+                  message: "thump thump"
+                  secureMode: false
                 errors: null
                 roundTripMs: 0
 

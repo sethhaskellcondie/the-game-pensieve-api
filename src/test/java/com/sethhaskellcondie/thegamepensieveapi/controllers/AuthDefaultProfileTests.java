@@ -37,7 +37,10 @@ public class AuthDefaultProfileTests {
     @Test
     void getHeartbeat_NoAuth_ReturnsOk() throws Exception {
         mockMvc.perform(get("/v1/heartbeat"))
-                .andExpect(status().isOk());
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.data.message").value("thump thump"),
+                        jsonPath("$.data.secureMode").value(false));
     }
 
     @Test
