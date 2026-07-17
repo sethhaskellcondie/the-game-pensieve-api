@@ -20,6 +20,17 @@ services:
       - "8080:8080" #host port:container port
     environment:
       SPRING_PROFILES_ACTIVE: docker
+  mcp:
+    build:
+      context: ./mcp
+    ports:
+      - "8090:3000" #host port:container port (MCP Streamable HTTP endpoint at /mcp)
+    environment:
+      # Reaches the backend service over the compose network; must include the /v1 prefix.
+      API_BASE_URL: http://backend:8080/v1
+      PORT: "3000"
+    depends_on:
+      - backend
   flyway:
     depends_on:
       - db
