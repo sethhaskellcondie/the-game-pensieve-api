@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.sethhaskellcondie.thegamepensieveapi.SecuredProfileTest;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
@@ -55,7 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles({"test-container", "secured"})
 @AutoConfigureMockMvc
-public class RoleSecuredProfileTests {
+public class RoleSecuredProfileTests extends SecuredProfileTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -77,11 +78,11 @@ public class RoleSecuredProfileTests {
 
     // ============================ TRIAL (newly registered) ============================
 
-    /** Given a new user makes an account, then that account is granted a trial window and resolves to TRIAL. */
+    /** Given a new user logs in for the first time, then their JIT-provisioned account gets a trial window and resolves to TRIAL. */
     @Test
     void newAccount_ResolvesToTrialRole() throws Exception {
         final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
+        factory.tokenForProvisioned(email, PASSWORD);
 
         final Timestamp accessUntil = jdbcTemplate.queryForObject(
                 "SELECT access_until FROM users WHERE email = ?", Timestamp.class, email);
@@ -375,7 +376,6 @@ public class RoleSecuredProfileTests {
     }
 
     private String registerAndLogin(String email) throws Exception {
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        return factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+        return factory.tokenForProvisioned(email, PASSWORD);
     }
 }

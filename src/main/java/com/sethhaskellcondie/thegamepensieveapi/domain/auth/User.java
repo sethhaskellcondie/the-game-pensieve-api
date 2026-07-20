@@ -14,10 +14,15 @@ import java.sql.Timestamp;
  * <p>A non-null {@code showcaseSlug} publishes the user's collection as a public showcase at that address
  * (resolved from the {@code X-Showcase} request header while the owner derives to PAID or ADMIN);
  * {@code showcaseName} is its display title for the public directory.
+ *
+ * <p>{@code keycloakSub} is the immutable Keycloak subject claim, the stable link between an access token and
+ * this row. It is null on a seeded row until the owner's first login claims it (claim-on-first-login in
+ * {@code OwnerResolver}); {@code passwordHash} is a legacy column, now unused (passwords live in Keycloak).
  */
 public record User(
         Integer id,
         String email,
+        String keycloakSub,
         String passwordHash,
         boolean enabled,
         Timestamp createdAt,

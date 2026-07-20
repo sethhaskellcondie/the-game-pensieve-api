@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
+import com.sethhaskellcondie.thegamepensieveapi.KeycloakTestSupport;
+import com.sethhaskellcondie.thegamepensieveapi.SecuredProfileTest;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,19 +9,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Exercises the authenticated {@code secured} build: unauthenticated protected routes return 401, the public
- * carve-outs (heartbeat + the auth endpoints) stay open, registration is idempotent, login issues an access +
- * refresh token, a Bearer token grants access, and the refresh flow rotates tokens.
+ * Exercises the authenticated {@code secured} build now that Keycloak is the authorization server: unauthenticated
+ * or bad-token protected routes return 401, the public carve-outs (heartbeat) stay open, a real Keycloak RS256
+ * Bearer grants access, and {@code /v1/auth/me} reports the caller — JIT-provisioning a trial {@code users} row on
+ * first login (login/registration/refresh themselves now live in Keycloak, not this API).
  * <p>
  * Activating the {@code secured} profile alongside {@code test-container} is how the authenticated build is
  * exercised in tests; it is activated in production via {@code SPRING_PROFILES_ACTIVE=secured}.
@@ -29,10 +36,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles({"test-container", "secured"})
 @AutoConfigureMockMvc
-public class AuthSecuredProfileTests {
+public class AuthSecuredProfileTests extends SecuredProfileTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
     private TestFactory factory;
     private static final String PASSWORD = "Sup3rSecret!";
 
@@ -95,9 +104,7 @@ public class AuthSecuredProfileTests {
 
     @Test
     void protectedRoute_WithBearerToken_ReturnsOk() throws Exception {
-        final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        final String accessToken = factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+        final String accessToken = factory.tokenFor(factory.randomEmail(), PASSWORD);
 
         searchSystems(accessToken).andExpect(status().isOk());
     }
@@ -109,14 +116,63 @@ public class AuthSecuredProfileTests {
         getMe(null).andExpect(status().isUnauthorized());
     }
 
-    @Test
-    void getMe_WithBearerToken_ReturnsIdentityAndRole() throws Exception {
-        final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        final String accessToken = factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+    // --- Provisioning guards: tokens no account can be resolved or provisioned for ---
 
-        // A freshly registered account gets a trial window (subscription_status='trialing'), so it resolves to TRIAL
-        // and carries a non-null accessUntil (the trial expiry, epoch milliseconds).
+    @Test
+    void tokenWithoutEmailClaim_Returns403OnBothPaths() throws Exception {
+        // A service-account token is valid (sub, aud, scope) but carries no email claim. It authenticates, but no
+        // users row can be resolved or provisioned, so both the auth path (/v1/auth/me, via the controller
+        // advice) and the tenant-filter path (an entity route, via the filter's hand-written envelope) answer 403.
+        final String accessToken = KeycloakTestSupport.serviceAccountToken(
+                "svc-" + UUID.randomUUID().toString().substring(0, 8), PASSWORD);
+
+        getMe(accessToken).andExpectAll(
+                status().isForbidden(),
+                jsonPath("$.errors").isNotEmpty());
+        searchSystems(accessToken).andExpectAll(
+                status().isForbidden(),
+                jsonPath("$.errors").isNotEmpty());
+    }
+
+    @Test
+    void tokenWithUnverifiedEmail_MatchingExistingAccount_DoesNotClaimIt() throws Exception {
+        // Claim-by-email requires email_verified: an unverified address matching an existing (sub-less) row must
+        // not take the row over, and the JIT insert then collides on the UNIQUE email — the request is refused.
+        final String email = factory.randomEmail();
+        jdbcTemplate.update("INSERT INTO users(email, enabled, access_until, subscription_status, created_at, updated_at) "
+                + "VALUES (?, true, now() + interval '30 days', 'trialing', now(), now())", email);
+        KeycloakTestSupport.ensureUser(email, PASSWORD, false);
+        final String accessToken = KeycloakTestSupport.passwordGrant(email, PASSWORD);
+
+        getMe(accessToken).andExpect(status().isForbidden());
+        assertNull(jdbcTemplate.queryForObject("SELECT keycloak_sub FROM users WHERE email = ?", String.class, email),
+                "an unverified email must not claim an existing account row");
+    }
+
+    @Test
+    void verifiedEmailChangedInKeycloak_SyncsOntoUsersRow() throws Exception {
+        // users.email mirrors the IdP: once a row is linked by sub, a login after an email change at Keycloak
+        // updates the stored address.
+        final String email = factory.randomEmail();
+        factory.tokenForProvisioned(email, PASSWORD);
+
+        final String newEmail = factory.randomEmail();
+        KeycloakTestSupport.updateUserEmail(email, newEmail);
+        // The direct-access grant authenticates by username, which remains the original email.
+        final String refreshedToken = KeycloakTestSupport.passwordGrant(email, PASSWORD);
+
+        getMe(refreshedToken).andExpectAll(
+                status().isOk(),
+                jsonPath("$.data.email").value(newEmail));
+    }
+
+    @Test
+    void getMe_WithBearerToken_JitProvisionsTrialAndReturnsIdentity() throws Exception {
+        final String email = factory.randomEmail();
+        final String accessToken = factory.tokenFor(email, PASSWORD);
+
+        // A first-seen Keycloak identity is JIT-provisioned with a trial window (subscription_status='trialing'),
+        // so it resolves to TRIAL and carries a non-null accessUntil (the trial expiry, epoch milliseconds).
         getMe(accessToken).andExpectAll(
                 status().isOk(),
                 jsonPath("$.data.email").value(email),
@@ -125,71 +181,5 @@ public class AuthSecuredProfileTests {
                 jsonPath("$.data.accessUntil").isNumber(),
                 jsonPath("$.errors").isEmpty()
         );
-    }
-
-    // --- Registration ---
-
-    @Test
-    void register_NewUser_Returns201() throws Exception {
-        factory.registerReturnResult(factory.randomEmail(), PASSWORD)
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    void register_DuplicateEmail_Returns400() throws Exception {
-        // Mirrors the project's duplicationCheck() convention: a repeated creation is a 400.
-        final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isBadRequest());
-    }
-
-    // --- Login ---
-
-    @Test
-    void login_ValidCredentials_ReturnsAccessAndRefreshTokens() throws Exception {
-        final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-
-        factory.loginReturnResult(email, PASSWORD).andExpectAll(
-                status().isOk(),
-                jsonPath("$.data.accessToken").isNotEmpty(),
-                jsonPath("$.data.refreshToken").isNotEmpty(),
-                jsonPath("$.errors").isEmpty()
-        );
-    }
-
-    @Test
-    void login_BadPassword_Returns401() throws Exception {
-        final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-
-        factory.loginReturnResult(email, "wrong-password").andExpect(status().isUnauthorized());
-    }
-
-    // --- Refresh flow ---
-
-    @Test
-    void refresh_ValidRefreshToken_ReturnsNewAccessToken() throws Exception {
-        final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        final String refreshToken = factory.extractToken(factory.loginReturnResult(email, PASSWORD), "refreshToken");
-
-        mockMvc.perform(
-                post("/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(factory.formatRefreshPayload(refreshToken))
-        ).andExpectAll(
-                status().isOk(),
-                jsonPath("$.data.accessToken").isNotEmpty()
-        );
-    }
-
-    @Test
-    void refresh_InvalidToken_Returns401() throws Exception {
-        mockMvc.perform(
-                post("/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(factory.formatRefreshPayload("not-a-real-refresh-token"))
-        ).andExpect(status().isUnauthorized());
     }
 }

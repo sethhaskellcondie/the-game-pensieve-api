@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.api.tenant;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionForbidden;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +31,7 @@ import java.util.Optional;
  * reads and writes to that owner. Registered to run after Spring Security's filter chain (so the
  * {@code SecurityContext} is populated) and active in both the default and {@code secured} profiles.
  *
- * <p>The public auth endpoints and heartbeat are skipped: they read/write {@code users}/{@code refresh_tokens},
+ * <p>The {@code /v1/auth/**} identity endpoint and heartbeat are skipped: they read the {@code users} table,
  * which {@code app_rls} cannot access, and must run with the application's normal privileges.
  */
 public class TenantTransactionFilter extends OncePerRequestFilter {
@@ -76,7 +77,14 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
             }
             owner = showcase.get();
         } else {
-            owner = ownerResolver.resolveOwner(request.getHeader("X-Act-As-Owner"));
+            try {
+                owner = ownerResolver.resolveOwner(request.getHeader("X-Act-As-Owner"));
+            } catch (ExceptionForbidden e) {
+                // A valid token that no account can be resolved or provisioned for (e.g. no email claim, or an
+                // email conflict). Written directly for the same reason as the showcase 404 above.
+                writeForbidden(response, e);
+                return;
+            }
         }
         final Integer ownerId = owner.ownerId();
         TenantContext.set(ownerId);
@@ -122,6 +130,20 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         response.setContentType("application/json");
         response.getWriter().write("{\"data\":null,\"errors\":[\"No public showcase exists for the requested X-Showcase slug.\"]}");
+    }
+
+    /**
+     * Answer an unresolvable authenticated caller with the same 403 envelope {@code ApiControllerAdvice} would
+     * produce. The messages are fixed strings from {@link OwnerResolver} (never user input), so they are safe to
+     * embed in the hand-built JSON.
+     */
+    private void writeForbidden(HttpServletResponse response, ExceptionForbidden e) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json");
+        final String errors = e.getMessages().stream()
+                .map(message -> "\"" + message + "\"")
+                .collect(java.util.stream.Collectors.joining(","));
+        response.getWriter().write("{\"data\":null,\"errors\":[" + errors + "]}");
     }
 
     /** Internal carrier so a checked servlet exception can escape the transactional callback and trigger a rollback. */

@@ -29,8 +29,16 @@ services:
       # Reaches the backend service over the compose network; must include the /v1 prefix.
       API_BASE_URL: http://backend:8080/v1
       PORT: "3000"
+      # OAuth (Phase 4). MCP_AUTH_MODE defaults to "auto": enforce only when the backend reports
+      # secureMode=true. The dev backend runs the unsecured `docker` profile, so enforcement stays
+      # OFF here (tokenless, as in Phases 1-2) until Phase 5 secures the backend.
+      # iss is the canonical host-facing issuer; JWKS is fetched over the internal compose network.
+      MCP_OAUTH_ISSUER: http://localhost:8081/realms/pensieve
+      MCP_OAUTH_JWKS_URI: http://keycloak:8080/realms/pensieve/protocol/openid-connect/certs
+      MCP_OAUTH_AUDIENCE: http://localhost:8090/mcp
     depends_on:
       - backend
+      - keycloak
   flyway:
     depends_on:
       - db
@@ -52,3 +60,26 @@ services:
       POSTGRES_USERNAME: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: pensieve-db
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7
+    # start-dev = dev mode (HTTP ok, no hostname strictness). --import-realm loads the pensieve realm
+    # from the mounted import dir on first boot. The import is fully declarative (pensieve:read scope +
+    # audience mapper + built-in scopes + anonymous DCR are all in keycloak/import/pensieve-realm.json).
+    command: start-dev --import-realm
+    ports:
+      - "8081:8080" #host 8081 -> container 8080 (backend already uses host 8080)
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Pin the frontend hostname so token `iss` is CANONICAL and stable regardless of how Keycloak
+      # is reached (browser via localhost:8081). BACKCHANNEL_DYNAMIC lets containers on the compose
+      # network still reach endpoints via http://keycloak:8080 (used for JWKS fetches by the sidecar
+      # and API, which validate against the canonical issuer but fetch keys over the internal net).
+      KC_HOSTNAME: http://localhost:8081
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    volumes:
+      - ${PWD}/keycloak/import:/opt/keycloak/data/import:ro
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  keycloak_data:

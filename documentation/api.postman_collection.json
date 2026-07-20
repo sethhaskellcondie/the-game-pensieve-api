@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "88f779bc-a165-472f-ae58-9821e14352eb",
 		"name": "The Game Pensieve",
-		"description": "This contains a basic collection of example endpoints for The Game Pensieve. This will be updated and polished up before a version 1 release.",
+		"description": "This contains a basic collection of example endpoints for The Game Pensieve. This will be updated and polished up before a version 1 release.\n\nAuthentication: the collection-level Bearer token in the {{token}} variable is now a Keycloak-issued OAuth 2.1 access token. Obtain it with a direct-access (password) grant against Keycloak: POST http://localhost:8081/realms/pensieve/protocol/openid-connect/token with client_id=pensieve-test-client, grant_type=password, scope=openid, plus your username/password. Copy the returned access_token into {{token}}.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "14591034"
 	},
@@ -41,111 +41,6 @@
 					"raw": ""
 				},
 				"url": "http://localhost:8080/v1/heartbeat"
-			},
-			"response": []
-		},
-		{
-			"name": "auth - register",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "*/*"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"email\": \"collector@example.com\",\n    \"password\": \"Sup3rSecret!\"\n}"
-				},
-				"url": "http://localhost:8080/v1/auth/register"
-			},
-			"response": []
-		},
-		{
-			"name": "auth - login (captures tokens)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"var json = pm.response.json();",
-							"if (json && json.data) {",
-							"    pm.collectionVariables.set(\"token\", json.data.accessToken);",
-							"    pm.collectionVariables.set(\"refreshToken\", json.data.refreshToken);",
-							"}"
-						]
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "*/*"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"email\": \"collector@example.com\",\n    \"password\": \"Sup3rSecret!\"\n}"
-				},
-				"url": "http://localhost:8080/v1/auth/login"
-			},
-			"response": []
-		},
-		{
-			"name": "auth - refresh (rotates tokens)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"var json = pm.response.json();",
-							"if (json && json.data) {",
-							"    pm.collectionVariables.set(\"token\", json.data.accessToken);",
-							"    pm.collectionVariables.set(\"refreshToken\", json.data.refreshToken);",
-							"}"
-						]
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "*/*"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}"
-				},
-				"url": "http://localhost:8080/v1/auth/refresh"
 			},
 			"response": []
 		},
@@ -743,6 +638,16 @@
 					}
 				},
 				"url": "http://localhost:8080/v1/custom_fields/1"
+			},
+			"response": []
+		},
+		{
+			"name": "collection counts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/v1/function/counts",
+				"description": "Owner-scoped item counts per entity type plus total (non-deleted rows, same scoping as function/search). Used by the MCP sidecar's get_collection_summary tool."
 			},
 			"response": []
 		},
@@ -1357,11 +1262,6 @@
 	"variable": [
 		{
 			"key": "token",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "refreshToken",
 			"value": "",
 			"type": "string"
 		}

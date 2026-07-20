@@ -35,6 +35,8 @@ beforeAll(async () => {
           return send(200, envelope([{ id: 2, name: "Condition" }]));
         case "/v1/showcases":
           return send(200, envelope([{ slug: "seths-collection", name: "Seth's Collection" }]));
+        case "/v1/function/counts":
+          return send(200, envelope({ counts: { system: 1, toy: 3 }, total: 4 }));
         case "/v1/systems/function/search":
           return send(500, JSON.stringify({ data: null, errors: { message: "boom" } }));
         default:
@@ -49,15 +51,19 @@ beforeAll(async () => {
 
 afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 
+const baseConfig: Omit<Config, "apiBaseUrl"> = {
+  port: 0,
+  requestTimeoutMs: 5000,
+  serverName: "test",
+  serverVersion: "0",
+  authMode: "disabled",
+  oauthScopes: [],
+  heartbeatRetries: 1,
+  heartbeatRetryDelayMs: 0,
+};
+
 function client(): PensieveApi {
-  const cfg: Config = {
-    apiBaseUrl: baseUrl,
-    port: 0,
-    requestTimeoutMs: 5000,
-    serverName: "test",
-    serverVersion: "0",
-  };
-  return createApiClient(cfg);
+  return createApiClient({ ...baseConfig, apiBaseUrl: baseUrl });
 }
 
 describe("apiClient", () => {
@@ -91,6 +97,12 @@ describe("apiClient", () => {
     expect(lastRequest.url).toBe("/v1/custom_fields");
   });
 
+  it("fetches collection counts from the counts endpoint", async () => {
+    expect(await client().getCounts()).toEqual({ counts: { system: 1, toy: 3 }, total: 4 });
+    expect(lastRequest.method).toBe("GET");
+    expect(lastRequest.url).toBe("/v1/function/counts");
+  });
+
   it("throws ApiError with status and details on a non-2xx response", async () => {
     await expect(client().search("system", [])).rejects.toMatchObject({
       name: "ApiError",
@@ -100,13 +112,7 @@ describe("apiClient", () => {
   });
 
   it("throws ApiError with status 0 on a transport failure", async () => {
-    const cfg: Config = {
-      apiBaseUrl: "http://127.0.0.1:1/v1",
-      port: 0,
-      requestTimeoutMs: 500,
-      serverName: "t",
-      serverVersion: "0",
-    };
+    const cfg: Config = { ...baseConfig, apiBaseUrl: "http://127.0.0.1:1/v1", requestTimeoutMs: 500 };
     await expect(createApiClient(cfg).heartbeat()).rejects.toBeInstanceOf(ApiError);
   });
 });

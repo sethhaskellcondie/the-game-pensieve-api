@@ -1,5 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
+import com.sethhaskellcondie.thegamepensieveapi.SecuredProfileTest;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles({"test-container", "secured"})
 @AutoConfigureMockMvc
-public class AdminControllerSecuredProfileTests {
+public class AdminControllerSecuredProfileTests extends SecuredProfileTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -165,7 +166,6 @@ public class AdminControllerSecuredProfileTests {
     }
 
     private String registerAndLogin(String email) throws Exception {
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        return factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+        return factory.tokenForProvisioned(email, PASSWORD);
     }
 }

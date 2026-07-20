@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sethhaskellcondie.thegamepensieveapi.SecuredProfileTest;
 import com.sethhaskellcondie.thegamepensieveapi.SeededUsersFixture;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
@@ -48,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles({"seeded-tests", "secured"})
 @AutoConfigureMockMvc
-public class SeededDataMatrixTests {
+public class SeededDataMatrixTests extends SecuredProfileTest {
 
     @Autowired
     private MockMvc mockMvc;

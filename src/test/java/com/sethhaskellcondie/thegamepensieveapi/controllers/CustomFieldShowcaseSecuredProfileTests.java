@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.sethhaskellcondie.thegamepensieveapi.SecuredProfileTest;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles({"test-container", "secured"})
 @AutoConfigureMockMvc
-public class CustomFieldShowcaseSecuredProfileTests {
+public class CustomFieldShowcaseSecuredProfileTests extends SecuredProfileTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -232,7 +233,6 @@ public class CustomFieldShowcaseSecuredProfileTests {
     }
 
     private String registerAndLogin(String email) throws Exception {
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        return factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+        return factory.tokenForProvisioned(email, PASSWORD);
     }
 }

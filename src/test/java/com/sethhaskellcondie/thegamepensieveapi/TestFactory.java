@@ -2,6 +2,7 @@ package com.sethhaskellcondie.thegamepensieveapi;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -105,69 +106,31 @@ public class TestFactory {
     }
 
     // --- Auth helpers ---
-    // Auth endpoints take a flat request body (no entity-key wrapper) and return tokens under $.data.
+    // Login/registration now live in Keycloak. Under the secured profile a test obtains a real RS256 Bearer token
+    // from the shared Keycloak Testcontainer (KeycloakTestSupport): the account is admin-created on demand and a
+    // token is minted via the direct-access grant, carrying aud=/mcp + pensieve:read + sub/email.
 
     public String randomEmail() {
-        return "user-" + randomString(8) + "@example.com";
+        // Lowercase: Keycloak normalizes email to lowercase, so the token's email claim (and the users row it
+        // provisions) is lowercase — tests compare against this value, so the source email must match.
+        return ("user-" + randomString(8) + "@example.com").toLowerCase(java.util.Locale.ROOT);
     }
 
-    public String formatRegisterPayload(String email, String password) {
-        final String json = """
-                {
-                    "email": "%s",
-                    "password": "%s"
-                }
-                """;
-        return String.format(json, email, password);
-    }
-
-    public String formatLoginPayload(String email, String password) {
-        final String json = """
-                {
-                    "email": "%s",
-                    "password": "%s"
-                }
-                """;
-        return String.format(json, email, password);
-    }
-
-    public String formatRefreshPayload(String refreshToken) {
-        final String json = """
-                {
-                    "refreshToken": "%s"
-                }
-                """;
-        return String.format(json, refreshToken);
-    }
-
-    public ResultActions registerReturnResult(String email, String password) throws Exception {
-        return mockMvc.perform(
-                post("/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(formatRegisterPayload(email, password))
-        );
-    }
-
-    public ResultActions loginReturnResult(String email, String password) throws Exception {
-        return mockMvc.perform(
-                post("/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(formatLoginPayload(email, password))
-        );
+    /** Ensure a Keycloak account for {@code email} exists, then mint and return its RS256 access token. */
+    public String tokenFor(String email, String password) {
+        return KeycloakTestSupport.tokenFor(email, password);
     }
 
     /**
-     * Read a token field (e.g. "accessToken" or "refreshToken") out of the $.data of an auth response.
-     * Used by the secured-profile tests; surfaces a clear failure if the token field is absent.
+     * Mint a token as {@link #tokenFor} and then make a first authenticated call ({@code GET /v1/auth/me}) so the
+     * caller's {@code users} row is JIT-provisioned before the test proceeds — the drop-in replacement for the old
+     * "register" step, which used to create the row synchronously. The account resolves to TRIAL after this.
      */
-    public String extractToken(ResultActions result, String fieldName) throws Exception {
-        final String responseString = result.andReturn().getResponse().getContentAsString();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final JsonNode dataNode = objectMapper.readTree(responseString).get("data");
-        if (dataNode == null || dataNode.get(fieldName) == null) {
-            throw new IllegalStateException("Expected auth token field '" + fieldName + "' was not present in the response: " + responseString);
-        }
-        return dataNode.get(fieldName).asText();
+    public String tokenForProvisioned(String email, String password) throws Exception {
+        final String token = KeycloakTestSupport.tokenFor(email, password);
+        mockMvc.perform(get("/v1/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        return token;
     }
 
     public int postCustomFieldReturnId(String name, String type, String entityKey) throws Exception {

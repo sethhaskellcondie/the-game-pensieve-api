@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.sethhaskellcondie.thegamepensieveapi.SecuredProfileTest;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemResponseDto;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles({"test-container", "secured"})
 @AutoConfigureMockMvc
-public class ShowcaseSecuredProfileTests {
+public class ShowcaseSecuredProfileTests extends SecuredProfileTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -251,34 +252,28 @@ public class ShowcaseSecuredProfileTests {
     // ============================ Claiming the default showcase (admin bootstrap) ============================
 
     /**
-     * The documented bootstrap end to end: the operator claims the seeded default-showcase row (real email, a
-     * BCrypt hash minted by a throwaway registration, {@code role_override='ADMIN'} — slug and name are already
-     * seeded by V1_18), logs in as it, and edits the default showcase as their own collection. The write is
-     * immediately visible anonymously — both with no header (the default showcase) and via the seeded slug,
-     * which resolves now that the owner derives to ADMIN — and the default showcase joins the directory.
+     * The documented bootstrap end to end via claim-on-first-login: the operator points the seeded default-showcase
+     * row at their own Keycloak email and pins {@code role_override='ADMIN'} (slug and name are already seeded by
+     * V1_18); their first login claims that row by email (stamping {@code keycloak_sub}), and they edit the default
+     * showcase as their own collection. The write is immediately visible anonymously — both with no header (the
+     * default showcase) and via the seeded slug, which resolves now that the owner derives to ADMIN — and the
+     * default showcase joins the directory.
      */
     @Test
     void claimedDefaultShowcase_AdminEditsItAsTheirOwnCollection() throws Exception {
         final String originalEmail = jdbcTemplate.queryForObject(
                 "SELECT email FROM users WHERE is_public_showcase", String.class);
-        final String originalHash = jdbcTemplate.queryForObject(
-                "SELECT password_hash FROM users WHERE is_public_showcase", String.class);
         try {
-            // Mint a real BCrypt hash through the app's own encoder via a throwaway registration.
-            final String throwawayEmail = factory.randomEmail();
-            factory.registerReturnResult(throwawayEmail, PASSWORD).andExpect(status().isCreated());
-            final String mintedHash = jdbcTemplate.queryForObject(
-                    "SELECT password_hash FROM users WHERE email = ?", String.class, throwawayEmail);
-
-            // The claim: the seeded row becomes the operator's account (single ADMIN + default-showcase owner).
+            // The claim: the seeded default-showcase row becomes the operator's account (single ADMIN +
+            // default-showcase owner). Point it at the operator's Keycloak email and pin ADMIN; the operator's
+            // first login then resolves by sub → none → by email → this row, stamping the sub onto it (the claim).
             final String claimedEmail = factory.randomEmail();
             jdbcTemplate.update(
-                    "UPDATE users SET email = ?, password_hash = ?, role_override = 'ADMIN' WHERE is_public_showcase",
-                    claimedEmail, mintedHash);
-            jdbcTemplate.update("DELETE FROM users WHERE email = ?", throwawayEmail);
+                    "UPDATE users SET email = ?, role_override = 'ADMIN' WHERE is_public_showcase",
+                    claimedEmail);
 
-            // The admin logs in and edits the default showcase as their own collection (ADMIN holds WRITE).
-            final String adminToken = factory.extractToken(factory.loginReturnResult(claimedEmail, PASSWORD), "accessToken");
+            // The admin logs in (claiming the row) and edits the default showcase as their own collection (ADMIN holds WRITE).
+            final String adminToken = factory.tokenFor(claimedEmail, PASSWORD);
             final String systemName = "Claimed-Showcase-System-" + uniqueSuffix();
             mockMvc.perform(post(SYSTEMS_URL)
                             .header("Authorization", "Bearer " + adminToken)
@@ -301,10 +296,11 @@ public class ShowcaseSecuredProfileTests {
                             .contains("\"seths-collection\""),
                     "The claimed default showcase should appear in the public directory.");
         } finally {
-            // Restore the seeded row for the rest of the shared-database suite (slug/name stay as V1_18 seeded).
+            // Restore the seeded row for the rest of the shared-database suite (slug/name stay as V1_18 seeded);
+            // clear the stamped keycloak_sub so the row returns to its unclaimed default-showcase state.
             jdbcTemplate.update(
-                    "UPDATE users SET email = ?, password_hash = ?, role_override = NULL WHERE is_public_showcase",
-                    originalEmail, originalHash);
+                    "UPDATE users SET email = ?, keycloak_sub = NULL, role_override = NULL WHERE is_public_showcase",
+                    originalEmail);
         }
     }
 
@@ -556,7 +552,6 @@ public class ShowcaseSecuredProfileTests {
     }
 
     private String registerAndLogin(String email) throws Exception {
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        return factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+        return factory.tokenForProvisioned(email, PASSWORD);
     }
 }

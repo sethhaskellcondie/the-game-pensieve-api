@@ -12,31 +12,42 @@
 #   ./scripts/seed-test-data.sh
 #
 # Parameters (environment variables):
-#   BASE_URL        API base URL                        (default: http://localhost:8080)
-#   ADMIN_EMAIL     bootstrap admin account email       (default: seeder-admin@email.com)
-#   ADMIN_PASSWORD  bootstrap admin account password    (default: seeder-admin)
-#   SQL_CMD         command prefix that runs psql for the one bootstrap SQL statement
-#                   (default: docker compose exec -T db psql -U postgres -d pensieve-db)
-#                   e.g. for a host database: SQL_CMD="psql -h localhost -U postgres -d pensieve-db"
+#   BASE_URL          API base URL                       (default: http://localhost:8080)
+#   ADMIN_EMAIL       bootstrap admin account email      (default: seeder-admin@email.com)
+#   ADMIN_PASSWORD    bootstrap admin account password   (default: seeder-admin)
+#   KEYCLOAK_URL      Keycloak base URL                  (default: http://localhost:8081)
+#   KEYCLOAK_REALM    realm                              (default: pensieve)
+#   KEYCLOAK_CLIENT   public client for the password grant (default: pensieve-test-client)
+#   KEYCLOAK_ADMIN_USER / KEYCLOAK_ADMIN_PASSWORD  Keycloak admin creds (default: admin / admin)
+#   SQL_CMD           command prefix that runs psql for the one bootstrap SQL statement
+#                     (default: docker compose exec -T db psql -U postgres -d pensieve-db)
+#                     e.g. for a host database: SQL_CMD="psql -h localhost -U postgres -d pensieve-db"
 #
 # Preconditions:
 #   - The API is running with SPRING_PROFILES_ACTIVE including "secured", with its working
 #     directory at the repo root (the default-showcase step uses POST /v1/function/seedSampleData,
 #     which reads sampleData.json from the server's working directory).
-#   - No admin exists yet, or the admin is the account this script registers. The
+#   - Keycloak is running and reachable at KEYCLOAK_URL with the `pensieve` realm imported. Accounts
+#     are created in Keycloak; each account's users row is JIT-provisioned by the API on first login.
+#   - No admin exists yet, or the admin is the account this script provisions. The
 #     uq_users_single_admin index allows exactly one pinned admin; if a different admin already
 #     exists (e.g. the claimed default-showcase row from the documented bootstrap), the UPDATE
 #     below fails loudly — that is deliberate. This script targets fresh dev databases.
 #   - Never point this at the integration-test database; the test suite seeds itself.
 #
-# Idempotency: rerunnable. Tolerated on re-runs: register -> 400 "already exists", and imports
-# reporting rows as existing rather than created. Everything else exits non-zero.
+# Idempotency: rerunnable. Tolerated on re-runs: Keycloak user creation -> 409 "already exists", and
+# imports reporting rows as existing rather than created. Everything else exits non-zero.
 
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-seeder-admin@email.com}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-seeder-admin}"
+KEYCLOAK_URL="${KEYCLOAK_URL:-http://localhost:8081}"
+KEYCLOAK_REALM="${KEYCLOAK_REALM:-pensieve}"
+KEYCLOAK_CLIENT="${KEYCLOAK_CLIENT:-pensieve-test-client}"
+KEYCLOAK_ADMIN_USER="${KEYCLOAK_ADMIN_USER:-admin}"
+KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
 SQL_CMD="${SQL_CMD:-docker compose exec -T db psql -U postgres -d pensieve-db}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -77,16 +88,40 @@ run_sql() {
     $SQL_CMD -v ON_ERROR_STOP=1 -q -c "$1" >/dev/null || fail "SQL failed: $1"
 }
 
-# register EMAIL PASSWORD — tolerate the duplicate-email 400 so the script is rerunnable
-register() {
-    request POST /v1/auth/register "" -d "{\"email\":\"$1\",\"password\":\"$2\"}"
-    [[ "$STATUS" == "201" || "$STATUS" == "400" ]] || fail "registering $1 (got HTTP $STATUS): $BODY"
+kc_admin_token() { # -> echoes a Keycloak admin access token
+    curl -sS -X POST "$KEYCLOAK_URL/realms/master/protocol/openid-connect/token" \
+        -d client_id=admin-cli -d grant_type=password \
+        -d "username=$KEYCLOAK_ADMIN_USER" -d "password=$KEYCLOAK_ADMIN_PASSWORD" \
+        | jq -re '.access_token' || fail "could not get a Keycloak admin token from $KEYCLOAK_URL"
 }
 
-login() { # EMAIL PASSWORD -> echoes access token
-    request POST /v1/auth/login "" -d "{\"email\":\"$1\",\"password\":\"$2\"}"
-    expect_status 200 "logging in as $1"
-    jq -re '.data.accessToken' "$RESPONSE_FILE" || fail "no accessToken in login response for $1"
+# register EMAIL PASSWORD — create the Keycloak account (idempotent: tolerate an already-existing user).
+# Passwords live in Keycloak now; the API JIT-provisions each account's users row on first login.
+register() {
+    local email="$1" password="$2" admin existing code
+    admin="$(kc_admin_token)"
+    existing="$(curl -sS -G -H "Authorization: Bearer $admin" \
+        "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM/users" \
+        --data-urlencode "exact=true" --data-urlencode "email=$email" | jq -r 'length')"
+    if [[ "$existing" != "0" ]]; then return 0; fi
+    # requiredActions=[] + a complete profile keep the account "fully set up" so the password grant works.
+    code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+        "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM/users" \
+        -H "Authorization: Bearer $admin" -H 'Content-Type: application/json' \
+        -d "{\"username\":\"$email\",\"email\":\"$email\",\"firstName\":\"Seed\",\"lastName\":\"User\",\"emailVerified\":true,\"enabled\":true,\"requiredActions\":[],\"credentials\":[{\"type\":\"password\",\"value\":\"$password\",\"temporary\":false}]}")"
+    [[ "$code" == "201" || "$code" == "409" ]] || fail "creating Keycloak user $email (HTTP $code)"
+}
+
+login() { # EMAIL PASSWORD -> echoes access token (Keycloak direct-access grant)
+    curl -sS -X POST "$KEYCLOAK_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+        -d "client_id=$KEYCLOAK_CLIENT" -d grant_type=password \
+        -d "username=$1" -d "password=$2" -d scope=openid \
+        | jq -re '.access_token' || fail "no access token from Keycloak for $1"
+}
+
+provision() { # TOKEN — first authenticated call JIT-provisions the caller's users row (30-day trial)
+    request GET /v1/auth/me "$1"
+    expect_status 200 "provisioning the users row via GET /v1/auth/me"
 }
 
 user_id() { # EMAIL -> echoes id (needs ADMIN_TOKEN; register's id is unavailable on 400 re-runs)
@@ -106,12 +141,14 @@ seed_user() {
     local email="$1" password="$2" final_role="$3" seed_file="$4" slug="${5:-}" name="${6:-}"
     log "Seeding $email (final role $final_role, data $seed_file)"
     register "$email" "$password"
-    local id
-    id="$(user_id "$email")"
-    # A new registration derives to TRIAL, which lacks IMPORT — pin PAID so the account can load its data.
-    pin_role "$id" '"PAID"'
     local token
     token="$(login "$email" "$password")"
+    # First authenticated call JIT-provisions the users row (30-day trial) so the admin can pin its role.
+    provision "$token"
+    local id
+    id="$(user_id "$email")"
+    # A JIT-provisioned account derives to TRIAL, which lacks IMPORT — pin PAID so the account can load its data.
+    pin_role "$id" '"PAID"'
     # The import endpoint takes the bare seed file wrapped under a "data" key. Imports are
     # idempotent (existing rows resolve by name/title), so re-runs are safe no-ops. The wrapped
     # body goes through a file — piping into request() would run it in a subshell and lose STATUS.
@@ -138,10 +175,12 @@ expect_status 200 "API heartbeat"
 
 log "Bootstrapping admin $ADMIN_EMAIL"
 register "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
+ADMIN_TOKEN="$(login "$ADMIN_EMAIL" "$ADMIN_PASSWORD")"
+# First login JIT-provisions the admin's users row so the pin below has a row to update.
+provision "$ADMIN_TOKEN"
 # The one statement the API cannot perform: the first admin pin. Idempotent on re-run against the
 # same email; fails hard on uq_users_single_admin if a different admin exists (see preconditions).
 run_sql "UPDATE users SET role_override='ADMIN' WHERE email='$ADMIN_EMAIL';"
-ADMIN_TOKEN="$(login "$ADMIN_EMAIL" "$ADMIN_PASSWORD")"
 
 # ============================ Step 2+3 — users, data, showcase grants ============================
 

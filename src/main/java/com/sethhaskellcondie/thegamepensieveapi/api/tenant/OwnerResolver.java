@@ -5,13 +5,18 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.auth.Capability;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.Role;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.User;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.UserRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionForbidden;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -21,7 +26,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * <ul>
  *   <li>An {@code X-Showcase: <slug>} request header → that showcase owner's id, GUEST-scoped, for every caller
  *       (resolved by the tenant filter via {@link #resolveShowcase}; an unknown or not-visible slug is a 404).</li>
- *   <li>An authenticated request → the user's id, looked up by the principal's email.</li>
+ *   <li>An authenticated request → the user's id, resolved from the access token's {@code sub} (claim-by-email
+ *       on first login, JIT trial provisioning when no row exists).</li>
  *   <li>An anonymous request (the default permit-all build, or before login) → the seeded <em>default</em>
  *       showcase owner (the {@code is_public_showcase} row), so guests transparently read the default showcase.</li>
  * </ul>
@@ -35,14 +41,17 @@ public class OwnerResolver {
     private final UserRepository userRepository;
     private final JdbcTemplate jdbcTemplate;
     private final AccessService accessService;
+    private final long trialDays;
     // The default-showcase owner id never changes after V1_13 seeds it; cache the first lookup. (Slug lookups
     // are per-request indexed reads instead — a slug's visibility depends on the owner's current billing state.)
     private final AtomicReference<Integer> showcaseOwnerId = new AtomicReference<>();
 
-    public OwnerResolver(UserRepository userRepository, JdbcTemplate jdbcTemplate, AccessService accessService) {
+    public OwnerResolver(UserRepository userRepository, JdbcTemplate jdbcTemplate, AccessService accessService,
+                         @Value("${entitlement.trial-days}") long trialDays) {
         this.userRepository = userRepository;
         this.jdbcTemplate = jdbcTemplate;
         this.accessService = accessService;
+        this.trialDays = trialDays;
     }
 
     /**
@@ -86,9 +95,9 @@ public class OwnerResolver {
         } catch (NumberFormatException e) {
             return caller;
         }
-        // The caller is an authenticated ADMIN, so the security principal's username is the admin's email —
+        // The caller is an authenticated ADMIN, so the access token's email claim is the admin's email —
         // no extra users lookup needed to label the impersonator.
-        final String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        final String adminEmail = currentToken().map(jwt -> jwt.getClaimAsString("email")).orElse(null);
         return userRepository.findById(targetId)
                 .map(target -> new OwnerContext(target.id(), deriveRole(target), new Impersonator(caller.ownerId(), adminEmail)))
                 .orElse(caller);
@@ -113,16 +122,106 @@ public class OwnerResolver {
                 .map(owner -> OwnerContext.showcase(owner.id()));
     }
 
-    /** The real authenticated caller (or the showcase GUEST when anonymous), never impersonated. */
+    /**
+     * The real authenticated caller (or the showcase GUEST when anonymous), never impersonated. Under the secured
+     * profile the caller arrives as a Keycloak access token; the owner is resolved by the immutable {@code sub},
+     * then — for a seeded row not yet linked — claimed by {@code email} (its {@code sub} stamped on), and finally
+     * JIT-provisioned as a fresh 30-day trial if no row exists. All of this runs before the request drops to
+     * {@code app_rls}, so these {@code users} reads/writes use the application's normal privileges.
+     */
     private OwnerContext resolveCaller() {
+        return currentToken()
+                .map(this::resolveOrProvision)
+                .orElseGet(() -> new OwnerContext(showcaseOwnerId(), Role.GUEST));
+    }
+
+    /** The current request's validated access token, when the caller is authenticated via the resource server. */
+    private Optional<Jwt> currentToken() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()
-                && authentication.getPrincipal() instanceof UserDetails userDetails) {
-            return userRepository.findByEmail(userDetails.getUsername())
-                    .map(user -> new OwnerContext(user.id(), deriveRole(user)))
-                    .orElseGet(() -> new OwnerContext(showcaseOwnerId(), Role.GUEST));
+                && authentication.getPrincipal() instanceof Jwt jwt) {
+            return Optional.of(jwt);
         }
-        return new OwnerContext(showcaseOwnerId(), Role.GUEST);
+        return Optional.empty();
+    }
+
+    /**
+     * Resolve the owner row for a validated token, provisioning as needed: by {@code sub}; else claim a seeded row
+     * by {@code email} (stamping the {@code sub}); else JIT-create a trial account. The default-showcase owner and
+     * the single ADMIN stay seeder-owned — they are always reached by {@code sub}/{@code email}, never JIT-created.
+     *
+     * <p>Claiming by email requires the token's {@code email_verified} claim: linking an account to a seeded row on
+     * an unverified email would let anyone who registers that address at the IdP take the row over. A token with no
+     * email claim at all (e.g. minted without the {@code email} scope, or a service account) is rejected with a 403
+     * rather than reaching the JIT insert's NOT NULL constraint.
+     */
+    private OwnerContext resolveOrProvision(Jwt jwt) {
+        final String sub = jwt.getSubject();
+        final String email = normalizedEmail(jwt);
+        final boolean emailVerified = Boolean.TRUE.equals(jwt.getClaim("email_verified"));
+        final Optional<User> bySub = userRepository.findBySub(sub);
+        if (bySub.isPresent()) {
+            syncEmail(bySub.get(), email, emailVerified);
+            return new OwnerContext(bySub.get().id(), deriveRole(bySub.get()));
+        }
+        if (email == null) {
+            throw new ExceptionForbidden("The access token carries no email claim, so no account can be resolved "
+                    + "or provisioned for it. Request a token that includes the email scope.");
+        }
+        if (emailVerified) {
+            final Optional<User> byEmail = userRepository.findByEmail(email);
+            if (byEmail.isPresent()) {
+                userRepository.updateSub(byEmail.get().id(), sub);
+                return new OwnerContext(byEmail.get().id(), deriveRole(byEmail.get()));
+            }
+        }
+        return new OwnerContext(provisionTrial(email, sub), Role.TRIAL);
+    }
+
+    /** The token's email claim, trimmed and lowercased (Keycloak stores emails lowercase), or null when absent. */
+    private String normalizedEmail(Jwt jwt) {
+        final String email = jwt.getClaimAsString("email");
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return email.trim().toLowerCase();
+    }
+
+    /**
+     * Keep {@code users.email} in step with the IdP: when a sub-linked account presents a different (verified)
+     * email, the user changed their address in Keycloak — mirror it. A conflict with another row's email keeps the
+     * stored address rather than failing the request ({@code email} is UNIQUE).
+     */
+    private void syncEmail(User user, String email, boolean emailVerified) {
+        if (!emailVerified || email == null || email.equalsIgnoreCase(user.email())) {
+            return;
+        }
+        try {
+            userRepository.updateEmail(user.id(), email);
+        } catch (DuplicateKeyException conflict) {
+            // Another account already holds this address; leave the stored email until the conflict is resolved.
+        }
+    }
+
+    /**
+     * JIT-provision a new trial account for a first-seen Keycloak identity and return its owner id. Two concurrent
+     * first requests can race to insert; the loser hits the {@code keycloak_sub} UNIQUE constraint, so fall back to
+     * the row the winner created. A duplicate on {@code email} instead means a row with this address exists but is
+     * linked to a different (or no) Keycloak account and the verified-email claim path did not apply — refuse
+     * rather than hijack the row or surface a raw constraint violation.
+     */
+    private Integer provisionTrial(String email, String sub) {
+        final Timestamp trialAccessUntil = Timestamp.from(Instant.now().plus(trialDays, ChronoUnit.DAYS));
+        try {
+            return userRepository.insertJit(email, sub, trialAccessUntil, "trialing");
+        } catch (DuplicateKeyException raced) {
+            final Optional<User> winner = userRepository.findBySub(sub);
+            if (winner.isPresent()) {
+                return winner.get().id();
+            }
+            throw new ExceptionForbidden("An account with this email already exists but is not linked to this "
+                    + "login. Verify the email on the login account, or contact the administrator.");
+        }
     }
 
     public Integer resolveOwnerId() {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { ENTITY_KEYS, ENTITY_KEY_ENUM, type EntityKey } from "./entities.js";
+import { ENTITY_KEY_ENUM, type EntityKey } from "./entities.js";
 import { ApiError, type FilterEntry, type PensieveApi } from "./apiClient.js";
 
 function okJson(data: unknown): CallToolResult {
@@ -136,15 +136,7 @@ export function registerTools(server: McpServer, api: PensieveApi): void {
     },
     async () => {
       try {
-        const entries = await Promise.all(
-          ENTITY_KEYS.map(async (key) => {
-            const items = await api.search(key, []);
-            return [key, Array.isArray(items) ? items.length : 0] as const;
-          }),
-        );
-        const counts = Object.fromEntries(entries) as Record<EntityKey, number>;
-        const total = entries.reduce((sum, [, count]) => sum + count, 0);
-        return okJson({ counts, total });
+        return okJson(await api.getCounts());
       } catch (err) {
         return errResult(err);
       }

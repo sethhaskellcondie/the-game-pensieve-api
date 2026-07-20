@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,13 +21,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>This fixture is the integration-test consumer of the seed set; {@code scripts/seed-test-data.sh} is the
  * live-environment consumer. Both run the <em>same choreography</em> over the <em>same seed files</em> in
- * {@code src/main/resources/seeders/} so they never drift: register (tolerating "already exists"), pin PAID so
- * the account may import, import as the user so RLS stamps every row to that owner, then pin the final role.
- * Final roles are always pinned, never left to derivation — a derived TRIAL would silently lapse when its
- * {@code access_until} window passes, rotting the fixtures.
+ * {@code src/main/resources/seeders/} so they never drift: obtain a Keycloak token (the account is created on
+ * demand), make a first authenticated call so the {@code users} row is JIT-provisioned, pin PAID so the account
+ * may import, import as the user so RLS stamps every row to that owner, then pin the final role. Final roles are
+ * always pinned, never left to derivation — a derived TRIAL would silently lapse when its {@code access_until}
+ * window passes, rotting the fixtures.
  *
- * <p>Idempotent: re-running against an already-seeded database is a no-op (registration tolerates the
- * duplicate-email 400, imports resolve existing rows by name/title, pins and slug grants re-apply cleanly).
+ * <p>Idempotent: re-running against an already-seeded database is a no-op (Keycloak user creation and JIT
+ * provisioning tolerate an existing account/row, imports resolve existing rows by name/title, pins and slug
+ * grants re-apply cleanly).
  *
  * <p>Requires the {@code secured} profile (the choreography exercises the real auth/role/RLS stack) and a
  * working directory of the repo root (the default-showcase step calls {@code POST /v1/function/seedSampleData},
@@ -74,19 +77,22 @@ public class SeededUsersFixture {
     }
 
     /**
-     * Register the fixture admin and pin it via the same direct SQL the documented bootstrap uses (there is no
-     * in-app endpoint that creates admins). Any admin pinned by another test class in the shared Testcontainers
-     * database is cleared first — the {@code uq_users_single_admin} index allows exactly one.
+     * Provision the fixture admin (Keycloak account + JIT {@code users} row) and pin it via the same direct SQL the
+     * documented bootstrap uses (there is no in-app endpoint that creates admins). Any admin pinned by another test
+     * class in the shared Testcontainers database is cleared first — the {@code uq_users_single_admin} index allows
+     * exactly one.
      */
     public String bootstrapAdmin() throws Exception {
-        registerTolerateExisting(ADMIN_EMAIL, ADMIN_PASSWORD);
+        final String token = login(ADMIN_EMAIL, ADMIN_PASSWORD);
+        provision(token);
         jdbcTemplate.update("UPDATE users SET role_override = NULL WHERE role_override = 'ADMIN' AND email <> ?", ADMIN_EMAIL);
         jdbcTemplate.update("UPDATE users SET role_override = 'ADMIN' WHERE email = ?", ADMIN_EMAIL);
-        return login(ADMIN_EMAIL, ADMIN_PASSWORD);
+        return token;
     }
 
+    /** Ensure a Keycloak account exists for the given credentials and return a fresh RS256 access token for it. */
     public String login(String email, String password) throws Exception {
-        return factory.extractToken(factory.loginReturnResult(email, password), "accessToken");
+        return factory.tokenFor(email, password);
     }
 
     public String login(SeededUser user) throws Exception {
@@ -98,15 +104,23 @@ public class SeededUsersFixture {
     }
 
     private void seedUser(String adminToken, SeededUser user) throws Exception {
-        registerTolerateExisting(user.email(), user.password());
+        final String userToken = login(user);
+        // First authenticated call JIT-provisions the users row (30-day trial) so the admin can then pin its role.
+        provision(userToken);
         final int id = userId(user.email());
-        // A new registration derives to TRIAL, which lacks IMPORT — pin PAID so the account can load its data.
+        // A JIT-provisioned account derives to TRIAL, which lacks IMPORT — pin PAID so the account can load its data.
         pinRole(adminToken, id, "PAID");
-        importSeedFile(login(user), user.seedFile());
+        importSeedFile(userToken, user.seedFile());
         pinRole(adminToken, id, user.finalRole());
         if (user.showcaseSlug() != null) {
             grantShowcase(adminToken, id, user.showcaseSlug(), user.showcaseName());
         }
+    }
+
+    /** Trigger JIT provisioning of the token owner's {@code users} row by making its first authenticated call. */
+    private void provision(String token) throws Exception {
+        mockMvc.perform(get("/v1/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
     }
 
     /**
@@ -124,14 +138,6 @@ public class SeededUsersFixture {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.errors").isEmpty());
         pinRole(adminToken, defaultOwnerId, null);
-    }
-
-    /** Register an account, tolerating the duplicate-email 400 so the fixture is rerunnable in a shared database. */
-    private void registerTolerateExisting(String email, String password) throws Exception {
-        final int status = factory.registerReturnResult(email, password).andReturn().getResponse().getStatus();
-        if (status != 201 && status != 400) {
-            throw new IllegalStateException("Registering seed user '" + email + "' failed with unexpected status " + status);
-        }
     }
 
     /** Pin (or with {@code null}, clear) a user's role override through the admin API. */

@@ -11,6 +11,10 @@ function fakeApi(overrides: Partial<PensieveApi> = {}): PensieveApi {
     getAvailableFilters: async (k: EntityKey) => ({ type: `${k}_filters`, fields: {}, filters: {} }),
     search: async (k: EntityKey) => (k === "videoGame" ? [{ id: 1, title: "Chrono Trigger" }] : []),
     getCustomFields: async () => [],
+    getCounts: async () => ({
+      counts: { system: 0, toy: 0, videoGame: 0, videoGameBox: 0, boardGame: 0, boardGameBox: 0 },
+      total: 0,
+    }),
     listShowcases: async () => [{ slug: "seths-collection", name: "Seth's Collection" }],
     ...overrides,
   };
@@ -87,14 +91,13 @@ describe("mcp server", () => {
     expect(received).toEqual([]);
   });
 
-  it("get_collection_summary aggregates counts across all six entities", async () => {
+  it("get_collection_summary returns the backend's counts endpoint result", async () => {
     const client = await connect(
       fakeApi({
-        search: async (key) => {
-          if (key === "toy") return [{}, {}, {}];
-          if (key === "system") return [{}];
-          return [];
-        },
+        getCounts: async () => ({
+          counts: { system: 1, toy: 3, videoGame: 0, videoGameBox: 0, boardGame: 0, boardGameBox: 0 },
+          total: 4,
+        }),
       }),
     );
     const result = await client.callTool({ name: "get_collection_summary", arguments: {} });

@@ -28,7 +28,7 @@ public class UserRepository {
     }
 
     // Every column read by the row mapper, in a single place so the two finders stay in sync.
-    private static final String SELECT_COLUMNS = "id, email, password_hash, enabled, created_at, updated_at, "
+    private static final String SELECT_COLUMNS = "id, email, keycloak_sub, password_hash, enabled, created_at, updated_at, "
             + "plan, subscription_status, access_until, paddle_customer_id, paddle_subscription_id, last_event_id, "
             + "role_override, showcase_slug, showcase_name";
 
@@ -36,6 +36,7 @@ public class UserRepository {
         return (resultSet, rowNumber) -> new User(
                 resultSet.getInt("id"),
                 resultSet.getString("email"),
+                resultSet.getString("keycloak_sub"),
                 resultSet.getString("password_hash"),
                 resultSet.getBoolean("enabled"),
                 resultSet.getTimestamp("created_at"),
@@ -52,10 +53,29 @@ public class UserRepository {
         );
     }
 
+    /**
+     * Find an account by email, case-insensitively: Keycloak normalizes emails to lowercase, but seeded rows are
+     * typed by hand — a case mismatch here would silently skip claim-on-first-login and JIT-provision a duplicate.
+     */
     public Optional<User> findByEmail(String email) {
-        final String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE email = ?";
+        final String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE LOWER(email) = LOWER(?)";
         try {
             final User user = jdbcTemplate.queryForObject(sql, new Object[]{email}, new int[]{Types.VARCHAR}, getRowMapper());
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException ignored) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Find an account by its Keycloak subject claim ({@code sub}) — the primary owner lookup under the secured
+     * profile. An indexed lookup ({@code keycloak_sub} is UNIQUE). Empty until the owner's first login has
+     * claimed the row (see {@link #updateSub}).
+     */
+    public Optional<User> findBySub(String sub) {
+        final String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE keycloak_sub = ?";
+        try {
+            final User user = jdbcTemplate.queryForObject(sql, new Object[]{sub}, new int[]{Types.VARCHAR}, getRowMapper());
             return Optional.ofNullable(user);
         } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();
@@ -105,6 +125,30 @@ public class UserRepository {
     }
 
     /**
+     * Claim a seeded (email-created, sub-less) row for a Keycloak account by stamping its {@code sub} on first
+     * login. Returns the number of rows updated so the caller can distinguish a missing/already-claimed row (0)
+     * from a successful claim (1).
+     */
+    public int updateSub(int id, String sub) {
+        final String sql = "UPDATE users SET keycloak_sub = ?, updated_at = ? WHERE id = ?";
+        return jdbcTemplate.update(sql,
+                new Object[]{sub, Timestamp.from(Instant.now()), id},
+                new int[]{Types.VARCHAR, Types.TIMESTAMP, Types.INTEGER});
+    }
+
+    /**
+     * Mirror an email change made at the IdP onto the account row (the token's verified email differs from the
+     * stored one). Throws {@code DuplicateKeyException} when another row already holds the address ({@code email}
+     * is UNIQUE); the caller decides whether that is fatal.
+     */
+    public int updateEmail(int id, String email) {
+        final String sql = "UPDATE users SET email = ?, updated_at = ? WHERE id = ?";
+        return jdbcTemplate.update(sql,
+                new Object[]{email, Timestamp.from(Instant.now()), id},
+                new int[]{Types.VARCHAR, Types.TIMESTAMP, Types.INTEGER});
+    }
+
+    /**
      * Grant or clear a user's public showcase. A null {@code slug} clears the grant (the name goes with it);
      * the caller validates the slug format and translates a duplicate-slug violation. Returns the number of
      * rows updated so the caller can distinguish a missing user (0) from a successful grant (1).
@@ -122,18 +166,14 @@ public class UserRepository {
         return jdbcTemplate.query(sql, getRowMapper());
     }
 
-    public boolean existsByEmail(String email) {
-        final String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        final Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);
-        return count != null && count > 0;
-    }
-
     /**
-     * Create a user account. {@code accessUntil}/{@code subscriptionStatus} stamp the caller's access
-     * window (registration grants a trial); {@code plan} is left to the column's {@code 'free'} default.
+     * JIT-provision a user account for a Keycloak identity on first login (no seeded row matched the token's
+     * {@code sub} or {@code email}). Keyed by the immutable {@code sub}; {@code accessUntil}/{@code subscriptionStatus}
+     * stamp the auto-granted trial window; {@code password_hash} is left NULL (passwords live in Keycloak) and
+     * {@code plan} defaults to the column's {@code 'free'}.
      */
-    public int insert(String email, String passwordHash, Timestamp accessUntil, String subscriptionStatus) {
-        final String sql = "INSERT INTO users(email, password_hash, enabled, access_until, subscription_status, created_at, updated_at) "
+    public int insertJit(String email, String keycloakSub, Timestamp accessUntil, String subscriptionStatus) {
+        final String sql = "INSERT INTO users(email, keycloak_sub, enabled, access_until, subscription_status, created_at, updated_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?);";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -141,7 +181,7 @@ public class UserRepository {
                     PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                     final Timestamp now = Timestamp.from(Instant.now());
                     ps.setString(1, email);
-                    ps.setString(2, passwordHash);
+                    ps.setString(2, keycloakSub);
                     ps.setBoolean(3, true);
                     ps.setTimestamp(4, accessUntil);
                     ps.setString(5, subscriptionStatus);

@@ -1,44 +1,146 @@
+# Production topology (Phase 6). Caddy is the ONLY service publishing ports (80/443) and terminates TLS;
+# it reverse-proxies three hostnames — the web app, the MCP sidecar, and Keycloak. Everything else
+# (backend, both databases, keycloak, mcp) is PRIVATE: reachable only on the compose network, no host ports.
+#
+# Images are the published artifacts — build + push them from their repos first (the frontend lives in
+# the-game-pensieve-web-v2; backend, mcp, and the realm live here). Values in ${...} come from a .env file
+# next to this one (see .env.production.example).
+#
+# Keycloak imports the PRODUCTION realm file (keycloak/import-prod/pensieve-realm.json) — NOT the dev one.
+# The prod realm has no test users, no dev test client, no anonymous DCR, and sslRequired=external; its
+# deployment-specific values (audience URL, web redirect URIs, web client secret) are ${...} placeholders
+# that Keycloak resolves from this service's environment at import time.
+#
+# AFTER FIRST DEPLOY, VERIFY (the import runs once, on first boot with an empty keycloak-db):
+#   • decode an access token and check aud == https://${MCP_DOMAIN}/mcp and iss == https://${AUTH_DOMAIN}/realms/pensieve
+#     (a literal "${PENSIEVE_...}" anywhere means placeholder substitution failed — fix and re-import);
+#   • anonymous client registration is rejected (POST /realms/pensieve/clients-registrations/openid-connect);
+#   • remote MCP hosts (e.g. claude.ai connectors) are PRE-REGISTERED as clients via the admin console —
+#     there is deliberately no anonymous DCR in production.
+# The audience is validated by BOTH the sidecar and the backend; a mismatch rejects every token.
+
 services:
-  frontend:
-    image: sethcondie/the-game-pensieve-web:latest
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
     ports:
-      - "4200:3000" # Next.js server listens on 3000
+      - "80:80"
+      - "443:443"
     environment:
-      # Server-side only; must include the /v1 prefix. Reaches the backend service
-      # over the compose network.
+      APP_DOMAIN: ${APP_DOMAIN}
+      MCP_DOMAIN: ${MCP_DOMAIN}
+      AUTH_DOMAIN: ${AUTH_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ${PWD}/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - mcp
+      - keycloak
+
+  frontend:
+    image: sethcondie/the-game-pensieve-web:latest # built + pushed from the-game-pensieve-web-v2 (OIDC BFF)
+    restart: unless-stopped
+    # NO public ports: served behind Caddy at https://${APP_DOMAIN}.
+    environment:
+      # Server-side only; reaches the backend privately over the compose network.
       API_BASE_URL: http://backend:8080/v1
+      SESSION_SECRET: ${SESSION_SECRET}
+      # OIDC_ISSUER is browser-facing (login redirect + id_token iss); OIDC_INTERNAL_ISSUER is the
+      # server-to-server token/refresh path over the internal network.
+      OIDC_ISSUER: https://${AUTH_DOMAIN}/realms/pensieve
+      OIDC_INTERNAL_ISSUER: http://keycloak:8080/realms/pensieve
+      OIDC_CLIENT_ID: pensieve-web
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
     depends_on:
       - backend
-    restart: unless-stopped
 
   backend:
     image: sethcondie/the-game-pensieve-api:latest
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-    depends_on:
-      - db
-      - flyway
     restart: unless-stopped
-
-  flyway:
-    image: sethcondie/the-game-pensieve-flyway:latest
-    command: -configFiles=/flyway/conf/flyway.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
+    # NO ports: private. The backend runs Flyway on startup, so no separate migration service is needed.
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,secured
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/pensieve-db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # OAuth2 resource server. iss is the canonical public issuer; keys are fetched over the internal
+      # network; aud is the public /mcp resource URL (must match the realm's Audience mapper).
+      PENSIEVE_OAUTH2_ISSUER: https://${AUTH_DOMAIN}/realms/pensieve
+      PENSIEVE_OAUTH2_JWK_SET_URI: http://keycloak:8080/realms/pensieve/protocol/openid-connect/certs
+      PENSIEVE_OAUTH2_AUDIENCE: https://${MCP_DOMAIN}/mcp
     depends_on:
       - db
+      - keycloak
+
+  mcp:
+    image: sethcondie/the-game-pensieve-mcp:latest
+    restart: unless-stopped
+    # NO public ports: served behind Caddy at https://${MCP_DOMAIN}/mcp.
+    environment:
+      API_BASE_URL: http://backend:8080/v1
+      PORT: "3000"
+      # required: the prod backend is always secured, so enforce unconditionally (no probe dependency).
+      MCP_AUTH_MODE: required
+      MCP_OAUTH_ISSUER: https://${AUTH_DOMAIN}/realms/pensieve
+      MCP_OAUTH_JWKS_URI: http://keycloak:8080/realms/pensieve/protocol/openid-connect/certs
+      MCP_OAUTH_AUDIENCE: https://${MCP_DOMAIN}/mcp
+    depends_on:
+      - backend
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7
+    restart: unless-stopped
+    # start (production mode) + import the realm on first boot. Behind Caddy: TLS is terminated at the edge,
+    # so HTTP is enabled internally and Keycloak trusts the X-Forwarded-* headers. KC_HOSTNAME pins the
+    # canonical public issuer; BACKCHANNEL_DYNAMIC lets in-network services fetch JWKS via keycloak:8080.
+    command: start --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
+      KC_HOSTNAME: https://${AUTH_DOMAIN}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      # Resolved into the ${...} placeholders in keycloak/import-prod/pensieve-realm.json at import time.
+      PENSIEVE_APP_DOMAIN: ${APP_DOMAIN}
+      PENSIEVE_MCP_DOMAIN: ${MCP_DOMAIN}
+      PENSIEVE_WEB_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+    volumes:
+      - ${PWD}/keycloak/import-prod:/opt/keycloak/data/import:ro
+    depends_on:
+      - keycloak-db
 
   db:
     image: postgres:16.2-alpine
-    ports:
-      - "5432:5432"
+    restart: unless-stopped
+    # NO ports: private.
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: pensieve-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  keycloak-db:
+    image: postgres:16.2-alpine
     restart: unless-stopped
+    # NO ports: private. Keycloak's own store, separate from the app database.
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+      POSTGRES_DB: keycloak
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
 
 volumes:
   postgres_data:
+  keycloak_db_data:
+  caddy_data:
+  caddy_config:

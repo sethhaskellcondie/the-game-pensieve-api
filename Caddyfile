@@ -1,0 +1,27 @@
+# Edge reverse proxy for the production stack (see compose.production.yaml). Caddy is the only service with
+# public ports; it terminates TLS (automatic HTTPS via Let's Encrypt) and routes each hostname to a private
+# backing service on the compose network. The {$VARS} are read from the caddy service's environment.
+#
+# DNS: point A/AAAA records for APP_DOMAIN, MCP_DOMAIN, and AUTH_DOMAIN at this host before first start so
+# Caddy can complete the ACME HTTP/TLS challenge.
+
+{
+	email {$ACME_EMAIL}
+}
+
+# The web app (Next.js BFF).
+{$APP_DOMAIN} {
+	reverse_proxy frontend:3000
+}
+
+# The MCP sidecar. The resource lives at https://{$MCP_DOMAIN}/mcp; the sidecar also serves its
+# /.well-known/oauth-protected-resource metadata and /healthz on this host.
+{$MCP_DOMAIN} {
+	reverse_proxy mcp:3000
+}
+
+# Keycloak. Caddy forwards X-Forwarded-* headers by default; the keycloak service trusts them
+# (KC_PROXY_HEADERS=xforwarded) and stamps the canonical issuer https://{$AUTH_DOMAIN}/realms/pensieve.
+{$AUTH_DOMAIN} {
+	reverse_proxy keycloak:8080
+}

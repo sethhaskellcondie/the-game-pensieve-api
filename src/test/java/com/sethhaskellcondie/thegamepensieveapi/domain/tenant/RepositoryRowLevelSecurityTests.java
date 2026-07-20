@@ -118,7 +118,7 @@ public class RepositoryRowLevelSecurityTests {
     /** Seeds a normal (non-showcase) user through the production {@link UserRepository} and returns its id. */
     private int insertUser() {
         final String email = "rls-repo-" + java.util.UUID.randomUUID() + "@example.com";
-        return userRepository.insert(email, "!", null, null);
+        return userRepository.insertJit(email, null, null, null);
     }
 
     /** The V1_13 migration seeds the public showcase owner; resolve it rather than creating another. */

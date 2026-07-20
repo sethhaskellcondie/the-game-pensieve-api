@@ -8,16 +8,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Profile-gated security. The default (unsecured) build permits every request so the public showcase keeps
- * working exactly as before. Activating the {@code secured} profile switches on stateless JWT authentication:
- * the heartbeat and the auth endpoints stay public, everything else requires a valid Bearer access token.
+ * working exactly as before. Activating the {@code secured} profile turns the app into a stateless OAuth2
+ * resource server: it validates Keycloak RS256 access tokens (signature via JWKS, plus {@code iss} + {@code aud};
+ * see {@link OAuth2ResourceServerConfig}). The heartbeat and the public showcase read surface stay open;
+ * everything else requires a valid Bearer access token.
  */
 @Configuration
 @EnableWebSecurity
@@ -26,9 +24,6 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
         "/v1/heartbeat",
-        "/v1/auth/register",
-        "/v1/auth/login",
-        "/v1/auth/refresh",
     };
 
     // The public showcase directory (GET only): anonymous viewers list the visible showcases to switch between
@@ -56,6 +51,11 @@ public class SecurityConfig {
         "/v1/boardGameBoxes/function/search",
     };
 
+    // Per-entity counts (GET only) join the guest read surface: they summarize exactly the rows the public
+    // search endpoints above already expose (RLS/X-Showcase-scoped, soft-deleted excluded), so opening them
+    // adds no reach a guest doesn't already have.
+    private static final String PUBLIC_COUNTS = "/v1/function/counts";
+
     // Custom-field definitions (GET only) join the guest read surface: the public showcase renders its owner's
     // custom-field columns from these, so — like the entity read/search/filters routes — they must be reachable
     // without a token and are X-Showcase-scoped by the tenant filter + RLS. Writes (POST/PUT/DELETE) are not
@@ -79,11 +79,6 @@ public class SecurityConfig {
     };
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     @Profile("!secured")
     public SecurityFilterChain permitAllFilterChain(HttpSecurity http) throws Exception {
         http
@@ -96,11 +91,8 @@ public class SecurityConfig {
     @Profile("secured")
     public SecurityFilterChain securedFilterChain(
             HttpSecurity http,
-            JwtService jwtService,
-            UserDetailsService userDetailsService,
             RestAuthenticationEntryPoint authenticationEntryPoint
     ) throws Exception {
-        final JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtService, userDetailsService);
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -108,13 +100,19 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_READ_BY_ID).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_SEARCH).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_COUNTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_CUSTOM_FIELDS_READ).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_METADATA_READ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/filters/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_SHOWCASE_DIRECTORY).permitAll()
                         .anyRequest().authenticated())
-                .exceptionHandling(handling -> handling.authenticationEntryPoint(authenticationEntryPoint))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // The secured chain is an OAuth2 resource server: it validates Keycloak RS256 access tokens
+                // (signature via JWKS, plus iss + aud) using the JwtDecoder bean from OAuth2ResourceServerConfig.
+                // The default JwtAuthenticationToken carries the token's claims (sub, email) for OwnerResolver.
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .jwt(jwt -> { }))
+                .exceptionHandling(handling -> handling.authenticationEntryPoint(authenticationEntryPoint));
         return http.build();
     }
 }

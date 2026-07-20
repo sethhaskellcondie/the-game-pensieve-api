@@ -13,6 +13,12 @@ export interface Heartbeat {
   secureMode: boolean;
 }
 
+/** Owner-scoped item counts per entity key plus their sum, from GET /v1/function/counts. */
+export interface CollectionCounts {
+  counts: Record<EntityKey, number>;
+  total: number;
+}
+
 /** Thrown for any non-2xx response or transport failure from the backend. */
 export class ApiError extends Error {
   constructor(
@@ -32,10 +38,17 @@ export interface PensieveApi {
   getAvailableFilters(entityKey: EntityKey): Promise<unknown>;
   search(entityKey: EntityKey, filters: FilterEntry[]): Promise<unknown[]>;
   getCustomFields(entityKey?: EntityKey): Promise<unknown[]>;
+  getCounts(): Promise<CollectionCounts>;
   listShowcases(): Promise<unknown[]>;
 }
 
-export function createApiClient(cfg: Config): PensieveApi {
+/**
+ * @param authToken when present, forwarded as `Authorization: Bearer <token>` on every request
+ *                  (secure mode). Omitted in local/permit-all mode.
+ */
+export function createApiClient(cfg: Config, authToken?: string): PensieveApi {
+  const authHeader: Record<string, string> = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+
   async function request<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
     const url = `${cfg.apiBaseUrl}${path}`;
     const controller = new AbortController();
@@ -45,7 +58,7 @@ export function createApiClient(cfg: Config): PensieveApi {
     try {
       res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeader },
         body: body === undefined ? undefined : JSON.stringify(body),
         signal: controller.signal,
       });
@@ -95,6 +108,8 @@ export function createApiClient(cfg: Config): PensieveApi {
       entityKey === undefined
         ? request<unknown[]>("GET", "/custom_fields")
         : request<unknown[]>("GET", `/custom_fields/entity/${encodeURIComponent(entityKey)}`),
+
+    getCounts: () => request<CollectionCounts>("GET", "/function/counts"),
 
     listShowcases: () => request<unknown[]>("GET", "/showcases"),
   };

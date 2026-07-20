@@ -1,6 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.sethhaskellcondie.thegamepensieveapi.SecuredProfileTest;
 import com.sethhaskellcondie.thegamepensieveapi.TestFactory;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupDataDto;
@@ -46,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles({"test-container", "secured"})
 @AutoConfigureMockMvc
-public class MultiTenancyTests {
+public class MultiTenancyTests extends SecuredProfileTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -234,8 +235,7 @@ public class MultiTenancyTests {
 
     private String registerAndLogin() throws Exception {
         final String email = factory.randomEmail();
-        factory.registerReturnResult(email, PASSWORD).andExpect(status().isCreated());
-        return factory.extractToken(factory.loginReturnResult(email, PASSWORD), "accessToken");
+        return factory.tokenForProvisioned(email, PASSWORD);
     }
 
     private SystemResponseDto createSystemAs(String token, String name) throws Exception {

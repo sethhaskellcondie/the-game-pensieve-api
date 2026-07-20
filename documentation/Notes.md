@@ -16,6 +16,7 @@ This document describes the design of the Game Pensieve API and the conventions 
 - [Configuration and Profiles](#configuration-and-profiles)
 - [Multi-Tenancy and Row-Level Security](#multi-tenancy-and-row-level-security)
 - [Database and Migrations](#database-and-migrations)
+- [Deployment (production topology)](#deployment-production-topology)
 - [Testing Strategy](#testing-strategy)
 - [Seeding Multi-Role Test Data](#seeding-multi-role-test-data)
 - [Where to Find the Requirements](#where-to-find-the-requirements)
@@ -194,17 +195,17 @@ WITH CHECK  (owner_id = NULLIF(current_setting('app.current_owner', true), '')::
 
 ### Why a separate database role
 
-The application connects to Postgres as a **superuser**, and superusers bypass RLS even with `FORCE`. So the migration (`V1_14`) creates a dedicated, privilege-limited role **`app_rls`** (`NOLOGIN NOSUPERUSER NOBYPASSRLS`) that is granted only DML on the tenant tables — notably **no** access to `users`/`refresh_tokens`. Each request *assumes* this role for the duration of one transaction; because `app_rls` is a non-superuser, the policies actually bind.
+The application connects to Postgres as a **superuser**, and superusers bypass RLS even with `FORCE`. So the migration (`V1_14`) creates a dedicated, privilege-limited role **`app_rls`** (`NOLOGIN NOSUPERUSER NOBYPASSRLS`) that is granted only DML on the tenant tables — notably **no** access to `users`. Each request *assumes* this role for the duration of one transaction; because `app_rls` is a non-superuser, the policies actually bind.
 
 ### The per-request flow
 
 The boundary is established by `TenantTransactionFilter` in `api/tenant/`, registered to run **after** Spring Security (so the `SecurityContext` is populated). For each tenant-scoped request it:
 
-1. **Resolves the owner** (`OwnerResolver`) — *before* dropping privileges, since this reads `users`: the authenticated user's id (`Bearer` principal → `users.id` by email), or the seeded **showcase owner** for an anonymous request.
+1. **Resolves the owner** (`OwnerResolver`) — *before* dropping privileges, since this reads `users`: the authenticated user's id (resolved from the token's `sub` claim — matched to `users.keycloak_sub`, claimed by `email` on first login when the token's `email_verified` claim is true, or JIT-provisioned as a trial otherwise), or the seeded **showcase owner** for an anonymous request. A valid token no account can be resolved or provisioned for — no `email` claim at all (a service account, or a token minted without the email scope), or an email that collides with an account linked to a different login — is answered **403** in the standard envelope, written directly by the filter (a thrown exception here would bypass the JSON error advice).
 2. **Opens a transaction** and, on that connection, runs `SET LOCAL ROLE app_rls` and `set_config('app.current_owner', <id>, true)`. Both are transaction-local, so nothing leaks across pooled connections.
 3. **Proceeds the chain inside that transaction.** Because `JdbcTemplate` reuses the thread-bound transactional connection, every repository call and every `@Transactional` service method observes the role + owner, and RLS scopes all of it.
 
-The public auth endpoints (`/v1/auth/**`) and `/v1/heartbeat` are **skipped** — they read/write `users`/`refresh_tokens`, which `app_rls` cannot touch, so they must run with the application's normal privileges.
+The identity endpoint (`/v1/auth/me`) and `/v1/heartbeat` are **skipped** — they read `users`, which `app_rls` cannot touch, so they must run with the application's normal privileges.
 
 ### Insert stamping and the showcase owner
 
@@ -266,7 +267,7 @@ anonymous request                                       -> GUEST
 
 The role is resolved once per request in `OwnerResolver.resolveOwner()` (via the pure `deriveRole(User)`) — in the **same `users` lookup that resolves the owner id, before the connection drops to `app_rls`** (which has no grant on `users`). It is stashed in `TenantContext` alongside the owner id. `AccessService.can(...)` reads that request-scoped role (never the DB, so it is safe inside the demoted transaction) and the gates live at the semantic chokepoints: `EntityGatewayAbstract` (`getWithFilters` → FILTER/402, writes → WRITE/403) and `BackupImportGateway` (`getBackupData` → BACKUP/403, `importBackupData` → IMPORT/403). Reads-by-id are ungated (RLS already scopes the row). Enforcement is **only active under the `secured` profile** — the default permit-all build reports full access, preserving the single-user behavior.
 
-New accounts are auto-granted a trial on registration: `AuthService.register` stamps `access_until = now + entitlement.trial-days` (default 30, env `ENTITLEMENT_TRIAL_DAYS`) with `subscription_status='trialing'`, so they resolve to **TRIAL**.
+New accounts are auto-granted a trial on **first login via JIT provisioning in `OwnerResolver`**: when a token's `sub` has no matching row (and no `email` match to claim), a new `users` row is inserted with `access_until = now + entitlement.trial-days` (default 30, env `ENTITLEMENT_TRIAL_DAYS`) and `subscription_status='trialing'`, so it resolves to **TRIAL**. Guard rails on this path: **claim-by-email requires the token's `email_verified` claim** (an unverified address must not take over a seeded row); email matching is **case-insensitive** (Keycloak lowercases emails, seeded rows are typed by hand); a sub-linked row's **`email` re-syncs from the (verified) token on each login**, so it tracks address changes made at the IdP; and a token with **no email claim** is rejected 403 rather than reaching the JIT insert's NOT NULL constraint. (`GET /v1/function/counts` is ungated like reads-by-id — RLS already scopes the aggregate.)
 
 ### Admin role management
 
@@ -282,21 +283,19 @@ These routes bypass the tenant transaction filter (they read/write `users`, whic
 
 There is no seed/env admin. The operator **claims the seeded `showcase@internal.local` row** (the `is_public_showcase` marker row that owns all pre-existing data) as their own account — it becomes, at once, the single ADMIN, the default showcase's owner, and an ordinary data owner, so the admin logs in and edits the default showcase as their own collection. All pre-existing `owner_id` FKs and the `showcase_owner_id()` function keep working untouched.
 
-The seeded row's `password_hash` is `'!'` — deliberately unusable — and Postgres has no built-in bcrypt, so mint the hash through the app's own encoder rather than baking a credential into a migration. **One-time manual procedure per environment (never automated in a migration):**
+Credentials now live in Keycloak, not in `users` (the row's legacy `password_hash` is `'!'`/nullable and unused). The row is claimed by **email on first login**: point the seeded row's `email` at the operator's Keycloak account, and their first authenticated call stamps that row's `keycloak_sub`. **One-time manual procedure per environment (never automated in a migration):**
 
-1. `POST /v1/auth/register` with the operator's intended password → the app encodes a proper `$2a$…` hash into a throwaway row.
-2. Copy it: `SELECT password_hash FROM users WHERE email = '<throwaway>';`
-3. Claim the seeded row (`showcase_slug`/`showcase_name` are already seeded by `V1_18`):
+1. Create the operator's account in **Keycloak** (the same realm the backend validates against), with their intended email and password — and mark the email **verified** (admin console → user → Email verified). Claim-by-email requires the token's `email_verified` claim; an unverified account will not claim the row (the login is refused with a 403 email-conflict error instead).
+2. Point the seeded row at that email and pin it ADMIN via SQL (`showcase_slug`/`showcase_name` are already seeded by `V1_18`; no `password_hash` is set):
    ```sql
    UPDATE users
    SET email = 'you@domain.com',
-       password_hash = '<the copied $2a$ hash>',
        role_override = 'ADMIN'
    WHERE is_public_showcase;
    ```
-4. `DELETE FROM users WHERE email = '<throwaway>';`
+3. Log in once as that Keycloak account — the first authenticated call **claims the row by email**, stamping its `keycloak_sub` so subsequent logins resolve by `sub`.
 
-No billing window is needed — `role_override='ADMIN'` wins in the derivation regardless of `access_until`, so the admin never lapses. The credential lives only in the running database. (This supersedes the earlier "promote any user by email" bootstrap; the claim is exercised end-to-end by `ShowcaseSecuredProfileTests.claimedDefaultShowcase_AdminEditsItAsTheirOwnCollection`.)
+No billing window is needed — `role_override='ADMIN'` wins in the derivation regardless of `access_until`, so the admin never lapses. The credential lives only in Keycloak. (This supersedes the earlier "promote any user by email" bootstrap; the claim is exercised end-to-end by `ShowcaseSecuredProfileTests.claimedDefaultShowcase_AdminEditsItAsTheirOwnCollection`.)
 
 Until the Paddle webhook lands, you can also drive the billing fields directly to grant/revoke access (the role re-derives without a pin):
 
@@ -328,7 +327,7 @@ This is the subtle part: **two separate checks run against two different identit
 
 | Question | Whose identity answers it | Where |
 |---|---|---|
-| Authenticated? | Always the admin (their JWT) | Spring Security / `JwtAuthenticationFilter` |
+| Authenticated? | Always the admin (their access token) | Spring Security OAuth2 resource server (`JwtDecoder`) |
 | May this caller impersonate? | The admin (`ACCESS_ADMIN`) | `OwnerResolver.resolveOwner(header)`, once, up front |
 | May this operation proceed (WRITE/FILTER/…)? | The **target** | `AccessService.can(Capability)` ← `TenantContext` role |
 | Which rows are visible/mutable? | The **target** | RLS via `app.current_owner` |
@@ -395,6 +394,12 @@ Conventions for new migrations:
 - Tables carry `created_at`, `updated_at`, and a nullable `deleted_at` (soft delete).
 - Each migration includes commented-out "Undo" statements at the bottom for manual rollback reference.
 
+## Deployment (production topology)
+
+Production is defined by `compose.production.yaml`, `Caddyfile`, and `.env.production.example` (copy to `.env.production` and fill in). **Caddy is the only public service** — it terminates TLS and binds ports 80/443, reverse-proxying three hostnames to private services: the app (`frontend`), the MCP sidecar (`mcp`), and auth (`keycloak`). Everything else — `backend`, `db`, `keycloak`, `keycloak-db`, `mcp`, and `frontend` — is private with no published ports and is reachable only over the compose network.
+
+Production Keycloak imports its **own realm file** — `keycloak/import-prod/pensieve-realm.json`, not the dev one. The prod realm ships with the dev-only surface removed: **no test users**, **no `pensieve-test-client`** (no public client, no direct-access grants), **no anonymous DCR** (remote MCP hosts are pre-registered via the admin console), and `sslRequired=external`. Its deployment-specific values — the `pensieve:read` Audience mapper's `https://<MCP_DOMAIN>/mcp` audience, the `pensieve-web` redirect URIs/origins, and the web client secret — are `${PENSIEVE_*}` placeholders that Keycloak resolves from the service environment at import time (wired from `.env` in `compose.production.yaml`), so there is **no manual pre-deploy realm edit**. The import runs once, on first boot with an empty `keycloak-db`. After the first deploy, decode an access token and verify `aud` and `iss`: the audience is validated by **both** the MCP sidecar and the backend resource server, so a mismatch (including a literal unsubstituted `${PENSIEVE_...}`) rejects every request.
+
 ## Testing Strategy
 
 The project uses a **diamond testing strategy**: a broad layer of integration tests that exercise the stack from the controller down, plus focused unit tests for the parts that need more rigor (notably custom fields and filters).
@@ -427,8 +432,8 @@ One bootstrap admin (`seeder-admin@email.com` / `seeder-admin` by default), eigh
 
 ### The choreography (shared by both consumers)
 
-1. **Bootstrap the admin:** register it, pin it with the one SQL statement the API cannot perform (`UPDATE users SET role_override='ADMIN' WHERE email=...`), and log in.
-2. **Per user:** register (tolerating the duplicate-email 400 on re-runs) → admin pins **PAID** (a new registration derives to TRIAL, which lacks IMPORT) → log in as the user and `POST /v1/function/import` with the seed file wrapped under a `"data"` key (the user's own token makes RLS stamp every row to that owner) → admin pins the **final role**. Final roles are always pinned, never cleared back to derivation — a derived TRIAL silently lapses when its `access_until` window passes, rotting the fixtures.
+1. **Bootstrap the admin:** create its Keycloak account, log in once so the first authenticated call JIT-provisions its `users` row, pin it with the one SQL statement the API cannot perform (`UPDATE users SET role_override='ADMIN' WHERE email=...`), and log in.
+2. **Per user:** create the Keycloak account (tolerating an already-existing account on re-runs) → log in as the user once so the **first authenticated call JIT-provisions the `users` row** (a fresh row derives to TRIAL, which lacks IMPORT) → admin pins **PAID** → the user `POST /v1/function/import`s the seed file wrapped under a `"data"` key (the user's own token makes RLS stamp every row to that owner) → admin pins the **final role**. Final roles are always pinned, never cleared back to derivation — a derived TRIAL silently lapses when its `access_until` window passes, rotting the fixtures.
 3. **Showcase grants:** `POST /v1/admin/users/{id}/showcase` for the two showcase users (the slug *is* the entitlement; they stay pinned PAID so the showcases remain visible).
 4. **Default showcase:** the seeded `showcase@internal.local` row is unloggable, so the admin imports for it through writable impersonation — pin it PAID (impersonation adopts the *target's* role; unpinned it derives to LAPSED, and the import would 403), `POST /v1/function/seedSampleData` with `X-Act-As-Owner: <its id>`, then clear the pin.
 
@@ -455,7 +460,7 @@ SQL_CMD="psql -h dev-db.example.com -U postgres -d pensieve-db" \
 ./scripts/seed-test-data.sh
 ```
 
-Requires `curl` and `jq`. Preconditions: the API must be running with the `secured` profile active and its working directory at the repo root (for the `seedSampleData` step), and **no admin may exist yet** unless it is the account the script registers — the `uq_users_single_admin` index makes the bootstrap `UPDATE` fail loudly if a different admin (e.g. the claimed default-showcase row from the bootstrap above) already holds the pin. The script targets fresh dev databases; it ends by smoke-asserting the full role/showcase matrix (trial import → 403, lapsed filter → 402, second admin → 400, showcase switching, unknown slug → 404), so a seeded environment is also a verified one. Any unexpected response exits non-zero.
+Requires `curl` and `jq`. Preconditions: **Keycloak must be running and reachable** (accounts are created in Keycloak and the `users` rows are JIT-provisioned on first login), the API must be running with the `secured` profile active and its working directory at the repo root (for the `seedSampleData` step), and **no admin may exist yet** unless it is the account the script registers — the `uq_users_single_admin` index makes the bootstrap `UPDATE` fail loudly if a different admin (e.g. the claimed default-showcase row from the bootstrap above) already holds the pin. The script targets fresh dev databases; it ends by smoke-asserting the full role/showcase matrix (trial import → 403, lapsed filter → 402, second admin → 400, showcase switching, unknown slug → 404), so a seeded environment is also a verified one. Any unexpected response exits non-zero.
 
 ## Where to Find the Requirements
 
@@ -478,7 +483,7 @@ The production compose file additionally runs the front end. See the README for 
 
 The Docker deployment runs **unsecured (permit-all)** by design. Both `compose.yaml` and `compose.production.yaml` set `SPRING_PROFILES_ACTIVE: docker` only — they do **not** activate the `secured` profile — so the containerized API serves the public showcase with no authentication, matching the original single-user behavior. (Authentication and the role/capability gates are gated by the `secured` profile; see [Configuration and Profiles](#configuration-and-profiles) and [Roles and Capabilities](#roles-and-capabilities).)
 
-To run the container in secured mode instead, activate both profiles, e.g. `SPRING_PROFILES_ACTIVE: docker,secured`, and override `JWT_SECRET` with a long random value. Leave it as `docker` alone to keep the not-secure deployment.
+To run the container in secured mode instead, activate both profiles, e.g. `SPRING_PROFILES_ACTIVE: docker,secured`, and provide the OAuth2 resource-server config so the API can validate Keycloak tokens — env `PENSIEVE_OAUTH2_ISSUER`, `PENSIEVE_OAUTH2_JWK_SET_URI`, and `PENSIEVE_OAUTH2_AUDIENCE` (dev defaults live in `application-secured.properties`). Keycloak must be running and reachable at the configured issuer. Leave it as `docker` alone to keep the not-secure deployment.
 
 ## Multiplatform Deployment
 
