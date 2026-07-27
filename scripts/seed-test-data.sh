@@ -2,7 +2,7 @@
 #
 # Multi-role test data seeder for LIVE environments (dev/staging).
 #
-# Seeds the data set documented in documentation/Notes.md ("Seeding Multi-Role Test Data"):
+# Seeds the data set documented in documentation/DevDocumentation.md ("Seeding Multi-Role Test Data"):
 # one bootstrap admin, eight users covering TRIAL/PAID/LAPSED, two public showcases, and a
 # populated default showcase. It is the live-environment consumer of the seed set; the
 # SeededUsersFixture/SeededDataMatrixTests pair is the integration-test consumer. Both run the

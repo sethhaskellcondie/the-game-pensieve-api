@@ -1,5 +1,5 @@
 # from declares the base image that we will build off of (FROM is always the first line of a Dockerfile)
-# eclipse-temurin provides a java runtime container, this project uses java 17
+# eclipse-temurin provides a java runtime container, this project uses java 25
 FROM eclipse-temurin:25
 
 # Set working directory

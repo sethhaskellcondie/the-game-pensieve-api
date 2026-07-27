@@ -1,4 +1,4 @@
-# Developer Notes
+# Developer Documentation
 
 This document describes the design of the Game Pensieve API and the conventions a developer should understand before working on it. For setup and run instructions, see the [README](../README.md). For the full HTTP contract, see [`openapi.yaml`](./openapi.yaml).
 
@@ -14,7 +14,11 @@ This document describes the design of the Game Pensieve API and the conventions 
 - [Metadata](#metadata)
 - [Response Body Format](#response-body-format)
 - [Configuration and Profiles](#configuration-and-profiles)
+- [Authentication (Keycloak and OAuth 2.1)](#authentication-keycloak-and-oauth-21)
 - [Multi-Tenancy and Row-Level Security](#multi-tenancy-and-row-level-security)
+- [Roles and Capabilities](#roles-and-capabilities)
+- [Public Showcases](#public-showcases)
+- [MCP Sidecar](#mcp-sidecar)
 - [Database and Migrations](#database-and-migrations)
 - [Deployment (production topology)](#deployment-production-topology)
 - [Testing Strategy](#testing-strategy)
@@ -38,8 +42,10 @@ The system is a CRUD-based entity service organized into four horizontal layers.
 
 The packages reflect this split:
 
-- `api/` — the web layer: controllers, the controller advice (`ApiControllerAdvice`), the standard response wrapper (`FormattedResponseBody`), and MVC configuration.
-- `domain/` — everything else, organized by concern (`entity/`, `customfield/`, `filter/`, `backupimport/`, `metadata/`, `exceptions/`).
+- `api/` — the web layer: controllers, the controller advice (`ApiControllerAdvice`), the standard response wrapper (`FormattedResponseBody`), MVC configuration, the OAuth2 resource-server setup (`api/security/`), and the per-request tenant boundary (`api/tenant/`).
+- `domain/` — everything else, organized by concern (`entity/`, `customfield/`, `filter/`, `backupimport/`, `metadata/`, `counts/`, `auth/`, `exceptions/`).
+
+Two things live outside this Java tree and are documented in their own sections below: the **MCP sidecar** (`mcp/`, a separate TypeScript process — see [MCP Sidecar](#mcp-sidecar)) and **Keycloak** (`keycloak/`, the authorization server — see [Authentication](#authentication-keycloak-and-oauth-21)).
 
 ## Domain Encapsulation
 
@@ -71,7 +77,7 @@ Every entity implements the generic `Entity<RequestDto, ResponseDto>` interface 
 
 Shared behavior is provided by the abstract base classes `EntityServiceAbstract`, `EntityRepositoryAbstract`, and `EntityGatewayAbstract`. Concrete entities extend these and supply only what is specific to them.
 
-A few conventions worth knowing:
+A few conventions that are worth knowing:
 
 - **`createNew()` is implemented per service, not in the base class.** Java cannot call `new T()` on a generic type, so each service constructs its own concrete instance. `updateExisting()` and `deleteById()` are shared in `EntityServiceAbstract`.
 - **POSTs are idempotent by intent.** Services run a duplication check inside `createNew()` so that repeating a create request returns a `400` rather than silently inserting a duplicate.
@@ -81,7 +87,7 @@ A few conventions worth knowing:
 
 ## Entities and Relationships
 
-The system tracks a physical game collection. The current entities are:
+This program tracks a game collection. The current entities are:
 
 - **System** — a gaming platform (e.g. a console). Referenced by games and boxes.
 - **Toy** — a collectible toy.
@@ -94,7 +100,7 @@ The video game and video game box relationship is the most involved: boxes and g
 
 ## Custom Fields
 
-Custom fields let users attach their own metadata to any entity without schema changes. A custom field is defined once (name, type, and which entity key it applies to) and its values are stored separately from the core entity rows. The supported value types mirror the filter types: text, number, boolean, and time. Custom fields may also define a fixed set of selectable options (`CustomFieldOption`).
+Custom fields let users attach their own metadata to any entity without schema changes. A custom field is defined once (name, type, and which entity key it applies to), and its values are stored separately from the core entity rows. The supported value types mirror the filter types: text, number, boolean, and time. Custom fields may also define a fixed set of selectable options (`CustomFieldOption`).
 
 Because custom field values are typed, they participate fully in the filter system (see below).
 
@@ -114,7 +120,7 @@ All search endpoints use an RPC-style call: `POST /{resource}/function/search` w
 | **Sort** | `order_by`, `order_by_desc` |
 | **Pagination** | `limit`, `offset` |
 
-### The System Filter
+### Filtering on a Game's System
 
 The `system` filter type exists specifically to filter video games and video game boxes by their associated system. Although a system reference is numeric, it gets its own filter type rather than reusing `number` because:
 
@@ -170,11 +176,67 @@ Global settings live in `application.properties` and apply to every profile. Pro
 | --- | --- | --- |
 | `local` (default) | Running against a local Postgres | `jdbc:postgresql://localhost:5432/pensieve-db` |
 | `docker` | Running inside the compose network | `jdbc:postgresql://db:5432/pensieve-db` |
+| `secured` | **Overlay, not a datasource profile** — turns on authentication and the role/capability gates | — (combined, e.g. `docker,secured`) |
 | `test-container` | Integration tests | Testcontainers (`jdbc:tc:postgresql:...`) |
 | `import-tests` | Backup/import tests | Testcontainers |
+| `rls-tests` | Tenancy / RLS repository tests | Testcontainers |
+| `seeded-tests` | The multi-role seed matrix suite | Testcontainers |
 | `filter-tests1`–`filter-tests8` | Filter integration tests, split across profiles | Testcontainers |
 
 The default credentials in local/docker are user `postgres`, password `root`. Override the active profile with `spring.profiles.active`.
+
+`secured` is an **overlay** profile: it is always activated alongside a datasource profile (`docker,secured` in production, `{"test-container", "secured"}` in the secured test suites) and it is the single switch between the two builds of the app:
+
+- **default (permit-all)** — no authentication; every request is anonymous and resolves to the default showcase owner, and `AccessService` reports full access. This preserves the original single-user behavior.
+- **`secured`** — the app is an OAuth2 resource server and the capability matrix is enforced (see [Authentication](#authentication-keycloak-and-oauth-21) and [Roles and Capabilities](#roles-and-capabilities)).
+
+Row-Level Security is **not** gated by the profile — it runs identically in both builds; only the resolved owner id differs. `GET /v1/heartbeat` reports which build is running (`{"message": "thump thump", "secureMode": true|false}`), which is how the front end and the MCP sidecar discover the server's posture without a token.
+
+The resource-server settings live in `application-secured.properties` (`pensieve.oauth2.issuer`, `pensieve.oauth2.jwk-set-uri`, `pensieve.oauth2.audience`, each env-overridable as `PENSIEVE_OAUTH2_*`). `entitlement.trial-days` (env `ENTITLEMENT_TRIAL_DAYS`, default 30) is global.
+
+## Authentication (Keycloak and OAuth 2.1)
+
+**Keycloak is the single authorization server for both the web app and MCP**, and the API is a pure **OAuth 2.0 resource server** — it mints no tokens, stores no passwords, and has no login, registration, or refresh endpoints. That reimplementation (migration `V1_19`) came out of the MCP rollout: MCP hosts require standard OAuth 2.1 discovery/DCR/PKCE, which the previous homegrown HS256 login stack could not provide, so both surfaces were moved onto one issuer.
+
+### Token validation
+
+The `secured` chain (`api/security/SecurityConfig`) is stateless and validates Keycloak **RS256** access tokens. `OAuth2ResourceServerConfig` builds the `JwtDecoder` from a **JWKS URI plus an explicit issuer validator** rather than `issuer-uri` discovery — deliberately, because the API sits on a private compose network and cannot reach the host-facing issuer URL to run OIDC discovery. So:
+
+- **`iss`** is validated against the canonical, host-facing issuer that Keycloak stamps into tokens (`KC_HOSTNAME`).
+- **keys** are fetched over the internal network (`http://keycloak:8080/...`).
+- **`aud`** is validated by `AudienceValidator` against the shared `/mcp` resource URI. Keeping audience validation on even behind a private network blocks the confused-deputy attack: a token minted for another resource server in the same realm cannot be replayed here. **The same audience is validated by the MCP sidecar**, so a mismatch (including an unsubstituted `${PENSIEVE_...}` placeholder) rejects every request on both sides.
+
+Keycloak does **not** honor the RFC 8707 `resource` parameter, so the audience is attached by an **Audience mapper** on the `pensieve:read` client scope in the realm import — that is why tokens carry `aud` at all.
+
+### Identity: token → `users` row
+
+There is no user table in the API's own sense of "credentials" — `users` is the authorization/profile record, linked to a Keycloak account by the immutable `sub` claim (`users.keycloak_sub`, nullable + UNIQUE, `V1_19`). `OwnerResolver` resolves it in this order, and the details (claim-by-email, JIT trial provisioning, and their guard rails) are covered under [Roles and Capabilities](#roles-and-capabilities):
+
+1. `keycloak_sub` matches → that row (its `email` re-syncs from the verified token).
+2. Otherwise a **verified** `email` matches an existing row → claim it, stamping the `sub`.
+3. Otherwise → **JIT-provision** a new trial account.
+4. A token with no `email` claim (a service account, or one minted without the email scope) → **403**.
+
+### The public read surface
+
+Under `secured`, these routes are `permitAll` so an anonymous visitor can browse a public showcase without a token; everything else is `authenticated()`:
+
+| Route | Methods |
+| --- | --- |
+| `/v1/heartbeat` | GET |
+| `/v1/{entity}/*` (read by id, all six entities) | GET |
+| `/v1/{entity}/function/search` | POST |
+| `/v1/filters/**` | GET |
+| `/v1/function/counts` | GET |
+| `/v1/custom_fields`, `/v1/custom_fields/entity/*` | GET |
+| `/v1/metadata/` + one of `ui-settings`, `default_sort_options`, `saved-filters`, `saved-filter-categories` | GET |
+| `/v1/showcases` (the public directory) | GET |
+
+Entity routes are enumerated per entity rather than wildcarded so future non-entity routes are not exposed by accident, and only the four metadata keys the showcase renders from are opened (not a `/v1/metadata/*` wildcard, nor the list-all GET) so a visitor cannot enumerate an owner's other metadata. Writes are never in this list: they fall through to `authenticated()` (anonymous → 401) and, for an authenticated showcase view, are then refused by the capability gate (403).
+
+### Keycloak realms
+
+The realm is fully declarative and imported on first boot; there is no manual post-import step. `keycloak/import/pensieve-realm.json` is the **dev** realm (used by both compose and the test Keycloak container) and `keycloak/import-prod/pensieve-realm.json` is the **production** realm — see [Deployment](#deployment-production-topology) for how they differ. `keycloak/README.md` documents the clients, scopes, and how to mint a token by hand.
 
 ## Multi-Tenancy and Row-Level Security
 
@@ -205,7 +267,16 @@ The boundary is established by `TenantTransactionFilter` in `api/tenant/`, regis
 2. **Opens a transaction** and, on that connection, runs `SET LOCAL ROLE app_rls` and `set_config('app.current_owner', <id>, true)`. Both are transaction-local, so nothing leaks across pooled connections.
 3. **Proceeds the chain inside that transaction.** Because `JdbcTemplate` reuses the thread-bound transactional connection, every repository call and every `@Transactional` service method observes the role + owner, and RLS scopes all of it.
 
-The identity endpoint (`/v1/auth/me`) and `/v1/heartbeat` are **skipped** — they read `users`, which `app_rls` cannot touch, so they must run with the application's normal privileges.
+Four paths are **skipped** by the filter (`shouldNotFilter`) because they read or write `users`, which `app_rls` cannot touch, so they must run with the application's normal privileges:
+
+| Path | Why it is safe outside the tenant transaction |
+| --- | --- |
+| `/v1/auth/**` | Only `GET /me`; resolves the caller explicitly and returns their own identity. |
+| `/v1/heartbeat` | Touches no data at all. |
+| `/v1/admin/**` | `AdminController` authorizes the caller as ADMIN itself, using the **no-arg** `OwnerResolver.resolveOwner()` (so impersonation cannot reach the control plane). |
+| `/v1/showcases` | Public directory; exposes only slug + display name. |
+
+Alongside the owner id and role, the filter stashes a third flag in `TenantContext`: **`showcaseView`**, true only for an `X-Showcase` request. It is deliberately distinct from `role == GUEST` (the permit-all build resolves every anonymous caller to GUEST too), so the read overrides keyed on it never affect the single-user build — see [Public showcases](#what-a-showcase-view-actually-sees).
 
 ### Insert stamping and the showcase owner
 
@@ -220,7 +291,7 @@ So ordinary inserts are stamped with the current owner, and writes that have no 
 
 ### Interaction with tests
 
-`@JdbcTest` repository tests load only the JDBC slice, so the filter never runs; they connect as the superuser (bypassing RLS) and their inserts are stamped to the showcase owner by the COALESCE fallback — so they needed no changes. The dedicated tenancy tests (`domain/tenant/RowLevelSecurityTests`, `RepositoryRowLevelSecurityTests`, and `controllers/MultiTenancyTests`) instead `SET LOCAL ROLE app_rls` and set `app.current_owner` explicitly to prove isolation holds — including against a raw `SELECT *`.
+`@JdbcTest` repository tests load only the JDBC slice, so the filter never runs; they connect as the superuser (bypassing RLS) and their inserts are stamped to the showcase owner by the COALESCE fallback — so they needed no changes. The dedicated tenancy tests instead `SET LOCAL ROLE app_rls` and set `app.current_owner` explicitly to prove isolation holds — including against a raw `SELECT *`: `domain/tenant/RowLevelSecurityTests`, `RepositoryRowLevelSecurityTests`, and `UsersBillingColumnsTests` run on the `rls-tests` profile, and `controllers/MultiTenancyTests` drives the whole stack under `{"test-container", "secured"}`.
 
 ### Known limitation / future hardening
 
@@ -265,7 +336,18 @@ anonymous request                                       -> GUEST
 
 ### Where it is enforced
 
-The role is resolved once per request in `OwnerResolver.resolveOwner()` (via the pure `deriveRole(User)`) — in the **same `users` lookup that resolves the owner id, before the connection drops to `app_rls`** (which has no grant on `users`). It is stashed in `TenantContext` alongside the owner id. `AccessService.can(...)` reads that request-scoped role (never the DB, so it is safe inside the demoted transaction) and the gates live at the semantic chokepoints: `EntityGatewayAbstract` (`getWithFilters` → FILTER/402, writes → WRITE/403) and `BackupImportGateway` (`getBackupData` → BACKUP/403, `importBackupData` → IMPORT/403). Reads-by-id are ungated (RLS already scopes the row). Enforcement is **only active under the `secured` profile** — the default permit-all build reports full access, preserving the single-user behavior.
+The role is resolved once per request in `OwnerResolver.resolveOwner()` (via the pure `deriveRole(User)`) — in the **same `users` lookup that resolves the owner id, before the connection drops to `app_rls`** (which has no grant on `users`). It is stashed in `TenantContext` alongside the owner id. `AccessService.can(...)` reads that request-scoped role (never the DB, so it is safe inside the demoted transaction) and the gates live at the semantic chokepoints — all four of them:
+
+| Gate | Capability → status |
+| --- | --- |
+| `EntityGatewayAbstract.getWithFilters` | FILTER → 402 |
+| `EntityGatewayAbstract` writes | WRITE → 403 |
+| `CustomFieldGateway` writes | WRITE → 403 |
+| `MetadataGateway` writes | WRITE → 403 |
+| `BackupImportGateway.getBackupData` | BACKUP → 403 |
+| `BackupImportGateway.importBackupData` | IMPORT → 403 |
+
+Reads-by-id are ungated (RLS already scopes the row), as are custom-field and metadata **reads** — a showcase visitor must be able to render the owner's custom-field columns and configured sort. Enforcement is **only active under the `secured` profile** — the default permit-all build reports full access, preserving the single-user behavior.
 
 New accounts are auto-granted a trial on **first login via JIT provisioning in `OwnerResolver`**: when a token's `sub` has no matching row (and no `email` match to claim), a new `users` row is inserted with `access_until = now + entitlement.trial-days` (default 30, env `ENTITLEMENT_TRIAL_DAYS`) and `subscription_status='trialing'`, so it resolves to **TRIAL**. Guard rails on this path: **claim-by-email requires the token's `email_verified` claim** (an unverified address must not take over a seeded row); email matching is **case-insensitive** (Keycloak lowercases emails, seeded rows are typed by hand); a sub-linked row's **`email` re-syncs from the (verified) token on each login**, so it tracks address changes made at the IdP; and a token with **no email claim** is rejected 403 rather than reaching the JIT insert's NOT NULL constraint. (`GET /v1/function/counts` is ungated like reads-by-id — RLS already scopes the aggregate.)
 
@@ -309,7 +391,7 @@ UPDATE users SET subscription_status = 'canceled', access_until = NULL
     WHERE email = 'customer@example.com';
 ```
 
-Because the role is resolved per request, any of these changes takes effect on the account's very next request — no re-login required.
+Because the role is resolved per request, any of these changes take effect on the account's very next request — no re-login required.
 
 ### Impersonation ("act as user")
 
@@ -336,10 +418,12 @@ Because impersonation only flows through the same `OwnerResolver` → `TenantCon
 
 #### Reporting: `GET /v1/auth/me`
 
-`/me` lets the front end render the target's view while still showing that an admin is driving. During impersonation it reports the **admin** as the primary `id`/`email`/`role` (always `ADMIN`) and nests the target under an `impersonating` object (`id`, `email`, `role`); for a normal request `impersonating` is `null`.
+`/me` reports the caller's identity, effective role, and `accessUntil` — the access-window expiry as **epoch milliseconds** (the same `access_until` that drives the TRIAL/PAID/LAPSED derivation), so the front end can show how long the plan stays active. It is `null` when the account has no window (e.g. an admin-pinned role), and it is typed as an explicit `Long` so the wire value is an unambiguous number rather than whatever Jackson would do with a `Timestamp`.
+
+It also lets the front end render an impersonated target's view while still showing that an admin is driving. During impersonation the primary `id`/`email`/`role`/`accessUntil` are the **admin's** (role always `ADMIN`, and the admin's own window — not the target's), and the target is nested under an `impersonating` object (`id`, `email`, `role`); for a normal request `impersonating` is `null`.
 
 ```json
-{ "id": 1, "email": "admin@x.com", "role": "ADMIN",
+{ "id": 1, "email": "admin@x.com", "role": "ADMIN", "accessUntil": null,
   "impersonating": { "id": 42, "email": "user@x.com", "role": "PAID" } }
 ```
 
@@ -378,11 +462,80 @@ no X-Showcase header:
 - The 404 is written directly by the servlet filter (an exception there would bypass the JSON error envelope), with one message for "unknown" and "not visible" so responses don't leak whether a slug exists.
 - `GET /v1/showcases` — a public (`permitAll`, tenant-filter-bypassing) **directory** of every visible showcase as `{slug, name}`, backing the front end's switcher. A showcase drops out of the directory exactly when its slug stops resolving.
 
+### What a showcase view actually sees
+
+A showcase view is more than "GUEST + a different owner id": the request also carries the `showcaseView` flag (`OwnerContext.showcase()` → `TenantContext.isShowcaseView()` → `AccessService.isShowcaseView()`), which is what read overrides key on. It is intentionally **independent of the `secured` profile short-circuit** — unlike `can(...)`, it reports the truth in both builds — and is never set by the permit-all build's own anonymous requests, so the single-user deployment keeps seeing its own settings.
+
+- **Entities** — read and filter only; the collection is the owner's rows, scoped by RLS.
+- **Custom fields** — **read-only**. Definitions are readable (the showcase renders the owner's custom-field columns from them); create/update/delete requires WRITE, so a GUEST showcase view gets a 403. Exercised by `controllers/CustomFieldShowcaseSecuredProfileTests`.
+- **Metadata** — read-only, and `ui-settings` is **substituted**, not passed through: `MetadataGateway` serves the fixed `ShowcaseMetadata.guestUiSettings()` (beginner mode on, every other mode off, both default views `"list"`, every standard field shown) so a visitor never sees the owner's personal editor state. Every other key — notably `default_sort_options` and the saved filters — passes through to the owner's own row via RLS, so a guest mirrors, and stays in sync with, the owner's configured showcase. The substitution applies to both `GET /v1/metadata` (the list) and `GET /v1/metadata/ui-settings`. Exercised by `controllers/MetadataShowcaseSecuredProfileTests`.
+- **Counts** — `GET /v1/function/counts` works unchanged; it summarizes exactly the rows the public search endpoints already expose.
+
 ### The default showcase
 
 The seeded `is_public_showcase` row is re-documented as the **default-showcase marker**: it is the fallback owner for anonymous no-header requests (and the non-secured build), and `V1_18` seeds its slug/name (`seths-collection` / "Seth's Collection"). The operator claims this row as the single admin (see the bootstrap above) and authors the default showcase as the owner of that data — the earlier idea of impersonating an unloggable showcase user to author it is superseded.
 
 Implemented in `api/tenant/` (slug resolution + GUEST scoping), `ShowcaseController` (directory), `AdminController.setShowcase` (grants), migrations `V1_17`/`V1_18`, and exercised by `controllers/ShowcaseSecuredProfileTests` + `SingleAdminSecuredProfileTests`.
+
+## MCP Sidecar
+
+`mcp/` is a **read-only MCP (Model Context Protocol) server** that lets AI hosts — Claude Desktop, Claude Code, claude.ai connectors — answer natural-language questions about a collection. Its own README (`mcp/README.md`) is the operational reference; this section is the design rationale.
+
+### It is a sidecar, not a module
+
+It is a **separate TypeScript/Node process** that speaks MCP over **Streamable HTTP** and fulfills every tool call by calling the existing REST API over HTTP. Nothing about MCP leaks into the Java code — the sidecar is just another API consumer. That is what keeps the security story simple: MCP reads inherit *exactly* the authorization the web app has (RLS + the capability matrix), never more, because they travel the same routes with the same token.
+
+The one accommodation the backend made for it is `GET /v1/function/counts` (`domain/counts/`), added so the `get_collection_summary` tool can describe the shape of a collection without transferring every row of every entity.
+
+### Transport
+
+**Stateless** Streamable HTTP: each `POST /mcp` builds a fresh `McpServer` + transport, serves the request, and tears both down. `GET`/`DELETE` on `/mcp` return **405** — those verbs exist for server-initiated SSE streams and session teardown, which a stateless server has no use for. `GET /healthz` is a liveness probe and stays public.
+
+### The tool surface
+
+All tools are read-only (`readOnlyHint`), and each maps to one REST endpoint:
+
+| Tool | REST endpoint |
+| --- | --- |
+| `get_available_filters(entityKey)` | `GET /v1/filters/{key}` |
+| `search_systems` / `search_toys` / `search_video_games` / `search_video_game_boxes` / `search_board_games` / `search_board_game_boxes` `(filters?)` | `POST /v1/{entity}/function/search` |
+| `get_custom_fields(entityKey?)` | `GET /v1/custom_fields[/entity/{key}]` |
+| `get_collection_summary()` | `GET /v1/function/counts` |
+| `list_showcases()` | `GET /v1/showcases` |
+
+Two conventions from this codebase have to be restated in `mcp/src/entities.ts` because the sidecar cannot import the `Keychain`: the six entity **keys** (`system`, `toy`, `videoGame`, `videoGameBox`, `boardGame`, `boardGameBox`), used verbatim in filter payloads and in the `/filters/{key}` and `/custom_fields/entity/{key}` paths, and the **pluralized controller paths** used by search (`videoGame` → `/v1/videoGames/...`). If you add an entity to the `Keychain`, add it there too.
+
+The filter tool descriptions carry the operator list from [The Filter System](#the-filter-system), and `get_available_filters` is advertised as the call to make first, so the model builds valid filters instead of guessing. The entity `key` is injected by the sidecar rather than asked of the model. API errors come back as MCP `isError` results carrying the status and body — so a `402` (lapsed filter) or `403` (write capability) surfaces to the host as a readable message rather than a transport failure.
+
+### OAuth: the sidecar is a protected resource
+
+When enforcing, the sidecar is an **OAuth 2.0 Protected Resource** in its own right. It validates the incoming bearer with [`jose`](https://github.com/panva/jose) (signature via JWKS, plus `iss` and `aud`), publishes **Protected Resource Metadata** (RFC 9728) at `/.well-known/oauth-protected-resource[/mcp]` — served at both the root and path-aware URLs so clients following either convention discover the authorization server — and challenges a missing or invalid token with `401 + WWW-Authenticate: Bearer resource_metadata="…"`. A host then runs the standard OAuth flow (DCR + authorization code + PKCE) against Keycloak on its own.
+
+A valid token is **forwarded** to the API, which validates it independently and scopes the request to its owner. Both sides check `aud` against the same `/mcp` resource URL; that is the confused-deputy guard, and it is why the audience value appears in the realm's Audience mapper, the sidecar's config, and the backend's config, and must match in all three.
+
+Enforcement is chosen by `MCP_AUTH_MODE`:
+
+| Mode | Behavior |
+| --- | --- |
+| `auto` (default) | enforce iff the backend heartbeat reports `secureMode=true` |
+| `required` | always enforce — the production setting, with no probe dependency |
+| `disabled` | never enforce (tokenless) |
+
+`auto` exists so a developer's local stack works without configuration, and it is careful about two failure modes. The startup heartbeat probe is **retried** (`MCP_HEARTBEAT_RETRIES` × `MCP_HEARTBEAT_RETRY_DELAY_MS`, default 30 × 2s) because compose `depends_on` waits for start, not readiness — a sidecar that boots first must not latch enforcement off from one failed probe. And if `secureMode` is still undetermined after the retries **while OAuth is configured**, it **fails closed** (enforces, with a loud warning) rather than serving `/mcp` tokenless against a secured backend. Enforcement with incomplete OAuth config is a hard startup error.
+
+As with the backend, `iss` is the canonical host-facing issuer while `MCP_OAUTH_JWKS_URI` points at the internal `keycloak:8080` URL; in production both are the public `https://` URLs.
+
+### Running and testing it
+
+```bash
+cd mcp && npm install
+npm run dev          # tsx watch
+npm test             # vitest — hermetic, no backend or Keycloak needed
+npm run typecheck
+docker compose up -d backend mcp    # from the repo root; endpoint at http://localhost:8090/mcp
+```
+
+The vitest suite covers config resolution (including the fail-closed rule), the auth helpers against a locally minted JWKS, the HTTP app's challenge/405/metadata behavior, the API client, and tool registration — no live dependencies, so it runs in CI without Docker. Register the running sidecar with a host via `claude mcp add --transport http pensieve http://localhost:8090/mcp`, or point the MCP Inspector at it.
 
 ## Database and Migrations
 
@@ -398,6 +551,8 @@ Conventions for new migrations:
 
 Production is defined by `compose.production.yaml`, `Caddyfile`, and `.env.production.example` (copy to `.env.production` and fill in). **Caddy is the only public service** — it terminates TLS and binds ports 80/443, reverse-proxying three hostnames to private services: the app (`frontend`), the MCP sidecar (`mcp`), and auth (`keycloak`). Everything else — `backend`, `db`, `keycloak`, `keycloak-db`, `mcp`, and `frontend` — is private with no published ports and is reachable only over the compose network.
 
+**Production runs secured.** The backend is started with `SPRING_PROFILES_ACTIVE: docker,secured` and its `PENSIEVE_OAUTH2_*` env, the sidecar with `MCP_AUTH_MODE=required`, and Keycloak has its own Postgres (`keycloak-db`), separate from the app database. There is **no `flyway` service** here — the production backend runs Flyway on startup — and the app database keeps a named volume. This is the opposite posture from the dev `compose.yaml` (see [Security Mode in Docker](#security-mode-in-docker)).
+
 Production Keycloak imports its **own realm file** — `keycloak/import-prod/pensieve-realm.json`, not the dev one. The prod realm ships with the dev-only surface removed: **no test users**, **no `pensieve-test-client`** (no public client, no direct-access grants), **no anonymous DCR** (remote MCP hosts are pre-registered via the admin console), and `sslRequired=external`. Its deployment-specific values — the `pensieve:read` Audience mapper's `https://<MCP_DOMAIN>/mcp` audience, the `pensieve-web` redirect URIs/origins, and the web client secret — are `${PENSIEVE_*}` placeholders that Keycloak resolves from the service environment at import time (wired from `.env` in `compose.production.yaml`), so there is **no manual pre-deploy realm edit**. The import runs once, on first boot with an empty `keycloak-db`. After the first deploy, decode an access token and verify `aud` and `iss`: the audience is validated by **both** the MCP sidecar and the backend resource server, so a mismatch (including a literal unsubstituted `${PENSIEVE_...}`) rejects every request.
 
 ## Testing Strategy
@@ -407,6 +562,17 @@ The project uses a **diamond testing strategy**: a broad layer of integration te
 - Integration tests use **MockMvc** (bundled with Spring Boot) to drive the controllers.
 - They run against **Testcontainers** so each run gets an isolated Postgres instance with no cross-contamination between tests. **Docker must be running** for these tests.
 - The filter integration tests are split across the `filter-tests1`–`filter-tests8` profiles to spread the container load.
+
+### The secured-profile suites
+
+Tests that exercise authentication (`*SecuredProfileTests`, `MultiTenancyTests`, `SeededDataMatrixTests`) run against a **real Keycloak Testcontainer** rather than mocked tokens — they mint genuine RS256 access tokens and the app validates them exactly as it would in production:
+
+- `KeycloakTestSupport` owns the container: a JVM-wide singleton started on first use and reused for the whole run (Ryuk reaps it). It mounts **the same realm file the compose stack uses** (`keycloak/import/pensieve-realm.json`, by host path — no duplicated copy to drift), so its tokens carry the real audience, the `pensieve:read` scope, and `sub`/`email`. Tokens are minted through the realm's public `pensieve-test-client` with the direct-access (password) grant, and `ensureUser` admin-creates accounts on demand so tests keep their familiar "make a user, get a token" shape.
+- `SecuredProfileTest` is the mix-in base that points `pensieve.oauth2.issuer`/`jwk-set-uri` at that container via `@DynamicPropertySource`. Subclasses keep their own `@SpringBootTest`/`@ActiveProfiles` because the datasource profile differs (`test-container` vs `seeded-tests`); the audience stays the fixed value from `application-secured.properties`.
+
+### The MCP sidecar suite
+
+The sidecar has its own **vitest** suite (`cd mcp && npm test`), independent of the Maven build and **hermetic** — no backend, database, or Keycloak needed, so it runs without Docker. It covers config resolution and the fail-closed enforcement rule, token verification against a locally minted JWKS, the HTTP app (auth challenge, metadata endpoints, 405s), the API client, and tool registration.
 
 > On some machines not all containers start reliably. If the suite fails for that reason, reduce the load by commenting out the `GetWithFilters...Tests.java` series.
 
@@ -467,23 +633,36 @@ Requires `curl` and `jq`. Preconditions: **Keycloak must be running and reachabl
 - **Design intent** lives in the Javadoc-style comments on the `Entity` and `System` classes (and the `Keychain`).
 - **Per-entity requirements** live in that entity's integration test. For example, the rules for a video game box are documented and enforced in `VideoGameBoxTests.java`. When in doubt about expected behavior, read the test.
 - **The HTTP contract** is in [`openapi.yaml`](./openapi.yaml); ready-to-run example requests are in [`api.postman_collection.json`](./api.postman_collection.json).
+- **The MCP sidecar** documents its tools, env vars, and host setup in [`../mcp/README.md`](../mcp/README.md).
+- **Keycloak** (realm contents, clients, scopes, minting a token by hand) is in [`../keycloak/README.md`](../keycloak/README.md).
 - **Notable past issues** are recorded in [`PastIssues.md`](./PastIssues.md).
 
 ## Docker Runtime Flow
 
-Running the project in Docker spins up three containers:
+The development compose file (`compose.yaml`) defines six services:
 
-1. **`db`** — the Postgres database, with a volume for persistent storage.
+1. **`db`** — the Postgres database.
 2. **`flyway`** — runs the database migrations against `db`, then exits.
 3. **`backend`** — the API, built from the project `Dockerfile`. In Docker it loads the `docker` profile (`application-docker.properties`).
+4. **`keycloak`** — the authorization server (`start-dev --import-realm`, host port 8081), importing `keycloak/import/pensieve-realm.json` on first boot into a `keycloak_data` volume.
+5. **`mcp`** — the MCP sidecar, built from `mcp/Dockerfile` (host port 8090 → `/mcp`).
+6. **`frontend`** — the Next.js app (host port 4200).
 
-The production compose file additionally runs the front end. See the README for the exact commands.
+They are independent enough to bring up piecemeal: `docker compose up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar, `up -d keycloak` to work on auth. See the README for the exact commands, and [Deployment](#deployment-production-topology) for the production topology, which differs substantially.
 
 ### Security Mode in Docker
 
-The Docker deployment runs **unsecured (permit-all)** by design. Both `compose.yaml` and `compose.production.yaml` set `SPRING_PROFILES_ACTIVE: docker` only — they do **not** activate the `secured` profile — so the containerized API serves the public showcase with no authentication, matching the original single-user behavior. (Authentication and the role/capability gates are gated by the `secured` profile; see [Configuration and Profiles](#configuration-and-profiles) and [Roles and Capabilities](#roles-and-capabilities).)
+The two compose files take **opposite** postures, and that is deliberate:
 
-To run the container in secured mode instead, activate both profiles, e.g. `SPRING_PROFILES_ACTIVE: docker,secured`, and provide the OAuth2 resource-server config so the API can validate Keycloak tokens — env `PENSIEVE_OAUTH2_ISSUER`, `PENSIEVE_OAUTH2_JWK_SET_URI`, and `PENSIEVE_OAUTH2_AUDIENCE` (dev defaults live in `application-secured.properties`). Keycloak must be running and reachable at the configured issuer. Leave it as `docker` alone to keep the not-secure deployment.
+| | `compose.yaml` (dev) | `compose.production.yaml` |
+| --- | --- | --- |
+| Backend profiles | `docker` — permit-all | `docker,secured` |
+| MCP enforcement | `MCP_AUTH_MODE` unset → `auto`, which sees `secureMode=false` and stays off | `MCP_AUTH_MODE=required` |
+| Keycloak | present, but nothing requires a token | required for every non-public route |
+
+So the **dev** stack serves the public showcase with no authentication, matching the original single-user behavior, while **production** is fully secured. Keycloak still runs in dev so the OAuth flow can be developed and the realm kept honest.
+
+To run the dev stack secured instead, activate both profiles (`SPRING_PROFILES_ACTIVE: docker,secured`) and supply the OAuth2 resource-server env — `PENSIEVE_OAUTH2_ISSUER`, `PENSIEVE_OAUTH2_JWK_SET_URI`, `PENSIEVE_OAUTH2_AUDIENCE` (dev defaults live in `application-secured.properties`). Keycloak must be reachable at the configured issuer. The sidecar's `auto` mode picks the change up on its own — it will see `secureMode=true` on the heartbeat and start enforcing. Leave the backend on `docker` alone to keep the not-secure deployment.
 
 ## Multiplatform Deployment
 
@@ -516,7 +695,7 @@ docker buildx inspect --bootstrap
      .
    ```
 
-3. Build and push the Flyway migration image:
+3. Build and push the Flyway migration image (`Dockerfile.flyway`) — **legacy**, no longer referenced by either compose file: the production backend runs Flyway on startup, and the dev stack uses the official `flyway/flyway` image with the migrations bind-mounted. Keep it only if you migrate out-of-band somewhere.
 
    ```bash
    docker buildx build --platform linux/amd64,linux/arm64 \
@@ -526,6 +705,17 @@ docker buildx inspect --bootstrap
      .
    ```
 
+### Build and Push the MCP Sidecar Image
+
+Built from `mcp/` (no jar or prior build step — the Dockerfile compiles the TypeScript):
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t sethcondie/the-game-pensieve-mcp:latest \
+  --push \
+  ./mcp
+```
+
 ### Front End (React / Next.js)
 
 The front end is a Next.js (React) application (repo: `the-game-pensieve-web-v2`). It runs as a Node server (`next start`) on container port **3000**, not as a static site.
@@ -533,7 +723,8 @@ The front end is a Next.js (React) application (repo: `the-game-pensieve-web-v2`
 Key points:
 
 - The browser talks to the Next.js server, which proxies calls to the backend through its own Route Handlers (`/api/*`).
-- The backend URL is read **server-side only** from `API_BASE_URL`, including the `/v1` prefix (e.g. `http://localhost:8080/v1`). It is required at **runtime**, not build time, so a single image can target any backend. The app throws on startup if `API_BASE_URL` is unset outside development. An optional `API_TOKEN` enables Bearer auth — see the front end's `.env.example`.
+- The backend URL is read **server-side only** from `API_BASE_URL`, including the `/v1` prefix (e.g. `http://localhost:8080/v1`). It is required at **runtime**, not build time, so a single image can target any backend. The app throws on startup if `API_BASE_URL` is unset outside development.
+- Against a secured backend the Next.js server is a **BFF**: a confidential Keycloak OIDC client (`pensieve-web`) that runs the authorization-code + PKCE login, keeps the tokens in an httpOnly `iron-session` cookie, and attaches the access token to its server-side calls — the browser never holds a token. It needs `SESSION_SECRET`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, and `OIDC_ISSUER` (browser-facing, for the redirect and `id_token` `iss`), plus `OIDC_INTERNAL_ISSUER` when the container reaches Keycloak over the compose network. A static `API_TOKEN` remains as a non-interactive fallback. See the front end's `.env.example`.
 - The image is built with `output: "standalone"` (`next.config.ts`) and a multi-stage `Dockerfile`, both present in the front-end repo.
 
 Build and push the front-end image **from the front-end repository**:
@@ -547,10 +738,12 @@ docker buildx build --platform linux/amd64,linux/arm64 \
 
 ### Running the Deployed Stack
 
-Once the images are published, the whole project runs from the production compose file:
+Once the images are published, the whole project runs from the production compose file. It needs a `.env` next to it (copy `.env.production.example`) supplying the three domains, the ACME email, and the secrets:
 
 ```bash
-docker compose -f compose.production.yaml up
+docker compose -f compose.production.yaml up -d
 ```
 
-The front end is served on `localhost:4200` (host port 4200 maps to the Next.js container's port 3000). The compose files set `API_BASE_URL=http://backend:8080/v1` so the front-end container reaches the backend over the compose network.
+Nothing is published on a host port except Caddy's 80/443 — the app, the MCP endpoint, and Keycloak are reached at `https://${APP_DOMAIN}`, `https://${MCP_DOMAIN}/mcp`, and `https://${AUTH_DOMAIN}`, so DNS must point at the host before first start for the ACME challenge to complete. Services reach each other over the compose network (`API_BASE_URL=http://backend:8080/v1`, JWKS via `http://keycloak:8080/...`).
+
+The **dev** stack is the one that exposes host ports: `docker compose up -d` serves the front end on `localhost:4200` (mapped to the Next.js container's port 3000), the API on `8080`, the MCP endpoint on `8090`, Keycloak on `8081`, and Postgres on `5432`.

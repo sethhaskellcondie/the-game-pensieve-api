@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * The role/showcase verification matrix run against the full multirole seed set (see
- * {@link SeededUsersFixture} and the "Seeding Multirole Test Data" section of {@code documentation/Notes.md}).
+ * {@link SeededUsersFixture} and the "Seeding Multirole Test Data" section of {@code documentation/DevDocumentation.md}).
  * Where the other secured-profile tests each build the minimal data they need, this suite seeds the complete
  * fixture — eight users across TRIAL/PAID/LAPSED, two public showcases, and a populated default showcase — and
  * asserts each capability-matrix row and the showcase-switching features against that realistic data set.

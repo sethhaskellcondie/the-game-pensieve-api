@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Seeds the multirole test data set documented in {@code documentation/Notes.md} ("Seeding Multirole Test
+ * Seeds the multirole test data set documented in {@code documentation/DevDocumentation.md} ("Seeding Multirole Test
  * Data"): one bootstrap admin, eight users covering TRIAL/PAID/LAPSED, two public showcases, and a populated
  * default showcase — everything needed to exercise each role and the showcase-switching features against
  * realistic multi-user data.
