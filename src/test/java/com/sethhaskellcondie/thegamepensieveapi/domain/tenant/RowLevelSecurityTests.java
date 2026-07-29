@@ -118,7 +118,7 @@ public class RowLevelSecurityTests {
     private int insertUser() {
         final String email = "rls-" + java.util.UUID.randomUUID() + "@example.com";
         return jdbcTemplate.queryForObject(
-                "INSERT INTO users(email, password_hash, enabled) VALUES (?, '!', true) RETURNING id",
+                "INSERT INTO users(email) VALUES (?) RETURNING id",
                 Integer.class, email);
     }
 

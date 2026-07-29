@@ -50,7 +50,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         final String path = request.getRequestURI();
         // /v1/admin/** and the public showcase directory are skipped for the same reason as the auth endpoints:
-        // they read (or write) the users table, which the demoted app_rls role cannot access. AdminController
+        // they read (or write) to the users' table, which the demoted app_rls role cannot access. AdminController
         // authorizes the caller itself; the directory is public and exposes only slug + name.
         return path.startsWith("/v1/auth/") || path.equals("/v1/heartbeat") || path.startsWith("/v1/admin/")
                 || path.equals("/v1/showcases");
@@ -59,7 +59,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        // Resolve owner AND role here, before the transaction drops to app_rls — that read of the users table
+        // Resolve owner AND role here, before the transaction drops to app_rls — that read of the users' table
         // needs the application's normal privileges (app_rls has no grant on users). The X-Showcase header is an
         // explicit read-only showcase view and wins for every caller (even authenticated ones, and over
         // X-Act-As-Owner when both are present): the request is scoped to the showcase owner as GUEST. Without
@@ -81,7 +81,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
                 owner = ownerResolver.resolveOwner(request.getHeader("X-Act-As-Owner"));
             } catch (ExceptionForbidden e) {
                 // A valid token that no account can be resolved or provisioned for (e.g. no email claim, or an
-                // email conflict). Written directly for the same reason as the showcase 404 above.
+                // email conflict). Written directly for the same reason as showcase 404 above.
                 writeForbidden(response, e);
                 return;
             }
@@ -114,7 +114,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
             throw new ServletException(cause);
         } catch (UnexpectedRollbackException ignored) {
             // An inner @Transactional component (e.g. a handled validation failure) marked the request transaction
-            // rollback-only. The error response is already written and rolling back is the correct outcome.
+            // rollback-only. The error response is already written, and rolling back is the correct outcome.
         } finally {
             TenantContext.clearShowcaseView();
             TenantContext.clearRole();
@@ -124,7 +124,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
 
     /**
      * Answer an unknown (or currently not-visible) X-Showcase slug with a 404 in the standard error envelope.
-     * The two cases are deliberately indistinguishable so the response does not leak whether a slug exists.
+     * The two cases are deliberately indistinguishable, so the response does not leak whether a slug exists.
      */
     private void writeShowcaseNotFound(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);

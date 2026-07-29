@@ -48,7 +48,7 @@ import java.util.List;
  * row</em> ({@code showcase@internal.local}, marked {@code is_public_showcase}) with a one-time SQL update that
  * points it at the operator's (email-verified) Keycloak account and pins it ADMIN — their first login then claims
  * the row by email, stamping its {@code keycloak_sub} (see {@code documentation/DevDocumentation.md} for the full
- * procedure; credentials live in Keycloak, so no password hash is set):
+ * procedure; credentials live in Keycloak):
  * {@code UPDATE users SET email='you@domain.com', role_override='ADMIN' WHERE is_public_showcase;}
  * The claimed row is simultaneously the single ADMIN, the default showcase's owner, and an ordinary data owner —
  * the admin logs in and edits the default showcase as their own collection. This is also the recovery path after

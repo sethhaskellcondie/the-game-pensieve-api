@@ -50,7 +50,7 @@ public class UsersBillingColumnsTests {
     @Test
     void newUser_DefaultsToFreePlan() {
         final String email = "billing-" + java.util.UUID.randomUUID() + "@example.com";
-        jdbcTemplate.update("INSERT INTO users(email, password_hash, enabled) VALUES (?, '!', true)", email);
+        jdbcTemplate.update("INSERT INTO users(email) VALUES (?)", email);
         final String plan = jdbcTemplate.queryForObject("SELECT plan FROM users WHERE email = ?", String.class, email);
         assertEquals("free", plan, "A new user with no explicit plan should default to 'free'.");
     }
@@ -59,7 +59,7 @@ public class UsersBillingColumnsTests {
     void planCheckConstraint_RejectsUnknownValue() {
         final String email = "billing-" + java.util.UUID.randomUUID() + "@example.com";
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, plan) VALUES (?, '!', true, 'bogus')", email),
+                "INSERT INTO users(email, plan) VALUES (?, 'bogus')", email),
                 "The plan CHECK constraint should reject values outside ('free','paid').");
     }
 
@@ -69,7 +69,7 @@ public class UsersBillingColumnsTests {
     void roleOverrideColumn_DefaultsToNull() {
         // A user created without an explicit override has none — the role is auto-derived per request.
         final String email = "role-" + java.util.UUID.randomUUID() + "@example.com";
-        jdbcTemplate.update("INSERT INTO users(email, password_hash, enabled) VALUES (?, '!', true)", email);
+        jdbcTemplate.update("INSERT INTO users(email) VALUES (?)", email);
         final String roleOverride = jdbcTemplate.queryForObject(
                 "SELECT role_override FROM users WHERE email = ?", String.class, email);
         assertNull(roleOverride, "role_override should default to NULL so the role is auto-derived.");
@@ -81,7 +81,7 @@ public class UsersBillingColumnsTests {
         // by the V1_17 partial unique index, asserted separately below).
         final String email = "role-" + java.util.UUID.randomUUID() + "@example.com";
         jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, role_override) VALUES (?, '!', true, 'PAID')", email);
+                "INSERT INTO users(email, role_override) VALUES (?, 'PAID')", email);
         final String roleOverride = jdbcTemplate.queryForObject(
                 "SELECT role_override FROM users WHERE email = ?", String.class, email);
         assertEquals("PAID", roleOverride, "A role_override of one of the five roles should be accepted and stored.");
@@ -91,7 +91,7 @@ public class UsersBillingColumnsTests {
     void roleOverrideCheckConstraint_RejectsUnknownValue() {
         final String email = "role-" + java.util.UUID.randomUUID() + "@example.com";
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, role_override) VALUES (?, '!', true, 'bogus')", email),
+                "INSERT INTO users(email, role_override) VALUES (?, 'bogus')", email),
                 "The role_override CHECK constraint should reject values outside the five roles.");
     }
 
@@ -100,7 +100,7 @@ public class UsersBillingColumnsTests {
     @Test
     void showcaseColumns_ExistAndDefaultToNull() {
         final String email = "showcase-" + java.util.UUID.randomUUID() + "@example.com";
-        jdbcTemplate.update("INSERT INTO users(email, password_hash, enabled) VALUES (?, '!', true)", email);
+        jdbcTemplate.update("INSERT INTO users(email) VALUES (?)", email);
         final java.util.Map<String, Object> row = jdbcTemplate.queryForMap(
                 "SELECT showcase_slug, showcase_name FROM users WHERE email = ?", email);
         assertNull(row.get("showcase_slug"), "showcase_slug should default to NULL — the collection is private.");
@@ -121,10 +121,10 @@ public class UsersBillingColumnsTests {
     void showcaseSlug_MustBeUnique() {
         final String slug = "dup-" + Math.abs(java.util.UUID.randomUUID().getLeastSignificantBits() % 1000000);
         jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, showcase_slug) VALUES (?, '!', true, ?)",
+                "INSERT INTO users(email, showcase_slug) VALUES (?, ?)",
                 "showcase-" + java.util.UUID.randomUUID() + "@example.com", slug);
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, showcase_slug) VALUES (?, '!', true, ?)",
+                "INSERT INTO users(email, showcase_slug) VALUES (?, ?)",
                 "showcase-" + java.util.UUID.randomUUID() + "@example.com", slug),
                 "showcase_slug is the public address — two users must not share one.");
     }
@@ -135,7 +135,7 @@ public class UsersBillingColumnsTests {
         // test transaction — unlike rejections, where the first failed statement aborts it.)
         for (String valid : new String[]{"a", "abc", "a-b-c", "slug-1", "1-a"}) {
             jdbcTemplate.update(
-                    "INSERT INTO users(email, password_hash, enabled, showcase_slug) VALUES (?, '!', true, ?)",
+                    "INSERT INTO users(email, showcase_slug) VALUES (?, ?)",
                     "showcase-" + java.util.UUID.randomUUID() + "@example.com",
                     valid + "-" + Math.abs(java.util.UUID.randomUUID().getLeastSignificantBits() % 1000000));
         }
@@ -146,7 +146,7 @@ public class UsersBillingColumnsTests {
         // One rejection proves the CHECK is wired (a failed statement aborts the test transaction, so more
         // shapes can't be probed here); the admin grant API validates the full format matrix per request.
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, showcase_slug) VALUES (?, '!', true, 'Has-Uppercase')",
+                "INSERT INTO users(email, showcase_slug) VALUES (?, 'Has-Uppercase')",
                 "showcase-" + java.util.UUID.randomUUID() + "@example.com"),
                 "chk_users_showcase_slug should reject a slug with uppercase characters.");
     }
@@ -158,9 +158,9 @@ public class UsersBillingColumnsTests {
         final String first = "admin-" + java.util.UUID.randomUUID() + "@example.com";
         final String second = "admin-" + java.util.UUID.randomUUID() + "@example.com";
         jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, role_override) VALUES (?, '!', true, 'ADMIN')", first);
+                "INSERT INTO users(email, role_override) VALUES (?, 'ADMIN')", first);
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
-                "INSERT INTO users(email, password_hash, enabled, role_override) VALUES (?, '!', true, 'ADMIN')", second),
+                "INSERT INTO users(email, role_override) VALUES (?, 'ADMIN')", second),
                 "uq_users_single_admin should allow at most one account pinned role_override='ADMIN'.");
     }
 }

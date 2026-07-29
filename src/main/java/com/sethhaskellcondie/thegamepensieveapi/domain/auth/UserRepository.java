@@ -28,7 +28,7 @@ public class UserRepository {
     }
 
     // Every column read by the row mapper, in a single place so the two finders stay in sync.
-    private static final String SELECT_COLUMNS = "id, email, keycloak_sub, password_hash, enabled, created_at, updated_at, "
+    private static final String SELECT_COLUMNS = "id, email, keycloak_sub, created_at, updated_at, "
             + "plan, subscription_status, access_until, paddle_customer_id, paddle_subscription_id, last_event_id, "
             + "role_override, showcase_slug, showcase_name";
 
@@ -37,8 +37,6 @@ public class UserRepository {
                 resultSet.getInt("id"),
                 resultSet.getString("email"),
                 resultSet.getString("keycloak_sub"),
-                resultSet.getString("password_hash"),
-                resultSet.getBoolean("enabled"),
                 resultSet.getTimestamp("created_at"),
                 resultSet.getTimestamp("updated_at"),
                 resultSet.getString("plan"),
@@ -169,12 +167,11 @@ public class UserRepository {
     /**
      * JIT-provision a user account for a Keycloak identity on first login (no seeded row matched the token's
      * {@code sub} or {@code email}). Keyed by the immutable {@code sub}; {@code accessUntil}/{@code subscriptionStatus}
-     * stamp the auto-granted trial window; {@code password_hash} is left NULL (passwords live in Keycloak) and
-     * {@code plan} defaults to the column's {@code 'free'}.
+     * stamp the auto-granted trial window; {@code plan} defaults to the column's {@code 'free'}.
      */
     public int insertJit(String email, String keycloakSub, Timestamp accessUntil, String subscriptionStatus) {
-        final String sql = "INSERT INTO users(email, keycloak_sub, enabled, access_until, subscription_status, created_at, updated_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?);";
+        final String sql = "INSERT INTO users(email, keycloak_sub, access_until, subscription_status, created_at, updated_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?);";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> {
@@ -182,11 +179,10 @@ public class UserRepository {
                     final Timestamp now = Timestamp.from(Instant.now());
                     ps.setString(1, email);
                     ps.setString(2, keycloakSub);
-                    ps.setBoolean(3, true);
-                    ps.setTimestamp(4, accessUntil);
-                    ps.setString(5, subscriptionStatus);
+                    ps.setTimestamp(3, accessUntil);
+                    ps.setString(4, subscriptionStatus);
+                    ps.setTimestamp(5, now);
                     ps.setTimestamp(6, now);
-                    ps.setTimestamp(7, now);
                     return ps;
                 },
                 keyHolder

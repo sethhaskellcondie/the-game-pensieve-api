@@ -365,10 +365,10 @@ These routes bypass the tenant transaction filter (they read/write `users`, whic
 
 There is no seed/env admin. The operator **claims the seeded `showcase@internal.local` row** (the `is_public_showcase` marker row that owns all pre-existing data) as their own account — it becomes, at once, the single ADMIN, the default showcase's owner, and an ordinary data owner, so the admin logs in and edits the default showcase as their own collection. All pre-existing `owner_id` FKs and the `showcase_owner_id()` function keep working untouched.
 
-Credentials now live in Keycloak, not in `users` (the row's legacy `password_hash` is `'!'`/nullable and unused). The row is claimed by **email on first login**: point the seeded row's `email` at the operator's Keycloak account, and their first authenticated call stamps that row's `keycloak_sub`. **One-time manual procedure per environment (never automated in a migration):**
+Credentials now live in Keycloak, not in `users` (the legacy `password_hash` and `enabled` columns were dropped in `V1_20`). The row is claimed by **email on first login**: point the seeded row's `email` at the operator's Keycloak account, and their first authenticated call stamps that row's `keycloak_sub`. **One-time manual procedure per environment (never automated in a migration):**
 
 1. Create the operator's account in **Keycloak** (the same realm the backend validates against), with their intended email and password — and mark the email **verified** (admin console → user → Email verified). Claim-by-email requires the token's `email_verified` claim; an unverified account will not claim the row (the login is refused with a 403 email-conflict error instead).
-2. Point the seeded row at that email and pin it ADMIN via SQL (`showcase_slug`/`showcase_name` are already seeded by `V1_18`; no `password_hash` is set):
+2. Point the seeded row at that email and pin it ADMIN via SQL (`showcase_slug`/`showcase_name` are already seeded by `V1_18`):
    ```sql
    UPDATE users
    SET email = 'you@domain.com',

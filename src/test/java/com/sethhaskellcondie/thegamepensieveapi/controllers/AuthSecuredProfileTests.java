@@ -139,8 +139,8 @@ public class AuthSecuredProfileTests extends SecuredProfileTest {
         // Claim-by-email requires email_verified: an unverified address matching an existing (sub-less) row must
         // not take the row over, and the JIT insert then collides on the UNIQUE email — the request is refused.
         final String email = factory.randomEmail();
-        jdbcTemplate.update("INSERT INTO users(email, enabled, access_until, subscription_status, created_at, updated_at) "
-                + "VALUES (?, true, now() + interval '30 days', 'trialing', now(), now())", email);
+        jdbcTemplate.update("INSERT INTO users(email, access_until, subscription_status, created_at, updated_at) "
+                + "VALUES (?, now() + interval '30 days', 'trialing', now(), now())", email);
         KeycloakTestSupport.ensureUser(email, PASSWORD, false);
         final String accessToken = KeycloakTestSupport.passwordGrant(email, PASSWORD);
 

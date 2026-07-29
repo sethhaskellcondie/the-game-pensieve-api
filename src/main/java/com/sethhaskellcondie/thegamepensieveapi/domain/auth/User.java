@@ -17,14 +17,12 @@ import java.sql.Timestamp;
  *
  * <p>{@code keycloakSub} is the immutable Keycloak subject claim, the stable link between an access token and
  * this row. It is null on a seeded row until the owner's first login claims it (claim-on-first-login in
- * {@code OwnerResolver}); {@code passwordHash} is a legacy column, now unused (passwords live in Keycloak).
+ * {@code OwnerResolver}). Credentials and account disabling live entirely in Keycloak.
  */
 public record User(
         Integer id,
         String email,
         String keycloakSub,
-        String passwordHash,
-        boolean enabled,
         Timestamp createdAt,
         Timestamp updatedAt,
         String plan,
