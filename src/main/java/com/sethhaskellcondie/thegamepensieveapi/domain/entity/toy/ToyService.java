@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstract;
 
 @Service
-public class ToyService extends EntityServiceAbstract<Toy, ToyRequestDto, ToyResponseDto> implements EntityService<Toy, ToyRequestDto, ToyResponseDto> {
+public class ToyService extends EntityServiceAbstract<Toy, ToyRequestDto, ToyResponseDto, ToyRepository> implements EntityService<Toy, ToyRequestDto, ToyResponseDto> {
 
     public ToyService(ToyRepository repository, FilterService filterService) {
         super(repository, filterService);
@@ -29,7 +29,6 @@ public class ToyService extends EntityServiceAbstract<Toy, ToyRequestDto, ToyRes
     }
 
     public int getIdByNameAndSet(String name, String set) {
-        ToyRepository toyRepository = (ToyRepository) repository;
-        return toyRepository.getIdByNameAndSet(name, set);
+        return repository.getIdByNameAndSet(name, set);
     }
 }

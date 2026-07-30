@@ -6,6 +6,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOp
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,8 +42,10 @@ public class GetWithFiltersMultipleCustomFieldFiltersTests {
 
     @BeforeEach
     public void setUp() {
-        systemRepository = new SystemRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
+        final CustomFieldOptionRepository customFieldOptionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, customFieldOptionRepository);
+        final CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate, customFieldRepository, customFieldOptionRepository);
+        systemRepository = new SystemRepository(jdbcTemplate, customFieldRepository, customFieldValueRepository);
     }
 
     @Test

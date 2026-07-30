@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.toy;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
@@ -21,8 +23,8 @@ import java.util.ArrayList;
 @Repository
 public class ToyRepository extends EntityRepositoryAbstract<Toy, ToyRequestDto, ToyResponseDto> implements EntityRepository<Toy, ToyRequestDto, ToyResponseDto> {
 
-    public ToyRepository(JdbcTemplate jdbcTemplate) {
-        super(jdbcTemplate);
+    public ToyRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldValueRepository customFieldValueRepository) {
+        super(jdbcTemplate, customFieldRepository, customFieldValueRepository);
     }
 
     private String getSelectClause() {

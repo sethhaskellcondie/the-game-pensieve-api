@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox;
 
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
@@ -23,13 +22,13 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto>
+public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto, VideoGameBoxRepository>
         implements EntityService<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto> {
 
     private final SystemRepository systemRepository;
     private final VideoGameService videoGameService;
 
-    public VideoGameBoxService(EntityRepository<VideoGameBox, VideoGameBoxRequestDto, VideoGameBoxResponseDto> repository, FilterService filterService,
+    public VideoGameBoxService(VideoGameBoxRepository repository, FilterService filterService,
                                SystemRepository systemRepository, VideoGameService videoGameService) {
         super(repository, filterService);
         this.systemRepository = systemRepository;
@@ -282,7 +281,6 @@ public class VideoGameBoxService extends EntityServiceAbstract<VideoGameBox, Vid
     }
 
     public int getIdByTitleAndSystemId(String title, int systemId) {
-        VideoGameBoxRepository videoGameBoxRepository = (VideoGameBoxRepository) repository;
-        return videoGameBoxRepository.getIdByTitleAndSystem(title, systemId);
+        return repository.getIdByTitleAndSystem(title, systemId);
     }
 }

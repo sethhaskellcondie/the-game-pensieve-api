@@ -20,7 +20,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterService;
 
 @Service
-public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGameRequestDto, VideoGameResponseDto>
+public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGameRequestDto, VideoGameResponseDto, VideoGameRepository>
         implements EntityService<VideoGame, VideoGameRequestDto, VideoGameResponseDto> {
 
     private final SystemRepository systemRepository;
@@ -123,8 +123,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
      * which would re-hydrate every game's own boxes just to build a slim view that doesn't include them.
      */
     public Map<Integer, SlimVideoGame> getSlimVideoGamesByIds(List<Integer> videoGameIds) {
-        final VideoGameRepository videoGameRepository = (VideoGameRepository) repository;
-        final List<VideoGame> videoGames = videoGameRepository.getByIds(videoGameIds);
+        final List<VideoGame> videoGames = repository.getByIds(videoGameIds);
         final List<Integer> systemIds = videoGames.stream().map(VideoGame::getSystemId).toList();
         final Map<Integer, System> systemsById = getSystemsByIds(systemIds);
         final Map<Integer, SlimVideoGame> slimVideoGamesById = new HashMap<>();
@@ -186,8 +185,7 @@ public class VideoGameService extends EntityServiceAbstract<VideoGame, VideoGame
     }
 
     public int getIdByTitleAndSystemId(String title, int systemId) {
-        VideoGameRepository videoGameRepository = (VideoGameRepository) repository;
-        return videoGameRepository.getIdByTitleAndSystem(title, systemId);
+        return repository.getIdByTitleAndSystem(title, systemId);
     }
 
     public VideoGame validateRelatedObjects(VideoGame videoGame) {

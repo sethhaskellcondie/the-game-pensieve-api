@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sethhaskellcondie.thegamepensieveapi.domain.filter.Filter;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -20,6 +19,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInternalError;
@@ -28,8 +29,8 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResou
 @Repository
 public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, VideoGameRequestDto, VideoGameResponseDto>
         implements EntityRepository<VideoGame, VideoGameRequestDto, VideoGameResponseDto> {
-    protected VideoGameRepository(JdbcTemplate jdbcTemplate) {
-        super(jdbcTemplate);
+    protected VideoGameRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldValueRepository customFieldValueRepository) {
+        super(jdbcTemplate, customFieldRepository, customFieldValueRepository);
     }
 
     private String getSelectClause() {
@@ -44,10 +45,8 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
     }
 
     @Override
-    public List<VideoGame> getWithFilters(List<Filter> filters) {
-        final List<VideoGame> games = super.getWithFilters(filters);
+    protected void afterLoad(List<VideoGame> games) {
         setRelatedBoxIds(games);
-        return games;
     }
 
     //Batch load the related box ids for every game in one query (instead of one query per game) to avoid N+1 queries.
@@ -69,13 +68,6 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
         for (VideoGame game : games) {
             game.setVideoGameBoxIds(boxIdsByGameId.getOrDefault(game.getId(), new ArrayList<>()));
         }
-    }
-
-    @Override
-    public VideoGame getById(int id) {
-        VideoGame videoGame = super.getById(id);
-        videoGame.setVideoGameBoxIds(getRelatedBoxIds(id));
-        return videoGame;
     }
 
     @Override
@@ -149,13 +141,6 @@ public class VideoGameRepository extends EntityRepositoryAbstract<VideoGame, Vid
                 UPDATE video_games SET title = ?, system_id = ?, updated_at = ? WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, entity.getTitle(), entity.getSystemId(), Timestamp.from(Instant.now()), entity.getId());
-    }
-
-    private List<Integer> getRelatedBoxIds(int videoGameId) {
-        final String sql = """
-                SELECT * FROM video_game_to_video_game_box WHERE video_game_id = ?;
-                """;
-        return jdbcTemplate.query(sql, (resultSet, rowNumber) -> resultSet.getInt("video_game_box_id"), videoGameId);
     }
 
     public int getIdByTitleAndSystem(String title, int systemId) {

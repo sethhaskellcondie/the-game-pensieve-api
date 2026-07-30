@@ -13,6 +13,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogamebox.Video
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.videogame.VideoGameService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,23 +56,25 @@ public class GetWithFiltersSystemTests {
 
     // Create test wrapper classes for repositories with protected constructors
     static class TestVideoGameRepository extends VideoGameRepository {
-        TestVideoGameRepository(JdbcTemplate jdbcTemplate) {
-            super(jdbcTemplate);
+        TestVideoGameRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldValueRepository customFieldValueRepository) {
+            super(jdbcTemplate, customFieldRepository, customFieldValueRepository);
         }
     }
 
     static class TestVideoGameBoxRepository extends VideoGameBoxRepository {
-        TestVideoGameBoxRepository(JdbcTemplate jdbcTemplate) {
-            super(jdbcTemplate);
+        TestVideoGameBoxRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldValueRepository customFieldValueRepository) {
+            super(jdbcTemplate, customFieldRepository, customFieldValueRepository);
         }
     }
 
     @BeforeEach
     public void setUp() {
-        systemRepository = new SystemRepository(jdbcTemplate);
-        videoGameRepository = new TestVideoGameRepository(jdbcTemplate);
-        videoGameBoxRepository = new TestVideoGameBoxRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
+        final CustomFieldOptionRepository customFieldOptionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, customFieldOptionRepository);
+        final CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate, customFieldRepository, customFieldOptionRepository);
+        systemRepository = new SystemRepository(jdbcTemplate, customFieldRepository, customFieldValueRepository);
+        videoGameRepository = new TestVideoGameRepository(jdbcTemplate, customFieldRepository, customFieldValueRepository);
+        videoGameBoxRepository = new TestVideoGameBoxRepository(jdbcTemplate, customFieldRepository, customFieldValueRepository);
         filterService = new FilterService(customFieldRepository);
         videoGameService = new VideoGameService(videoGameRepository, filterService, systemRepository, videoGameBoxRepository);
         videoGameBoxService = new VideoGameBoxService(videoGameBoxRepository, filterService, systemRepository, videoGameService);

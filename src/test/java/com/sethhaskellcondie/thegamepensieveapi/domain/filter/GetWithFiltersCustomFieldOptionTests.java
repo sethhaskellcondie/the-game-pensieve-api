@@ -7,6 +7,7 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOp
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRequestDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInvalidFilter;
@@ -47,9 +48,10 @@ public class GetWithFiltersCustomFieldOptionTests {
 
     @BeforeEach
     public void setUp() {
-        systemRepository = new SystemRepository(jdbcTemplate);
         optionRepository = new CustomFieldOptionRepository(jdbcTemplate);
         customFieldRepository = new CustomFieldRepository(jdbcTemplate, optionRepository);
+        final CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate, customFieldRepository, optionRepository);
+        systemRepository = new SystemRepository(jdbcTemplate, customFieldRepository, customFieldValueRepository);
     }
 
     @Test

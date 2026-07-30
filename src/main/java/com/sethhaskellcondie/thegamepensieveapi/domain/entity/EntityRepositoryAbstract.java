@@ -2,7 +2,6 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.entity;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomField;
-import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
@@ -41,11 +40,10 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     private final Logger logger = LoggerFactory.getLogger(EntityRepositoryAbstract.class);
 
 
-    protected EntityRepositoryAbstract(JdbcTemplate jdbcTemplate) {
+    protected EntityRepositoryAbstract(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldValueRepository customFieldValueRepository) {
         this.jdbcTemplate = jdbcTemplate;
-        CustomFieldOptionRepository customFieldOptionRepository = new CustomFieldOptionRepository(jdbcTemplate);
-        this.customFieldRepository = new CustomFieldRepository(jdbcTemplate, customFieldOptionRepository);
-        this.customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate, this.customFieldRepository, customFieldOptionRepository);
+        this.customFieldRepository = customFieldRepository;
+        this.customFieldValueRepository = customFieldValueRepository;
         this.baseQuery = this.getBaseQueryExcludeDeleted();
         this.baseQueryWhereDeletedAtIsNotNull = this.getBaseQueryWhereIsDeleted();
         this.baseQueryIncludeDeleted = this.getBaseQuery(true);
@@ -72,6 +70,15 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     protected abstract void updateValidation(T entity);
     protected abstract Integer insertImplementation(T entity);
     protected abstract void updateImplementation(T entity);
+
+    /**
+     * Hook that runs on every entity loaded from the database, after the custom field values have been set.
+     * Override this to hydrate additional data (like related ids from a join table). Every query path funnels
+     * through this hook (getWithFilters, getById, getByIds, and all of the deleted/include-deleted variants),
+     * so an override cannot miss one of them. The default does nothing.
+     */
+    protected void afterLoad(List<T> entities) {
+    }
 
     @Override
     public T insert(T entity) {
@@ -111,6 +118,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             for (T entity : entities) {
                 entity.setCustomFieldValues(customFieldValuesByEntityId.getOrDefault(entity.getId(), List.of()));
             }
+            afterLoad(entities);
         }
         return entities;
     }
@@ -174,6 +182,7 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
             for (T entity : entities) {
                 entity.setCustomFieldValues(customFieldValuesByEntityId.getOrDefault(entity.getId(), List.of()));
             }
+            afterLoad(entities);
         }
         return entities;
     }
@@ -227,6 +236,8 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         } catch (EmptyResultDataAccessException exception) {
             throw new ExceptionResourceNotFound(entityKey, id, exception);
         }
-        return setCustomFieldsValuesForEntity(entity);
+        setCustomFieldsValuesForEntity(entity);
+        afterLoad(List.of(entity));
+        return entity;
     }
 }

@@ -1,7 +1,6 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValue;
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame.BoardGame;
@@ -22,13 +21,13 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
-public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto>
+public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto, BoardGameBoxRepository>
         implements EntityService<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto> {
 
     private final BoardGameRepository boardGameRepository;
     private final BoardGameService boardGameService;
 
-    public BoardGameBoxService(EntityRepository<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto> repository,
+    public BoardGameBoxService(BoardGameBoxRepository repository,
                                FilterService filterService, BoardGameRepository boardGameRepository, BoardGameService boardGameService) {
         super(repository, filterService);
         this.boardGameRepository = boardGameRepository;
@@ -145,7 +144,6 @@ public class BoardGameBoxService extends EntityServiceAbstract<BoardGameBox, Boa
     }
 
     public int getIdByTitleAndBoardGameId(String title, int boardGameId) {
-        BoardGameBoxRepository boardGameBoxRepository = (BoardGameBoxRepository) repository;
-        return boardGameBoxRepository.getIdByTitleAndBoardGameId(title, boardGameId);
+        return repository.getIdByTitleAndBoardGameId(title, boardGameId);
     }
 }

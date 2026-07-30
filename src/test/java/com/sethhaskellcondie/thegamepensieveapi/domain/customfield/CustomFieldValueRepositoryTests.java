@@ -40,8 +40,10 @@ public class CustomFieldValueRepositoryTests {
 
     @BeforeEach
     public void setUp() {
-        toyRepository = new ToyRepository(jdbcTemplate);
-        customFieldRepository = new CustomFieldRepository(jdbcTemplate, new CustomFieldOptionRepository(jdbcTemplate));
+        final CustomFieldOptionRepository customFieldOptionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        customFieldRepository = new CustomFieldRepository(jdbcTemplate, customFieldOptionRepository);
+        final CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate, customFieldRepository, customFieldOptionRepository);
+        toyRepository = new ToyRepository(jdbcTemplate, customFieldRepository, customFieldValueRepository);
     }
 
     @Test

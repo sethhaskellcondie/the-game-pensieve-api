@@ -80,6 +80,8 @@ Shared behavior is provided by the abstract base classes `EntityServiceAbstract`
 A few conventions that are worth knowing:
 
 - **`createNew()` is implemented per service, not in the base class.** Java cannot call `new T()` on a generic type, so each service constructs its own concrete instance. `updateExisting()` and `deleteById()` are shared in `EntityServiceAbstract`.
+- **Services hold their concrete repository type.** `EntityServiceAbstract` takes the repository as a generic parameter (`R extends EntityRepository<...>`), so a service calls subtype-specific repository methods (like `getIdByName()`) directly — no downcasting.
+- **Related-data hydration goes through `afterLoad()`.** Every query path in `EntityRepositoryAbstract` — `getWithFilters()`, `getById()`, `getByIds()`, and all of the deleted/include-deleted variants — funnels loaded entities through the single `afterLoad(List<T>)` hook after custom field values are set. A repository that needs related data on its entities (like the video game ↔ box join table ids) overrides that one hook instead of decorating each query method, so no path can be missed. Covered by `domain/entity/EntityRepositoryAfterLoadTests`.
 - **POSTs are idempotent by intent.** Services run a duplication check inside `createNew()` so that repeating a create request returns a `400` rather than silently inserting a duplicate.
 - **Soft deletes.** Tables carry a `deleted_at` column; entities expose `isDeleted()`. Deletion sets the timestamp rather than removing the row.
 - **Request vs. Response vs. Slim DTOs.** `(Entity)RequestDto` is the input shape; `(Entity)ResponseDto` is the output shape. Several entities also have a `Slim(Entity)` form — a lightweight projection used when an entity is embedded inside another's response (for example, the systems and games nested inside a video game box).
@@ -182,6 +184,7 @@ Global settings live in `application.properties` and apply to every profile. Pro
 | `rls-tests` | Tenancy / RLS repository tests | Testcontainers |
 | `seeded-tests` | The multi-role seed matrix suite | Testcontainers |
 | `filter-tests1`–`filter-tests8` | Filter integration tests, split across profiles | Testcontainers |
+| `repository-tests` | Entity repository tests (the `afterLoad()` hydration hook) | Testcontainers |
 
 The default credentials in local/docker are user `postgres`, password `root`. Override the active profile with `spring.profiles.active`.
 

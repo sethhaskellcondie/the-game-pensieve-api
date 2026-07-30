@@ -1,5 +1,7 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.system;
 
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
@@ -27,8 +29,8 @@ import java.util.Objects;
 @Repository
 public class SystemRepository extends EntityRepositoryAbstract<System, SystemRequestDto, SystemResponseDto> implements EntityRepository<System, SystemRequestDto, SystemResponseDto> {
 
-    public SystemRepository(JdbcTemplate jdbcTemplate) {
-        super(jdbcTemplate);
+    public SystemRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldValueRepository customFieldValueRepository) {
+        super(jdbcTemplate, customFieldRepository, customFieldValueRepository);
     }
 
     private String getSelectClause() {

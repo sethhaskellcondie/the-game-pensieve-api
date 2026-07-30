@@ -1,6 +1,9 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.tenant;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.UserRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldOptionRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.System;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.system.SystemRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -43,7 +46,10 @@ public class RepositoryRowLevelSecurityTests {
 
     @BeforeEach
     public void setUp() {
-        systemRepository = new SystemRepository(jdbcTemplate);
+        final CustomFieldOptionRepository customFieldOptionRepository = new CustomFieldOptionRepository(jdbcTemplate);
+        final CustomFieldRepository customFieldRepository = new CustomFieldRepository(jdbcTemplate, customFieldOptionRepository);
+        final CustomFieldValueRepository customFieldValueRepository = new CustomFieldValueRepository(jdbcTemplate, customFieldRepository, customFieldOptionRepository);
+        systemRepository = new SystemRepository(jdbcTemplate, customFieldRepository, customFieldValueRepository);
         userRepository = new UserRepository(jdbcTemplate);
     }
 

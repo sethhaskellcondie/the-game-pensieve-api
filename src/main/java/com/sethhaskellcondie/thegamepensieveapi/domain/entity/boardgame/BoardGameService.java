@@ -1,6 +1,5 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgame;
 
-import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityService;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityServiceAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox.BoardGameBoxRepository;
@@ -12,12 +11,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGameRequestDto, BoardGameResponseDto>
+public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGameRequestDto, BoardGameResponseDto, BoardGameRepository>
         implements EntityService<BoardGame, BoardGameRequestDto, BoardGameResponseDto> {
 
     private final BoardGameBoxRepository boardGameBoxRepository;
 
-    public BoardGameService(EntityRepository<BoardGame, BoardGameRequestDto, BoardGameResponseDto> repository, FilterService filterService, BoardGameBoxRepository boardGameBoxRepository) {
+    public BoardGameService(BoardGameRepository repository, FilterService filterService, BoardGameBoxRepository boardGameBoxRepository) {
         super(repository, filterService);
         this.boardGameBoxRepository = boardGameBoxRepository;
     }
@@ -52,7 +51,6 @@ public class BoardGameService extends EntityServiceAbstract<BoardGame, BoardGame
     }
 
     public int getIdByTitle(String title) {
-        BoardGameRepository boardGameRepository = (BoardGameRepository) repository;
-        return boardGameRepository.getIdByTitle(title);
+        return repository.getIdByTitle(title);
     }
 }

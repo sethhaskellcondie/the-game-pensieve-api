@@ -1,6 +1,8 @@
 package com.sethhaskellcondie.thegamepensieveapi.domain.entity.boardgamebox;
 
 import com.sethhaskellcondie.thegamepensieveapi.domain.Keychain;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldRepository;
+import com.sethhaskellcondie.thegamepensieveapi.domain.customfield.CustomFieldValueRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.entity.EntityRepositoryAbstract;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
@@ -23,8 +25,8 @@ import java.util.List;
 @Repository
 public class BoardGameBoxRepository extends EntityRepositoryAbstract<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto>
         implements EntityRepository<BoardGameBox, BoardGameBoxRequestDto, BoardGameBoxResponseDto> {
-    protected BoardGameBoxRepository(JdbcTemplate jdbcTemplate) {
-        super(jdbcTemplate);
+    protected BoardGameBoxRepository(JdbcTemplate jdbcTemplate, CustomFieldRepository customFieldRepository, CustomFieldValueRepository customFieldValueRepository) {
+        super(jdbcTemplate, customFieldRepository, customFieldValueRepository);
     }
 
     private String getSelectClause() {

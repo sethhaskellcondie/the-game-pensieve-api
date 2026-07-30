@@ -7,12 +7,13 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.filter.FilterService;
 
 import java.util.List;
 
-public abstract class EntityServiceAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityService<T, RequestDto, ResponseDto> {
+public abstract class EntityServiceAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto, R extends EntityRepository<T, RequestDto, ResponseDto>>
+        implements EntityService<T, RequestDto, ResponseDto> {
 
-    protected final EntityRepository<T, RequestDto, ResponseDto> repository;
+    protected final R repository;
     private final FilterService filterService;
 
-    public EntityServiceAbstract(EntityRepository<T, RequestDto, ResponseDto> repository, FilterService filterService) {
+    public EntityServiceAbstract(R repository, FilterService filterService) {
         this.repository = repository;
         this.filterService = filterService;
     }
