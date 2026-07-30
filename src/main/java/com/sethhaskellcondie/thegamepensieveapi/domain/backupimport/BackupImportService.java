@@ -38,11 +38,12 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.metadata.MetadataGateway;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class BackupImportService {
@@ -597,9 +598,9 @@ public class BackupImportService {
         Map<Integer, Integer> boardGameBoxIds = new HashMap<>(boardGameBoxesToBeImported.size());
         Map<Integer, Integer> boardGameIds = new HashMap<>(boardGameBoxesToBeImported.size());
         List<BoardGameBoxResponseDto> validatedBoxes = validateBoardGameBoxes(boardGameBoxesToBeImported, customFieldIds, optionIds, exceptionBackupImport);
-        validatedBoxes.sort(Comparator.comparing(BoardGameBoxResponseDto::isExpansion)); //import base set boxes first, then expansions after that
+        List<BoardGameBoxResponseDto> orderedBoxes = orderBoxesBaseSetFirst(validatedBoxes, exceptionBackupImport);
 
-        for (BoardGameBoxResponseDto importBox : validatedBoxes) {
+        for (BoardGameBoxResponseDto importBox : orderedBoxes) {
             try {
                 Integer realBoardGameId = boardGameIds.get(importBox.boardGame().id());
                 if (realBoardGameId == null) {
@@ -617,7 +618,19 @@ public class BackupImportService {
                     boardGameBoxIds.put(importBox.id(), boxId);
                 } else {
                     Integer existingBoardGameId = realBoardGameId;
-                    Integer baseSetId = boardGameIds.get(importBox.baseSetId());
+                    //baseSetId references another board game BOX in the import file, so it must be remapped through the
+                    //box id map, never the board game id map: the two id sequences overlap numerically, so a lookup in
+                    //the wrong map silently returns an unrelated entity's id instead of failing.
+                    Integer baseSetId = null;
+                    if (null != importBox.baseSetId()) {
+                        baseSetId = boardGameBoxIds.get(importBox.baseSetId());
+                        if (null == baseSetId) {
+                            exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data: Board game box with title: '"
+                                    + importBox.title() + "' references a base set box with ID '" + importBox.baseSetId()
+                                    + "' that could not be resolved from the import data. The base set box must be included and imported successfully in the same file."));
+                            continue;
+                        }
+                    }
                     BoardGameRequestDto gameToBeCreated = null;
                     if (null == existingBoardGameId) {
                         gameToBeCreated = new BoardGameRequestDto(importBox.boardGame().title(), importBox.boardGame().customFieldValues());
@@ -642,6 +655,42 @@ public class BackupImportService {
             }
         }
         return new ImportEntityResults(boardGameBoxIds, existingCount, createdCount);
+    }
+
+    //Boxes must be imported base set first so the box id map already holds a base set's database id when a dependent
+    //expansion is created. A non-expansions-first sort is not enough: a base set can itself be a (stand-alone)
+    //expansion, and an export can legitimately list a box before its base set (baseSetId can be pointed at a newer
+    //box through an update). A box whose base set is not in the file is still emitted; the remap reports it. Boxes
+    //whose base set references form a cycle can never be ordered, so they are reported as errors and left out.
+    private List<BoardGameBoxResponseDto> orderBoxesBaseSetFirst(List<BoardGameBoxResponseDto> boxes, ExceptionBackupImport exceptionBackupImport) {
+        final Map<Integer, BoardGameBoxResponseDto> boxesByFileId = new HashMap<>(boxes.size());
+        for (BoardGameBoxResponseDto box : boxes) {
+            boxesByFileId.put(box.id(), box);
+        }
+        final List<BoardGameBoxResponseDto> ordered = new ArrayList<>(boxes.size());
+        final Set<Integer> orderedFileIds = new HashSet<>(boxes.size());
+        List<BoardGameBoxResponseDto> remaining = boxes;
+        boolean progress = true;
+        while (progress && !remaining.isEmpty()) {
+            progress = false;
+            final List<BoardGameBoxResponseDto> deferred = new ArrayList<>(remaining.size());
+            for (BoardGameBoxResponseDto box : remaining) {
+                final Integer baseSetFileId = box.baseSetId();
+                if (null == baseSetFileId || orderedFileIds.contains(baseSetFileId) || !boxesByFileId.containsKey(baseSetFileId)) {
+                    ordered.add(box);
+                    orderedFileIds.add(box.id());
+                    progress = true;
+                } else {
+                    deferred.add(box);
+                }
+            }
+            remaining = deferred;
+        }
+        for (BoardGameBoxResponseDto box : remaining) {
+            exceptionBackupImport.addBoardGameBoxException(new Exception("Error importing board game box data: Board game box with title: '"
+                    + box.title() + "' is part of a cycle of base set references in the import data, so it cannot be imported."));
+        }
+        return ordered;
     }
 
     private List<BoardGameBoxResponseDto> validateBoardGameBoxes(List<BoardGameBoxResponseDto> boardGameBoxes, Map<Integer, Integer> customFieldIds,

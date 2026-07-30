@@ -757,6 +757,190 @@ public class BackupImportGatewayTests {
     }
 
     @Test
+    void boardGameBoxImport_BaseSetFileIdCollidesWithBoardGameFileId_BaseSetResolvedThroughBoxIds() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange - the base set box's file id (300) is deliberately reused as the file id of a DIFFERENT box's
+        //board game (the decoy), and the expansion is listed before its base set. Box ids and board game ids are
+        //separate sequences that overlap numerically, so resolving baseSetId through the board game id map links
+        //the expansion to the decoy game's database id - an unrelated box at best. (This is the myCollection.json
+        //bug where every Villainous expansion displayed 7 Wonders as its base game.)
+        final SlimBoardGame decoyGame = new SlimBoardGame(300, "BaseSet Decoy Game", null, null, null, List.of());
+        final BoardGameBoxResponseDto decoyBox = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 999,
+                "BaseSet Decoy Box", false, true, null, decoyGame, null, null, null, List.of());
+        final SlimBoardGame baseSetGame = new SlimBoardGame(400, "BaseSet Test Game", null, null, null, List.of());
+        final BoardGameBoxResponseDto expansionBox = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 301,
+                "BaseSet Expansion Box", true, false, 300, baseSetGame, null, null, null, List.of());
+        final BoardGameBoxResponseDto baseSetBox = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 300,
+                "BaseSet Base Box", false, true, null, baseSetGame, null, null, null, List.of());
+        final List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        final int createdBoardGameBoxes = 3;
+        boardGameBoxes.add(decoyBox);
+        boardGameBoxes.add(expansionBox); //listed before its base set on purpose
+        boardGameBoxes.add(baseSetBox);
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                boardGameBoxes,
+                initialBackupData.metadata()
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error importing an expansion whose base set file id collides with a board game file id.",
+                () -> assertEquals(createdBoardGameBoxes, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
+        );
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        final BoardGameBoxResponseDto importedExpansion = findBoardGameBoxByTitle(resultsBackupData, "BaseSet Expansion Box");
+        final BoardGameBoxResponseDto importedBaseSet = findBoardGameBoxByTitle(resultsBackupData, "BaseSet Base Box");
+        assertAll(
+                "The expansion must reference its base set BOX, resolved through box ids, not through board game ids.",
+                () -> assertEquals("BaseSet Base Box", resolveBaseSetBoxTitle(resultsBackupData, importedExpansion.baseSetId())),
+                () -> assertNull(importedBaseSet.baseSetId(), "The base set box itself should not gain a base set.")
+        );
+    }
+
+    @Test
+    void boardGameBoxImport_BaseSetNotInImportData_ErrorReportedAndBoxSkipped() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange - the expansion references a base set box id that exists nowhere in the import file. File ids are
+        //meaningless outside the file, so this reference can never be resolved; the box must be reported and
+        //skipped (so the user can fix the file and re-import) instead of silently imported with no base set.
+        final SlimBoardGame orphanGame = new SlimBoardGame(500, "BaseSet Orphan Game", null, null, null, List.of());
+        final BoardGameBoxResponseDto orphanExpansion = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 501,
+                "BaseSet Orphan Expansion", true, false, 98888, orphanGame, null, null, null, List.of());
+        final List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        final int expectedBoardGameBoxErrors = 1;
+        boardGameBoxes.add(orphanExpansion);
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                boardGameBoxes,
+                initialBackupData.metadata()
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        assertAll(
+                "Error importing an expansion whose base set is missing from the import data.",
+                () -> assertEquals(0, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getExceptions().size()),
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size()),
+                () -> assertEquals(0, resultsBackupData.boardGameBoxes().stream()
+                        .filter(box -> box.title().equals("BaseSet Orphan Expansion")).count(),
+                        "A box with an unresolvable base set must not be imported.")
+        );
+    }
+
+    @Test
+    void boardGameBoxImport_ExpansionChainListedInReverseOrder_ImportedBaseSetFirst() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange - a stand-alone expansion can itself be the base set of another expansion, and an export can
+        //legitimately list a box before its base set (baseSetId can be pointed at a newer box through an update).
+        //The chain here is listed leaf-first, the worst case: the import must order base sets first itself rather
+        //than rely on a non-expansions-first sort.
+        final SlimBoardGame chainGame = new SlimBoardGame(700, "BaseSet Chain Game", null, null, null, List.of());
+        final BoardGameBoxResponseDto leafBox = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 602,
+                "BaseSet Chain Leaf", true, false, 601, chainGame, null, null, null, List.of());
+        final BoardGameBoxResponseDto midBox = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 601,
+                "BaseSet Chain Mid", true, true, 600, chainGame, null, null, null, List.of());
+        final BoardGameBoxResponseDto rootBox = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 600,
+                "BaseSet Chain Root", false, true, null, chainGame, null, null, null, List.of());
+        final List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        final int createdBoardGameBoxes = 3;
+        boardGameBoxes.add(leafBox);
+        boardGameBoxes.add(midBox);
+        boardGameBoxes.add(rootBox);
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                boardGameBoxes,
+                initialBackupData.metadata()
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        assertAll(
+                "Error importing a chain of expansions listed in reverse dependency order.",
+                () -> assertEquals(createdBoardGameBoxes, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(0, importResult.exceptionBackupImport().getExceptions().size())
+        );
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        final BoardGameBoxResponseDto importedLeaf = findBoardGameBoxByTitle(resultsBackupData, "BaseSet Chain Leaf");
+        final BoardGameBoxResponseDto importedMid = findBoardGameBoxByTitle(resultsBackupData, "BaseSet Chain Mid");
+        final BoardGameBoxResponseDto importedRoot = findBoardGameBoxByTitle(resultsBackupData, "BaseSet Chain Root");
+        assertAll(
+                "Each box in the chain must reference the next box up, all the way to the root.",
+                () -> assertEquals("BaseSet Chain Mid", resolveBaseSetBoxTitle(resultsBackupData, importedLeaf.baseSetId())),
+                () -> assertEquals("BaseSet Chain Root", resolveBaseSetBoxTitle(resultsBackupData, importedMid.baseSetId())),
+                () -> assertNull(importedRoot.baseSetId())
+        );
+    }
+
+    @Test
+    void boardGameBoxImport_BaseSetReferenceCycle_ErrorsReportedAndBoxesSkipped() {
+        final BackupDataDto initialBackupData = gateway.getBackupData();
+
+        //Arrange - two boxes referencing each other as base sets. A cycle can exist in exported data because
+        //baseSetId can be re-pointed through updates after both boxes exist. No import order satisfies a cycle;
+        //the import must not hang and must report both boxes instead of importing them with broken references.
+        final SlimBoardGame cycleGameA = new SlimBoardGame(850, "BaseSet Cycle Game A", null, null, null, List.of());
+        final SlimBoardGame cycleGameB = new SlimBoardGame(851, "BaseSet Cycle Game B", null, null, null, List.of());
+        final BoardGameBoxResponseDto cycleBoxA = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 800,
+                "BaseSet Cycle Box A", true, true, 801, cycleGameA, null, null, null, List.of());
+        final BoardGameBoxResponseDto cycleBoxB = new BoardGameBoxResponseDto(Keychain.BOARD_GAME_BOX_KEY, 801,
+                "BaseSet Cycle Box B", true, true, 800, cycleGameB, null, null, null, List.of());
+        final List<BoardGameBoxResponseDto> boardGameBoxes = new ArrayList<>(initialBackupData.boardGameBoxes());
+        final int expectedBoardGameBoxErrors = 2;
+        boardGameBoxes.add(cycleBoxA);
+        boardGameBoxes.add(cycleBoxB);
+        final BackupDataDto importData = new BackupDataDto(
+                initialBackupData.customFields(),
+                initialBackupData.toys(),
+                initialBackupData.systems(),
+                initialBackupData.videoGameBoxes(),
+                boardGameBoxes,
+                initialBackupData.metadata()
+        );
+
+        //Act
+        final ImportResultsDto importResult = gateway.importBackupData(importData);
+
+        //Assert
+        final BackupDataDto resultsBackupData = gateway.getBackupData();
+        assertAll(
+                "Error importing boxes whose base set references form a cycle.",
+                () -> assertEquals(0, importResult.createdBoardGameBoxes()),
+                () -> assertEquals(initialBackupData.boardGameBoxes().size(), importResult.existingBoardGameBoxes()),
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getExceptions().size()),
+                () -> assertEquals(expectedBoardGameBoxErrors, importResult.exceptionBackupImport().getBoardGameBoxExceptions().getExceptions().size()),
+                () -> assertEquals(0, resultsBackupData.boardGameBoxes().stream()
+                        .filter(box -> box.title().equals("BaseSet Cycle Box A") || box.title().equals("BaseSet Cycle Box B")).count(),
+                        "Boxes in a base set cycle must not be imported.")
+        );
+    }
+
+    @Test
     void exportData_ImportSameData_NoNewDataImported() {
 
         //Arrange
@@ -1259,10 +1443,32 @@ public class BackupImportGatewayTests {
                     () -> assertEquals(expectedBoardGameBox.title(), actualBoardGameBox.title()),
                     () -> assertEquals(expectedBoardGameBox.isExpansion(), actualBoardGameBox.isExpansion()),
                     () -> assertEquals(expectedBoardGameBox.isStandAlone(), actualBoardGameBox.isStandAlone()),
-                    () -> assertEquals(expectedBoardGameBox.baseSetId(), actualBoardGameBox.baseSetId()),
+                    //baseSetIds are compared by resolving them to the referenced box's title: the ids themselves are
+                    //assigned by the database, so numeric equality only holds when file ids happen to equal db ids.
+                    () -> assertEquals(resolveBaseSetBoxTitle(expectedData, expectedBoardGameBox.baseSetId()),
+                            resolveBaseSetBoxTitle(actualData, actualBoardGameBox.baseSetId()),
+                            "Board game box '" + actualBoardGameBox.title() + "' does not reference the same base set box."),
                     () -> assertEquals(expectedBoardGameBox.boardGame().title(), actualBoardGameBox.boardGame().title())
             );
             validateCustomFieldValues(expectedBoardGameBox.customFieldValues(), actualBoardGameBox.customFieldValues(), Keychain.BOARD_GAME_BOX_KEY, actualBoardGameBox.title());
         }
+    }
+
+    private String resolveBaseSetBoxTitle(BackupDataDto backupData, Integer baseSetId) {
+        if (null == baseSetId) {
+            return null;
+        }
+        return backupData.boardGameBoxes().stream()
+                .filter(box -> box.id() == baseSetId)
+                .map(BoardGameBoxResponseDto::title)
+                .findFirst()
+                .orElse("unresolved base set box with id: " + baseSetId);
+    }
+
+    private BoardGameBoxResponseDto findBoardGameBoxByTitle(BackupDataDto backupData, String title) {
+        return backupData.boardGameBoxes().stream()
+                .filter(box -> box.title().equals(title))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Board game box '" + title + "' was not found in the exported backup data."));
     }
 }

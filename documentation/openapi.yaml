@@ -1827,8 +1827,12 @@ paths:
         to null, `{}`, `[]`, or an empty string — the placeholder a client may pre-seed), the
         imported value overwrites it and is tallied under `createdMetadata` instead of
         `existingMetadata`. Parent references inside the payload (e.g. a video game's system, a board
-        game box's base set) are resolved by name/title, not by the file's ids, so ids may safely
-        differ from the live database.
+        game box's board game) are resolved by name/title, not by the file's ids, so ids may safely
+        differ from the live database. The one intra-file id reference is a board game box's
+        `baseSetId`: it must point at the file id of another board game box in the same payload and
+        is remapped to that box's database id on import (boxes are imported base set first, whatever
+        their order in the file). A box whose `baseSetId` does not resolve to a box in the payload —
+        or whose base set references form a cycle — is skipped and reported as an error.
 
         Only one import may run at a time; a concurrent attempt returns **409 Conflict**. Per-record
         failures do not fail the whole request — they are reported in `exceptionBackupImport` and the
@@ -3175,7 +3179,9 @@ components:
             baseSetId:
               type: integer
               nullable: true
-              description: ID of the base set if this is an expansion
+              description: >-
+                Id of another board game box — the base set — if this box is an expansion. In an
+                import payload this must be the file id of a box included in the same payload.
             boardGame:
               $ref: '#/components/schemas/SlimBoardGame'
         - $ref: '#/components/schemas/EntityTimestamps'
