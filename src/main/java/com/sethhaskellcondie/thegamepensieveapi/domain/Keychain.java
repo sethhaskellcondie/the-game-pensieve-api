@@ -6,7 +6,7 @@ import java.util.List;
  * Each entity will have a key that is essentially the name of the entity it will
  * act like a key when implementing features like filters and custom fields.
  * The keys are stored on the keychain, this will be the master list of all the
- * entities in the system, when a new entity is created a new key should be made for it here.
+ * entities in the system; when a new entity is created, a new key should be made for it here.
  * <p>
  * Each entity will have a getKey() function that will pull the key from the keychain, but
  * other parts of the program can pull keys from the keychain for comparison.
@@ -37,7 +37,7 @@ public final class Keychain {
         );
     }
 
-    // This is used to construct the filter objects into SQL, this function should return the table alias used in the base query of that entities' repository.
+    // This is used to construct the filter objects into SQL; this function should return the table alias used in the base query of that entities' repository.
     // When custom field filters are present, each filter gets an indexed alias pair: fields1/values1, fields2/values2, etc.
     public static String getTableAliasByKey(String key) {
         switch (key) {

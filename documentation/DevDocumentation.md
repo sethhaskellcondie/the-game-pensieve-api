@@ -264,8 +264,8 @@ The application connects to Postgres as a **superuser**, and superusers bypass R
 The boundary is established by `TenantTransactionFilter` in `api/tenant/`, registered to run **after** Spring Security (so the `SecurityContext` is populated). For each tenant-scoped request it:
 
 1. **Resolves the owner** (`OwnerResolver`) — *before* dropping privileges, since this reads `users`: the authenticated user's id (resolved from the token's `sub` claim — matched to `users.keycloak_sub`, claimed by `email` on first login when the token's `email_verified` claim is true, or JIT-provisioned as a trial otherwise), or the seeded **showcase owner** for an anonymous request. A valid token no account can be resolved or provisioned for — no `email` claim at all (a service account, or a token minted without the email scope), or an email that collides with an account linked to a different login — is answered **403** in the standard envelope, written directly by the filter (a thrown exception here would bypass the JSON error advice).
-2. **Opens a transaction** and, on that connection, runs `SET LOCAL ROLE app_rls` and `set_config('app.current_owner', <id>, true)`. Both are transaction-local, so nothing leaks across pooled connections.
-3. **Proceeds the chain inside that transaction.** Because `JdbcTemplate` reuses the thread-bound transactional connection, every repository call and every `@Transactional` service method observes the role + owner, and RLS scopes all of it.
+2. **Opens a transaction** and calls `TenantSessionRepository.assumeTenant(ownerId)`, which on that connection runs `SET LOCAL ROLE app_rls` and `set_config('app.current_owner', <id>, true)`. Both are transaction-local, so nothing leaks across pooled connections. (That repository owns no table — it configures the *session* — which is why it sits in `api/tenant/` next to the filter rather than under `domain/`. It exists so the filter itself issues no SQL: all database access goes through a repository.)
+3. **Proceeds the chain inside that transaction.** Because the tenant session was established on the thread-bound transactional connection, every repository call and every `@Transactional` service method observes the role + owner, and RLS scopes all of it.
 
 Four paths are **skipped** by the filter (`shouldNotFilter`) because they read or write `users`, which `app_rls` cannot touch, so they must run with the application's normal privileges:
 
@@ -433,7 +433,7 @@ It also lets the front end render an impersonated target's view while still show
 - **The admin control-plane is unaffected.** `/v1/admin/**` bypasses the tenant filter and authorizes via the **no-arg** `OwnerResolver.resolveOwner()`, which ignores the header — so an admin can't lock themselves out of the admin API while a header is set, and impersonation never escalates onto the role-management routes.
 - **Secured profile only.** Under the default permit-all build there is no authentication, so every caller resolves to GUEST and the gate (`ACCESS_ADMIN`) is never met — the header is inert.
 
-Implemented in `api/tenant/` (`OwnerResolver`, `OwnerContext`, `Impersonator`, `TenantTransactionFilter`), `AuthController.me()` + `MeResponseDto`/`Impersonation`, and exercised by `controllers/AdminImpersonationSecuredProfileTests`.
+Implemented in `api/tenant/` (`OwnerResolver`, `OwnerContext`, `Impersonator`, `TenantTransactionFilter`, `TenantSessionRepository`), `AuthController.me()` + `MeResponseDto`/`Impersonation`, and exercised by `controllers/AdminImpersonationSecuredProfileTests`.
 
 ## Public Showcases
 

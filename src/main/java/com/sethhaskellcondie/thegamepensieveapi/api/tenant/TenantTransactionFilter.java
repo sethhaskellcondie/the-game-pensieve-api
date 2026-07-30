@@ -5,7 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,15 +19,15 @@ import java.util.Optional;
  *       {@code X-Showcase: <slug>} header scopes the request to that public showcase's owner as GUEST (or is
  *       answered 404 right here when the slug is unknown/not visible), otherwise the authenticated caller
  *       (honoring admin impersonation) or the default showcase when anonymous;</li>
- *   <li>opens a transaction and, on that connection, drops to the restricted {@code app_rls} role and sets the
- *       {@code app.current_owner} session variable — both transaction-local ({@code SET LOCAL} /
- *       {@code set_config(..., true)}) so nothing leaks across pooled connections;</li>
+ *   <li>opens a transaction and hands it to {@link TenantSessionRepository#assumeTenant(int)}, which drops that
+ *       connection to the restricted {@code app_rls} role and sets the {@code app.current_owner} session variable
+ *       — both transaction-local, so nothing leaks across pooled connections;</li>
  *   <li>runs the rest of the chain inside that transaction.</li>
  * </ol>
  *
- * <p>Because {@code JdbcTemplate} reuses the thread-bound transactional connection, every repository call and every
- * {@code @Transactional} service method in the request observes the role + owner, and Row-Level Security scopes all
- * reads and writes to that owner. Registered to run after Spring Security's filter chain (so the
+ * <p>Because the tenant session is established on the thread-bound transactional connection, every repository call
+ * and every {@code @Transactional} service method in the request observes the role + owner, and Row-Level Security
+ * scopes all reads and writes to that owner. Registered to run after Spring Security's filter chain (so the
  * {@code SecurityContext} is populated) and active in both the default and {@code secured} profiles.
  *
  * <p>The {@code /v1/auth/**} identity endpoint and heartbeat are skipped: they read the {@code users} table,
@@ -38,12 +37,13 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
 
     private final OwnerResolver ownerResolver;
     private final TransactionTemplate transactionTemplate;
-    private final JdbcTemplate jdbcTemplate;
+    private final TenantSessionRepository tenantSessionRepository;
 
-    public TenantTransactionFilter(OwnerResolver ownerResolver, TransactionTemplate transactionTemplate, JdbcTemplate jdbcTemplate) {
+    public TenantTransactionFilter(OwnerResolver ownerResolver, TransactionTemplate transactionTemplate,
+                                   TenantSessionRepository tenantSessionRepository) {
         this.ownerResolver = ownerResolver;
         this.transactionTemplate = transactionTemplate;
-        this.jdbcTemplate = jdbcTemplate;
+        this.tenantSessionRepository = tenantSessionRepository;
     }
 
     @Override
@@ -92,9 +92,7 @@ public class TenantTransactionFilter extends OncePerRequestFilter {
         TenantContext.setShowcaseView(owner.showcase());
         try {
             transactionTemplate.executeWithoutResult(status -> {
-                jdbcTemplate.execute("SET LOCAL ROLE app_rls");
-                // set_config returns the applied value, so it must be queried, not run as an update.
-                jdbcTemplate.queryForObject("SELECT set_config('app.current_owner', ?, true)", String.class, String.valueOf(ownerId));
+                tenantSessionRepository.assumeTenant(ownerId);
                 try {
                     filterChain.doFilter(request, response);
                 } catch (IOException | ServletException e) {

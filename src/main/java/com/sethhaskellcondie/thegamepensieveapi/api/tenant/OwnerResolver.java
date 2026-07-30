@@ -6,9 +6,9 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.auth.Role;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.User;
 import com.sethhaskellcondie.thegamepensieveapi.domain.auth.UserRepository;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionForbidden;
+import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInternalError;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -39,17 +39,15 @@ import java.util.concurrent.atomic.AtomicReference;
 public class OwnerResolver {
 
     private final UserRepository userRepository;
-    private final JdbcTemplate jdbcTemplate;
     private final AccessService accessService;
     private final long trialDays;
     // The default-showcase owner id never changes after V1_13 seeds it; cache the first lookup. (Slug lookups
     // are per-request indexed reads instead — a slug's visibility depends on the owner's current billing state.)
     private final AtomicReference<Integer> showcaseOwnerId = new AtomicReference<>();
 
-    public OwnerResolver(UserRepository userRepository, JdbcTemplate jdbcTemplate, AccessService accessService,
+    public OwnerResolver(UserRepository userRepository, AccessService accessService,
                          @Value("${entitlement.trial-days}") long trialDays) {
         this.userRepository = userRepository;
-        this.jdbcTemplate = jdbcTemplate;
         this.accessService = accessService;
         this.trialDays = trialDays;
     }
@@ -249,7 +247,8 @@ public class OwnerResolver {
     private Integer showcaseOwnerId() {
         Integer cached = showcaseOwnerId.get();
         if (cached == null) {
-            cached = jdbcTemplate.queryForObject("SELECT id FROM users WHERE is_public_showcase", Integer.class);
+            cached = userRepository.findPublicShowcaseOwnerId().orElseThrow(() -> new ExceptionInternalError(
+                    "No default showcase owner could be resolved, no users row is flagged is_public_showcase."));
             showcaseOwnerId.set(cached);
         }
         return cached;

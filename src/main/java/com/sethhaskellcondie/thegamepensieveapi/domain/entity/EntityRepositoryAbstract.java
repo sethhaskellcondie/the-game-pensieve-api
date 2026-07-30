@@ -139,6 +139,14 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
         return queryById(id, baseQuery);
     }
 
+    @Override
+    public int getCount() {
+        //The table name comes from the Keychain (the same source the filter SQL builds from), never user input.
+        final String sql = "SELECT count(*) FROM " + Keychain.getTableAliasByKey(entityKey) + " WHERE deleted_at IS NULL";
+        final Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+        return count == null ? 0 : count;
+    }
+
     /**
      * Batch equivalent of {@link #getById(int)}: fetch every (non-deleted) entity whose id is in the list with a single
      * query and load all of their custom field values in a single query. Used to avoid N+1 queries when hydrating

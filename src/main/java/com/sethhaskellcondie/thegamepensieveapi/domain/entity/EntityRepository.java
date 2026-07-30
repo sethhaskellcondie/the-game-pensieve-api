@@ -30,4 +30,11 @@ public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, Req
     T getDeletedById(int id);
 
     T getByIdIncludeDeleted(int id);
+
+    /**
+     * How many entities this repository holds, without transferring any of them. Counts the same set an unfiltered
+     * getWithFilters() returns: soft-deleted rows are excluded, and Row-Level Security scopes the count to the
+     * acting owner.
+     */
+    int getCount();
 }

@@ -4,7 +4,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -20,10 +19,10 @@ public class TenantConfig {
 
     @Bean
     public FilterRegistrationBean<TenantTransactionFilter> tenantTransactionFilterRegistration(
-            OwnerResolver ownerResolver, PlatformTransactionManager transactionManager, JdbcTemplate jdbcTemplate) {
+            OwnerResolver ownerResolver, PlatformTransactionManager transactionManager, TenantSessionRepository tenantSessionRepository) {
         final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
         final FilterRegistrationBean<TenantTransactionFilter> registration = new FilterRegistrationBean<>(
-                new TenantTransactionFilter(ownerResolver, transactionTemplate, jdbcTemplate));
+                new TenantTransactionFilter(ownerResolver, transactionTemplate, tenantSessionRepository));
         registration.addUrlPatterns("/*");
         registration.setOrder(0);
         return registration;

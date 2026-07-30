@@ -94,6 +94,21 @@ public class UserRepository {
         }
     }
 
+    /**
+     * The id of the seeded <em>default</em> showcase owner — the single row flagged {@code is_public_showcase}
+     * (seeded by V1_13, and unique). Anonymous requests act as this owner, so the caller resolves it before the
+     * request transaction drops to {@code app_rls}. Empty only if the seed row is missing, which the caller
+     * treats as an internal error.
+     */
+    public Optional<Integer> findPublicShowcaseOwnerId() {
+        final String sql = "SELECT id FROM users WHERE is_public_showcase";
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, Integer.class));
+        } catch (EmptyResultDataAccessException ignored) {
+            return Optional.empty();
+        }
+    }
+
     public Optional<User> findById(int id) {
         final String sql = "SELECT " + SELECT_COLUMNS + " FROM users WHERE id = ?";
         try {
