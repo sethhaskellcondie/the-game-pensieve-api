@@ -106,16 +106,16 @@ public class FilterService {
     }
 
     /**
-     * These are the characters and words that are not allowed in any filter strings,
-     * this is a protection against SQL injection in the system.
+     * These are the characters and words that are not allowed in any filter strings;
+     * this is protection against SQL injection in the system.
      */
     public static List<String> getBlacklistedWords() {
         return List.of(
                 ";",          // ; allows a statement to be terminated, then start a new one
-                "=",          // = allows boolean based injection
-                "sleep(",     // 'sleep' allows time based injection
-                " or ",       // 'or' allows boolean based injection
-                " union ",    // 'union' allows union based injection
+                "=",          // = allows boolean-based injection
+                "sleep(",     // 'sleep' allows time-based injection
+                " or ",       // 'or' allows boolean-based injection
+                " union ",    // 'union' allows union-based injection
                 " delete ",   // 'delete' is not allowed
                 " select ",   // 'select' is not allowed
                 " drop "      // 'drop' is not allowed
@@ -124,7 +124,7 @@ public class FilterService {
 
     /**
      * All fields can use the sort (order_by) operators, if includeSort is 'true' the sort filters are included in EACH list of field types
-     * if includeSort is 'false' then it will only be included in the 'all_fields' list
+     * if includeSort is 'false' then, it will only be included in the 'all_fields' list
      * generally includeSort is set to false when we are returning the filters in a response
      * and includeSort is set to true when performing internal validation on incoming requests
      */
@@ -152,7 +152,7 @@ public class FilterService {
             case FIELD_TYPE_BOOLEAN -> {
                 filters.add(OPERATOR_EQUALS);
             }
-            //Enum types filter on the selected option's ID (like system), so only equals/not-equals apply for filtering.
+            //Enum types filter on the selected option's ID (like a system), so only equals/not-equals apply for filtering.
             //Sorting IS supported and is added below; it orders by the selected option's display_order, not the option id.
             case Filter.FIELD_TYPE_DROPDOWN, Filter.FIELD_TYPE_RADIO_BUTTON, Filter.FIELD_TYPE_PROGRESS_BAR -> {
                 filters.add(OPERATOR_EQUALS);
@@ -192,8 +192,8 @@ public class FilterService {
     }
 
     public static List<Filter> validateAndOrderFilters(List<Filter> filters, List<CustomField> customFields) throws ExceptionInvalidFilter {
-        // This ExceptionInvalidFilter will travel through validateAndOrderFilters collecting exceptions when errors are found
-        // then at the end if exceptions are found then the exception is thrown else the list of filters are returned validated and ordered properly
+        // This ExceptionInvalidFilter will travel through validateAndOrderFilters collecting exceptions when errors are found,
+        // then at the end if exceptions are found, then the exception is thrown else the list of filters is returned validated and ordered properly
         ExceptionInvalidFilter exceptionInvalidFilter = new ExceptionInvalidFilter();
 
         for (Filter filter : filters) {

@@ -13,7 +13,7 @@ import java.util.List;
  * The only way for an object to have an ID is to hydrate that object from the database with a repository.
  * <p>
  * Repositories are in charge of running any final validation on an object before it is written
- * or updated in a database table, this is usually encapsulated in a private dbValidation method.
+ * or updated in a database table; this is usually encapsulated in a private dbValidation method.
  */
 @Repository
 public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> {
@@ -31,10 +31,5 @@ public interface EntityRepository<T extends Entity<RequestDto, ResponseDto>, Req
 
     T getByIdIncludeDeleted(int id);
 
-    /**
-     * How many entities this repository holds, without transferring any of them. Counts the same set an unfiltered
-     * getWithFilters() returns: soft-deleted rows are excluded, and Row-Level Security scopes the count to the
-     * acting owner.
-     */
     int getCount();
 }

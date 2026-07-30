@@ -103,7 +103,7 @@ public class CustomFieldGateway {
         return repository.getAllByKey(entityKey);
     }
 
-    // Custom fields are read-only on the public showcase read surface: reads (getAllByEntityKey / getAllCustomFields
+    // Custom fields are read-only on the public showcase-read surface: reads (getAllByEntityKey / getAllCustomFields
     // / getById) are ungated so an anonymous or X-Showcase (GUEST) viewer can browse an owner's definitions, but
     // mutations require the WRITE capability. A GUEST showcase view lacks it (403); enforcement is off in the default
     // permit-all build, so the single-user public build keeps unrestricted writes. Mirrors EntityGatewayAbstract.
