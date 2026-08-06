@@ -82,6 +82,15 @@ services:
     volumes:
       - ${PWD}/keycloak/import:/opt/keycloak/data/import:ro
       - keycloak_data:/opt/keycloak/data
+    depends_on:
+      - mailpit
+  mailpit:
+    # Dev mail catcher: the realm's smtpServer points at mailpit:1025, so Keycloak's verification and
+    # password-reset emails are captured here instead of being delivered. Read them at http://localhost:8025.
+    # Prod uses a real SMTP relay (see compose.production.yaml); nothing but the realm's smtpServer differs.
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025" #host port:container port (web UI)
 
 volumes:
   keycloak_data:

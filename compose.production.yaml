@@ -112,6 +112,15 @@ services:
       PENSIEVE_APP_DOMAIN: ${APP_DOMAIN}
       PENSIEVE_MCP_DOMAIN: ${MCP_DOMAIN}
       PENSIEVE_WEB_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      # SMTP relay for the realm's email verification and password-reset messages. STARTTLS/SSL are a pair:
+      # port 587 -> STARTTLS=true, SSL=false; port 465 -> STARTTLS=false, SSL=true.
+      PENSIEVE_SMTP_HOST: ${SMTP_HOST}
+      PENSIEVE_SMTP_PORT: ${SMTP_PORT}
+      PENSIEVE_SMTP_FROM: ${SMTP_FROM}
+      PENSIEVE_SMTP_USER: ${SMTP_USER}
+      PENSIEVE_SMTP_PASSWORD: ${SMTP_PASSWORD}
+      PENSIEVE_SMTP_STARTTLS: ${SMTP_STARTTLS}
+      PENSIEVE_SMTP_SSL: ${SMTP_SSL}
     volumes:
       - ${PWD}/keycloak/import-prod:/opt/keycloak/data/import:ro
     depends_on:

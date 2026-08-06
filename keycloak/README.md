@@ -18,14 +18,17 @@ Self-hosted Keycloak (**26.7**) that acts as the OAuth 2.1 Authorization Server 
   2. the full set of built-in client scopes (`basic`/`email`/`profile`/…) so tokens carry
      `sub` + `email` (KC 26 sources `sub` from the `basic` scope);
   3. **anonymous DCR for localhost** via the Trusted Hosts policy (registered clients' redirect URIs
-     must be localhost; the sender-IP check is disabled so requests through the Docker bridge work).
+     must be localhost; the sender-IP check is disabled so requests through the Docker bridge work);
+  4. **email verification and self-service password reset** (`verifyEmail` + `resetPasswordAllowed`),
+     with `smtpServer` pointed at the `mailpit` dev container — see [Account emails](#account-emails).
 - `import-prod/pensieve-realm.json` — the **production** realm, mounted by
   `../compose.production.yaml`. Derived from the dev realm with the dev-only surface removed:
   **no test users**, **no `pensieve-test-client`** (no public client, no direct-access grants), **no
   anonymous DCR** (the Trusted Hosts policy is absent, so Keycloak's default policies deny anonymous
   registration — pre-register remote MCP hosts via the admin console instead), and
   `sslRequired=external` (TLS terminates at Caddy). Deployment-specific values are `${...}`
-  placeholders (`PENSIEVE_APP_DOMAIN`, `PENSIEVE_MCP_DOMAIN`, `PENSIEVE_WEB_CLIENT_SECRET`) that
+  placeholders (`PENSIEVE_APP_DOMAIN`, `PENSIEVE_MCP_DOMAIN`, `PENSIEVE_WEB_CLIENT_SECRET`,
+  `PENSIEVE_SMTP_*`) that
   Keycloak resolves from the service environment at import time — after the first boot, decode a
   token and verify `aud`; a literal `${PENSIEVE_...}` means substitution failed. If you change the
   dev realm, re-apply the equivalent change to the prod file.
@@ -55,6 +58,47 @@ curl -s -X POST http://localhost:8081/realms/pensieve/protocol/openid-connect/to
 ```
 
 Or drive an interactive authcode + PKCE flow with `npx @modelcontextprotocol/inspector`.
+
+## Account emails
+
+Email confirmation and password reset are **Keycloak flows end to end** — the API and the web app hold
+no code for either. Two realm flags turn them on, and both are set in the dev and prod realms:
+
+- **`verifyEmail: true`** — an account whose address is unverified cannot finish a login; Keycloak
+  sends the confirmation mail and holds the session at its "verify your email" page until the link is
+  clicked. This also blocks the **direct-access grant** for such an account (`invalid_grant`, "Account
+  is not fully set up"), which is why `KeycloakTestSupport.passwordGrantUnverified` exists — see
+  [Interaction with tests](#interaction-with-tests) below.
+- **`resetPasswordAllowed: true`** — puts "Forgot Password?" on the hosted login page, which emails a
+  reset link. Registration stays disabled, so this is the only self-service credential path.
+
+Neither works without SMTP. Dev points `smtpServer` at the **`mailpit`** container (`mailpit:1025`, no
+auth) so nothing leaves the machine — read the captured mail at <http://localhost:8025>. Production
+resolves `PENSIEVE_SMTP_*` from the service environment (`SMTP_*` in `.env`, see
+`../.env.production.example`); `STARTTLS`/`SSL` are a pair chosen by port (587 → STARTTLS, 465 → SSL).
+
+**Onboarding an admin-created account:** since registration is off, send one email that both verifies
+the address and lets the user pick their own password — no temporary password to hand over:
+
+```bash
+curl -X PUT "$KC/admin/realms/pensieve/users/$USER_ID/execute-actions-email?client_id=pensieve-web&redirect_uri=https://$APP_DOMAIN" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '["VERIFY_EMAIL","UPDATE_PASSWORD"]'
+```
+
+**Link lifespans:** a user-initiated reset link lives **15 minutes**
+(`actionTokenGeneratedByUserLifespan: 900`, raised from Keycloak's 5-minute default — five minutes is
+short enough that a user who checks mail on another device routinely arrives at an expired link). The
+admin-sent action email keeps the 12-hour default (`actionTokenGeneratedByAdminLifespan`).
+
+### Interaction with tests
+
+The test Keycloak imports this same dev realm, so `verifyEmail` applies there too. Users created by
+`KeycloakTestSupport.ensureUser` are verified and unaffected. The one test that needs a token carrying
+`email_verified: false` (`AuthSecuredProfileTests.tokenWithUnverifiedEmail_MatchingExistingAccount_DoesNotClaimIt`,
+which covers `OwnerResolver`'s claim-by-email guard) goes through `passwordGrantUnverified`, which
+lowers the realm flag for the grant and restores it. The dev realm's `mailpit` SMTP host does not
+resolve inside the Testcontainers Keycloak, which is harmless: no test triggers a send.
 
 ## Notes / next (Phase 4+)
 

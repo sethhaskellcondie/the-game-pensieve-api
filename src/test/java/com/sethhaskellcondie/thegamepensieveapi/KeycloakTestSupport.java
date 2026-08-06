@@ -183,6 +183,38 @@ public final class KeycloakTestSupport {
         }
     }
 
+    /**
+     * Mint a direct-access-grant token for a user whose email is <em>unverified</em>. The realm sets
+     * {@code verifyEmail}, which leaves VERIFY_EMAIL pending on such an account and makes Keycloak refuse the grant
+     * ({@code invalid_grant}, "Account is not fully set up") — so the realm flag is lowered for the duration of the
+     * grant and restored immediately after. Tests run sequentially against the shared container, so the window is
+     * not observable by another test. This is the only way to obtain the token shape {@code OwnerResolver}'s
+     * claim-by-email guard exists for, now that the realm itself blocks unverified logins.
+     */
+    public static synchronized String passwordGrantUnverified(String email, String password) {
+        setRealmVerifyEmail(false);
+        try {
+            return passwordGrant(email, password);
+        } finally {
+            setRealmVerifyEmail(true);
+        }
+    }
+
+    /** Flip the realm's {@code verifyEmail} flag. A realm PUT merges only the fields present, so the rest stands. */
+    private static void setRealmVerifyEmail(boolean verifyEmail) {
+        final String body = "{\"realm\":\"" + REALM + "\",\"verifyEmail\":" + verifyEmail + "}";
+        final HttpResponse<String> response = send(HttpRequest.newBuilder(
+                        URI.create(baseUrl() + "/admin/realms/" + REALM))
+                .header("Authorization", "Bearer " + adminToken())
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build());
+        if (response.statusCode() != 204) {
+            throw new IllegalStateException("Failed to set realm verifyEmail=" + verifyEmail + ": "
+                    + response.statusCode() + " " + response.body());
+        }
+    }
+
     private static void createUser(String label, String body) {
         final HttpResponse<String> response = send(HttpRequest.newBuilder(
                         URI.create(baseUrl() + "/admin/realms/" + REALM + "/users"))

@@ -5,7 +5,23 @@
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": true,
+  "smtpServer": {
+    "host": "${PENSIEVE_SMTP_HOST}",
+    "port": "${PENSIEVE_SMTP_PORT}",
+    "from": "${PENSIEVE_SMTP_FROM}",
+    "fromDisplayName": "The Game Pensieve",
+    "replyTo": "${PENSIEVE_SMTP_FROM}",
+    "envelopeFrom": "${PENSIEVE_SMTP_FROM}",
+    "auth": "true",
+    "user": "${PENSIEVE_SMTP_USER}",
+    "password": "${PENSIEVE_SMTP_PASSWORD}",
+    "starttls": "${PENSIEVE_SMTP_STARTTLS}",
+    "ssl": "${PENSIEVE_SMTP_SSL}"
+  },
   "accessTokenLifespan": 900,
+  "actionTokenGeneratedByUserLifespan": 900,
   "defaultDefaultClientScopes": [
     "acr",
     "basic",

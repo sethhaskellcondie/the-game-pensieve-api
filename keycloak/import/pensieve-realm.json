@@ -5,7 +5,19 @@
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": true,
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "no-reply@pensieve.localhost",
+    "fromDisplayName": "The Game Pensieve (dev)",
+    "auth": "false",
+    "ssl": "false",
+    "starttls": "false"
+  },
   "accessTokenLifespan": 900,
+  "actionTokenGeneratedByUserLifespan": 900,
   "defaultDefaultClientScopes": [
     "acr",
     "basic",

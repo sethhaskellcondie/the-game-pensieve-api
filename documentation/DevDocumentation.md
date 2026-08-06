@@ -241,6 +241,10 @@ Entity routes are enumerated per entity rather than wildcarded so future non-ent
 
 The realm is fully declarative and imported on first boot; there is no manual post-import step. `keycloak/import/pensieve-realm.json` is the **dev** realm (used by both compose and the test Keycloak container) and `keycloak/import-prod/pensieve-realm.json` is the **production** realm — see [Deployment](#deployment-production-topology) for how they differ. `keycloak/README.md` documents the clients, scopes, and how to mint a token by hand.
 
+**Email confirmation and password reset are Keycloak's, not the API's.** Both realms set `verifyEmail` (an unverified address cannot finish a login) and `resetPasswordAllowed` ("Forgot Password?" on the hosted login page), plus an `smtpServer` — the `mailpit` container in dev (read the mail at <http://localhost:8025>), a real relay via `PENSIEVE_SMTP_*` in prod. No Java or front-end code participates: the API is a resource server and the web app only redirects to Keycloak's hosted pages. `keycloak/README.md` covers the flags, the admin `execute-actions-email` onboarding call, and why the test suite needs `KeycloakTestSupport.passwordGrantUnverified`.
+
+Note the realm import only runs on a **first** boot, and both compose stacks give Keycloak a persistent store — editing a realm file does not change an already-running realm. Apply realm changes in the admin console (or via a partial import) *and* to the JSON, so a fresh environment comes up the same.
+
 ## Multi-Tenancy and Row-Level Security
 
 ### The problem
@@ -370,7 +374,7 @@ There is no seed/env admin. The operator **claims the seeded `showcase@internal.
 
 Credentials now live in Keycloak, not in `users` (the legacy `password_hash` and `enabled` columns were dropped in `V1_20`). The row is claimed by **email on first login**: point the seeded row's `email` at the operator's Keycloak account, and their first authenticated call stamps that row's `keycloak_sub`. **One-time manual procedure per environment (never automated in a migration):**
 
-1. Create the operator's account in **Keycloak** (the same realm the backend validates against), with their intended email and password — and mark the email **verified** (admin console → user → Email verified). Claim-by-email requires the token's `email_verified` claim; an unverified account will not claim the row (the login is refused with a 403 email-conflict error instead).
+1. Create the operator's account in **Keycloak** (the same realm the backend validates against), with their intended email and password — and mark the email **verified** (admin console → user → Email verified), or send them a `VERIFY_EMAIL` + `UPDATE_PASSWORD` action email and let them set their own password (see `keycloak/README.md`). Claim-by-email requires the token's `email_verified` claim; an unverified account will not claim the row (the login is refused with a 403 email-conflict error instead) — and with the realm's `verifyEmail` on, it cannot complete a login at all until the address is confirmed.
 2. Point the seeded row at that email and pin it ADMIN via SQL (`showcase_slug`/`showcase_name` are already seeded by `V1_18`):
    ```sql
    UPDATE users
