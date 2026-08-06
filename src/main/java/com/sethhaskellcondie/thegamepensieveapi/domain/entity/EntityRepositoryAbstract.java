@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * The goal of creating an abstract of the repository is to encapsulate the access of the customFieldValueRepository
- * That should be as automatic as possible, when adding new entities developers should be aware of it but not have to
+ * That should be as automatic as possible, when adding new entities, developers should be aware of it but not have to
  * implement it every time. This will also make the exceptions and logging uniform across all EntityRepositories.
  */
 public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, ResponseDto>, RequestDto, ResponseDto> implements EntityRepository<T, RequestDto, ResponseDto> {
@@ -65,16 +65,16 @@ public abstract class EntityRepositoryAbstract<T extends Entity<RequestDto, Resp
     protected abstract RowMapper<T> getRowMapper();
 
     //This method will be commonly used to validate objects before they are inserted or updated,
-    //performing any validation that is not enforced by the database schema
+    //performing any validation not enforced by the database schema
     protected abstract void insertValidation(T entity);
     protected abstract void updateValidation(T entity);
     protected abstract Integer insertImplementation(T entity);
     protected abstract void updateImplementation(T entity);
 
     /**
-     * Hook that runs on every entity loaded from the database, after the custom field values have been set.
+     * Hook that runs on every entity loaded from the database after the custom field values have been set.
      * Override this to hydrate additional data (like related ids from a join table). Every query path funnels
-     * through this hook (getWithFilters, getById, getByIds, and all of the deleted/include-deleted variants),
+     * through this hook (getWithFilters, getById, getByIds, and all the deleted/include-deleted variants),
      * so an override cannot miss one of them. The default does nothing.
      */
     protected void afterLoad(List<T> entities) {

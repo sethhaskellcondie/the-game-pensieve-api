@@ -21,8 +21,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
   mcp:
-    build:
-      context: ./mcp
+    # The sidecar lives in its own repo (the-game-pensieve-mcp) and is consumed here as a published
+    # image, the same way the front end is. To run local sidecar changes, build the image from that
+    # repo first: docker build -t sethcondie/the-game-pensieve-mcp:latest .
+    image: sethcondie/the-game-pensieve-mcp:latest
     ports:
       - "8090:3000" #host port:container port (MCP Streamable HTTP endpoint at /mcp)
     environment:

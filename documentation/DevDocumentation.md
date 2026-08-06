@@ -45,7 +45,7 @@ The packages reflect this split:
 - `api/` — the web layer: controllers, the controller advice (`ApiControllerAdvice`), the standard response wrapper (`FormattedResponseBody`), MVC configuration, the OAuth2 resource-server setup (`api/security/`), and the per-request tenant boundary (`api/tenant/`).
 - `domain/` — everything else, organized by concern (`entity/`, `customfield/`, `filter/`, `backupimport/`, `metadata/`, `counts/`, `auth/`, `exceptions/`).
 
-Two things live outside this Java tree and are documented in their own sections below: the **MCP sidecar** (`mcp/`, a separate TypeScript process — see [MCP Sidecar](#mcp-sidecar)) and **Keycloak** (`keycloak/`, the authorization server — see [Authentication](#authentication-keycloak-and-oauth-21)).
+Two things live outside this Java tree and are documented in their own sections below: the **MCP sidecar** (a separate TypeScript process in [its own repository](https://github.com/sethhaskellcondie/the-game-pensieve-mcp) — see [MCP Sidecar](#mcp-sidecar)) and **Keycloak** (`keycloak/`, the authorization server — see [Authentication](#authentication-keycloak-and-oauth-21)).
 
 ## Domain Encapsulation
 
@@ -482,7 +482,7 @@ Implemented in `api/tenant/` (slug resolution + GUEST scoping), `ShowcaseControl
 
 ## MCP Sidecar
 
-`mcp/` is a **read-only MCP (Model Context Protocol) server** that lets AI hosts — Claude Desktop, Claude Code, claude.ai connectors — answer natural-language questions about a collection. Its own README (`mcp/README.md`) is the operational reference; this section is the design rationale.
+The **MCP sidecar** is a **read-only MCP (Model Context Protocol) server** that lets AI hosts — Claude Desktop, Claude Code, claude.ai connectors — answer natural-language questions about a collection. It lives in [its own repository](https://github.com/sethhaskellcondie/the-game-pensieve-mcp), whose README is the operational reference; this section is the design rationale, kept here because the sidecar's contract is defined by this API.
 
 ### It is a sidecar, not a module
 
@@ -506,7 +506,7 @@ All tools are read-only (`readOnlyHint`), and each maps to one REST endpoint:
 | `get_collection_summary()` | `GET /v1/function/counts` |
 | `list_showcases()` | `GET /v1/showcases` |
 
-Two conventions from this codebase have to be restated in `mcp/src/entities.ts` because the sidecar cannot import the `Keychain`: the six entity **keys** (`system`, `toy`, `videoGame`, `videoGameBox`, `boardGame`, `boardGameBox`), used verbatim in filter payloads and in the `/filters/{key}` and `/custom_fields/entity/{key}` paths, and the **pluralized controller paths** used by search (`videoGame` → `/v1/videoGames/...`). If you add an entity to the `Keychain`, add it there too.
+Two conventions from this codebase have to be restated in the sidecar's `src/entities.ts` because it cannot import the `Keychain`: the six entity **keys** (`system`, `toy`, `videoGame`, `videoGameBox`, `boardGame`, `boardGameBox`), used verbatim in filter payloads and in the `/filters/{key}` and `/custom_fields/entity/{key}` paths, and the **pluralized controller paths** used by search (`videoGame` → `/v1/videoGames/...`). If you add an entity to the `Keychain`, add it there too — that is a cross-repository change, and the sidecar will silently lack the new entity until it is made.
 
 The filter tool descriptions carry the operator list from [The Filter System](#the-filter-system), and `get_available_filters` is advertised as the call to make first, so the model builds valid filters instead of guessing. The entity `key` is injected by the sidecar rather than asked of the model. API errors come back as MCP `isError` results carrying the status and body — so a `402` (lapsed filter) or `403` (write capability) surfaces to the host as a readable message rather than a transport failure.
 
@@ -530,12 +530,20 @@ As with the backend, `iss` is the canonical host-facing issuer while `MCP_OAUTH_
 
 ### Running and testing it
 
+From a clone of the [sidecar repository](https://github.com/sethhaskellcondie/the-game-pensieve-mcp):
+
 ```bash
-cd mcp && npm install
+npm install
 npm run dev          # tsx watch
 npm test             # vitest — hermetic, no backend or Keycloak needed
 npm run typecheck
-docker compose up -d backend mcp    # from the repo root; endpoint at http://localhost:8090/mcp
+docker build -t sethcondie/the-game-pensieve-mcp:latest .   # to run local changes in compose
+```
+
+And from this repo, which consumes the sidecar as a published image:
+
+```bash
+docker compose up -d backend mcp    # endpoint at http://localhost:8090/mcp
 ```
 
 The vitest suite covers config resolution (including the fail-closed rule), the auth helpers against a locally minted JWKS, the HTTP app's challenge/405/metadata behavior, the API client, and tool registration — no live dependencies, so it runs in CI without Docker. Register the running sidecar with a host via `claude mcp add --transport http pensieve http://localhost:8090/mcp`, or point the MCP Inspector at it.
@@ -575,7 +583,7 @@ Tests that exercise authentication (`*SecuredProfileTests`, `MultiTenancyTests`,
 
 ### The MCP sidecar suite
 
-The sidecar has its own **vitest** suite (`cd mcp && npm test`), independent of the Maven build and **hermetic** — no backend, database, or Keycloak needed, so it runs without Docker. It covers config resolution and the fail-closed enforcement rule, token verification against a locally minted JWKS, the HTTP app (auth challenge, metadata endpoints, 405s), the API client, and tool registration.
+The sidecar has its own **vitest** suite (`npm test`, run from its repository), independent of the Maven build and **hermetic** — no backend, database, or Keycloak needed, so it runs without Docker. It covers config resolution and the fail-closed enforcement rule, token verification against a locally minted JWKS, the HTTP app (auth challenge, metadata endpoints, 405s), the API client, and tool registration.
 
 > On some machines not all containers start reliably. If the suite fails for that reason, reduce the load by commenting out the `GetWithFilters...Tests.java` series.
 
@@ -636,7 +644,7 @@ Requires `curl` and `jq`. Preconditions: **Keycloak must be running and reachabl
 - **Design intent** lives in the Javadoc-style comments on the `Entity` and `System` classes (and the `Keychain`).
 - **Per-entity requirements** live in that entity's integration test. For example, the rules for a video game box are documented and enforced in `VideoGameBoxTests.java`. When in doubt about expected behavior, read the test.
 - **The HTTP contract** is in [`openapi.yaml`](./openapi.yaml); ready-to-run example requests are in [`api.postman_collection.json`](./api.postman_collection.json).
-- **The MCP sidecar** documents its tools, env vars, and host setup in [`../mcp/README.md`](../mcp/README.md).
+- **The MCP sidecar** documents its tools, env vars, and host setup in [its own repository's README](https://github.com/sethhaskellcondie/the-game-pensieve-mcp#readme).
 - **Keycloak** (realm contents, clients, scopes, minting a token by hand) is in [`../keycloak/README.md`](../keycloak/README.md).
 - **Notable past issues** are recorded in [`PastIssues.md`](./PastIssues.md).
 
@@ -648,7 +656,7 @@ The development compose file (`compose.yaml`) defines six services:
 2. **`flyway`** — runs the database migrations against `db`, then exits.
 3. **`backend`** — the API, built from the project `Dockerfile`. In Docker it loads the `docker` profile (`application-docker.properties`).
 4. **`keycloak`** — the authorization server (`start-dev --import-realm`, host port 8081), importing `keycloak/import/pensieve-realm.json` on first boot into a `keycloak_data` volume.
-5. **`mcp`** — the MCP sidecar, built from `mcp/Dockerfile` (host port 8090 → `/mcp`).
+5. **`mcp`** — the MCP sidecar, pulled as the published `sethcondie/the-game-pensieve-mcp:latest` image built from its own repo (host port 8090 → `/mcp`).
 6. **`frontend`** — the Next.js app (host port 4200).
 
 They are independent enough to bring up piecemeal: `docker compose up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar, `up -d keycloak` to work on auth. See the README for the exact commands, and [Deployment](#deployment-production-topology) for the production topology, which differs substantially.
@@ -710,13 +718,13 @@ docker buildx inspect --bootstrap
 
 ### Build and Push the MCP Sidecar Image
 
-Built from `mcp/` (no jar or prior build step — the Dockerfile compiles the TypeScript):
+Build and push **from the sidecar repository** (`the-game-pensieve-mcp`). No jar or prior build step — the Dockerfile compiles the TypeScript:
 
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 \
   -t sethcondie/the-game-pensieve-mcp:latest \
   --push \
-  ./mcp
+  .
 ```
 
 ### Front End (React / Next.js)

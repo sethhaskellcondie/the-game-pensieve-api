@@ -6,6 +6,7 @@ In the Harry Potter series, a Pensieve is a basin where wizards store thoughts a
 
 - **Video walkthrough** — a presentation of this project as if delivered in a technical interview: https://youtu.be/7wByiXr5nDI
 - **Front end** (React / Next.js): https://github.com/sethhaskellcondie/the-game-pensieve-web-v2
+- **MCP sidecar** (TypeScript / Node): https://github.com/sethhaskellcondie/the-game-pensieve-mcp
 
 ## Tech Stack
 
@@ -18,7 +19,7 @@ In the Harry Potter series, a Pensieve is a basin where wizards store thoughts a
 | Database access | JDBC Template |
 | Migrations | Flyway |
 | Authentication | Keycloak (OAuth 2.1 / OIDC), the API is a resource server |
-| AI integration | MCP sidecar in [`mcp/`](./mcp) — TypeScript / Node, Streamable HTTP |
+| AI integration | MCP sidecar ([its own repo](https://github.com/sethhaskellcondie/the-game-pensieve-mcp)) — TypeScript / Node, Streamable HTTP |
 | Runtime container | Docker |
 | Production edge | Caddy (TLS termination and reverse proxy) |
 
@@ -149,15 +150,15 @@ curl http://localhost:8080/v1/heartbeat
 
 ## MCP (AI Assistant Access)
 
-[`mcp/`](./mcp) is a read-only **MCP (Model Context Protocol)** server that lets AI hosts — Claude Desktop, Claude Code, claude.ai connectors — answer natural-language questions about a collection. It is a separate TypeScript process that fulfills every tool call through this REST API, so its reads inherit exactly the same authorization the web app has, never more.
+The [MCP sidecar](https://github.com/sethhaskellcondie/the-game-pensieve-mcp) is a read-only **MCP (Model Context Protocol)** server that lets AI hosts — Claude Desktop, Claude Code, claude.ai connectors — answer natural-language questions about a collection. It lives in its own repository: a separate TypeScript process that fulfills every tool call through this REST API, so its reads inherit exactly the same authorization the web app has, never more.
 
-It runs as the `mcp` service in the compose stack (endpoint `http://localhost:8090/mcp`). Register it with a host:
+It runs as the `mcp` service in the compose stack, pulled as the published `sethcondie/the-game-pensieve-mcp:latest` image (endpoint `http://localhost:8090/mcp`). Register it with a host:
 
 ```bash
 claude mcp add --transport http pensieve http://localhost:8090/mcp
 ```
 
-Against an unsecured backend it needs no token. Against a secured one it enforces OAuth: the host discovers Keycloak from the sidecar's protected-resource metadata and runs the standard authorization-code + PKCE flow, and each user sees only their own collection. Tools, environment variables, and host setup are documented in [`mcp/README.md`](./mcp/README.md).
+Against an unsecured backend it needs no token. Against a secured one it enforces OAuth: the host discovers Keycloak from the sidecar's protected-resource metadata and runs the standard authorization-code + PKCE flow, and each user sees only their own collection. Tools, environment variables, and host setup are documented in the [sidecar's own README](https://github.com/sethhaskellcondie/the-game-pensieve-mcp#readme).
 
 ## Production Deployment
 
@@ -202,15 +203,16 @@ Additional documentation lives in the [`documentation/`](./documentation) direct
 
 Two components document themselves alongside their code:
 
-- [`mcp/README.md`](./mcp/README.md) — the MCP sidecar's tools, configuration, and host setup
+- [the MCP sidecar's README](https://github.com/sethhaskellcondie/the-game-pensieve-mcp#readme) — its tools, configuration, and host setup (separate repository)
 - [`keycloak/README.md`](./keycloak/README.md) — the realm contents, clients and scopes, and how to mint a token by hand
 
 ## Testing
 
 ```bash
 ./mvnw test          # the Java suite
-cd mcp && npm test   # the MCP sidecar's vitest suite
 ```
+
+The MCP sidecar has its own vitest suite, run with `npm test` from [its repository](https://github.com/sethhaskellcondie/the-game-pensieve-mcp).
 
 The Java suite uses [Testcontainers](https://testcontainers.com/) for integration tests, so **Docker must be running**. The secured-profile suites additionally start a Keycloak container (shared across the whole run) and mint real access tokens against it. On some machines not all containers start successfully; if the test suite fails for this reason, you can reduce the load by commenting out the `GetWithFilters...Tests.java` series of tests.
 
