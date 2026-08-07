@@ -29,8 +29,10 @@ Clone the repository, then build the jar, and start the development stack:
 
 ```bash
 ./mvnw install -DskipTests
-docker compose up -d
+docker compose -f compose.unsecured.yaml up -d
 ```
+
+There is no plain `compose.yaml`: the development stack has two security postures and the file name always says which one you are starting — `compose.unsecured.yaml` (above) or `compose.secured.yaml`. See [Security Modes](#security-modes).
 
 Once it is running:
 
@@ -42,7 +44,7 @@ Once it is running:
 | Keycloak | http://localhost:8081 (admin / admin — dev only) |
 | PostgreSQL | `localhost:5432` (postgres / root) |
 
-The development stack runs **unsecured**: no authentication, matching the original single-user behavior. See [Security Modes](#security-modes) to turn authentication on, and [Production Deployment](#production-deployment) for the secured, TLS-terminated topology.
+Started this way the stack runs **unsecured**: no authentication, matching the original single-user behavior. See [Security Modes](#security-modes) to turn authentication on, and [Production Deployment](#production-deployment) for the secured, TLS-terminated topology.
 
 A clone is required: the backend image is built from the jar you just produced, and the production compose file additionally mounts the `Caddyfile` and the Keycloak realm import from this repository.
 
@@ -50,7 +52,7 @@ A clone is required: the backend image is built from the jar you just produced, 
 
 ### Option 1: Run Everything in Docker
 
-Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a local clone. The two [Quick Start](#quick-start) commands launch six services:
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a local clone. The two [Quick Start](#quick-start) commands launch seven services:
 
 | Service | Role | Host port |
 | --- | --- | --- |
@@ -60,8 +62,9 @@ Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a
 | `keycloak` | authorization server; imports the dev realm on first boot | 8081 |
 | `mcp` | the MCP sidecar (`/mcp`) | 8090 |
 | `frontend` | the Next.js app | 4200 |
+| `mailpit` | dev mail catcher; Keycloak's password-reset mail lands here | 8025 |
 
-Bring up only what you need — `docker compose up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar. Rebuild the jar and re-run `docker compose up -d --build backend` after changing Java code.
+Bring up only what you need — `docker compose -f compose.unsecured.yaml up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar. Rebuild the jar and re-run `docker compose -f compose.unsecured.yaml up -d --build backend` after changing Java code. Swap in `-f compose.secured.yaml` to run the same services with authentication on.
 
 ### Option 2: Run the API Locally
 
@@ -69,7 +72,7 @@ Bring up only what you need — `docker compose up -d db backend` for the API al
 
 - The [Java 25 JDK](https://www.oracle.com/java/technologies/downloads/)
 - A PostgreSQL 16 database, provided either by:
-  - the Docker `db` service (`docker compose up db`), or
+  - the Docker `db` service (`docker compose -f compose.unsecured.yaml up db`), or
   - a [local PostgreSQL 16 install](https://www.postgresql.org/download/) (default credentials: user `postgres`, password `root`)
 
 **Steps**
@@ -83,6 +86,15 @@ The API is served on port `8080`.
 
 Authentication is controlled by the `secured` Spring profile — an **overlay** added alongside a datasource profile (`local`, `docker`), never used on its own.
 
+In Docker the mode is chosen by the compose file — the whole difference between the two is the backend's active profiles, so `compose.secured.yaml` `include`s `compose.unsecured.yaml` and overrides only that. Both resolve to the same compose project, so switching modes reuses the same containers and volumes and the database survives the switch:
+
+```bash
+docker compose -f compose.unsecured.yaml up -d    # backend profiles: docker
+docker compose -f compose.secured.yaml   up -d    # backend profiles: docker,secured
+```
+
+Running from source, the mode is chosen by the profiles you pass.
+
 **Unsecured (default)** — every request is permitted, matching the public showcase behavior. This is the default because the active profile is `local`, which does not include `secured`.
 
 ```bash
@@ -94,7 +106,7 @@ Authentication is controlled by the `secured` Spring profile — an **overlay** 
 Keycloak must be running and reachable at the configured issuer first:
 
 ```bash
-docker compose up -d keycloak    # imports the dev realm on first boot
+docker compose -f compose.unsecured.yaml up -d keycloak    # imports the dev realm on first boot
 ```
 
 Then start the API with both profiles. Use whichever form is convenient:

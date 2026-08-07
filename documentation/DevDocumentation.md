@@ -188,7 +188,7 @@ Global settings live in `application.properties` and apply to every profile. Pro
 
 The default credentials in local/docker are user `postgres`, password `root`. Override the active profile with `spring.profiles.active`.
 
-`secured` is an **overlay** profile: it is always activated alongside a datasource profile (`docker,secured` in production, `{"test-container", "secured"}` in the secured test suites) and it is the single switch between the two builds of the app:
+`secured` is an **overlay** profile: it is always activated alongside a datasource profile (`docker,secured` in `compose.secured.yaml` and in production, `{"test-container", "secured"}` in the secured test suites) and it is the single switch between the two builds of the app:
 
 - **default (permit-all)** — no authentication; every request is anonymous and resolves to the default showcase owner, and `AccessService` reports full access. This preserves the original single-user behavior.
 - **`secured`** — the app is an OAuth2 resource server and the capability matrix is enforced (see [Authentication](#authentication-keycloak-and-oauth-21) and [Roles and Capabilities](#roles-and-capabilities)).
@@ -241,7 +241,9 @@ Entity routes are enumerated per entity rather than wildcarded so future non-ent
 
 The realm is fully declarative and imported on first boot; there is no manual post-import step. `keycloak/import/pensieve-realm.json` is the **dev** realm (used by both compose and the test Keycloak container) and `keycloak/import-prod/pensieve-realm.json` is the **production** realm — see [Deployment](#deployment-production-topology) for how they differ. `keycloak/README.md` documents the clients, scopes, and how to mint a token by hand.
 
-**Email confirmation and password reset are Keycloak's, not the API's.** Both realms set `verifyEmail` (an unverified address cannot finish a login) and `resetPasswordAllowed` ("Forgot Password?" on the hosted login page), plus an `smtpServer` — the `mailpit` container in dev (read the mail at <http://localhost:8025>), a real relay via `PENSIEVE_SMTP_*` in prod. No Java or front-end code participates: the API is a resource server and the web app only redirects to Keycloak's hosted pages. `keycloak/README.md` covers the flags, the admin `execute-actions-email` onboarding call, and why the test suite needs `KeycloakTestSupport.passwordGrantUnverified`.
+**Password reset is Keycloak's, not the API's.** Both realms set `resetPasswordAllowed` ("Forgot Password?" on the hosted login page) plus an `smtpServer` — the `mailpit` container in dev (read the mail at <http://localhost:8025>), a real relay via `PENSIEVE_SMTP_*` in prod. No Java or front-end code participates: the API is a resource server and the web app only redirects to Keycloak's hosted pages.
+
+**Neither realm sets `verifyEmail`** — deliberately, in dev *and* prod. An account's address is there for password reset and admin action emails; it is not a gate on signing in, so an unconfirmed address still logs in. What that leaves is a distinction worth keeping straight: Keycloak still carries a per-account `emailVerified` flag and still stamps it into tokens as `email_verified`, it just never sets it on its own any more. The API reads that claim in exactly one place — `OwnerResolver`'s claim-by-email path, which links a login to a pre-existing `users` row (see [Identity: token → `users` row](#identity-token--users-row) and the [admin bootstrap](#bootstrap-claim-the-seeded-default-showcase-row)) — and the guard there is unchanged. So an **admin-created account that must claim an existing row needs its address marked verified explicitly**, in the admin console or via `execute-actions-email`; an account that only provisions its own fresh row does not care. `keycloak/README.md` covers the flags, the onboarding call, and what this changed about `KeycloakTestSupport.passwordGrantUnverified`.
 
 Note the realm import only runs on a **first** boot, and both compose stacks give Keycloak a persistent store — editing a realm file does not change an already-running realm. Apply realm changes in the admin console (or via a partial import) *and* to the JSON, so a fresh environment comes up the same.
 
@@ -374,7 +376,7 @@ There is no seed/env admin. The operator **claims the seeded `showcase@internal.
 
 Credentials now live in Keycloak, not in `users` (the legacy `password_hash` and `enabled` columns were dropped in `V1_20`). The row is claimed by **email on first login**: point the seeded row's `email` at the operator's Keycloak account, and their first authenticated call stamps that row's `keycloak_sub`. **One-time manual procedure per environment (never automated in a migration):**
 
-1. Create the operator's account in **Keycloak** (the same realm the backend validates against), with their intended email and password — and mark the email **verified** (admin console → user → Email verified), or send them a `VERIFY_EMAIL` + `UPDATE_PASSWORD` action email and let them set their own password (see `keycloak/README.md`). Claim-by-email requires the token's `email_verified` claim; an unverified account will not claim the row (the login is refused with a 403 email-conflict error instead) — and with the realm's `verifyEmail` on, it cannot complete a login at all until the address is confirmed.
+1. Create the operator's account in **Keycloak** (the same realm the backend validates against), with their intended email and password — and mark the email **verified** (admin console → user → Email verified), or send them a `VERIFY_EMAIL` + `UPDATE_PASSWORD` action email and let them set their own password (see `keycloak/README.md`). **Do not skip this**: claim-by-email requires the token's `email_verified` claim, and since neither realm sets `verifyEmail`, Keycloak will not set the flag for you — an admin-created account is unverified until someone says otherwise. Such an account logs in fine but does not claim the row; the request is refused with a 403 email-conflict error instead, which is the confusing symptom this step exists to prevent.
 2. Point the seeded row at that email and pin it ADMIN via SQL (`showcase_slug`/`showcase_name` are already seeded by `V1_18`):
    ```sql
    UPDATE users
@@ -547,7 +549,7 @@ docker build -t sethcondie/the-game-pensieve-mcp:latest .   # to run local chang
 And from this repo, which consumes the sidecar as a published image:
 
 ```bash
-docker compose up -d backend mcp    # endpoint at http://localhost:8090/mcp
+docker compose -f compose.unsecured.yaml up -d backend mcp    # endpoint at http://localhost:8090/mcp
 ```
 
 The vitest suite covers config resolution (including the fail-closed rule), the auth helpers against a locally minted JWKS, the HTTP app's challenge/405/metadata behavior, the API client, and tool registration — no live dependencies, so it runs in CI without Docker. Register the running sidecar with a host via `claude mcp add --transport http pensieve http://localhost:8090/mcp`, or point the MCP Inspector at it.
@@ -566,7 +568,7 @@ Conventions for new migrations:
 
 Production is defined by `compose.production.yaml`, `Caddyfile`, and `.env.production.example` (copy to `.env.production` and fill in). **Caddy is the only public service** — it terminates TLS and binds ports 80/443, reverse-proxying three hostnames to private services: the app (`frontend`), the MCP sidecar (`mcp`), and auth (`keycloak`). Everything else — `backend`, `db`, `keycloak`, `keycloak-db`, `mcp`, and `frontend` — is private with no published ports and is reachable only over the compose network.
 
-**Production runs secured.** The backend is started with `SPRING_PROFILES_ACTIVE: docker,secured` and its `PENSIEVE_OAUTH2_*` env, the sidecar with `MCP_AUTH_MODE=required`, and Keycloak has its own Postgres (`keycloak-db`), separate from the app database. There is **no `flyway` service** here — the production backend runs Flyway on startup — and the app database keeps a named volume. This is the opposite posture from the dev `compose.yaml` (see [Security Mode in Docker](#security-mode-in-docker)).
+**Production runs secured.** The backend is started with `SPRING_PROFILES_ACTIVE: docker,secured` and its `PENSIEVE_OAUTH2_*` env, the sidecar with `MCP_AUTH_MODE=required`, and Keycloak has its own Postgres (`keycloak-db`), separate from the app database. There is **no `flyway` service** here — the production backend runs Flyway on startup — and the app database keeps a named volume. It matches `compose.secured.yaml` in posture, and is the opposite of `compose.unsecured.yaml` (see [Security Mode in Docker](#security-mode-in-docker)).
 
 Production Keycloak imports its **own realm file** — `keycloak/import-prod/pensieve-realm.json`, not the dev one. The prod realm ships with the dev-only surface removed: **no test users**, **no `pensieve-test-client`** (no public client, no direct-access grants), **no anonymous DCR** (remote MCP hosts are pre-registered via the admin console), and `sslRequired=external`. Its deployment-specific values — the `pensieve:read` Audience mapper's `https://<MCP_DOMAIN>/mcp` audience, the `pensieve-web` redirect URIs/origins, and the web client secret — are `${PENSIEVE_*}` placeholders that Keycloak resolves from the service environment at import time (wired from `.env` in `compose.production.yaml`), so there is **no manual pre-deploy realm edit**. The import runs once, on first boot with an empty `keycloak-db`. After the first deploy, decode an access token and verify `aud` and `iss`: the audience is validated by **both** the MCP sidecar and the backend resource server, so a mismatch (including a literal unsubstituted `${PENSIEVE_...}`) rejects every request.
 
@@ -631,17 +633,29 @@ Docker must be running (Testcontainers). The suite runs under its own `seeded-te
 ### Running the live-environment consumer
 
 ```bash
-# Against the local compose stack (API in secured mode, db container running):
+# Against the local SECURED compose stack — the unsecured stack cannot be seeded (see below):
+docker compose -f compose.secured.yaml up -d
 ./scripts/seed-test-data.sh
 
-# Everything is parameterized via environment variables:
+# Everything is parameterized via environment variables. Any target realm must have a client with
+# direct access grants enabled (see the third precondition below):
 BASE_URL=https://dev.example.com \
+KEYCLOAK_URL=https://auth.dev.example.com KEYCLOAK_CLIENT=some-direct-grant-client \
 ADMIN_EMAIL=ops@example.com ADMIN_PASSWORD='...' \
 SQL_CMD="psql -h dev-db.example.com -U postgres -d pensieve-db" \
 ./scripts/seed-test-data.sh
 ```
 
-Requires `curl` and `jq`. Preconditions: **Keycloak must be running and reachable** (accounts are created in Keycloak and the `users` rows are JIT-provisioned on first login), the API must be running with the `secured` profile active and its working directory at the repo root (for the `seedSampleData` step), and **no admin may exist yet** unless it is the account the script registers — the `uq_users_single_admin` index makes the bootstrap `UPDATE` fail loudly if a different admin (e.g. the claimed default-showcase row from the bootstrap above) already holds the pin. The script targets fresh dev databases; it ends by smoke-asserting the full role/showcase matrix (trial import → 403, lapsed filter → 402, second admin → 400, showcase switching, unknown slug → 404), so a seeded environment is also a verified one. Any unexpected response exits non-zero.
+Requires `curl` and `jq`. Preconditions — the script checks each one in Step 0 and stops with a message naming the actual cause, because every one of them otherwise surfaces later as an unexplained 401, 403, or "user not found":
+
+- **The API must be running with the `secured` profile** (`GET /v1/heartbeat` must report `secureMode: true`) with its working directory at the repo root, for the `seedSampleData` step. The permit-all build cannot be seeded *at all* — it resolves every request to the default-showcase owner as GUEST, so no `users` row is ever provisioned and the admin API answers 403. This is why the local stack must be `compose.secured.yaml`.
+- **Keycloak must be running and reachable**, with the realm imported: accounts are created there and the `users` rows are JIT-provisioned on first login. Remember the realm import only runs into an empty volume — a stale `keycloak_data` can predate the client the script needs.
+- **`KEYCLOAK_CLIENT` must exist, be enabled, and have direct access grants on.** The script has no browser, so the password grant is its only way to obtain a token. The dev realm ships `pensieve-test-client` for this. **The production realm deliberately does not** — it has only the confidential `pensieve-web` client with direct access grants off — so a deployment running `keycloak/import-prod/pensieve-realm.json` cannot be seeded by this script unless an operator adds a direct-grant client to that realm by hand. Do not add one to the prod realm import to make this work: a password-grant client permanently weakens a production authorization server, and these fixtures have no business in production anyway.
+- **No admin may exist yet** unless it is the account the script provisions. The `uq_users_single_admin` index makes the bootstrap `UPDATE` fail if a different admin (e.g. the claimed default-showcase row from the bootstrap above) already holds the pin, and the script also treats an `UPDATE` that matches *no* row as an error — that means `SQL_CMD` is pointed at a different database than `BASE_URL` is.
+
+The script targets fresh dev databases; it ends by smoke-asserting the full role/showcase matrix (trial import → 403, lapsed filter → 402, second admin → 400, showcase switching, unknown slug → 404), so a seeded environment is also a verified one. Any unexpected response exits non-zero.
+
+One detail worth knowing if you edit it: the accounts it creates in Keycloak are marked `emailVerified: true` on purpose. That is not the (removed) `verifyEmail` login gate — it is what lets the API's claim-by-email path relink an account whose `users` row outlived its Keycloak identity, which is exactly what happens when the Keycloak volume is wiped and the database is not.
 
 ## Where to Find the Requirements
 
@@ -654,30 +668,37 @@ Requires `curl` and `jq`. Preconditions: **Keycloak must be running and reachabl
 
 ## Docker Runtime Flow
 
-The development compose file (`compose.yaml`) defines six services:
+Development defines **seven** services. There is deliberately no plain `compose.yaml`: the stack has two security postures and the file name always names the one you are starting — `compose.unsecured.yaml` holds the service definitions, and `compose.secured.yaml` `include`s it and overrides only the backend's profiles.
 
 1. **`db`** — the Postgres database.
 2. **`flyway`** — runs the database migrations against `db`, then exits.
-3. **`backend`** — the API, built from the project `Dockerfile`. In Docker it loads the `docker` profile (`application-docker.properties`).
+3. **`backend`** — the API, built from the project `Dockerfile`. In Docker it loads the `docker` profile (`application-docker.properties`), plus `secured` when started from `compose.secured.yaml`.
 4. **`keycloak`** — the authorization server (`start-dev --import-realm`, host port 8081), importing `keycloak/import/pensieve-realm.json` on first boot into a `keycloak_data` volume.
 5. **`mcp`** — the MCP sidecar, pulled as the published `sethcondie/the-game-pensieve-mcp:latest` image built from its own repo (host port 8090 → `/mcp`).
 6. **`frontend`** — the Next.js app (host port 4200).
+7. **`mailpit`** — the dev mail catcher Keycloak's password-reset mail is delivered to (web UI on host port 8025).
 
-They are independent enough to bring up piecemeal: `docker compose up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar, `up -d keycloak` to work on auth. See the README for the exact commands, and [Deployment](#deployment-production-topology) for the production topology, which differs substantially.
+They are independent enough to bring up piecemeal: `docker compose -f compose.unsecured.yaml up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar, `up -d keycloak` to work on auth. See the README for the exact commands, and [Deployment](#deployment-production-topology) for the production topology, which differs substantially.
 
 ### Security Mode in Docker
 
-The two compose files take **opposite** postures, and that is deliberate:
+Three compose files, and the posture is always explicit in the file name:
 
-| | `compose.yaml` (dev) | `compose.production.yaml` |
-| --- | --- | --- |
-| Backend profiles | `docker` — permit-all | `docker,secured` |
-| MCP enforcement | `MCP_AUTH_MODE` unset → `auto`, which sees `secureMode=false` and stays off | `MCP_AUTH_MODE=required` |
-| Keycloak | present, but nothing requires a token | required for every non-public route |
+| | `compose.unsecured.yaml` | `compose.secured.yaml` | `compose.production.yaml` |
+| --- | --- | --- | --- |
+| Backend profiles | `docker` — permit-all | `docker,secured` | `docker,secured` |
+| MCP enforcement | `MCP_AUTH_MODE` unset → `auto`, which sees `secureMode=false` and stays off | `auto` again, but it sees `secureMode=true` and enforces | `MCP_AUTH_MODE=required` |
+| Keycloak | present, but nothing requires a token | required for every non-public route | required for every non-public route |
+| Published ports | all services | all services | Caddy only (80/443, TLS) |
 
-So the **dev** stack serves the public showcase with no authentication, matching the original single-user behavior, while **production** is fully secured. Keycloak still runs in dev so the OAuth flow can be developed and the realm kept honest.
+So the unsecured stack serves the public showcase with no authentication, matching the original single-user behavior — Keycloak still runs so the OAuth flow can be developed and the realm kept honest. The secured stack is the same containers with authentication on, and is what [Seeding Multi-Role Test Data](#seeding-multi-role-test-data) needs.
 
-To run the dev stack secured instead, activate both profiles (`SPRING_PROFILES_ACTIVE: docker,secured`) and supply the OAuth2 resource-server env — `PENSIEVE_OAUTH2_ISSUER`, `PENSIEVE_OAUTH2_JWK_SET_URI`, `PENSIEVE_OAUTH2_AUDIENCE` (dev defaults live in `application-secured.properties`). Keycloak must be reachable at the configured issuer. The sidecar's `auto` mode picks the change up on its own — it will see `secureMode=true` on the heartbeat and start enforcing. Leave the backend on `docker` alone to keep the not-secure deployment.
+```bash
+docker compose -f compose.unsecured.yaml up -d
+docker compose -f compose.secured.yaml   up -d
+```
+
+`compose.secured.yaml` is a thin delta — an `include:` of the unsecured file plus the backend's `SPRING_PROFILES_ACTIVE: docker,secured`, its `PENSIEVE_OAUTH2_*` env (the same values `application-secured.properties` defaults to), and a `depends_on` on `keycloak`. Nothing else is duplicated, so the two cannot drift. Both files resolve to the same compose project (the directory name), so switching modes reuses the same containers and volumes and the database survives the switch — mind [what that means for RLS](#switching-the-backend-between-secured-and-unsecured-modes-but-connected-to-the-same-database) when data was written in the other mode. The sidecar needs no change either way: `auto` reads the backend heartbeat and follows it.
 
 ## Multiplatform Deployment
 
@@ -761,4 +782,4 @@ docker compose -f compose.production.yaml up -d
 
 Nothing is published on a host port except Caddy's 80/443 — the app, the MCP endpoint, and Keycloak are reached at `https://${APP_DOMAIN}`, `https://${MCP_DOMAIN}/mcp`, and `https://${AUTH_DOMAIN}`, so DNS must point at the host before first start for the ACME challenge to complete. Services reach each other over the compose network (`API_BASE_URL=http://backend:8080/v1`, JWKS via `http://keycloak:8080/...`).
 
-The **dev** stack is the one that exposes host ports: `docker compose up -d` serves the front end on `localhost:4200` (mapped to the Next.js container's port 3000), the API on `8080`, the MCP endpoint on `8090`, Keycloak on `8081`, and Postgres on `5432`.
+The **dev** stack is the one that exposes host ports: `docker compose -f compose.unsecured.yaml up -d` (or `-f compose.secured.yaml`) serves the front end on `localhost:4200` (mapped to the Next.js container's port 3000), the API on `8080`, the MCP endpoint on `8090`, Keycloak on `8081`, and Postgres on `5432`.

@@ -1,7 +1,9 @@
 # Keycloak — MCP Authorization Server (self-hosted)
 
 Self-hosted Keycloak (**26.7**) that acts as the OAuth 2.1 Authorization Server for the MCP rollout
-(Phase 3 of `../localFiles/mcp_rollout.md`). Runs as the `keycloak` service in `../compose.yaml`.
+(Phase 3 of `../localFiles/mcp_rollout.md`). Runs as the `keycloak` service in both development compose
+files, `../compose.unsecured.yaml` and `../compose.secured.yaml` (the second includes the first and only
+switches the backend to the `secured` profile — the Keycloak service is identical in each).
 
 ## What's here
 
@@ -19,7 +21,7 @@ Self-hosted Keycloak (**26.7**) that acts as the OAuth 2.1 Authorization Server 
      `sub` + `email` (KC 26 sources `sub` from the `basic` scope);
   3. **anonymous DCR for localhost** via the Trusted Hosts policy (registered clients' redirect URIs
      must be localhost; the sender-IP check is disabled so requests through the Docker bridge work);
-  4. **email verification and self-service password reset** (`verifyEmail` + `resetPasswordAllowed`),
+  4. **self-service password reset** (`resetPasswordAllowed`; `verifyEmail` is deliberately **off**),
      with `smtpServer` pointed at the `mailpit` dev container — see [Account emails](#account-emails).
 - `import-prod/pensieve-realm.json` — the **production** realm, mounted by
   `../compose.production.yaml`. Derived from the dev realm with the dev-only surface removed:
@@ -36,14 +38,19 @@ Self-hosted Keycloak (**26.7**) that acts as the OAuth 2.1 Authorization Server 
 ## Bring it up
 
 ```bash
-docker compose up -d keycloak          # from the repo root — imports the realm on first boot
+# from the repo root — imports the realm on first boot. Either development compose file works;
+# they define the same keycloak service.
+docker compose -f compose.unsecured.yaml up -d keycloak
 ```
 
 Admin console: <http://localhost:8081> (admin / admin — dev only). Realm discovery:
 <http://localhost:8081/realms/pensieve/.well-known/openid-configuration>.
 
-The realm config lives entirely in the import file, so a clean `docker compose down -v` + `up`
-rebuilds it exactly (no manual step). Edit `import/pensieve-realm.json` to change it.
+The realm config lives entirely in the import file, so a clean `docker compose -f compose.unsecured.yaml
+down -v` + `up` rebuilds it exactly (no manual step). Edit `import/pensieve-realm.json` to change it.
+**`--import-realm` only imports into an empty volume**, so editing the file does nothing to a Keycloak
+that has already booted once — a stale `keycloak_data` volume is the usual reason a realm change, or a
+client the realm is supposed to ship, appears to be missing.
 
 ## Verify
 
@@ -61,24 +68,37 @@ Or drive an interactive authcode + PKCE flow with `npx @modelcontextprotocol/ins
 
 ## Account emails
 
-Email confirmation and password reset are **Keycloak flows end to end** — the API and the web app hold
-no code for either. Two realm flags turn them on, and both are set in the dev and prod realms:
+Password reset is a **Keycloak flow end to end** — the API and the web app hold no code for it. An
+account's email address exists **for password reset and admin action emails, and nothing else**; it is
+not a gate on signing in:
 
-- **`verifyEmail: true`** — an account whose address is unverified cannot finish a login; Keycloak
-  sends the confirmation mail and holds the session at its "verify your email" page until the link is
-  clicked. This also blocks the **direct-access grant** for such an account (`invalid_grant`, "Account
-  is not fully set up"), which is why `KeycloakTestSupport.passwordGrantUnverified` exists — see
-  [Interaction with tests](#interaction-with-tests) below.
 - **`resetPasswordAllowed: true`** — puts "Forgot Password?" on the hosted login page, which emails a
   reset link. Registration stays disabled, so this is the only self-service credential path.
+- **`verifyEmail: false`** — deliberate, in **both** the dev and prod realms. An account signs in
+  whether or not its address has been confirmed; Keycloak sends no confirmation mail and holds no
+  session at a "verify your email" page.
 
-Neither works without SMTP. Dev points `smtpServer` at the **`mailpit`** container (`mailpit:1025`, no
+**What `verifyEmail: false` still leaves you responsible for.** Keycloak keeps a per-account
+`emailVerified` flag and stamps it into the token as the `email_verified` claim; turning the realm gate
+off only means Keycloak never sets that flag on its own. The API reads the claim in exactly one place —
+`OwnerResolver`'s **claim-by-email** path, which links a login to a pre-existing `users` row that has no
+`keycloak_sub` yet (the [admin bootstrap](../documentation/DevDocumentation.md#bootstrap-claim-the-seeded-default-showcase-row)
+is the case that matters). The guard is unchanged and still correct: an unverified address must not take
+over an existing row. So an admin-created account that needs to claim a row must have its address marked
+verified **explicitly** — admin console → the user → *Email verified* → On, or the
+`execute-actions-email` call below, which verifies the address as a side effect of onboarding. An
+account that only ever JIT-provisions its own fresh row needs none of this.
+
+None of it works without SMTP. Dev points `smtpServer` at the **`mailpit`** container (`mailpit:1025`, no
 auth) so nothing leaves the machine — read the captured mail at <http://localhost:8025>. Production
 resolves `PENSIEVE_SMTP_*` from the service environment (`SMTP_*` in `.env`, see
 `../.env.production.example`); `STARTTLS`/`SSL` are a pair chosen by port (587 → STARTTLS, 465 → SSL).
 
-**Onboarding an admin-created account:** since registration is off, send one email that both verifies
-the address and lets the user pick their own password — no temporary password to hand over:
+**Onboarding an admin-created account:** since registration is off, send one email that lets the user
+pick their own password — no temporary password to hand over. Keeping `VERIFY_EMAIL` in the action list
+is still worthwhile even though logins no longer require it: completing it sets the account's
+`emailVerified` flag, which is what claim-by-email needs (above), and it confirms the address is
+reachable before it is the only password-reset route the user has.
 
 ```bash
 curl -X PUT "$KC/admin/realms/pensieve/users/$USER_ID/execute-actions-email?client_id=pensieve-web&redirect_uri=https://$APP_DOMAIN" \
@@ -93,12 +113,15 @@ admin-sent action email keeps the 12-hour default (`actionTokenGeneratedByAdminL
 
 ### Interaction with tests
 
-The test Keycloak imports this same dev realm, so `verifyEmail` applies there too. Users created by
-`KeycloakTestSupport.ensureUser` are verified and unaffected. The one test that needs a token carrying
-`email_verified: false` (`AuthSecuredProfileTests.tokenWithUnverifiedEmail_MatchingExistingAccount_DoesNotClaimIt`,
-which covers `OwnerResolver`'s claim-by-email guard) goes through `passwordGrantUnverified`, which
-lowers the realm flag for the grant and restores it. The dev realm's `mailpit` SMTP host does not
-resolve inside the Testcontainers Keycloak, which is harmless: no test triggers a send.
+The test Keycloak imports this same dev realm. `KeycloakTestSupport.ensureUser` marks the accounts it
+creates verified, so their tokens carry `email_verified: true` and every claim-by-email test behaves as
+it always has. The one test that needs the opposite claim
+(`AuthSecuredProfileTests.tokenWithUnverifiedEmail_MatchingExistingAccount_DoesNotClaimIt`, covering
+`OwnerResolver`'s claim-by-email guard) creates its user unverified and calls `passwordGrantUnverified`
+— now a plain password grant, because the realm no longer refuses one for an unverified account. It is
+kept as a named method so the call site still reads as "a token with an unverified email", and so there
+is one place to change if the realm ever gates logins again. The dev realm's `mailpit` SMTP host does
+not resolve inside the Testcontainers Keycloak, which is harmless: no test triggers a send.
 
 ## Notes / next (Phase 4+)
 

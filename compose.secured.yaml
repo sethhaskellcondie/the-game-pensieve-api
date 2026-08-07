@@ -1,0 +1,40 @@
+# Development topology, SECURED: the same stack as compose.unsecured.yaml with the backend switched to the
+# OAuth2 resource-server build. Use it when you need real authentication locally — the role/capability matrix,
+# multi-tenant RLS, admin impersonation, showcase grants — and to run `scripts/seed-test-data.sh`.
+#
+#   docker compose -f compose.secured.yaml up -d
+#
+# This file `include`s compose.unsecured.yaml and overrides only what changes, so the two never drift: service
+# definitions, ports, volumes, and the db/flyway/keycloak/mailpit/frontend services all come from that file.
+# Both files resolve to the same compose project (the directory name), so switching between them reuses the
+# same containers and volumes — the database survives a mode switch.
+#
+# Production (compose.production.yaml) is secured too, but is otherwise a different topology: Caddy terminates
+# TLS, no service but Caddy publishes a port, Keycloak has its own database, and the prod realm is imported.
+include:
+  - compose.unsecured.yaml
+
+services:
+  backend:
+    environment:
+      # `secured` is an overlay on the datasource profile, never used alone. It turns the app into a stateless
+      # resource server (validates Keycloak RS256 tokens: signature via JWKS, plus iss + aud) and switches the
+      # capability matrix from "permit all" to enforcing.
+      SPRING_PROFILES_ACTIVE: docker,secured
+      # These three match the defaults in application-secured.properties and are restated here because they are
+      # the settings most likely to need changing, and because production sets the same three (as https URLs).
+      # iss is the canonical host-facing issuer Keycloak stamps into tokens (KC_HOSTNAME); the JWKS is fetched
+      # over the internal compose network (a container cannot reach localhost:8081); aud is the /mcp resource
+      # URL and must match the realm's Audience mapper, or every token is rejected.
+      PENSIEVE_OAUTH2_ISSUER: http://localhost:8081/realms/pensieve
+      PENSIEVE_OAUTH2_JWK_SET_URI: http://keycloak:8080/realms/pensieve/protocol/openid-connect/certs
+      PENSIEVE_OAUTH2_AUDIENCE: http://localhost:8090/mcp
+    # Keycloak is now on the request path, so bring it up with the backend. `depends_on` waits for start, not
+    # readiness — the JwtDecoder fetches the JWKS lazily on the first token, so a slow Keycloak is not fatal.
+    depends_on:
+      - db
+      - keycloak
+
+  # The sidecar needs no change: MCP_AUTH_MODE is unset, so it stays on `auto`, sees secureMode=true on the
+  # backend heartbeat, and starts enforcing OAuth on /mcp by itself. Its MCP_OAUTH_* values are already set in
+  # compose.unsecured.yaml and are correct for this mode.

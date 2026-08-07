@@ -1,12 +1,14 @@
 {
   "realm": "pensieve",
+  "displayName": "The Game Pensieve",
+  "displayNameHtml": "The Game Pensieve",
   "enabled": true,
   "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
-  "verifyEmail": true,
+  "verifyEmail": false,
   "smtpServer": {
     "host": "mailpit",
     "port": "1025",

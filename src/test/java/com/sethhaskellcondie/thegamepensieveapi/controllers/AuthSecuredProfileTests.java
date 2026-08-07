@@ -142,8 +142,8 @@ public class AuthSecuredProfileTests extends SecuredProfileTest {
         jdbcTemplate.update("INSERT INTO users(email, access_until, subscription_status, created_at, updated_at) "
                 + "VALUES (?, now() + interval '30 days', 'trialing', now(), now())", email);
         KeycloakTestSupport.ensureUser(email, PASSWORD, false);
-        // The realm sets verifyEmail, so an unverified account cannot complete a normal grant — this helper
-        // lowers that flag just long enough to mint the token the guard below is about.
+        // The realm does not gate logins on verifyEmail (the address is for password reset only), so this is an
+        // ordinary grant — the token it mints just carries email_verified: false, which is what the guard reads.
         final String accessToken = KeycloakTestSupport.passwordGrantUnverified(email, PASSWORD);
 
         getMe(accessToken).andExpect(status().isForbidden());

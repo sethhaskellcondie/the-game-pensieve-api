@@ -8,7 +8,8 @@
 # SeededUsersFixture/SeededDataMatrixTests pair is the integration-test consumer. Both run the
 # same choreography over the same seed files in src/main/resources/seeders so they never drift.
 #
-# Usage:
+# Usage (against the local SECURED compose stack — the unsecured stack cannot be seeded, see below):
+#   docker compose -f compose.secured.yaml up -d
 #   ./scripts/seed-test-data.sh
 #
 # Parameters (environment variables):
@@ -17,22 +18,36 @@
 #   ADMIN_PASSWORD    bootstrap admin account password   (default: seeder-admin)
 #   KEYCLOAK_URL      Keycloak base URL                  (default: http://localhost:8081)
 #   KEYCLOAK_REALM    realm                              (default: pensieve)
-#   KEYCLOAK_CLIENT   public client for the password grant (default: pensieve-test-client)
+#   KEYCLOAK_CLIENT   client used for the password grant (default: pensieve-test-client)
 #   KEYCLOAK_ADMIN_USER / KEYCLOAK_ADMIN_PASSWORD  Keycloak admin creds (default: admin / admin)
 #   SQL_CMD           command prefix that runs psql for the one bootstrap SQL statement
-#                     (default: docker compose exec -T db psql -U postgres -d pensieve-db)
+#                     (default: docker compose -f compose.secured.yaml exec -T db psql -U postgres -d pensieve-db)
 #                     e.g. for a host database: SQL_CMD="psql -h localhost -U postgres -d pensieve-db"
 #
-# Preconditions:
-#   - The API is running with SPRING_PROFILES_ACTIVE including "secured", with its working
-#     directory at the repo root (the default-showcase step uses POST /v1/function/seedSampleData,
-#     which reads sampleData.json from the server's working directory).
-#   - Keycloak is running and reachable at KEYCLOAK_URL with the `pensieve` realm imported. Accounts
-#     are created in Keycloak; each account's users row is JIT-provisioned by the API on first login.
+# Preconditions (each is checked in Step 0, which fails with a specific message rather than letting a
+# misconfiguration surface later as a confusing 401/403):
+#   - The API is running with SPRING_PROFILES_ACTIVE including "secured" (GET /v1/heartbeat must report
+#     secureMode=true), with its working directory at the repo root (the default-showcase step uses
+#     POST /v1/function/seedSampleData, which reads sampleData.json from the server's working directory;
+#     the Dockerfile copies it to the container's /app workdir, so the compose stack satisfies this).
+#     The permit-all build cannot be seeded at all: it resolves every request to the default-showcase
+#     owner as GUEST, so no users row is ever provisioned and the admin API answers 403.
+#   - Keycloak is running and reachable at KEYCLOAK_URL with the realm imported. Accounts are created in
+#     Keycloak; each account's users row is JIT-provisioned by the API on first login.
+#   - KEYCLOAK_CLIENT exists in that realm, is enabled, and has direct access grants (the password grant)
+#     turned on — this script has no browser, so it can only obtain tokens that way. The dev realm ships
+#     `pensieve-test-client` for exactly this. THE PRODUCTION REALM DELIBERATELY DOES NOT: it has only the
+#     confidential `pensieve-web` client with direct access grants off, so a deployment importing
+#     keycloak/import-prod/pensieve-realm.json cannot be seeded by this script until an operator adds a
+#     direct-grant client to that realm by hand. Do not add one to the prod realm import to work around
+#     this — a password-grant client is a permanent weakening of a production authorization server, and
+#     these fixtures have no business existing in production anyway.
 #   - No admin exists yet, or the admin is the account this script provisions. The
 #     uq_users_single_admin index allows exactly one pinned admin; if a different admin already
 #     exists (e.g. the claimed default-showcase row from the documented bootstrap), the UPDATE
-#     below fails loudly — that is deliberate. This script targets fresh dev databases.
+#     below violates that index and fails loudly — that is deliberate. Separately, an UPDATE that
+#     matches NO row is also an error (it means SQL_CMD and BASE_URL are pointed at different
+#     databases). This script targets fresh dev databases.
 #   - Never point this at the integration-test database; the test suite seeds itself.
 #
 # Idempotency: rerunnable. Tolerated on re-runs: Keycloak user creation -> 409 "already exists", and
@@ -48,10 +63,13 @@ KEYCLOAK_REALM="${KEYCLOAK_REALM:-pensieve}"
 KEYCLOAK_CLIENT="${KEYCLOAK_CLIENT:-pensieve-test-client}"
 KEYCLOAK_ADMIN_USER="${KEYCLOAK_ADMIN_USER:-admin}"
 KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
-SQL_CMD="${SQL_CMD:-docker compose exec -T db psql -U postgres -d pensieve-db}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SEEDERS_DIR="$SCRIPT_DIR/../src/main/resources/seeders"
+# The compose file is named by absolute path so the default works from any working directory (compose
+# resolves the project name from the file's directory, so this still targets the same stack).
+SQL_CMD="${SQL_CMD:-docker compose -f $REPO_ROOT/compose.secured.yaml exec -T db psql -U postgres -d pensieve-db}"
 DEFAULT_SHOWCASE_EMAIL="showcase@internal.local"
 EMPTY_IMPORT_BODY='{"data":{"customFields":[],"toys":[],"systems":[],"videoGameBoxes":[],"boardGameBoxes":[],"metadata":[]}}'
 EMPTY_FILTERS='{"filters":[]}'
@@ -83,9 +101,9 @@ expect_status() { # expected description
     [[ "$STATUS" == "$1" ]] || fail "$2 (expected HTTP $1, got $STATUS): $BODY"
 }
 
-run_sql() {
+sql_scalar() { # SQL -> echoes the single value the query returns (empty when it returns no row)
     # shellcheck disable=SC2086 — SQL_CMD is intentionally word-split (it is a command prefix)
-    $SQL_CMD -v ON_ERROR_STOP=1 -q -c "$1" >/dev/null || fail "SQL failed: $1"
+    $SQL_CMD -v ON_ERROR_STOP=1 -tAq -c "$1" | tr -d '[:space:]' || fail "SQL failed: $1"
 }
 
 kc_admin_token() { # -> echoes a Keycloak admin access token
@@ -105,6 +123,13 @@ register() {
         --data-urlencode "exact=true" --data-urlencode "email=$email" | jq -r 'length')"
     if [[ "$existing" != "0" ]]; then return 0; fi
     # requiredActions=[] + a complete profile keep the account "fully set up" so the password grant works.
+    #
+    # emailVerified=true is set deliberately and is NOT the realm's (now removed) verifyEmail gate: neither realm
+    # forces address confirmation any more, so Keycloak never sets this flag on an admin-created account and
+    # every token would carry email_verified=false. The API keys its claim-by-email link on that claim
+    # (OwnerResolver), which is what lets a re-run recover when a users row already exists but its keycloak_sub
+    # no longer matches — e.g. seeding again after the Keycloak volume was wiped but the database was not.
+    # Without it that case dies on the JIT insert's UNIQUE(email) with a 403 instead of relinking.
     code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
         "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM/users" \
         -H "Authorization: Bearer $admin" -H 'Content-Type: application/json' \
@@ -113,10 +138,15 @@ register() {
 }
 
 login() { # EMAIL PASSWORD -> echoes access token (Keycloak direct-access grant)
-    curl -sS -X POST "$KEYCLOAK_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+    local response token
+    response="$(curl -sS -X POST "$KEYCLOAK_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
         -d "client_id=$KEYCLOAK_CLIENT" -d grant_type=password \
-        -d "username=$1" -d "password=$2" -d scope=openid \
-        | jq -re '.access_token' || fail "no access token from Keycloak for $1"
+        -d "username=$1" -d "password=$2" -d scope=openid)"
+    # Report Keycloak's own error rather than a bare "no token": the useful cases are an account that is not
+    # fully set up (a pending required action) and a client without direct access grants, and both say so here.
+    token="$(printf '%s' "$response" | jq -r '.access_token // empty')"
+    [[ -n "$token" ]] || fail "no access token from Keycloak for $1 (client '$KEYCLOAK_CLIENT'): $response"
+    printf '%s' "$token"
 }
 
 provision() { # TOKEN — first authenticated call JIT-provisions the caller's users row (30-day trial)
@@ -166,10 +196,49 @@ seed_user() {
 }
 
 # ============================ Step 0 — readiness ============================
+#
+# Every check here is a precondition that would otherwise fail much later, and much less legibly: an
+# unsecured API answers 403 from the admin API three steps in, and a client without the password grant
+# fails on the first login with nothing pointing at the client as the cause.
 
 log "Checking the API at $BASE_URL"
 request GET /v1/heartbeat ""
 expect_status 200 "API heartbeat"
+# secureMode mirrors the `secured` profile. Without it the API permits everything, resolves every request
+# to the default-showcase owner as GUEST, and JIT-provisions nothing — there is no seeding to be done.
+jq -e '.data.secureMode == true' "$RESPONSE_FILE" >/dev/null || fail \
+    "the API at $BASE_URL is running UNSECURED (heartbeat secureMode is not true); seeding needs the
+  \`secured\` profile. With the local stack:  docker compose -f compose.secured.yaml up -d"
+
+log "Checking Keycloak at $KEYCLOAK_URL (realm $KEYCLOAK_REALM)"
+curl -sSf -o /dev/null "$KEYCLOAK_URL/realms/$KEYCLOAK_REALM/.well-known/openid-configuration" 2>/dev/null \
+    || fail "no realm '$KEYCLOAK_REALM' at $KEYCLOAK_URL — is Keycloak up, and did it import the realm?
+  --import-realm only runs on a first boot into an empty volume, so a keycloak_data volume left over from
+  an older realm keeps serving that older realm (and can predate the '$KEYCLOAK_CLIENT' client). To force
+  a re-import without touching the app database:
+    docker compose -f compose.secured.yaml stop keycloak
+    docker compose -f compose.secured.yaml rm -f keycloak
+    docker volume rm the-game-pensieve-api_keycloak_data
+    docker compose -f compose.secured.yaml up -d keycloak"
+
+# Prove the admin credentials work before anything depends on them. kc_admin_token's own `fail` runs
+# inside a command substitution, so it can only exit that subshell — every later caller would carry on
+# with an empty bearer and report some downstream 401 instead. Checking here makes it one clear error.
+KC_ADMIN_TOKEN="$(kc_admin_token)" || true
+[[ -n "$KC_ADMIN_TOKEN" ]] || fail "could not get a Keycloak admin token from $KEYCLOAK_URL as
+  '$KEYCLOAK_ADMIN_USER' — check KEYCLOAK_ADMIN_USER / KEYCLOAK_ADMIN_PASSWORD (the script needs admin
+  rights on the master realm to create the seed accounts)."
+
+# The script has no browser, so the password grant is the only way it can obtain a token. Checking the
+# client up front turns "no access token for trial1@email.com" into a message naming the actual cause —
+# most usefully when pointed at a deployment running the prod realm, which ships no direct-grant client.
+KC_CLIENT_JSON="$(curl -sS -G -H "Authorization: Bearer $KC_ADMIN_TOKEN" \
+    "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM/clients" --data-urlencode "clientId=$KEYCLOAK_CLIENT")"
+jq -e '.[0].enabled == true and .[0].directAccessGrantsEnabled == true' <<<"$KC_CLIENT_JSON" >/dev/null || fail \
+    "the Keycloak client '$KEYCLOAK_CLIENT' in realm '$KEYCLOAK_REALM' is missing, disabled, or has direct
+  access grants turned off, so this script cannot obtain tokens. The dev realm ships 'pensieve-test-client'
+  for this; the production realm deliberately ships no direct-grant client and is not a seeding target.
+  Set KEYCLOAK_CLIENT to a direct-grant client in that realm if one exists. Keycloak returned: $KC_CLIENT_JSON"
 
 # ============================ Step 1 — bootstrap the admin ============================
 
@@ -178,9 +247,15 @@ register "$ADMIN_EMAIL" "$ADMIN_PASSWORD"
 ADMIN_TOKEN="$(login "$ADMIN_EMAIL" "$ADMIN_PASSWORD")"
 # First login JIT-provisions the admin's users row so the pin below has a row to update.
 provision "$ADMIN_TOKEN"
-# The one statement the API cannot perform: the first admin pin. Idempotent on re-run against the
-# same email; fails hard on uq_users_single_admin if a different admin exists (see preconditions).
-run_sql "UPDATE users SET role_override='ADMIN' WHERE email='$ADMIN_EMAIL';"
+# The one statement the API cannot perform: the first admin pin. Idempotent on re-run against the same
+# email; fails hard on uq_users_single_admin if a different admin exists (see preconditions). RETURNING
+# turns the other failure — an UPDATE that matches nothing — into an error too: a silent zero-row update
+# would leave every later admin call answering 403 with nothing to point at the cause. The row is missing
+# when SQL_CMD reaches a different database than BASE_URL does, which is the whole reason to check.
+PINNED_ADMIN_ID="$(sql_scalar "UPDATE users SET role_override='ADMIN' WHERE email='$ADMIN_EMAIL' RETURNING id;")"
+[[ -n "$PINNED_ADMIN_ID" ]] || fail "no users row with email '$ADMIN_EMAIL' to pin as ADMIN. The account was
+  just provisioned through $BASE_URL, so the database reached by SQL_CMD is not the one the API is using:
+  SQL_CMD=$SQL_CMD"
 
 # ============================ Step 2+3 — users, data, showcase grants ============================
 

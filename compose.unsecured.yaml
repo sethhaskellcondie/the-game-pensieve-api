@@ -1,3 +1,15 @@
+# Development topology, UNSECURED: the backend runs the permit-all build (`docker` profile alone), so no
+# request needs a token and the API behaves like the original single-user deployment. Keycloak still runs so
+# the OAuth flow can be developed and the realm kept honest, but nothing requires it.
+#
+# There is deliberately no plain `compose.yaml` — the security posture is always named on the command line:
+#   docker compose -f compose.unsecured.yaml up -d     # this file: permit-all
+#   docker compose -f compose.secured.yaml   up -d     # includes this file, flips the backend to docker,secured
+# Both resolve to the same compose project (the directory name), so they share the same containers and volumes
+# and you can switch modes without losing the database.
+#
+# `scripts/seed-test-data.sh` needs the SECURED stack (it drives real accounts, roles, and RLS).
+# Production is a different file again: compose.production.yaml.
 services:
   frontend:
     image: sethcondie/the-game-pensieve-web:latest

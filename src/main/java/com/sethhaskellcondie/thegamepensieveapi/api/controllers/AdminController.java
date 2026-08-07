@@ -46,8 +46,10 @@ import java.util.List;
  *
  * <p><strong>Bootstrap:</strong> there is no seed/env admin — the operator <em>claims the seeded default-showcase
  * row</em> ({@code showcase@internal.local}, marked {@code is_public_showcase}) with a one-time SQL update that
- * points it at the operator's (email-verified) Keycloak account and pins it ADMIN — their first login then claims
- * the row by email, stamping its {@code keycloak_sub} (see {@code documentation/DevDocumentation.md} for the full
+ * points it at the operator's Keycloak account and pins it ADMIN — their first login then claims the row by email,
+ * stamping its {@code keycloak_sub}. That account's email must be marked <strong>verified</strong> in Keycloak, and
+ * since neither realm sets {@code verifyEmail} an admin-created account is not verified until someone sets the flag;
+ * an unverified one logs in but does not claim the row (see {@code documentation/DevDocumentation.md} for the full
  * procedure; credentials live in Keycloak):
  * {@code UPDATE users SET email='you@domain.com', role_override='ADMIN' WHERE is_public_showcase;}
  * The claimed row is simultaneously the single ADMIN, the default showcase's owner, and an ordinary data owner —

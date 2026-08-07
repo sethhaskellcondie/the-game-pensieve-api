@@ -5,3 +5,8 @@ game_pensieve_log.log
 
 backup.json
 *.iml
+
+# Environment files hold real secrets (see .env.production.example for the template).
+.env
+.env.*
+!.env.production.example
