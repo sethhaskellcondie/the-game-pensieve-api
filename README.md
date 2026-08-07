@@ -209,6 +209,7 @@ See [`documentation/DevDocumentation.md`](./documentation/DevDocumentation.md) f
 Additional documentation lives in the [`documentation/`](./documentation) directory:
 
 - `DevDocumentation.md` — the developer documentation: architecture, the entity pattern, filters, authentication, multi-tenancy and row-level security, roles and capabilities, public showcases, the MCP sidecar, and deployment. **Start here.**
+- `runningOptions.md` — every way to run the project (secured vs. unsecured, Docker vs. from source, dev vs. production, tests and seeding), what each option includes, and when to use it
 - `openapi.yaml` — the OpenAPI specification for the API
 - `api.postman_collection.json` — a Postman collection of example requests
 - `PastIssues.md` — a record of notable issues encountered during development
