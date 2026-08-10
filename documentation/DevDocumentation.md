@@ -731,15 +731,7 @@ docker buildx inspect --bootstrap
      .
    ```
 
-3. Build and push the Flyway migration image (`Dockerfile.flyway`) — **legacy**, no longer referenced by either compose file: the production backend runs Flyway on startup, and the dev stack uses the official `flyway/flyway` image with the migrations bind-mounted. Keep it only if you migrate out-of-band somewhere.
-
-   ```bash
-   docker buildx build --platform linux/amd64,linux/arm64 \
-     -f Dockerfile.flyway \
-     -t sethcondie/the-game-pensieve-flyway:latest \
-     --push \
-     .
-   ```
+There is no separate migration image: the backend runs Flyway on startup, and the dev stack uses the official `flyway/flyway` image with the migrations bind-mounted. (A legacy `Dockerfile.flyway` used to bake the migrations into a standalone `sethcondie/the-game-pensieve-flyway` image; it was referenced by nothing and has been deleted.)
 
 ### Build and Push the MCP Sidecar Image
 

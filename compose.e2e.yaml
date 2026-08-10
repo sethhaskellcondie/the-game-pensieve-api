@@ -1,0 +1,43 @@
+# E2E GATE OVERLAY — port remap only, never used alone. The release gate stands up throwaway stacks
+# while a dev stack may be running, so every host port here is moved out of the dev range. Combine it
+# with a DISTINCT COMPOSE PROJECT NAME — both halves are required to protect the dev stack:
+#
+#   docker compose -p pensieve-e2e -f compose.demo.yaml    -f compose.e2e.yaml up -d       # demo gate
+#   docker compose -p pensieve-e2e -f compose.secured.yaml -f compose.e2e.yaml \
+#                  -f compose.e2e.secured.yaml up -d                                       # secured gate
+#   docker compose -p pensieve-e2e ... down -v                                             # teardown
+#
+# WITHOUT -p, the secured form resolves to the same project as the dev stack, and `down -v` would
+# destroy the dev database and Keycloak data. With -p, containers and volumes are project-scoped, so
+# every gate run starts fresh and teardown touches nothing else.
+#
+# This file remaps only the services BOTH stacks define (frontend, backend, mcp, db). The secured
+# stack's extra services (keycloak, mailpit) are remapped in compose.e2e.secured.yaml — they cannot
+# live here because an overlay entry for a service the base file does not define is a compose error,
+# and the demo stack has no keycloak or mailpit.
+#
+# Port map (dev -> gate):  frontend 4200 -> 14200 · backend 8080 -> 18080 · mcp 8090 -> 18090
+#                          db 5432 -> 15432   (secured adds: keycloak 8081 -> 18081, mailpit 8025 -> 18025)
+# Playwright's own dev server stays on host 3000 (unmapped here — it is not a container).
+#
+# Issuer vs. audience: the issuer moves with keycloak's host port (see compose.e2e.secured.yaml for the
+# matching KC_HOSTNAME); on the permit-all demo backend the property is simply unused. The AUDIENCE
+# stays http://localhost:8090/mcp everywhere — it is a string equality check against the realm import's
+# baked audience mapper, not a reachable URL; remapping it would make every token fail validation.
+services:
+  frontend:
+    ports: !override
+      - "14200:3000"
+  backend:
+    ports: !override
+      - "18080:8080"
+    environment:
+      PENSIEVE_OAUTH2_ISSUER: http://localhost:18081/realms/pensieve
+  mcp:
+    ports: !override
+      - "18090:3000"
+    environment:
+      MCP_OAUTH_ISSUER: http://localhost:18081/realms/pensieve
+  db:
+    ports: !override
+      - "15432:5432"

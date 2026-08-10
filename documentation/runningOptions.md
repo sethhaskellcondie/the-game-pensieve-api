@@ -439,9 +439,6 @@ bind-mounted from `src/main/resources/migrations`:
 docker compose -f compose.unsecured.yaml up flyway
 ```
 
-`Dockerfile.flyway` bakes the same migrations and config into a standalone image, for environments where a
-bind mount is not available.
-
 **When to use it** — applying a new migration to a running database without restarting the backend, or
 checking that a migration applies cleanly on its own. Note that in normal operation you rarely need it: the
 backend runs Flyway on startup in **every** option above, which is exactly why production has no `flyway`
