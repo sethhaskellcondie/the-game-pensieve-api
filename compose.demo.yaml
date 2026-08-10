@@ -1,0 +1,66 @@
+# DEMO topology: the pull-and-run, single-user instance. Every image is pulled from Docker Hub and the
+# backend runs the permit-all build (`docker` profile alone), so there is no login and no accounts —
+# every request resolves to the default-showcase owner. This file is deliberately self-contained: no
+# bind mounts, no other files needed. Download it anywhere and run:
+#
+#   docker compose -f compose.demo.yaml up -d
+#
+# Then open http://localhost:4200. The API is at http://localhost:8080/v1 and the MCP endpoint at
+# http://localhost:8090/mcp (tokenless — with no secured backend the sidecar keeps enforcement off).
+#
+# SINGLE-USER BY DESIGN. In permit-all mode there is no Keycloak, so nothing that needs it runs here:
+# no login, no email (Mailpit), no reverse proxy (Caddy). For real accounts use compose.secured.yaml
+# (development) or compose.production.yaml (hosted).
+#
+# Versioning: all three images default to :latest (the newest release). Pin a release by exporting
+# PENSIEVE_TAG, e.g. `PENSIEVE_TAG=1.4.0 docker compose -f compose.demo.yaml up -d`. The three images
+# are released together — always run all three at the same version.
+#
+# Data lives in the named `postgres_data` volume, so it survives `down`, restarts, and image updates.
+# The backend runs its own Flyway migrations on startup; no separate migration service is needed.
+services:
+  frontend:
+    image: sethcondie/the-game-pensieve-web:${PENSIEVE_TAG:-latest}
+    ports:
+      - "4200:3000" #host port:container port (Next.js server listens on 3000)
+    environment:
+      # Server-side only; must include the /v1 prefix. Reaches the backend service
+      # over the docker-compose network. With no OIDC_* set, the frontend detects the
+      # unsecured posture from the backend heartbeat and hides all login UI.
+      API_BASE_URL: http://backend:8080/v1
+    depends_on:
+      - backend
+  backend:
+    image: sethcondie/the-game-pensieve-api:${PENSIEVE_TAG:-latest}
+    ports:
+      - "8080:8080" #host port:container port
+    environment:
+      # `docker` alone = permit-all. The datasource (db:5432, postgres/root, pensieve-db)
+      # is baked into the profile, so no datasource environment is needed here.
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - db
+  mcp:
+    image: sethcondie/the-game-pensieve-mcp:${PENSIEVE_TAG:-latest}
+    ports:
+      - "8090:3000" #host port:container port (MCP Streamable HTTP endpoint at /mcp)
+    environment:
+      API_BASE_URL: http://backend:8080/v1
+      PORT: "3000"
+      # MCP_AUTH_MODE is deliberately unset (= "auto"): the backend reports secureMode=false,
+      # so the sidecar keeps OAuth enforcement off. There is no Keycloak in this stack, so no
+      # MCP_OAUTH_* values are set — the sidecar treats them all as optional.
+    depends_on:
+      - backend
+  db:
+    image: postgres:16.2-alpine
+    # No published port: nothing outside the compose network needs the database, and not
+    # binding 5432 avoids colliding with any Postgres already on the host.
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: pensieve-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

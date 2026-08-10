@@ -24,7 +24,8 @@ independent enough to start piecemeal — see [Option 3](#option-3--a-subset-of-
 
 | I want to… | Run this |
 | --- | --- |
-| See the whole app working, fastest path | [Option 1](#option-1--full-dev-stack-in-docker-unsecured) — `docker compose -f compose.unsecured.yaml up -d` |
+| Just try the app — no clone, no build | [Option 15](#option-15--the-demo-pull-and-run) — `docker compose -f compose.demo.yaml up -d` |
+| See the whole app working, fastest dev path | [Option 1](#option-1--full-dev-stack-in-docker-unsecured) — `docker compose -f compose.unsecured.yaml up -d` |
 | Work on auth, roles, multi-tenancy, showcases | [Option 2](#option-2--full-dev-stack-in-docker-secured) — `docker compose -f compose.secured.yaml up -d` |
 | Iterate on Java code with a debugger | [Option 4](#option-4--api-from-source-unsecured) / [Option 5](#option-5--api-from-source-secured) |
 | Work on the API only, no front end or sidecar | [Option 3](#option-3--a-subset-of-the-dev-stack) — `up -d db backend` |
@@ -34,7 +35,7 @@ independent enough to start piecemeal — see [Option 3](#option-3--a-subset-of-
 | Deploy for real | [Option 9](#option-9--production-stack) |
 | Run the test suites | [Option 10](#option-10--test-runtimes) |
 | Get realistic multi-role data into a running stack | [Option 13](#option-13--seeding-a-running-stack) |
-| Just build / lint / publish images | [Option 14](#option-14--build-only-and-publish-only) |
+| Just build / lint, or ship (or dry-run) a release | [Option 14](#option-14--build-gate-and-release) |
 
 ---
 
@@ -341,8 +342,9 @@ docker compose -f compose.production.yaml up -d
   **production realm** (`keycloak/import-prod/`) — no test users, no `pensieve-test-client`, no anonymous
   DCR, `sslRequired=external`.
 - The sidecar runs `MCP_AUTH_MODE=required` — enforce unconditionally, no heartbeat probe.
-- All images are the **published** artifacts (`sethcondie/the-game-pensieve-api|-mcp|-web:latest`), built
-  and pushed from their own repos — nothing is built from a local jar here.
+- All images are the **published** artifacts (`sethcondie/the-game-pensieve-api|-mcp|-web`), pinned to
+  the exact versions the release script wrote here in its final step — nothing is built from a local
+  jar, and nothing is deployed that did not pass the release gate ([Option 14](#option-14--build-gate-and-release)).
 - Named volumes for `postgres_data`, `keycloak_db_data`, `caddy_data`, `caddy_config`.
 
 **When to use it** — real deployment, or a staging host that must behave like one. Not a development
@@ -439,9 +441,6 @@ bind-mounted from `src/main/resources/migrations`:
 docker compose -f compose.unsecured.yaml up flyway
 ```
 
-`Dockerfile.flyway` bakes the same migrations and config into a standalone image, for environments where a
-bind mount is not available.
-
 **When to use it** — applying a new migration to a running database without restarting the backend, or
 checking that a migration applies cleanly on its own. Note that in normal operation you rarely need it: the
 backend runs Flyway on startup in **every** option above, which is exactly why production has no `flyway`
@@ -493,7 +492,9 @@ The integration-test consumer of the same seed set is `./mvnw test -Dtest=Seeded
 
 ---
 
-## Option 14 — Build-Only and Publish-Only
+## Option 14 — Build, Gate, and Release
+
+Build and lint on their own:
 
 ```bash
 ./mvnw checkstyle:check        # lint (also runs in the validate phase of any build)
@@ -501,36 +502,99 @@ The integration-test consumer of the same seed set is `./mvnw test -Dtest=Seeded
 ./mvnw test                    # suite only
 ```
 
-Publishing multiplatform images (`linux/amd64` + `linux/arm64`) — one-time setup:
+**Publishing is no longer done by hand.** One release script drives all three repositories — it is the
+only path that pushes images to Docker Hub:
+
+```bash
+make release VERSION=1.4.0
+# equivalent to: ./scripts/release.sh 1.4.0 ../the-game-pensieve-web-v2 ../the-game-pensieve-mcp
+```
+
+The script runs the whole of Pipeline A: preflight (clean trees, free version tag, buildx builder,
+docker login) → the three unit suites → local single-arch builds → the **secured** e2e gate → the
+**demo** e2e gate → the multiplatform (`linux/amd64` + `linux/arm64`) push of `:X.Y.Z` and `:latest`
+with manifest verification → an emulated smoke-run of the architecture the suite didn't execute → a
+pin bump of `compose.production.yaml`, commit, and pushed `vX.Y.Z` tag. There is deliberately **no
+fast path**: every release pays the full gate. Details in
+[`DevDocumentation.md`](./DevDocumentation.md#multiplatform-deployment).
+
+**Dry run — the whole release without publishing anything:**
+
+```bash
+PUBLISH=no make release VERSION=1.4.0
+```
+
+`PUBLISH=no` is not a fast path — every unit suite, both e2e gates, and both platform builds still run
+and still fail the release — it closes the exits instead: nothing is pushed to Docker Hub, no manifest
+is verified (there is none), the emulated smoke uses locally built throwaway images, and the pin bump /
+commit / tag step is skipped entirely. Git is never touched. Use it to rehearse a release or to prove
+the pipeline is green before running it for real.
+
+The two e2e gates can also be run on their own while developing:
+
+```bash
+./scripts/e2e-gate.sh secured ../the-game-pensieve-web-v2   # seeded, SECURED_BACKEND=1
+./scripts/e2e-gate.sh demo    ../the-game-pensieve-web-v2   # the pull-and-run product
+```
+
+Each stands up an isolated throwaway stack (compose project `pensieve-e2e`, remapped ports — your dev
+stack and its data are never touched), runs the full Playwright suite against it, and tears it down.
+
+One-time setup for the multiplatform builder (the release preflight checks for it):
 
 ```bash
 docker buildx create --name multiplatform --use
 docker buildx inspect --bootstrap
 ```
 
-Then build and push the backend, sidecar, and front-end images from their respective repos; the exact
-commands are in [`DevDocumentation.md`](./DevDocumentation.md#multiplatform-deployment). The production
-compose file consumes those published tags, so **an image that was not pushed will not be deployed.**
+The production compose file consumes the published version pins, so **an image that was not pushed
+will not be deployed.**
+
+---
+
+## Option 15 — The Demo, Pull-and-Run
+
+The published product for strangers: every image pulled from Docker Hub, nothing built, nothing cloned.
+The compose file is fully self-contained (no bind mounts), so it runs from the file alone:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/sethhaskellcondie/the-game-pensieve-api/master/compose.demo.yaml
+docker compose -f compose.demo.yaml up -d
+```
+
+Four services: `frontend` (4200), `backend` (8080), `mcp` (8090), and `db` (deliberately no host port —
+nothing outside the stack needs it, and it cannot collide with a local Postgres). No Keycloak, Mailpit,
+or Caddy: **the demo is single-user by design.** It runs the permit-all build, so there is no login and
+no accounts — every request resolves to the collection's single owner, like the original personal
+deployment. Data persists in the named `postgres_data` volume across `down`, restarts, and image updates.
+
+The three images are released together; they default to `:latest` and pin with
+`PENSIEVE_TAG=1.4.0 docker compose -f compose.demo.yaml up -d`.
+
+**When to use it** — trying the app on a machine that has only Docker; a personal single-user instance;
+the release gate's "Gate B" target (the e2e overlay remaps its ports — see
+[Option 14](#option-14--build-gate-and-release)). For development use [Option 1](#option-1--full-dev-stack-in-docker-unsecured)
+instead: same posture, but the backend builds from your working tree.
 
 ---
 
 ## Feature Matrix
 
-| | Opt 1 unsecured Docker | Opt 2 secured Docker | Opt 4 source unsecured | Opt 5 source secured | Opt 9 production | Opt 10 tests |
-| --- | --- | --- | --- | --- | --- | --- |
-| Backend profiles | `docker` | `docker,secured` | `local` | `local,secured` | `docker,secured` | `test-container` (+ `secured`) |
-| Token validation | — | yes | — | yes | yes | yes (real Keycloak container) |
-| Capability matrix enforced | — | yes | — | yes | yes | yes (secured suites) |
-| RLS running | yes | yes | yes | yes | yes | yes |
-| Resolved owner | default showcase | per account | default showcase | per account | per account | per test |
-| MCP enforcement | `auto` → off | `auto` → on | n/a (host-run) | n/a (host-run) | `required` | n/a |
-| TLS | — | — | — | — | Caddy, ACME | — |
-| Published ports | all services | all services | 8080 (host) | 8080 (host) | Caddy only | none |
-| Keycloak realm | dev import | dev import | dev import | dev import | prod import | dev import (same file) |
-| Seedable by the script | **no** | yes | no | yes | no (by design) | self-seeding |
-| Needs Docker | yes | yes | for `db` only | for `db` + `keycloak` | yes | yes |
-| Needs a jar rebuild for Java changes | yes (`--build`) | yes (`--build`) | no | no | yes (push image) | no |
-| IDE debugging | awkward | awkward | yes | yes | no | yes |
+| | Opt 15 demo | Opt 1 unsecured Docker | Opt 2 secured Docker | Opt 4 source unsecured | Opt 5 source secured | Opt 9 production | Opt 10 tests |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Backend profiles | `docker` | `docker` | `docker,secured` | `local` | `local,secured` | `docker,secured` | `test-container` (+ `secured`) |
+| Token validation | — | — | yes | — | yes | yes | yes (real Keycloak container) |
+| Capability matrix enforced | — | — | yes | — | yes | yes | yes (secured suites) |
+| RLS running | yes | yes | yes | yes | yes | yes | yes |
+| Resolved owner | default showcase | default showcase | per account | default showcase | per account | per account | per test |
+| MCP enforcement | `auto` → off | `auto` → off | `auto` → on | n/a (host-run) | n/a (host-run) | `required` | n/a |
+| TLS | — | — | — | — | — | Caddy, ACME | — |
+| Published ports | all but `db` | all services | all services | 8080 (host) | 8080 (host) | Caddy only | none |
+| Keycloak realm | no Keycloak | dev import | dev import | dev import | dev import | prod import | dev import (same file) |
+| Seedable by the script | **no** | **no** | yes | no | yes | no (by design) | self-seeding |
+| Needs Docker | yes (only Docker) | yes | yes | for `db` only | for `db` + `keycloak` | yes | yes |
+| Needs a jar rebuild for Java changes | n/a (published images) | yes (`--build`) | yes (`--build`) | no | no | yes (release) | no |
+| IDE debugging | no | awkward | awkward | yes | yes | no | yes |
 
 ---
 

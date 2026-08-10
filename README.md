@@ -23,6 +23,21 @@ In the Harry Potter series, a Pensieve is a basin where wizards store thoughts a
 | Runtime container | Docker |
 | Production edge | Caddy (TLS termination and reverse proxy) |
 
+## Try the Demo (No Clone Required)
+
+The fastest way to run The Game Pensieve is the demo: every image is pulled from Docker Hub, so the only requirement is [Docker](https://www.docker.com/products/docker-desktop/). Download [`compose.demo.yaml`](./compose.demo.yaml) anywhere and run it:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/sethhaskellcondie/the-game-pensieve-api/master/compose.demo.yaml
+docker compose -f compose.demo.yaml up -d
+```
+
+Then open http://localhost:4200. The API is at http://localhost:8080/v1 and the MCP endpoint at http://localhost:8090/mcp.
+
+**The demo is single-user by design.** It runs the unsecured (permit-all) build: there is no login and there are no accounts — every request resolves to the collection's single owner, exactly like the original personal deployment. Do not pull the demo expecting accounts, roles, or showcases to work; those need the secured stack ([Security Modes](#security-modes)). Your data lives in a named Docker volume (`postgres_data`), so it survives `docker compose down`, restarts, and image updates.
+
+The three images are released together and default to `:latest`; pin a specific release with `PENSIEVE_TAG=1.4.0 docker compose -f compose.demo.yaml up -d`.
+
 ## Quick Start
 
 Clone the repository, then build the jar, and start the development stack:
@@ -46,7 +61,7 @@ Once it is running:
 
 Started this way the stack runs **unsecured**: no authentication, matching the original single-user behavior. See [Security Modes](#security-modes) to turn authentication on, and [Production Deployment](#production-deployment) for the secured, TLS-terminated topology.
 
-A clone is required: the backend image is built from the jar you just produced, and the production compose file additionally mounts the `Caddyfile` and the Keycloak realm import from this repository.
+A clone is required for the development stack — the backend image is built from the jar you just produced, and the production compose file additionally mounts the `Caddyfile` and the Keycloak realm import from this repository. (The [demo](#try-the-demo-no-clone-required) is the exception: published images, no clone.)
 
 ## Running From Source
 
@@ -185,7 +200,7 @@ Production is defined by [`compose.production.yaml`](./compose.production.yaml),
 docker compose -f compose.production.yaml up -d
 ```
 
-The images are published to Docker Hub (`the-game-pensieve-api`, `the-game-pensieve-mcp`, `the-game-pensieve-web`); see `documentation/DevDocumentation.md` for the multiplatform build-and-push commands.
+The images are published to Docker Hub (`the-game-pensieve-api`, `the-game-pensieve-mcp`, `the-game-pensieve-web`) by the release script — `make release VERSION=X.Y.Z`, the only path that pushes images. It gates every release behind the full test suites and two end-to-end Playwright runs, then pins the released versions into `compose.production.yaml`; `PUBLISH=no` rehearses the whole pipeline without publishing anything. See `documentation/DevDocumentation.md` § Multiplatform Deployment.
 
 ## API Design
 

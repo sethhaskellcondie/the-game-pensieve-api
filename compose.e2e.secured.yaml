@@ -1,0 +1,19 @@
+# E2E GATE OVERLAY, secured half — used ONLY on top of compose.secured.yaml + compose.e2e.yaml (see
+# that file's header for the full commands and the -p pensieve-e2e requirement). It remaps the two
+# services that exist only in the secured stack; it lives apart from compose.e2e.yaml because an
+# overlay entry for a service the base file does not define is a compose error, and the demo stack
+# has no keycloak or mailpit.
+#
+# KC_HOSTNAME must match the URL browsers and the seeder actually reach Keycloak at, and it is what
+# Keycloak stamps into each token's `iss` — so it moves to 18081 together with the two issuer
+# overrides in compose.e2e.yaml. The realm import itself needs no change: the audience mapper and the
+# web client's redirect URIs (localhost:3000, where Playwright's dev server runs) are port-stable.
+services:
+  keycloak:
+    ports: !override
+      - "18081:8080"
+    environment:
+      KC_HOSTNAME: http://localhost:18081
+  mailpit:
+    ports: !override
+      - "18025:8025"
