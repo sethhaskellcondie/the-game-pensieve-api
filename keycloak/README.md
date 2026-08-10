@@ -35,6 +35,21 @@ switches the backend to the `secured` profile — the Keycloak service is identi
   token and verify `aud`; a literal `${PENSIEVE_...}` means substitution failed. If you change the
   dev realm, re-apply the equivalent change to the prod file.
 
+  **Prod-only hardening (deliberately NOT mirrored into the dev realm):**
+  - `bruteForceProtected` (10 failures, temporary lockout, no permanent lockout) — mirroring it would
+    make any test that exercises a failed login flaky once the counter trips.
+  - `passwordPolicy: length(8) and digits(1) and lowerCase(1)` — the Admin API enforces the policy on
+    admin-create, and `KeycloakTestSupport.ensureUser` creates its users with the password `password`
+    (no digit), so mirroring this breaks the test suite. Keycloak has no generic "any letter" rule;
+    `lowerCase(1)` is the closest, which means an all-caps `PASSWORD1` is rejected.
+  - `eventsEnabled` / `adminEventsEnabled` (30-day retention) — the audit trail. Admin events are the
+    more valuable half: they record who changed what in the console, which is the only trace of a
+    post-deploy change that this import file no longer describes.
+  - Offline sessions: **10-day idle, 30-day absolute**. Keycloak's default leaves offline tokens
+    unbounded (`offlineSessionMaxLifespanEnabled` defaults to `false`); this pins a hard monthly
+    re-auth and reaps abandoned connectors well before that.
+    These govern MCP connector tokens — see [Offline tokens](#offline-tokens-for-mcp-connectors).
+
 ## Bring it up
 
 ```bash
@@ -102,9 +117,23 @@ reachable before it is the only password-reset route the user has.
 
 ```bash
 curl -X PUT "$KC/admin/realms/pensieve/users/$USER_ID/execute-actions-email?client_id=pensieve-web&redirect_uri=https://$APP_DOMAIN" \
+  -u "$KC_ADMIN_UI_USER:$KC_ADMIN_UI_PASSWORD" \
   -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
   -d '["VERIFY_EMAIL","UPDATE_PASSWORD"]'
 ```
+
+In production the `-u` is required as well as the bearer token — see
+[Admin console access](#admin-console-access). Minting `$ADMIN_TOKEN` needs it too, because the master
+realm's token endpoint sits behind the same gate:
+
+```bash
+ADMIN_TOKEN=$(curl -s -u "$KC_ADMIN_UI_USER:$KC_ADMIN_UI_PASSWORD" \
+  -X POST "$KC/realms/master/protocol/openid-connect/token" \
+  -d client_id=admin-cli -d grant_type=password \
+  -d "username=$KC_ADMIN_USER" -d "password=$KC_ADMIN_PASSWORD" | jq -r .access_token)
+```
+
+(Locally, neither `-u` applies — the dev Keycloak is not behind Caddy.)
 
 **Link lifespans:** a user-initiated reset link lives **15 minutes**
 (`actionTokenGeneratedByUserLifespan: 900`, raised from Keycloak's 5-minute default — five minutes is
@@ -122,6 +151,66 @@ it always has. The one test that needs the opposite claim
 kept as a named method so the call site still reads as "a token with an unverified email", and so there
 is one place to change if the realm ever gates logins again. The dev realm's `mailpit` SMTP host does
 not resolve inside the Testcontainers Keycloak, which is harmless: no test triggers a send.
+
+## Admin console access
+
+In production Caddy publishes all of `AUTH_DOMAIN`, which would put Keycloak's admin login on the open
+internet. The `Caddyfile` puts a **basic-auth prompt in front of `/admin/*` and `/realms/master/*`** —
+a second credential (`KC_ADMIN_UI_USER` / `KC_ADMIN_UI_PASSWORD_HASH` in `.env`, hash from
+`caddy hash-password`) layered on top of the Keycloak admin password itself.
+
+Two paths are deliberately left open, and adding them to the matcher will break the site:
+
+- **`/realms/pensieve/*`** — authorize, token, JWKS, `.well-known`. Every login and every token depends
+  on these being anonymous.
+- **`/resources/*`** — static assets for the admin console *and* the public login pages. Gate it and
+  real users get an unstyled login screen.
+
+Consequences worth knowing:
+
+- The console itself works fine from one prompt: it is a SPA calling `/admin/realms/...` over XHR, and
+  the browser replays the credentials automatically.
+- **Scripted admin calls need `-u` as well as the bearer token**, including the call that mints the
+  bearer token — see [Onboarding an admin-created account](#account-emails).
+- Basic auth is a scanning barrier, not a substitute for a strong Keycloak admin password. Enable OTP
+  on the admin account too (Account → Signing in → Two-factor authentication).
+
+`KC_BOOTSTRAP_ADMIN_USERNAME` / `_PASSWORD` apply **only on the first boot** with an empty
+`keycloak-db`; changing them later has no effect. After the first deploy, create a real admin account
+with OTP, delete the bootstrap one, and blank those values in `.env`.
+
+## Offline tokens for MCP connectors
+
+A remote MCP connector is authorized once in a browser and then used in bursts with long gaps. An
+ordinary refresh token is bound to the user's **SSO session** (`ssoSessionIdleTimeout` 30 min,
+`ssoSessionMaxLifespan` 10 h), so without `offline_access` a connector dies after 30 idle minutes —
+and because the SSO session is shared per user per realm, **logging out of the web app kills the
+connector too**. An offline token is bound to an offline session instead, which is why it is the
+right grant here.
+
+The prod realm bounds those offline sessions two ways (Keycloak's default is unbounded):
+
+- **`offlineSessionIdleTimeout` — 10 days.** A connector nobody touches for 10 days expires. Any use
+  resets the clock, so this only reaps abandoned authorizations.
+- **`offlineSessionMaxLifespan` — 30 days.** A hard ceiling regardless of use: even a connector in daily
+  use needs re-authorizing monthly.
+
+So an actively-used connector lives 30 days; an idle one dies at 10.
+
+`offline_access` is a realm *optional* scope, so it is only issued when a client is granted it. When
+pre-registering a connector client via the admin console:
+
+1. Add `offline_access` to that client's scopes. If the client requests the scope itself, adding it as
+   an **optional** scope is enough; if it does not, add it as a **default** scope so Keycloak issues it
+   unconditionally — then confirm by decoding the resulting token rather than assuming.
+2. Leave `pensieve-web` alone. The BFF has a human present and should keep short online sessions;
+   `offline_access` stays optional-and-unrequested there.
+
+Note that the sidecar advertises only `pensieve:read` in its protected-resource metadata
+(`MCP_OAUTH_SCOPES`, default in `the-game-pensieve-mcp/src/config.ts`), so a client that derives its
+scope request from RFC 9728 metadata will not ask for `offline_access` on its own. Adding it there is
+possible but a category error — `scopes_supported` describes scopes for reaching *the resource*, and
+`offline_access` is an authorization-server grant modifier. Granting it on the client is the clean fix.
 
 ## Notes / next (Phase 4+)
 

@@ -31,6 +31,10 @@ services:
       MCP_DOMAIN: ${MCP_DOMAIN}
       AUTH_DOMAIN: ${AUTH_DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL}
+      # Basic-auth gate in front of Keycloak's /admin and /realms/master (see Caddyfile). The hash is a
+      # bcrypt string from `caddy hash-password`; single-quote it in .env so its $ signs survive.
+      KC_ADMIN_UI_USER: ${KC_ADMIN_UI_USER}
+      KC_ADMIN_UI_PASSWORD_HASH: ${KC_ADMIN_UI_PASSWORD_HASH}
     volumes:
       - ${PWD}/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

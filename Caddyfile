@@ -23,5 +23,22 @@
 # Keycloak. Caddy forwards X-Forwarded-* headers by default; the keycloak service trusts them
 # (KC_PROXY_HEADERS=xforwarded) and stamps the canonical issuer https://{$AUTH_DOMAIN}/realms/pensieve.
 {$AUTH_DOMAIN} {
+	# The admin console (/admin) and the master realm it authenticates against (/realms/master) sit behind
+	# an extra basic-auth prompt, so Keycloak's admin login is not exposed to drive-by scanning. The console
+	# is a SPA that calls /admin/realms/... over XHR; the browser replays the credentials automatically
+	# after the first prompt, so the whole console works from one login.
+	#
+	# Deliberately NOT matched, and do not add them:
+	#   /realms/pensieve/*  — authorize, token, JWKS, .well-known. The entire app depends on these.
+	#   /resources/*        — static assets for the console AND the public login pages. Gating this leaves
+	#                         real users staring at an unstyled login screen.
+	#
+	# NOTE: /admin/* also covers the Admin REST API, so scripted admin calls against the public hostname
+	# now need `-u "$KC_ADMIN_UI_USER:<password>"` on top of the bearer token (see keycloak/README.md).
+	@admin path /admin/* /realms/master/*
+	basic_auth @admin {
+		{$KC_ADMIN_UI_USER} {$KC_ADMIN_UI_PASSWORD_HASH}
+	}
+
 	reverse_proxy keycloak:8080
 }
