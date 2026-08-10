@@ -23,6 +23,13 @@
 #
 # THERE IS NO FAST PATH and no skip flag, deliberately (notes §3.1): every release pays the full gate.
 #
+# PUBLISH=no — dry-run rehearsal, NOT a fast path (every gate still runs; it is the exits that close):
+#   step 6 builds both platforms into the buildx cache instead of pushing (no manifest to verify),
+#   step 7 smokes locally built emulated images (:$VERSION-smoke) instead of just-pushed ones,
+#   step 8 is skipped entirely (no pin bump, no commit, no tag), and the preflight's clean-tree and
+#   docker-login requirements soften to warnings. Nothing leaves the machine, git is not touched.
+#   e.g.  PUBLISH=no ./scripts/release.sh 0.9.0-rc1 ../the-game-pensieve-web-v2 ../the-game-pensieve-mcp
+#
 # Conventions honoured (§3.5): arguments/env only, never prompts; set -euo pipefail; repo root resolved
 # from this script's location; credentials come from `docker login` beforehand; non-zero exit on any
 # failure with the last steps being verifications; re-runnable (a completed release refuses to rerun —
@@ -51,7 +58,9 @@ VERSION="${1:-}"
 WEB_REPO="${2:-}"
 MCP_REPO="${3:-}"
 [[ -n "$VERSION" && -n "$WEB_REPO" && -n "$MCP_REPO" ]] \
-    || fail "usage: release.sh <version> <web-repo-path> <mcp-repo-path>"
+    || fail "usage: release.sh <version> <web-repo-path> <mcp-repo-path>   (env: PUBLISH=yes|no)"
+PUBLISH="${PUBLISH:-yes}"
+[[ "$PUBLISH" == "yes" || "$PUBLISH" == "no" ]] || fail "PUBLISH must be 'yes' or 'no' (got '$PUBLISH')"
 
 # --- step bookkeeping --------------------------------------------------------------------------
 CURRENT_STEP="(not started)"
@@ -70,6 +79,10 @@ step() {
 smoke_cleanup() {
     docker rm -f pensieve-smoke-db pensieve-smoke-api pensieve-smoke-web pensieve-smoke-mcp >/dev/null 2>&1 || true
     docker network rm pensieve-smoke >/dev/null 2>&1 || true
+    # PUBLISH=no loads throwaway :$VERSION-smoke images for the emulated platform; drop them too.
+    if [[ -n "${SMOKE_TAG:-}" && "${SMOKE_TAG:-}" != "$VERSION" ]]; then
+        docker rmi -f "$API_IMAGE:$SMOKE_TAG" "$WEB_IMAGE:$SMOKE_TAG" "$MCP_IMAGE:$SMOKE_TAG" >/dev/null 2>&1 || true
+    fi
 }
 on_exit() {
     local status=$?
@@ -97,8 +110,12 @@ docker info >/dev/null 2>&1 || fail "docker daemon is not running"
 # are tolerated (-uno) — localFiles/ scratch dirs are a working convention in these repos and do not
 # reach any build — but a modified tracked file anywhere is a hard stop.
 for repo in "$REPO_ROOT" "$WEB_REPO" "$MCP_REPO"; do
-    [[ -z "$(git -C "$repo" status --porcelain -uno)" ]] \
-        || fail "working tree not clean in $repo — commit or stash before releasing"
+    if [[ -n "$(git -C "$repo" status --porcelain -uno)" ]]; then
+        if [[ "$PUBLISH" == "yes" ]]; then
+            fail "working tree not clean in $repo — commit or stash before releasing"
+        fi
+        printf 'WARNING: working tree not clean in %s (tolerated: PUBLISH=no)\n' "$repo"
+    fi
 done
 [[ "$(git -C "$REPO_ROOT" branch --show-current)" == "master" ]] \
     || printf 'WARNING: releasing from branch %s, not master\n' "$(git -C "$REPO_ROOT" branch --show-current)"
@@ -109,8 +126,11 @@ done
 
 docker buildx inspect "$BUILDER" >/dev/null 2>&1 \
     || fail "buildx builder '$BUILDER' not found — one-time setup: docker buildx create --name $BUILDER --use && docker buildx inspect --bootstrap"
-docker login </dev/null >/dev/null 2>&1 \
-    || fail "docker login is not live — run 'docker login' (with an access token) first"
+if ! docker login </dev/null >/dev/null 2>&1; then
+    [[ "$PUBLISH" == "yes" ]] \
+        && fail "docker login is not live — run 'docker login' (with an access token) first"
+    printf 'WARNING: docker login is not live (tolerated: PUBLISH=no)\n'
+fi
 
 for port in "$SMOKE_API_PORT" "$SMOKE_WEB_PORT" "$SMOKE_MCP_PORT"; do
     if (echo >"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
@@ -159,13 +179,16 @@ PENSIEVE_TAG="$VERSION" "$SCRIPT_DIR/e2e-gate.sh" demo "$WEB_REPO"
 step "6. publish multi-arch + verify manifests"
 # ================================================================================================
 # :$VERSION is immutable, :latest moves with each release (§3.6) — both pushed in one invocation.
+# PUBLISH=no still builds BOTH platforms (a broken arm64/amd64 build fails right here) but the
+# result stays in the buildx cache: nothing is pushed, so there is no registry manifest to verify.
+if [[ "$PUBLISH" == "yes" ]]; then OUTPUT=(--push); else OUTPUT=(--output type=cacheonly); fi
 docker buildx build --builder "$BUILDER" --platform "$PLATFORMS" \
     --build-arg JAR_FILE="$JAR" \
-    -t "$API_IMAGE:$VERSION" -t "$API_IMAGE:latest" --push "$REPO_ROOT"
+    -t "$API_IMAGE:$VERSION" -t "$API_IMAGE:latest" "${OUTPUT[@]}" "$REPO_ROOT"
 docker buildx build --builder "$BUILDER" --platform "$PLATFORMS" \
-    -t "$WEB_IMAGE:$VERSION" -t "$WEB_IMAGE:latest" --push "$WEB_REPO"
+    -t "$WEB_IMAGE:$VERSION" -t "$WEB_IMAGE:latest" "${OUTPUT[@]}" "$WEB_REPO"
 docker buildx build --builder "$BUILDER" --platform "$PLATFORMS" \
-    -t "$MCP_IMAGE:$VERSION" -t "$MCP_IMAGE:latest" --push "$MCP_REPO"
+    -t "$MCP_IMAGE:$VERSION" -t "$MCP_IMAGE:latest" "${OUTPUT[@]}" "$MCP_REPO"
 
 # Verification is not optional: assert both platforms are actually in each pushed manifest, and that
 # :latest now points at the same digest as :$VERSION.
@@ -181,28 +204,50 @@ verify_manifest() {
         || fail "$image:latest ($digest_l) did not move to the $VERSION digest ($digest_v)"
     printf 'verified %s:%s — %s, :latest moved\n' "$image" "$VERSION" "$platforms"
 }
-verify_manifest "$API_IMAGE"
-verify_manifest "$WEB_IMAGE"
-verify_manifest "$MCP_IMAGE"
+if [[ "$PUBLISH" == "yes" ]]; then
+    verify_manifest "$API_IMAGE"
+    verify_manifest "$WEB_IMAGE"
+    verify_manifest "$MCP_IMAGE"
+else
+    printf 'PUBLISH=no: both platforms built to cache; nothing pushed, manifest verification skipped\n'
+fi
 
 # ================================================================================================
 step "7. $SMOKE_PLATFORM smoke (emulated)"
 # ================================================================================================
-# A demo-shaped mini stack of the JUST-PUSHED images for the non-host platform: db (host arch — not
-# our artifact) + backend + frontend + mcp. Each answers its health endpoint or the release fails.
+# A demo-shaped mini stack of the non-host-platform images: db (host arch — not our artifact) +
+# backend + frontend + mcp. Each answers its health endpoint or the release fails.
+# PUBLISH=yes smokes the images JUST PUSHED to the registry (--pull always); PUBLISH=no loads the
+# same builds from the step-6 buildx cache under a :$VERSION-smoke tag so the host-arch :$VERSION
+# images from step 3 are left untouched.
+# Clean leftovers FIRST — smoke_cleanup also removes :$VERSION-smoke tags, so it must never run
+# between building the smoke images and running them.
 smoke_cleanup
+if [[ "$PUBLISH" == "yes" ]]; then
+    SMOKE_TAG="$VERSION"
+    PULL_ARGS=(--pull always)
+else
+    SMOKE_TAG="$VERSION-smoke"
+    PULL_ARGS=(--pull never)
+    docker buildx build --builder "$BUILDER" --platform "$SMOKE_PLATFORM" \
+        --build-arg JAR_FILE="$JAR" -t "$API_IMAGE:$SMOKE_TAG" --load "$REPO_ROOT"
+    docker buildx build --builder "$BUILDER" --platform "$SMOKE_PLATFORM" \
+        -t "$WEB_IMAGE:$SMOKE_TAG" --load "$WEB_REPO"
+    docker buildx build --builder "$BUILDER" --platform "$SMOKE_PLATFORM" \
+        -t "$MCP_IMAGE:$SMOKE_TAG" --load "$MCP_REPO"
+fi
 docker network create pensieve-smoke >/dev/null
 docker run -d --name pensieve-smoke-db --network pensieve-smoke --network-alias db \
     -e POSTGRES_PASSWORD=root -e POSTGRES_DB=pensieve-db postgres:16.2-alpine >/dev/null
 docker run -d --name pensieve-smoke-api --network pensieve-smoke --network-alias backend \
-    --platform "$SMOKE_PLATFORM" --pull always -p "127.0.0.1:$SMOKE_API_PORT:8080" \
-    -e SPRING_PROFILES_ACTIVE=docker "$API_IMAGE:$VERSION" >/dev/null
+    --platform "$SMOKE_PLATFORM" "${PULL_ARGS[@]}" -p "127.0.0.1:$SMOKE_API_PORT:8080" \
+    -e SPRING_PROFILES_ACTIVE=docker "$API_IMAGE:$SMOKE_TAG" >/dev/null
 docker run -d --name pensieve-smoke-web --network pensieve-smoke \
-    --platform "$SMOKE_PLATFORM" --pull always -p "127.0.0.1:$SMOKE_WEB_PORT:3000" \
-    -e API_BASE_URL=http://backend:8080/v1 "$WEB_IMAGE:$VERSION" >/dev/null
+    --platform "$SMOKE_PLATFORM" "${PULL_ARGS[@]}" -p "127.0.0.1:$SMOKE_WEB_PORT:3000" \
+    -e API_BASE_URL=http://backend:8080/v1 "$WEB_IMAGE:$SMOKE_TAG" >/dev/null
 docker run -d --name pensieve-smoke-mcp --network pensieve-smoke \
-    --platform "$SMOKE_PLATFORM" --pull always -p "127.0.0.1:$SMOKE_MCP_PORT:3000" \
-    -e API_BASE_URL=http://backend:8080/v1 -e PORT=3000 "$MCP_IMAGE:$VERSION" >/dev/null
+    --platform "$SMOKE_PLATFORM" "${PULL_ARGS[@]}" -p "127.0.0.1:$SMOKE_MCP_PORT:3000" \
+    -e API_BASE_URL=http://backend:8080/v1 -e PORT=3000 "$MCP_IMAGE:$SMOKE_TAG" >/dev/null
 
 smoke_wait() { # DESCRIPTION TIMEOUT URL [JQ_FILTER]
     local desc="$1" timeout="$2" url="$3" filter="${4:-.}" deadline
@@ -227,6 +272,15 @@ smoke_cleanup
 step "8. pin compose.production.yaml + tag"
 # ================================================================================================
 cd "$REPO_ROOT"
+if [[ "$PUBLISH" == "no" ]]; then
+    printf 'PUBLISH=no: skipped — would bump the three compose.production.yaml pins to :%s,\n' "$VERSION"
+    printf '            commit, tag v%s (verifying the tag carries the pins), and push the tag.\n' "$VERSION"
+    step "done"
+    printf '\n=== [release] %s dry run complete — NOTHING was published or tagged ===\n' "$VERSION"
+    printf 'step timings:\n%s' "$STEP_SUMMARY"
+    printf '\nrun it for real: ./scripts/release.sh %s <web-repo> <mcp-repo>   (PUBLISH defaults to yes)\n' "$VERSION"
+    exit 0
+fi
 perl -pi -e "s#(image: \Q$HUB_USER\E/the-game-pensieve-(?:api|web|mcp)):\S+#\${1}:$VERSION#" compose.production.yaml
 [[ "$(grep -c "image: $HUB_USER/the-game-pensieve-.*:$VERSION" compose.production.yaml)" == "3" ]] \
     || fail "pin bump failed — compose.production.yaml does not carry three :$VERSION pins"

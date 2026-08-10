@@ -702,47 +702,79 @@ docker compose -f compose.secured.yaml   up -d
 
 ## Multiplatform Deployment
 
-The published Docker Hub images are built for both `linux/amd64` and `linux/arm64`.
+The published Docker Hub images are built for both `linux/amd64` and `linux/arm64`, and they are built
+and pushed by **one release script — never by hand**. The script lives in this repo and drives all
+three repositories (this one, `the-game-pensieve-web-v2`, and `the-game-pensieve-mcp`); the sibling
+repo paths are arguments, filled in by the `Makefile`:
+
+```bash
+make release VERSION=1.4.0
+# equivalent to: ./scripts/release.sh 1.4.0 ../the-game-pensieve-web-v2 ../the-game-pensieve-mcp
+```
 
 ### One-Time Setup
 
-Create a builder that supports multiplatform builds:
+Create a builder that supports multiplatform builds (the release preflight checks it exists), and log
+in to Docker Hub with an access token — the script never handles credentials itself:
 
 ```bash
 docker buildx create --name multiplatform --use
 docker buildx inspect --bootstrap
+docker login
 ```
 
-### Build and Push the Backend Images
+### What a Release Runs
 
-1. Build the application jar:
+Eight steps, in order; any failure stops the release before anything is published:
 
-   ```bash
-   ./mvnw install -DskipTests
-   ```
+1. **Preflight** — clean working trees in all three repos, version is `X.Y.Z` (a `-suffix` is allowed,
+   `latest` is not), tag `vX.Y.Z` does not already exist, buildx builder present, `docker login` live.
+2. **Unit gates** — `./mvnw test` (45 classes, both auth modes, self-provisioned Testcontainers),
+   `npm test` in the web repo (Jest), `npm test` in the mcp repo (Vitest).
+3. **Local builds** — the three images, single-arch (host platform), tagged `:X.Y.Z`.
+4. **Gate A** — `scripts/e2e-gate.sh secured`: an isolated secured stack, seeded by
+   `scripts/seed-test-data.sh`, full Playwright suite with `SECURED_BACKEND=1`.
+5. **Gate B** — `scripts/e2e-gate.sh demo`: the pull-and-run demo stack, full Playwright suite (the
+   unsecured specs are the demo product's only e2e coverage).
+6. **Publish** — `docker buildx build --platform linux/amd64,linux/arm64 --push` for all three images,
+   pushing `:X.Y.Z` (immutable) and moving `:latest`; then **verify** each registry manifest actually
+   carries both platforms and that `:latest` landed on the same digest. A silent single-arch push is
+   the failure this catches.
+7. **Architecture smoke** — the suite only ever executed host-platform binaries, so the *other*
+   published platform is started under emulation as a demo-shaped mini stack (db + backend + frontend
+   + mcp) and each health endpoint must answer: `/v1/heartbeat`, `/api/heartbeat`, `/healthz`. This
+   catches a broken build, not a behavioral difference.
+8. **Pin + tag** — the three image pins in `compose.production.yaml` are bumped to `:X.Y.Z`, committed,
+   tagged `vX.Y.Z` (the script verifies the tag carries the pins), and the tag is pushed. The tag is
+   what production deploys; the branch itself is not pushed.
 
-2. Build and push the API image:
+There is deliberately **no fast path**: every release, however small the change, pays the full gate.
 
-   ```bash
-   docker buildx build --platform linux/amd64,linux/arm64 \
-     --build-arg JAR_FILE=target/the_game_pensieve_api.jar \
-     -t sethcondie/the-game-pensieve-api:latest \
-     --push \
-     .
-   ```
-
-There is no separate migration image: the backend runs Flyway on startup, and the dev stack uses the official `flyway/flyway` image with the migrations bind-mounted. (A legacy `Dockerfile.flyway` used to bake the migrations into a standalone `sethcondie/the-game-pensieve-flyway` image; it was referenced by nothing and has been deleted.)
-
-### Build and Push the MCP Sidecar Image
-
-Build and push **from the sidecar repository** (`the-game-pensieve-mcp`). No jar or prior build step — the Dockerfile compiles the TypeScript:
+### Dry Run — the Release Without Publishing
 
 ```bash
-docker buildx build --platform linux/amd64,linux/arm64 \
-  -t sethcondie/the-game-pensieve-mcp:latest \
-  --push \
-  .
+PUBLISH=no make release VERSION=1.4.0
+# or: PUBLISH=no ./scripts/release.sh 1.4.0 ../the-game-pensieve-web-v2 ../the-game-pensieve-mcp
 ```
+
+`PUBLISH=no` is a rehearsal, not a shortcut — steps 1–5 run unchanged and still fail the release; only
+the exits close. Step 6 builds both platforms into the buildx cache instead of pushing (so a broken
+`amd64`/`arm64` build still fails here, but there is no registry manifest to verify); step 7 smokes
+locally built throwaway images (`:X.Y.Z-smoke`, removed afterwards) instead of just-pushed ones; step 8
+is skipped entirely — no pin bump, no commit, no tag. Nothing leaves the machine and git is never
+touched. The preflight's clean-tree and docker-login requirements soften to warnings so a work in
+progress can be rehearsed.
+
+### Notes
+
+- There is no separate migration image: the backend runs Flyway on startup, and the dev stack uses the
+  official `flyway/flyway` image with the migrations bind-mounted. (A legacy `Dockerfile.flyway` used
+  to bake the migrations into a standalone image; it was referenced by nothing and has been deleted.)
+- The backend jar is architecture-independent — its amd64 and arm64 images differ only in the base
+  layer, which is why the `Dockerfile` keeps the `JAR_FILE` build-arg instead of a multi-stage build
+  that would compile identical bytecode twice.
+- The mcp image builds **from the sidecar repository** with no prior step (its Dockerfile compiles the
+  TypeScript); the release script handles this — there is nothing to build there by hand.
 
 ### Front End (React / Next.js)
 
@@ -753,16 +785,7 @@ Key points:
 - The browser talks to the Next.js server, which proxies calls to the backend through its own Route Handlers (`/api/*`).
 - The backend URL is read **server-side only** from `API_BASE_URL`, including the `/v1` prefix (e.g. `http://localhost:8080/v1`). It is required at **runtime**, not build time, so a single image can target any backend. The app throws on startup if `API_BASE_URL` is unset outside development.
 - Against a secured backend the Next.js server is a **BFF**: a confidential Keycloak OIDC client (`pensieve-web`) that runs the authorization-code + PKCE login, keeps the tokens in an httpOnly `iron-session` cookie, and attaches the access token to its server-side calls — the browser never holds a token. It needs `SESSION_SECRET`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, and `OIDC_ISSUER` (browser-facing, for the redirect and `id_token` `iss`), plus `OIDC_INTERNAL_ISSUER` when the container reaches Keycloak over the compose network. A static `API_TOKEN` remains as a non-interactive fallback. See the front end's `.env.example`.
-- The image is built with `output: "standalone"` (`next.config.ts`) and a multi-stage `Dockerfile`, both present in the front-end repo.
-
-Build and push the front-end image **from the front-end repository**:
-
-```bash
-docker buildx build --platform linux/amd64,linux/arm64 \
-  -t sethcondie/the-game-pensieve-web:latest \
-  --push \
-  .
-```
+- The image is built with `output: "standalone"` (`next.config.ts`) and a multi-stage `Dockerfile`, both present in the front-end repo. The release script builds and pushes it from that repo — there is nothing to publish by hand.
 
 ### Running the Deployed Stack
 
