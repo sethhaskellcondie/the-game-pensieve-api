@@ -1,3 +1,18 @@
+/**
+ * The `secured` chain (`api/security/SecurityConfig`) is stateless and validates Keycloak **RS256** access tokens.
+ * `OAuth2ResourceServerConfig` builds the `JwtDecoder` from a **JWKS URI plus an explicit issuer validator** rather than
+ * `issuer-uri` discovery — deliberately, because the API sits on a private docker-compose network and cannot reach the
+ * host-facing issuer URL to run OIDC discovery. So:
+ * - `iss` is validated against the canonical, host-facing issuer that Keycloak stamps into tokens (`KC_HOSTNAME`).
+ * - Keys are fetched over the internal network (`http://keycloak:8080/...`).
+ * - `aud` is validated by `AudienceValidator` against the shared `/mcp` resource URI. Keeping audience validation
+ * on even behind a private network blocks the confused-deputy attack: a token minted for another resource server in the
+ * same realm cannot be replayed here. **the MCP sidecar validates The same audience**, so a mismatch
+ * (including an unsubstituted `${PENSIEVE_...}` placeholder) rejects every request on both sides.
+ * <p>
+ * Keycloak does **not** honor the RFC 8707 `resource` parameter, so the audience is attached by an Audience mapper
+ * on the `pensieve:read` client scope in the realm import — that is why tokens carry `aud` at all.
+ */
 package com.sethhaskellcondie.thegamepensieveapi.api.security;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -7,11 +22,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Profile-gated security. The default (unsecured) build permits every request so the public showcase keeps
+ * Profile-gated security. The default (unsecured) build permits every request, so the public showcase keeps
  * working exactly as before. Activating the {@code secured} profile turns the app into a stateless OAuth2
  * resource server: it validates Keycloak RS256 access tokens (signature via JWKS, plus {@code iss} + {@code aud};
  * see {@link OAuth2ResourceServerConfig}). The heartbeat and the public showcase read surface stay open;
@@ -31,8 +47,8 @@ public class SecurityConfig {
     private static final String PUBLIC_SHOWCASE_DIRECTORY = "/v1/showcases";
 
     // Guest (anonymous => showcase owner) read surface. Reads of a single resource and filtered searches are
-    // opened so the public showcase is browsable without a token; writes stay authenticated (anonymous => 401).
-    // Enumerated per entity (rather than a /v1/*/... wildcard) so future non-entity routes aren't exposed.
+    // opened, so the public showcase is browsable without a token; writes stay authenticated (anonymous => 401).
+    // Enumerated per entity (rather than a /v1/*/... wildcard), so future non-entity routes aren't exposed.
     private static final String[] PUBLIC_READ_BY_ID = {
         "/v1/systems/*",
         "/v1/toys/*",
@@ -68,7 +84,7 @@ public class SecurityConfig {
     // The metadata keys the public showcase renders from (GET only) join the guest read surface. A showcase view is
     // served the fixed guest ui-settings and reads the owner's own default_sort_options, saved-filters, and
     // saved-filter-categories (mirrored via RLS), so a guest sees the owner's configured showcase — all must be
-    // reachable without a token. Only these keys are opened (not a /v1/metadata/* wildcard, nor the list-all GET) so
+    // reachable without a token. Only these keys are opened (not a /v1/metadata/* wildcard, nor the list-all GET), so
     // a showcase visitor can't enumerate the owner's other metadata. Writes (POST/PATCH/DELETE) are not listed, so
     // they fall through to authenticated() and a GUEST showcase view is rejected in the gateway.
     private static final String[] PUBLIC_METADATA_READ = {
@@ -82,7 +98,7 @@ public class SecurityConfig {
     @Profile("!secured")
     public SecurityFilterChain permitAllFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
@@ -94,7 +110,7 @@ public class SecurityConfig {
             RestAuthenticationEntryPoint authenticationEntryPoint
     ) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
@@ -111,7 +127,7 @@ public class SecurityConfig {
                 // The default JwtAuthenticationToken carries the token's claims (sub, email) for OwnerResolver.
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(authenticationEntryPoint)
-                        .jwt(jwt -> { }))
+                        .jwt(_ -> { }))
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(authenticationEntryPoint));
         return http.build();
     }

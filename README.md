@@ -34,40 +34,13 @@ docker compose -f compose.demo.yaml up -d
 
 Then open http://localhost:4200. The API is at http://localhost:8080/v1 and the MCP endpoint at http://localhost:8090/mcp.
 
-**The demo is single-user by design.** It runs the unsecured (permit-all) build: there is no login and there are no accounts — every request resolves to the collection's single owner, exactly like the original personal deployment. Do not pull the demo expecting accounts, roles, or showcases to work; those need the secured stack ([Security Modes](#security-modes)). Your data lives in a named Docker volume (`postgres_data`), so it survives `docker compose down`, restarts, and image updates.
-
-The three images are released together and default to `:latest`; pin a specific release with `PENSIEVE_TAG=1.4.0 docker compose -f compose.demo.yaml up -d`.
-
-## Quick Start
-
-Clone the repository, then build the jar, and start the development stack:
-
-```bash
-./mvnw install -DskipTests
-docker compose -f compose.unsecured.yaml up -d
-```
-
-There is no plain `compose.yaml`: the development stack has two security postures and the file name always says which one you are starting — `compose.unsecured.yaml` (above) or `compose.secured.yaml`. See [Security Modes](#security-modes).
-
-Once it is running:
-
-| Service | URL |
-| --- | --- |
-| Front end | http://localhost:4200 |
-| API | http://localhost:8080 |
-| MCP endpoint | http://localhost:8090/mcp |
-| Keycloak | http://localhost:8081 (admin / admin — dev only) |
-| PostgreSQL | `localhost:5432` (postgres / root) |
-
-Started this way the stack runs **unsecured**: no authentication, matching the original single-user behavior. See [Security Modes](#security-modes) to turn authentication on, and [Production Deployment](#production-deployment) for the secured, TLS-terminated topology.
-
-A clone is required for the development stack — the backend image is built from the jar you just produced, and the production compose file additionally mounts the `Caddyfile` and the Keycloak realm import from this repository. (The [demo](#try-the-demo-no-clone-required) is the exception: published images, no clone.)
+**The demo is single-user by design.** It runs the unsecured (permit-all) build.  The users, roles, and showcases are not included in the demo.
 
 ## Running From Source
 
 ### Option 1: Run Everything in Docker
 
-Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a local clone. The two [Quick Start](#quick-start) commands launch seven services:
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a local clone.
 
 | Service | Role | Host port |
 | --- | --- | --- |
@@ -101,7 +74,7 @@ The API is served on port `8080`.
 
 Authentication is controlled by the `secured` Spring profile — an **overlay** added alongside a datasource profile (`local`, `docker`), never used on its own.
 
-In Docker the mode is chosen by the compose file — the whole difference between the two is the backend's active profiles, so `compose.secured.yaml` `include`s `compose.unsecured.yaml` and overrides only that. Both resolve to the same compose project, so switching modes reuses the same containers and volumes and the database survives the switch:
+In Docker the mode is chosen by the docker-compose file — the whole difference between the two is the backend's active profiles, so `compose.secured.yaml` `include`s `compose.unsecured.yaml` and overrides only that. Both resolve to the same compose project, so switching modes reuses the same containers and volumes, and the database survives the switch:
 
 ```bash
 docker compose -f compose.unsecured.yaml up -d    # backend profiles: docker
@@ -139,31 +112,6 @@ java -jar target/*.jar --spring.profiles.active=local,secured
 
 The resource-server settings live in `application-secured.properties` and are env-overridable — `PENSIEVE_OAUTH2_ISSUER`, `PENSIEVE_OAUTH2_JWK_SET_URI`, `PENSIEVE_OAUTH2_AUDIENCE`. The dev defaults match the compose Keycloak, so running from source against it needs no configuration.
 
-In secured mode, only the following endpoints stay public — enough for an anonymous visitor to browse a public showcase. Everything else requires a valid Bearer access token (anonymous requests return `401`):
-
-| Endpoint | Methods |
-| --- | --- |
-| `/v1/heartbeat` | GET |
-| `/v1/{entity}/*` (read a single resource, six entity types) | GET |
-| `/v1/{entity}/function/search` (filtered search) | POST |
-| `/v1/filters/**` | GET |
-| `/v1/function/counts` | GET |
-| `/v1/custom_fields`, `/v1/custom_fields/entity/*` | GET |
-| `/v1/metadata/` + `ui-settings`, `default_sort_options`, `saved-filters`, `saved-filter-categories` | GET |
-| `/v1/showcases` (public showcase directory) | GET |
-
-To exercise the protected endpoints locally, get a token from Keycloak and send it as an `Authorization: Bearer <token>` header:
-
-```bash
-curl -s -X POST http://localhost:8081/realms/pensieve/protocol/openid-connect/token \
-  -d client_id=pensieve-test-client -d grant_type=password \
-  -d username=seth -d password=password -d 'scope=openid' | jq -r .access_token
-```
-
-A first authenticated call provisions the caller's `users` row automatically (a 30-day trial), or claims a seeded row when the token's verified email matches it. `GET /v1/auth/me` reports the resulting identity, effective role, and how long the access window lasts. See [`keycloak/README.md`](./keycloak/README.md) for the realm's clients and users, and [`documentation/DevDocumentation.md`](./documentation/DevDocumentation.md) for the role/capability model.
-
-> The dev Keycloak (`admin` / `admin`, HTTP, test users with known passwords) is for local development only. Production uses a separate realm file with none of that surface — see [Production Deployment](#production-deployment).
-
 ### Verifying the API
 
 The heartbeat endpoint confirms the API is running and reports which security mode it is in:
@@ -173,78 +121,9 @@ curl http://localhost:8080/v1/heartbeat
 # => {"data":{"message":"thump thump","secureMode":false},"errors":null,"roundTripMs":3}
 ```
 
-`secureMode` is `true` when the `secured` profile is active. The front end and the MCP sidecar both use this to discover the server's posture without a token.
-
-## MCP (AI Assistant Access)
-
-The [MCP sidecar](https://github.com/sethhaskellcondie/the-game-pensieve-mcp) is a read-only **MCP (Model Context Protocol)** server that lets AI hosts — Claude Desktop, Claude Code, claude.ai connectors — answer natural-language questions about a collection. It lives in its own repository: a separate TypeScript process that fulfills every tool call through this REST API, so its reads inherit exactly the same authorization the web app has, never more.
-
-It runs as the `mcp` service in the compose stack, pulled as the published `sethcondie/the-game-pensieve-mcp:latest` image (endpoint `http://localhost:8090/mcp`). Register it with a host:
-
-```bash
-claude mcp add --transport http pensieve http://localhost:8090/mcp
-```
-
-Against an unsecured backend it needs no token. Against a secured one it enforces OAuth: the host discovers Keycloak from the sidecar's protected-resource metadata and runs the standard authorization-code + PKCE flow, and each user sees only their own collection. Tools, environment variables, and host setup are documented in the [sidecar's own README](https://github.com/sethhaskellcondie/the-game-pensieve-mcp#readme).
-
-## Production Deployment
-
-Production is defined by [`compose.production.yaml`](./compose.production.yaml), the [`Caddyfile`](./Caddyfile), and [`.env.production.example`](./.env.production.example). It differs from the development stack in several important ways:
-
-- **Caddy is the only public service.** It binds 80/443, terminates TLS via Let's Encrypt, and reverse-proxies three hostnames (app, MCP, auth). Nothing else publishes a host port.
-- **The backend runs secured** (`docker,secured`) and migrates itself on startup, so there is no separate Flyway service.
-- **Keycloak imports the production realm** (`keycloak/import-prod/`), which has no test users, no public dev client, and no anonymous client registration.
-- **Everything is parameterized.** Copy `.env.production.example` to `.env`, fill in the three domains and the secrets, and point DNS at the host before the first start so Caddy can complete the ACME challenge.
-
-```bash
-docker compose -f compose.production.yaml up -d
-```
-
-The images are published to Docker Hub (`the-game-pensieve-api`, `the-game-pensieve-mcp`, `the-game-pensieve-web`) by the release script — `make release VERSION=X.Y.Z`, the only path that pushes images. It gates every release behind the full test suites and two end-to-end Playwright runs, then pins the released versions into `compose.production.yaml`; `PUBLISH=no` rehearses the whole pipeline without publishing anything. See `documentation/DevDocumentation.md` § Multiplatform Deployment.
-
-## API Design
-
-The API combines REST and RPC styles. Standard CRUD operations follow REST conventions. RPC-style endpoints are identified by `/function/` in their path.
-
-The most common RPC endpoint is search. A typical REST API exposes "get all" as `GET /{resource}`; here it is `POST /{resource}/function/search`, which accepts an array of filter objects. When no filters are supplied, all resources are returned.
-
-### Filter System
-
-The search endpoints support a filtering system across multiple data types:
-
-- **Text, Number, Boolean, and Time** filters with a range of operators
-- **System** filters for video game / video game box relationships
-- **Custom Field** filters for user-defined metadata
-- **Sort and pagination** controls
-
-See [`documentation/DevDocumentation.md`](./documentation/DevDocumentation.md) for detailed filter documentation and examples.
-
 ## Documentation
 
 Additional documentation lives in the [`documentation/`](./documentation) directory:
-
-- `DevDocumentation.md` — the developer documentation: architecture, the entity pattern, filters, authentication, multi-tenancy and row-level security, roles and capabilities, public showcases, the MCP sidecar, and deployment. **Start here.**
-- `runningOptions.md` — every way to run the project (secured vs. unsecured, Docker vs. from source, dev vs. production, tests and seeding), what each option includes, and when to use it
-- `openapi.yaml` — the OpenAPI specification for the API
-- `api.postman_collection.json` — a Postman collection of example requests
-- `PastIssues.md` — a record of notable issues encountered during development
-
-Two components document themselves alongside their code:
-
-- [the MCP sidecar's README](https://github.com/sethhaskellcondie/the-game-pensieve-mcp#readme) — its tools, configuration, and host setup (separate repository)
-- [`keycloak/README.md`](./keycloak/README.md) — the realm contents, clients and scopes, and how to mint a token by hand
-
-## Testing
-
-```bash
-./mvnw test          # the Java suite
-```
-
-The MCP sidecar has its own vitest suite, run with `npm test` from [its repository](https://github.com/sethhaskellcondie/the-game-pensieve-mcp).
-
-The Java suite uses [Testcontainers](https://testcontainers.com/) for integration tests, so **Docker must be running**. The secured-profile suites additionally start a Keycloak container (shared across the whole run) and mint real access tokens against it. On some machines not all containers start successfully; if the test suite fails for this reason, you can reduce the load by commenting out the `GetWithFilters...Tests.java` series of tests.
-
-The sidecar's vitest suite is hermetic — no backend, database, or Keycloak needed — so it runs without Docker.
 
 ## License
 

@@ -7,8 +7,9 @@ learned building it.
 
 **Written to be picked up cold.** It assumes no memory of the Pipeline A work and no other document
 open. Everything needed is either here or named by exact path. The original design document,
-`localFiles/pipeline_notes.md`, remains the source of record for *why* the design is what it is; this
-document is the *how*, corrected against what actually got built.
+`localFiles/pipeline_notes.md`, is referenced below and in the script headers for *why* the design is
+what it is — but **it no longer exists on disk**; treat those references as historical and this
+document as the source of record. Nothing depends on the missing file.
 
 **Status: not started, and deliberately so.** Pipeline B is blocked on three prerequisites (§3), two
 of which are external and have real lead time. Nothing below should begin until those clear.
@@ -47,8 +48,11 @@ positional argument.** Build to that signature and the Makefile needs no change.
   end to end successfully, but nothing has been pushed to Docker Hub and **no version tag exists**.
   This matters for sequencing; see §3.3.
 - **No part of Pipeline B exists.** No Droplet, no domain, no SMTP relay, no deploy script.
-- **`compose.production.yaml` has never been run**, anywhere. It is carefully reviewed and
-  cross-checked (§4.1) but wholly unexercised.
+- **`compose.production.yaml` now runs and verifies locally** via `scripts/prod-rehearsal.sh`
+  (Phase B0, automated 2026-08-13) — **all 23 checks green**, including a full login driven end to end.
+  The first run was 20/23: the three reds were one real login-blocking defect in the web BFF, now
+  fixed and recorded as §4.9. The file has still never run on a *server*: ACME, `linux/amd64`, and
+  Droplet sizing remain unexercised.
 
 ---
 
@@ -257,6 +261,52 @@ backend and Keycloak on a first deploy is reasonable. Poll every 3s.
 - **Tagging:** `:X.Y.Z` is immutable; `:latest` moves each release. Production deploys a version tag,
   never `:latest` — the script must reject `latest` explicitly.
 
+### 4.9 ✅ FIXED — the web BFF derived its origin from its own bind address
+
+Found by the first run of `scripts/prod-rehearsal.sh` and fixed the same day (2026-08-13). Recorded
+because the failure mode is invisible in every other environment, and because the fix is a piece of
+required production configuration you must not drop. **Before the fix, login was impossible in the
+production topology** and no existing gate caught it.
+
+The frontend container runs the Next.js standalone server with `HOSTNAME=0.0.0.0 PORT=3000`, and
+`new URL(request.url).origin` inside a Route Handler resolves to the *bind* address rather than the
+proxied `Host`. Behind Caddy that yields `https://0.0.0.0:3000`. Observed end to end:
+
+```
+GET https://pensieve.localhost/api/auth/login
+  -> 302 …/auth?…&redirect_uri=https%3A%2F%2F0.0.0.0%3A3000%2Fapi%2Fauth%2Fcallback
+  -> HTTP 400  "Invalid parameter: redirect_uri"
+```
+
+The realm registers only `https://${PENSIEVE_APP_DOMAIN}/api/auth/callback`, so Keycloak refuses every
+login. Note the scheme is already correct — `X-Forwarded-Proto` is honoured, the host is not.
+
+**Three call sites in the web repo, all affected:**
+
+| File | Line | Use |
+| --- | --- | --- |
+| `src/app/api/auth/login/route.ts` | 35 | `redirect_uri` on the authorization request |
+| `src/app/api/auth/callback/route.ts` | 45 | `redirect_uri` on the code exchange, and the post-login landing URL |
+| `src/app/api/auth/logout/route.ts` | 45 | `post_logout_redirect_uri` |
+
+**Why nothing caught it.** Both e2e gate passes reach the frontend *directly* (Playwright's own dev
+server on 3000; `compose.secured.yaml` publishes 4200), so the origin is always right. Caddy exists only
+in `compose.production.yaml`, which had never been run — §1.2.
+
+**The fix, as shipped.** A new `src/lib/appOrigin.ts` in the web repo returns `APP_ORIGIN` when set and
+falls back to the request's own origin otherwise; all three call sites use it. `compose.production.yaml`
+wires `APP_ORIGIN: https://${APP_DOMAIN}` on the `frontend` service — **it is required behind the proxy,
+and it is the one piece of frontend configuration that has no safe default.** The unproxied stacks
+(`compose.demo.yaml`, `compose.secured.yaml`, `npm run dev`) deliberately leave it unset and keep working
+on the fallback, so nothing outside production changed.
+
+Configuration rather than trusting `X-Forwarded-Host`, deliberately: the callback redirects the browser
+to `new URL(dest, origin)`, so an origin taken from a spoofable header is an open redirect. An explicit
+value cannot be poisoned by a request.
+
+**Verified** by re-running B0 after rebuilding the web image: all 22 checks green, including a full
+login driven end to end.
+
 ---
 
 ## 5. The Phases
@@ -273,26 +323,43 @@ value or an unresolved placeholder *on the Droplet* means wiping `keycloak-db` a
 Discovering it on your workstation costs nothing. Pipeline A's gate proved that standing up a throwaway
 isolated stack is cheap and reliable — apply the same trick here.
 
-- [ ] Write a real `.env` locally with the **actual** production SMTP credentials and a freshly
-      generated `OIDC_CLIENT_SECRET`. Use placeholder domains for `APP_DOMAIN`/`MCP_DOMAIN`/`AUTH_DOMAIN`
-      (Caddy is not part of this rehearsal).
-- [ ] Bring up **only** `keycloak` and `keycloak-db`, under a distinct compose project name so it cannot
-      touch your dev stack:
-      ```bash
-      docker compose -p pensieve-kc-rehearsal -f compose.production.yaml up -d keycloak keycloak-db
-      ```
-- [ ] Verify the import resolved: fetch the realm and confirm **no literal `${PENSIEVE_...}` string
-      survives anywhere** in the client config, the redirect URIs, or the SMTP settings. A literal
-      placeholder means substitution failed.
-- [ ] Log into the admin console and **send a test email** (Realm settings → Email → Test connection).
-      This is the entire point of the phase: confirm the relay accepts the credentials, the `From`
-      address is authorized, and the message arrives rather than landing in spam.
-- [ ] If you applied the `${PWD}` → `./` change from §4.3, confirm the realm import volume still mounts.
-- [ ] Tear down completely: `docker compose -p pensieve-kc-rehearsal -f compose.production.yaml down -v`
+**This phase is now automated, and it goes further than originally planned.** `scripts/prod-rehearsal.sh`
+runs the **whole** production stack — not just `keycloak` + `keycloak-db` — from `compose.production.yaml`
+and `Caddyfile` **unmodified**, with real TLS. Two facts make Caddy a part of the rehearsal after all:
+`*.localhost` resolves to 127.0.0.1 natively, and Caddy issues from its internal CA (never ACME) for
+`.localhost` names, so no dry-run switch has to be added to a reviewed artifact. It always starts with
+`down -v` because the import is one-shot, runs 23 checks, and reports them together.
 
-*Exit criteria: a test email from the production realm config arrives in a real inbox, and no
-unresolved placeholder appears anywhere in the imported realm. Record the exact working `.env` values
-in your password manager — these are the ones that go on the Droplet.*
+```bash
+./scripts/prod-rehearsal.sh                      # generates .env.rehearsal on first run, then verifies
+SMTP_TEST_TO=you@example.com ./scripts/prod-rehearsal.sh    # + the email half (needs the real relay)
+KEEP_STACK=1 CREATE_TEST_USER=1 ./scripts/prod-rehearsal.sh # + a user, to do the browser half by hand
+```
+
+- [ ] Run it once as-is. Everything except the email check is covered with no configuration.
+- [ ] Edit the **actual** production SMTP credentials into `.env.rehearsal` and re-run with
+      `SMTP_TEST_TO=<a real inbox>`. This is the irreversible part: confirm the relay accepts the
+      credentials, the `From` address is authorized, and the message **arrives rather than landing in
+      spam** — the script can only prove Keycloak sent it.
+- [ ] Optionally look at it in a browser (`KEEP_STACK=1 CREATE_TEST_USER=1`): trust the printed Caddy
+      root CA and log in at `https://pensieve.localhost`. The login *flow* is already checked without
+      you — the script creates a throwaway user and drives the full authorization-code + PKCE round
+      trip, then asserts the resulting session carries a real role, which it can only have if the
+      secured backend accepted the token's `aud` and `iss`. (The realm has no direct-access-grant
+      client by design (§4.8), so the flow is driven through the login form, the way a browser does.)
+- [ ] If you applied the `${PWD}` → `./` change from §4.3, the script's two mount checks confirm it.
+- [ ] Record the exact working `.env` values in your password manager — these are the ones that go on
+      the Droplet. (Do **not** carry over the generated `.env.rehearsal` secrets.)
+
+*Exit criteria: `prod-rehearsal.sh` exits 0, a test email from the production realm config arrives in a
+real inbox, and a browser login completes against the local production topology.*
+
+**What B0 cannot cover, by construction** — carry these into B3 and verify on the Droplet: ACME against
+real DNS, the `linux/amd64` images (the rehearsal runs host arch), Droplet sizing/swap/firewall, and
+real inbox deliverability (SPF/DKIM).
+
+> **First run of this script, 2026-08-13, found a login-blocking defect** — see §4.9. Treat a red B0 as
+> the phase doing its job.
 
 ---
 

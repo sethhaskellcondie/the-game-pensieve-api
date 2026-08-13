@@ -51,6 +51,14 @@ services:
     environment:
       # Server-side only; reaches the backend privately over the compose network.
       API_BASE_URL: http://backend:8080/v1
+      # The PUBLIC origin, and it is required behind Caddy. Next's standalone server binds 0.0.0.0:3000,
+      # and `request.url` in a Route Handler reports that bind address rather than the proxied Host — so
+      # without this the app asks Keycloak for redirect_uri=https://0.0.0.0:3000/api/auth/callback, which
+      # the realm does not register, and every login dies on "Invalid parameter: redirect_uri". Deliberately
+      # configuration rather than trusting X-Forwarded-Host: the callback redirects the browser to this
+      # origin, so a spoofable value would be an open redirect. (Unset elsewhere — the unproxied stacks
+      # publish the frontend directly, where the request's own origin is already correct.)
+      APP_ORIGIN: https://${APP_DOMAIN}
       SESSION_SECRET: ${SESSION_SECRET}
       # OIDC_ISSUER is browser-facing (login redirect + id_token iss); OIDC_INTERNAL_ISSUER is the
       # server-to-server token/refresh path over the internal network.
