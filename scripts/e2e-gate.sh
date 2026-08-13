@@ -14,8 +14,9 @@
 # against a secured backend; auth.setup.ts probes the heartbeat and adapts).
 #
 # ISOLATION — the whole point. The stack runs under compose project `pensieve-e2e` with every host
-# port remapped by the compose.e2e*.yaml overlays, so it can never touch the dev stack (which resolves
-# to this directory's name as its project — a bare `down -v` here would destroy the dev database).
+# port remapped by the dockerCompose/compose.e2e*.yaml overlays, so it can never touch the dev stack
+# (project `the-game-pensieve-api`, pinned in the compose files — a bare `down -v` would destroy the
+# dev database). -p on the command line outranks that pinned name, which is what keeps the two apart.
 # Teardown is trap-based, so a failed run still cleans up; set KEEP_STACK=1 to skip teardown and poke
 # at a failed stack (`docker compose -p pensieve-e2e ... down -v` when done — the next run also
 # starts with a clean `down -v`, so a kept stack never contaminates it).
@@ -41,6 +42,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+COMPOSE_DIR="$REPO_ROOT/dockerCompose"
 
 PROJECT="pensieve-e2e"
 BACKEND_URL="http://localhost:18080"
@@ -57,12 +59,12 @@ MODE="${1:-}"
 WEB_REPO="${2:-}"
 case "$MODE" in
     secured)
-        COMPOSE_FILES=(-f "$REPO_ROOT/compose.secured.yaml" -f "$REPO_ROOT/compose.e2e.yaml" -f "$REPO_ROOT/compose.e2e.secured.yaml")
+        COMPOSE_FILES=(-f "$COMPOSE_DIR/compose.secured.yaml" -f "$COMPOSE_DIR/compose.e2e.yaml" -f "$COMPOSE_DIR/compose.e2e.secured.yaml")
         GATE_PORTS=(14200 18080 18090 15432 18081 18025 3000)
         EXPECTED_SECURE_MODE=true
         ;;
     demo)
-        COMPOSE_FILES=(-f "$REPO_ROOT/compose.demo.yaml" -f "$REPO_ROOT/compose.e2e.yaml")
+        COMPOSE_FILES=(-f "$COMPOSE_DIR/compose.demo.yaml" -f "$COMPOSE_DIR/compose.e2e.yaml")
         GATE_PORTS=(14200 18080 18090 15432 3000)
         EXPECTED_SECURE_MODE=false
         ;;
@@ -88,7 +90,7 @@ for img in "${IMAGES[@]}"; do
     docker image inspect "$img" >/dev/null 2>&1 || fail "image '$img' not found locally — build it first"
 done
 if [[ "$MODE" == secured ]]; then
-    # compose builds the backend from the jar (compose.unsecured.yaml's build block).
+    # compose builds the backend from the jar (dockerCompose/compose.unsecured.yaml's build block).
     ls "$REPO_ROOT"/target/*.jar >/dev/null 2>&1 || fail "no jar in target/ — run './mvnw install -DskipTests' first"
 fi
 
@@ -101,8 +103,9 @@ for port in "${GATE_PORTS[@]}"; do
 done
 
 # --- stack up ----------------------------------------------------------------------------------
-# ${PWD} bind mounts (keycloak import, flyway config) resolve from the compose working directory,
-# so run compose from the repo root, always.
+# The bind mounts (keycloak import, flyway config) and the backend's build context are relative to
+# dockerCompose/, so compose resolves them the same from any working directory. The cd is kept only
+# so the jar glob and any relative output below mean the repo root.
 cd "$REPO_ROOT"
 
 # Clean start: a previous KEEP_STACK run, or a crash between trap-set and up, must not leak into

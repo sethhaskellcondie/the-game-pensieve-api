@@ -3,13 +3,23 @@
 # the OAuth flow can be developed and the realm kept honest, but nothing requires it.
 #
 # There is deliberately no plain `compose.yaml` — the security posture is always named on the command line:
-#   docker compose -f compose.unsecured.yaml up -d     # this file: permit-all
-#   docker compose -f compose.secured.yaml   up -d     # includes this file, flips the backend to docker,secured
-# Both resolve to the same compose project (the directory name), so they share the same containers and volumes
-# and you can switch modes without losing the database.
+#   docker compose -f dockerCompose/compose.unsecured.yaml up -d   # this file: permit-all
+#   docker compose -f dockerCompose/compose.secured.yaml   up -d   # includes this file, flips to docker,secured
+# Both pin the same project `name:` below, so they share the same containers and volumes and you can switch
+# modes without losing the database.
+#
+# PATHS ARE RELATIVE TO THIS FILE, NOT TO YOUR SHELL. Compose resolves the build context and every bind mount
+# below against the project directory — the directory holding the first `-f` file, i.e. dockerCompose/ — so
+# `..` is the repo root no matter where you invoke compose from. (These were once ${PWD} paths, which silently
+# became empty directories when compose was run from anywhere but the repo root.)
 #
 # `scripts/seed-test-data.sh` needs the SECURED stack (it drives real accounts, roles, and RLS).
 # Production is a different file again: compose.production.yaml.
+
+# Pinned, not derived. Compose otherwise names the project after the directory holding this file — which
+# would be `dockerCompose`, and would strand the existing dev volumes the moment these files moved.
+name: the-game-pensieve-api
+
 services:
   frontend:
     image: sethcondie/the-game-pensieve-web:latest
@@ -25,7 +35,8 @@ services:
     depends_on:
       - db
     build:
-      context: .
+      # The repo root — the Dockerfile and target/*.jar both live there, one level up from this file.
+      context: ..
       args:
         JAR_FILE: target/*.jar
     ports:
@@ -64,8 +75,8 @@ services:
     # migrate (tells flyway what to do on load)
     command: -configFiles=/flyway/conf/flyway.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
     volumes:
-      - ${PWD}/src/main/resources/migrations:/flyway/sql       # these are host volumes (bind mounts)
-      - ${PWD}/docker-flyway.config:/flyway/conf/flyway.config # host file path:container volume path
+      - ../src/main/resources/migrations:/flyway/sql       # these are host volumes (bind mounts), and the
+      - ../docker-flyway.config:/flyway/conf/flyway.config # host paths resolve from THIS file's directory
   db:
     image: postgres:16.2-alpine
     ports:
@@ -92,14 +103,14 @@ services:
       KC_HOSTNAME: http://localhost:8081
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     volumes:
-      - ${PWD}/keycloak/import:/opt/keycloak/data/import:ro
+      - ../keycloak/import:/opt/keycloak/data/import:ro
       - keycloak_data:/opt/keycloak/data
     depends_on:
       - mailpit
   mailpit:
     # Dev mail catcher: the realm's smtpServer points at mailpit:1025, so Keycloak's verification and
     # password-reset emails are captured here instead of being delivered. Read them at http://localhost:8025.
-    # Prod uses a real SMTP relay (see compose.production.yaml); nothing but the realm's smtpServer differs.
+    # Prod uses a real SMTP relay (compose.production.yaml); nothing but the realm's smtpServer differs.
     image: axllent/mailpit:latest
     ports:
       - "8025:8025" #host port:container port (web UI)

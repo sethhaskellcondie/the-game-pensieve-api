@@ -5,18 +5,24 @@
 #
 #   docker compose -f compose.demo.yaml up -d
 #
+# Deliberately NO top-level `name:`, unlike the development and production files in this directory. Those
+# live at a known path in a checkout and pin their project name so it cannot drift; this one is meant to be
+# downloaded to an arbitrary directory, so its project name is that directory's — which is what an existing
+# demo user's `postgres_data` volume is already scoped to. Pinning a name here would silently orphan it.
+#
 # Then open http://localhost:4200. The API is at http://localhost:8080/v1 and the MCP endpoint at
 # http://localhost:8090/mcp (tokenless — with no secured backend the sidecar keeps enforcement off).
 #
 # SINGLE-USER BY DESIGN. In permit-all mode there is no Keycloak, so nothing that needs it runs here:
-# no login, no email (Mailpit), no reverse proxy (Caddy). For real accounts use compose.secured.yaml
-# (development) or compose.production.yaml (hosted).
+# no login, no email (Mailpit), no reverse proxy (Caddy). For real accounts use, from a checkout,
+# dockerCompose/compose.secured.yaml (development) or dockerCompose/compose.production.yaml (hosted).
 #
 # Versioning: all three images default to :latest (the newest release). Pin a release by exporting
 # PENSIEVE_TAG, e.g. `PENSIEVE_TAG=1.4.0 docker compose -f compose.demo.yaml up -d`. The three images
 # are released together — always run all three at the same version.
 #
-# Data lives in the named `postgres_data` volume, so it survives `down`, restarts, and image updates.
+# Data lives in the named `postgres_data` volume (project-scoped — see the note on `name:` above), so it
+# survives `down`, restarts, and image updates.
 # The backend runs its own Flyway migrations on startup; no separate migration service is needed.
 services:
   frontend:

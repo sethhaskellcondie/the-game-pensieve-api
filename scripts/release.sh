@@ -17,7 +17,7 @@
 #   7. Arch smoke       run the three images for the platform the host is NOT (the suite only ever ran
 #                       host-arch binaries) as a tiny demo-shaped stack under emulation; hit each health
 #                       endpoint. Catches a broken build, not a behavioral difference.
-#   8. Pin + tag        bump the three image pins in compose.production.yaml → commit → git tag
+#   8. Pin + tag        bump the three pins in dockerCompose/compose.production.yaml → commit → git tag
 #                       v$VERSION → push the tag. The tag is what the Droplet deploys; it must carry
 #                       the bumped pins (verified). The branch itself is NOT pushed — push it yourself.
 #
@@ -46,6 +46,8 @@ MCP_IMAGE="$HUB_USER/the-game-pensieve-mcp"
 PLATFORMS="linux/amd64,linux/arm64"
 BUILDER="multiplatform"
 JAR="target/the_game_pensieve_api.jar"
+# Repo-relative on purpose: it is used as a git pathspec and in `git show <tag>:<path>` as well as on disk.
+PROD_COMPOSE="dockerCompose/compose.production.yaml"
 # Host ports for the step-7 smoke stack (odd on purpose — nothing else uses them).
 SMOKE_API_PORT=19080
 SMOKE_WEB_PORT=19200
@@ -105,6 +107,9 @@ command -v jq >/dev/null || fail "jq is required"
 command -v curl >/dev/null || fail "curl is required"
 command -v perl >/dev/null || fail "perl is required (portable in-place edit of the compose pins)"
 docker info >/dev/null 2>&1 || fail "docker daemon is not running"
+# Step 8 is the last thing that runs, ~30 minutes of gates after this point. Assert its target is where
+# this script thinks it is now, rather than discovering a moved compose file at the very end.
+[[ -f "$REPO_ROOT/$PROD_COMPOSE" ]] || fail "$PROD_COMPOSE not found — step 8 pins the images there"
 
 # Clean working trees: the tag must describe exactly what was tested and shipped. Untracked files
 # are tolerated (-uno) — localFiles/ scratch dirs are a working convention in these repos and do not
@@ -269,11 +274,11 @@ smoke_wait "mcp /healthz" 60 "http://127.0.0.1:$SMOKE_MCP_PORT/healthz"
 smoke_cleanup
 
 # ================================================================================================
-step "8. pin compose.production.yaml + tag"
+step "8. pin $PROD_COMPOSE + tag"
 # ================================================================================================
 cd "$REPO_ROOT"
 if [[ "$PUBLISH" == "no" ]]; then
-    printf 'PUBLISH=no: skipped — would bump the three compose.production.yaml pins to :%s,\n' "$VERSION"
+    printf 'PUBLISH=no: skipped — would bump the three %s pins to :%s,\n' "$PROD_COMPOSE" "$VERSION"
     printf '            commit, tag v%s (verifying the tag carries the pins), and push the tag.\n' "$VERSION"
     step "done"
     printf '\n=== [release] %s dry run complete — NOTHING was published or tagged ===\n' "$VERSION"
@@ -281,16 +286,16 @@ if [[ "$PUBLISH" == "no" ]]; then
     printf '\nrun it for real: ./scripts/release.sh %s <web-repo> <mcp-repo>   (PUBLISH defaults to yes)\n' "$VERSION"
     exit 0
 fi
-perl -pi -e "s#(image: \Q$HUB_USER\E/the-game-pensieve-(?:api|web|mcp)):\S+#\${1}:$VERSION#" compose.production.yaml
-[[ "$(grep -c "image: $HUB_USER/the-game-pensieve-.*:$VERSION" compose.production.yaml)" == "3" ]] \
-    || fail "pin bump failed — compose.production.yaml does not carry three :$VERSION pins"
-if ! git diff --quiet -- compose.production.yaml; then
-    git add compose.production.yaml
+perl -pi -e "s#(image: \Q$HUB_USER\E/the-game-pensieve-(?:api|web|mcp)):\S+#\${1}:$VERSION#" "$PROD_COMPOSE"
+[[ "$(grep -c "image: $HUB_USER/the-game-pensieve-.*:$VERSION" "$PROD_COMPOSE")" == "3" ]] \
+    || fail "pin bump failed — $PROD_COMPOSE does not carry three :$VERSION pins"
+if ! git diff --quiet -- "$PROD_COMPOSE"; then
+    git add "$PROD_COMPOSE"
     git commit -m "Release $VERSION — pin production images"
 fi
 git tag -a "v$VERSION" -m "Release $VERSION"
 # The tag is what the Droplet checks out; verify it carries the pins before pushing it anywhere.
-[[ "$(git show "v$VERSION:compose.production.yaml" | grep -c ":$VERSION")" == "3" ]] \
+[[ "$(git show "v$VERSION:$PROD_COMPOSE" | grep -c ":$VERSION")" == "3" ]] \
     || fail "tag v$VERSION does not contain the bumped pins"
 git push origin "v$VERSION"
 

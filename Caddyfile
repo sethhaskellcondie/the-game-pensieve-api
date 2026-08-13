@@ -1,4 +1,5 @@
-# Edge reverse proxy for the production stack (see compose.production.yaml). Caddy is the only service with
+# Edge reverse proxy for the production stack (see dockerCompose/compose.production.yaml, which bind-mounts
+# this file from the repo root as ../Caddyfile). Caddy is the only service with
 # public ports; it terminates TLS (automatic HTTPS via Let's Encrypt) and routes each hostname to a private
 # backing service on the compose network. The {$VARS} are read from the caddy service's environment.
 #

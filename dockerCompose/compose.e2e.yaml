@@ -2,14 +2,16 @@
 # while a dev stack may be running, so every host port here is moved out of the dev range. Combine it
 # with a DISTINCT COMPOSE PROJECT NAME — both halves are required to protect the dev stack:
 #
-#   docker compose -p pensieve-e2e -f compose.demo.yaml    -f compose.e2e.yaml up -d       # demo gate
-#   docker compose -p pensieve-e2e -f compose.secured.yaml -f compose.e2e.yaml \
-#                  -f compose.e2e.secured.yaml up -d                                       # secured gate
+#   docker compose -p pensieve-e2e -f dockerCompose/compose.demo.yaml    -f dockerCompose/compose.e2e.yaml \
+#                  up -d                                                                   # demo gate
+#   docker compose -p pensieve-e2e -f dockerCompose/compose.secured.yaml -f dockerCompose/compose.e2e.yaml \
+#                  -f dockerCompose/compose.e2e.secured.yaml up -d                         # secured gate
 #   docker compose -p pensieve-e2e ... down -v                                             # teardown
 #
-# WITHOUT -p, the secured form resolves to the same project as the dev stack, and `down -v` would
-# destroy the dev database and Keycloak data. With -p, containers and volumes are project-scoped, so
-# every gate run starts fresh and teardown touches nothing else.
+# WITHOUT -p, the secured form resolves to the dev stack's pinned project name (the-game-pensieve-api) and
+# `down -v` would destroy the dev database and Keycloak data. With -p, containers and volumes are
+# project-scoped, so every gate run starts fresh and teardown touches nothing else. This overlay pins no
+# `name:` of its own precisely so that -p stays the single, explicit control.
 #
 # This file remaps only the services BOTH stacks define (frontend, backend, mcp, db). The secured
 # stack's extra services (keycloak, mailpit) are remapped in compose.e2e.secured.yaml — they cannot

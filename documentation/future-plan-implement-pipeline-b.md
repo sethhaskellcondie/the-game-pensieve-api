@@ -25,8 +25,8 @@ of which are external and have real lead time. Nothing below should begin until 
 | Release orchestrator | `scripts/release.sh` | The whole of Pipeline A in 8 steps: preflight → unit gates → local build → secured e2e gate → demo e2e gate → multi-arch publish + manifest verification → cross-arch QEMU smoke → pin bump + git tag |
 | E2E gate | `scripts/e2e-gate.sh` | Stands up a throwaway isolated stack (`-p pensieve-e2e` + port overlays), waits for real readiness, seeds in secured mode, runs the full Playwright suite, tears down via `trap` |
 | Command aliases | `Makefile` | `make release VERSION=…` and `make deploy VERSION=…` — thin, no logic |
-| Demo stack | `compose.demo.yaml` | Pull-and-run, no bind mounts, no Keycloak |
-| Gate overlays | `compose.e2e.yaml`, `compose.e2e.secured.yaml` | Port remaps so a gate run cannot collide with the dev stack |
+| Demo stack | `dockerCompose/compose.demo.yaml` | Pull-and-run, no bind mounts, no Keycloak |
+| Gate overlays | `dockerCompose/compose.e2e.yaml`, `dockerCompose/compose.e2e.secured.yaml` | Port remaps so a gate run cannot collide with the dev stack |
 | Docs | `README.md`, `documentation/runningOptions.md` (Options 9, 14, 15), `documentation/DevDocumentation.md` | Release process and the demo are documented |
 
 **`make deploy` already exists and already defines Pipeline B's interface.** The target is written and
@@ -48,7 +48,7 @@ positional argument.** Build to that signature and the Makefile needs no change.
   end to end successfully, but nothing has been pushed to Docker Hub and **no version tag exists**.
   This matters for sequencing; see §3.3.
 - **No part of Pipeline B exists.** No Droplet, no domain, no SMTP relay, no deploy script.
-- **`compose.production.yaml` now runs and verifies locally** via `scripts/prod-rehearsal.sh`
+- **`dockerCompose/compose.production.yaml` now runs and verifies locally** via `scripts/prod-rehearsal.sh`
   (Phase B0, automated 2026-08-13) — **all 23 checks green**, including a full login driven end to end.
   The first run was 20/23: the three reds were one real login-blocking defect in the web BFF, now
   fixed and recorded as §4.9. The file has still never run on a *server*: ACME, `linux/amd64`, and
@@ -58,8 +58,9 @@ positional argument.** Build to that signature and the Makefile needs no change.
 
 ## 2. What Pipeline B Is
 
-A single Ubuntu Droplet running `compose.production.yaml` unmodified, with this repo checked out at
-`/opt/pensieve` and a hand-written `.env` beside it.
+A single Ubuntu Droplet running `dockerCompose/compose.production.yaml` unmodified, with this repo checked
+out at `/opt/pensieve` and a hand-written `.env` beside that compose file, at
+`/opt/pensieve/dockerCompose/.env`.
 
 **The full secured topology:** Caddy (the only service with public ports — 80/443, terminating TLS via
 Let's Encrypt) reverse-proxying three hostnames to private services: the Next.js frontend, the MCP
@@ -127,7 +128,7 @@ machine.
 
 **Do this before B3.** Two reasons:
 
-1. **`compose.production.yaml` currently pins `:latest` on all three images** (lines 44, 61, 79). §3.6
+1. **`dockerCompose/compose.production.yaml` currently pins `:latest` on all three images** (lines 66, 91, 109). §3.6
    of the design notes forbids deploying `:latest` to production, and the deploy script will reject it.
    The pins only become real versions when `release.sh` step 8 bumps them.
 2. **No git tag exists.** The Droplet deploys by checking out `v$VERSION`. Without a tag there is
@@ -147,7 +148,7 @@ Read this section before writing anything. Each item was verified against the co
 
 **The production realm import and the compose environment agree exactly.** All ten `${PENSIEVE_*}`
 placeholders in `keycloak/import-prod/pensieve-realm.json` are supplied by the `keycloak` service in
-`compose.production.yaml`:
+`dockerCompose/compose.production.yaml`:
 
 ```
 PENSIEVE_APP_DOMAIN   PENSIEVE_MCP_DOMAIN   PENSIEVE_WEB_CLIENT_SECRET
@@ -159,9 +160,10 @@ PENSIEVE_SMTP_STARTTLS PENSIEVE_SMTP_SSL
 (Other `${...}` strings in that file — `${client_id}`, `${profileScopeConsentText}`, etc. — are
 Keycloak's own i18n tokens. Leave them alone.)
 
-**Every `${VAR}` in `compose.production.yaml` has a key in `.env.production.example`.** All seventeen
-match, with `${PWD}` the only shell-provided exception (see hazard §4.3). Copying the example and
-filling every blank is sufficient; nothing is missing.
+**Every `${VAR}` in `dockerCompose/compose.production.yaml` has a key in
+`dockerCompose/.env.production.example`.** All seventeen match, and there are no longer any
+shell-provided exceptions — the two `${PWD}` mounts became file-relative paths (§4.3). Copying the
+example to `.env` in that same directory and filling every blank is sufficient; nothing is missing.
 
 ### 4.2 ⚠️ Keycloak's realm import runs ONCE, on first boot with an empty `keycloak-db`
 
@@ -172,24 +174,44 @@ re-importing — which also destroys every user account that has been created.
 This single fact drives the whole shape of the plan: it is why §3.1 is a hard prerequisite, and why
 Phase B0 rehearses the import locally before the Droplet ever exists.
 
-### 4.3 ⚠️ `compose.production.yaml` bind-mounts `${PWD}` paths
+### 4.3 ✅ RESOLVED — the `${PWD}` bind mounts are gone
 
-Two mounts: `${PWD}/Caddyfile` and `${PWD}/keycloak/import-prod`.
+**The original hazard (closed 2026-08-13).** The two mounts were `${PWD}/Caddyfile` and
+`${PWD}/keycloak/import-prod`. `${PWD}` resolves to wherever `docker compose` is invoked, **not** to the
+compose file's location — so under `sudo` without `--preserve-env`, from systemd, or in any scrubbed
+environment it interpolated to a blank string and mounted a *directory* where a file was expected.
 
-`${PWD}` resolves to wherever `docker compose` is invoked, **not** to the compose file's location. An
-interactive shell exports `PWD`, so this works when you type the command by hand. But under `sudo`
-without `--preserve-env`, or from systemd, or any context with a scrubbed environment, `PWD` is empty —
-compose then interpolates a blank string, tries to mount `/Caddyfile`, and you get a confusing failure
-or, worse, a directory mounted where a file was expected.
+Both are now written relative to the compose file (`../Caddyfile`, `../keycloak/import-prod`). Compose
+resolves relative paths against the project directory — the directory holding the first `-f` file, i.e.
+`dockerCompose/` — so `..` is the repo root regardless of the working directory or the environment.
+Verified with `docker compose config` run from an unrelated cwd: both resolve to absolute
+`/…/the-game-pensieve-api/…` paths, identical to the repo-root invocation. `prod-rehearsal.sh` keeps its
+two "mounted as a file, not a directory" checks — they are what proves this stays closed.
 
-**Two defences; do both:**
+**The `.env` moved with them, on purpose.** Compose auto-loads `.env` from the *project directory* — the
+directory holding the compose file. Leaving the `.env` at the repo root would therefore have required an
+explicit `--env-file` on every single invocation, trading one silent-failure mode for another. So
+`.env.production.example` lives in `dockerCompose/` too, and the operator's real file is
+**`/opt/pensieve/dockerCompose/.env`**. No flag needed:
 
-1. **Recommended change:** replace `${PWD}/` with `./` in both volume entries. Compose resolves relative
-   paths against the project directory (the compose file's own directory), which is exactly the
-   intended meaning and cannot be blanked by a hostile environment. This is a change to a
-   carefully-reviewed artifact, so make it deliberately and verify the stack still comes up in B0.
-2. **Regardless:** the deploy script must `cd /opt/pensieve` explicitly before invoking compose, and
-   assert `[[ -f Caddyfile ]]` as a preflight check.
+```bash
+docker compose -f /opt/pensieve/dockerCompose/compose.production.yaml up -d
+```
+
+`.gitignore` still covers it at that depth (`.env` and `.env.*` match at any level, and
+`!.env.production.example` re-includes the template) — verified with `git check-ignore`, both directions.
+
+**Defence for the deploy script — the `.env` being absent is still not fatal to compose.** It warns once
+per `${VAR}`, interpolates blanks, and the stack dies on boot. So `deploy-production.sh` must assert
+`[[ -f /opt/pensieve/dockerCompose/.env ]]` in preflight, and should pass `--env-file` explicitly anyway:
+redundant once auto-load works, but it costs nothing and makes a missing file a **hard error (exit 1)**
+rather than a warning. With absolute paths and file-relative mounts the script no longer depends on its
+working directory at all — but `cd /opt/pensieve` first anyway, cheaply, so a relative invocation typed by
+hand behaves the same as the script's.
+
+**Project name is now pinned too:** the file declares `name: pensieve`, so `docker compose … down -v`
+means the same stack no matter where the repo is checked out. That is the value `/opt/pensieve` produced
+by accident before; it is now a guarantee rather than a coincidence of the directory name.
 
 ### 4.4 ⚠️ Do not let `git checkout` replace a script while that script is running
 
@@ -252,7 +274,7 @@ backend and Keycloak on a first deploy is reasonable. Poll every 3s.
 
 - **Registry:** Docker Hub only. Run `docker login` on the Droplet so pulls are authenticated (anonymous
   pulls are rate-limited, and hitting that limit mid-deploy is a miserable way to find out).
-- **Secrets:** `.env` lives on the Droplet only. Created by hand, `chmod 600`, never in git, with a copy
+- **Secrets:** `dockerCompose/.env` lives on the Droplet only. Created by hand, `chmod 600`, never in git, with a copy
   in a password manager. **It exists in exactly one place** — treat it accordingly.
 - **The production realm has no direct-access-grant client, deliberately.** `scripts/seed-test-data.sh`
   therefore **cannot** run against production, and must not be made to. Production data is real data.
@@ -290,14 +312,14 @@ login. Note the scheme is already correct — `X-Forwarded-Proto` is honoured, t
 | `src/app/api/auth/logout/route.ts` | 45 | `post_logout_redirect_uri` |
 
 **Why nothing caught it.** Both e2e gate passes reach the frontend *directly* (Playwright's own dev
-server on 3000; `compose.secured.yaml` publishes 4200), so the origin is always right. Caddy exists only
-in `compose.production.yaml`, which had never been run — §1.2.
+server on 3000; `dockerCompose/compose.secured.yaml` publishes 4200), so the origin is always right. Caddy exists only
+in `dockerCompose/compose.production.yaml`, which had never been run — §1.2.
 
 **The fix, as shipped.** A new `src/lib/appOrigin.ts` in the web repo returns `APP_ORIGIN` when set and
-falls back to the request's own origin otherwise; all three call sites use it. `compose.production.yaml`
+falls back to the request's own origin otherwise; all three call sites use it. `dockerCompose/compose.production.yaml`
 wires `APP_ORIGIN: https://${APP_DOMAIN}` on the `frontend` service — **it is required behind the proxy,
 and it is the one piece of frontend configuration that has no safe default.** The unproxied stacks
-(`compose.demo.yaml`, `compose.secured.yaml`, `npm run dev`) deliberately leave it unset and keep working
+(`dockerCompose/compose.demo.yaml`, `dockerCompose/compose.secured.yaml`, `npm run dev`) deliberately leave it unset and keep working
 on the fallback, so nothing outside production changed.
 
 Configuration rather than trusting `X-Forwarded-Host`, deliberately: the callback redirects the browser
@@ -324,20 +346,20 @@ Discovering it on your workstation costs nothing. Pipeline A's gate proved that 
 isolated stack is cheap and reliable — apply the same trick here.
 
 **This phase is now automated, and it goes further than originally planned.** `scripts/prod-rehearsal.sh`
-runs the **whole** production stack — not just `keycloak` + `keycloak-db` — from `compose.production.yaml`
+runs the **whole** production stack — not just `keycloak` + `keycloak-db` — from `dockerCompose/compose.production.yaml`
 and `Caddyfile` **unmodified**, with real TLS. Two facts make Caddy a part of the rehearsal after all:
 `*.localhost` resolves to 127.0.0.1 natively, and Caddy issues from its internal CA (never ACME) for
 `.localhost` names, so no dry-run switch has to be added to a reviewed artifact. It always starts with
 `down -v` because the import is one-shot, runs 23 checks, and reports them together.
 
 ```bash
-./scripts/prod-rehearsal.sh                      # generates .env.rehearsal on first run, then verifies
+./scripts/prod-rehearsal.sh                      # generates dockerCompose/.env.rehearsal on 1st run, then verifies
 SMTP_TEST_TO=you@example.com ./scripts/prod-rehearsal.sh    # + the email half (needs the real relay)
 KEEP_STACK=1 CREATE_TEST_USER=1 ./scripts/prod-rehearsal.sh # + a user, to do the browser half by hand
 ```
 
 - [ ] Run it once as-is. Everything except the email check is covered with no configuration.
-- [ ] Edit the **actual** production SMTP credentials into `.env.rehearsal` and re-run with
+- [ ] Edit the **actual** production SMTP credentials into `dockerCompose/.env.rehearsal` and re-run with
       `SMTP_TEST_TO=<a real inbox>`. This is the irreversible part: confirm the relay accepts the
       credentials, the `From` address is authorized, and the message **arrives rather than landing in
       spam** — the script can only prove Keycloak sent it.
@@ -347,9 +369,11 @@ KEEP_STACK=1 CREATE_TEST_USER=1 ./scripts/prod-rehearsal.sh # + a user, to do th
       trip, then asserts the resulting session carries a real role, which it can only have if the
       secured backend accepted the token's `aud` and `iss`. (The realm has no direct-access-grant
       client by design (§4.8), so the flow is driven through the login form, the way a browser does.)
-- [ ] If you applied the `${PWD}` → `./` change from §4.3, the script's two mount checks confirm it.
+- [ ] The `${PWD}` → file-relative mount change (§4.3) is **applied**; the script's two mount checks are
+      what confirm it still holds. A re-run after the move is the cheapest way to prove the relocated
+      compose file still mounts the `Caddyfile` and the realm import as *files*, not empty directories.
 - [ ] Record the exact working `.env` values in your password manager — these are the ones that go on
-      the Droplet. (Do **not** carry over the generated `.env.rehearsal` secrets.)
+      the Droplet. (Do **not** carry over the generated `dockerCompose/.env.rehearsal` secrets.)
 
 *Exit criteria: `prod-rehearsal.sh` exits 0, a test email from the production realm config arrives in a
 real inbox, and a browser login completes against the local production topology.*
@@ -383,11 +407,12 @@ real inbox deliverability (SPF/DKIM).
 
 ### Phase B2 — Configure
 
-- [ ] `cp .env.production.example /opt/pensieve/.env` and fill in **every** value.
+- [ ] `cp /opt/pensieve/dockerCompose/.env.production.example /opt/pensieve/dockerCompose/.env` and fill in
+      **every** value. It must sit beside the compose file — that is where compose looks for it (§4.3).
 - [ ] Generate each secret with `openssl rand -base64 48` — `SESSION_SECRET` (must be ≥32 chars),
       `OIDC_CLIENT_SECRET`, `POSTGRES_PASSWORD`, `KC_DB_PASSWORD`, `KC_ADMIN_PASSWORD`.
 - [ ] Use the **exact SMTP values proven in B0**. Do not retype them from memory; copy them.
-- [ ] `chmod 600 .env`.
+- [ ] `chmod 600 dockerCompose/.env`.
 - [ ] Store a complete copy in your password manager. This file exists in exactly one place.
 - [ ] **Re-read §4.2 before proceeding.** The next phase's first `up` is the one-way door.
 
@@ -403,14 +428,16 @@ first deploy will surface issues best debugged with a shell open. B4 is the tran
 worked here — so **keep notes as you go**; they are B4's specification.
 
 - [ ] Check out a real version tag from Phase A4: `git fetch --tags && git checkout v$VERSION`. Confirm
-      the three image pins in `compose.production.yaml` are that version, not `:latest`.
-- [ ] `cd /opt/pensieve && docker compose -f compose.production.yaml up -d`
-- [ ] Watch it come up: `docker compose -f compose.production.yaml logs -f`. Expect Keycloak's realm
-      import and the backend's Flyway run to dominate the first boot.
+      the three image pins in `dockerCompose/compose.production.yaml` are that version, not `:latest`.
+- [ ] `cd /opt/pensieve && docker compose -f dockerCompose/compose.production.yaml up -d`. The `.env` sits
+      beside the compose file (`dockerCompose/.env`) and is auto-loaded. **If you see any
+      `variable is not set` warning, stop** — that means compose did not find it (§4.3).
+- [ ] Watch it come up: `docker compose -f dockerCompose/compose.production.yaml logs -f`. Expect
+      Keycloak's realm import and the backend's Flyway run to dominate the first boot.
 - [ ] Confirm Caddy obtained certificates for all three hostnames (its log states this plainly). ACME
       failures here are almost always DNS not resolving yet.
 
-**Then work through the verification checklist in `compose.production.yaml`'s own header:**
+**Then work through the verification checklist in `dockerCompose/compose.production.yaml`'s own header:**
 
 - [ ] **Decode an access token** and confirm `aud == https://${MCP_DOMAIN}/mcp` and
       `iss == https://${AUTH_DOMAIN}/realms/pensieve`. A literal `"${PENSIEVE_...}"` anywhere means
@@ -436,7 +463,7 @@ Transcribe B3 into two scripts. See §6 for the detailed specification and §7 f
 
 - [ ] **`scripts/deploy-production.sh <version>`** — the local wrapper. Preflight, then one SSH call.
 - [ ] **`scripts/deploy-production-remote.sh <version>`** — the server-side script, living in this repo
-      so it is versioned in the same commit as `compose.production.yaml`, the `Caddyfile`, and the realm
+      so it is versioned in the same commit as `dockerCompose/compose.production.yaml`, the `Caddyfile`, and the realm
       import. Those four can then never drift apart.
 - [ ] `make deploy VERSION=…` already invokes the wrapper — no Makefile change needed (§1.1).
 - [ ] **Test the rollback path deliberately**, while nothing is at stake: deploy version N, deploy N-1,
@@ -458,7 +485,7 @@ schedule.
 - [ ] Enable **DO snapshots** (for "the box died"). The `pg_dump` cron is for "I need Tuesday's data" —
       they solve different problems and you want both.
 - [ ] **Verify a restore actually works.** An untested backup is a hope, not a backup.
-- [ ] Add `healthcheck:` blocks to `compose.production.yaml` — there are currently **none**. Without
+- [ ] Add `healthcheck:` blocks to `dockerCompose/compose.production.yaml` — there are currently **none**. Without
       them `docker compose ps` reports "running" for a hung process, and `restart: unless-stopped` only
       reacts to a crash, never to a hang. Use the §4.6 endpoints.
 - [ ] Add log rotation for the Docker daemon (`max-size`/`max-file` in `/etc/docker/daemon.json`) — a
@@ -472,12 +499,12 @@ schedule.
 ### Phase B6 — Documentation
 
 - [ ] **`README.md` § Production Deployment** — currently ends with a bare
-      `docker compose -f compose.production.yaml up -d`. Replace that with `make deploy VERSION=X.Y.Z`
+      `docker compose -f dockerCompose/compose.production.yaml up -d`. Replace that with `make deploy VERSION=X.Y.Z`
       as the normal path, keeping the manual command only as the documented first-bringup procedure.
 - [ ] **`documentation/runningOptions.md` Option 9 — Production Stack** — add the deploy command, the
       rollback procedure, and the prerequisites.
 - [ ] **`documentation/DevDocumentation.md`** — add a deployment section covering the Droplet layout
-      (`/opt/pensieve`, `.env`, deploy key), the deploy sequence, rollback, and where backups land.
+      (`/opt/pensieve`, `dockerCompose/.env`, deploy key), the deploy sequence, rollback, and where backups land.
 - [ ] Record the SMTP provider, the DNS host, and the Droplet's identity somewhere durable. In a few
       months you will not remember which registrar holds the domain.
 
@@ -521,12 +548,12 @@ The nine steps, each earning its place:
 
 | # | Step | Why |
 | --- | --- | --- |
-| 1 | Assert `cd /opt/pensieve` succeeded; `.env` and `Caddyfile` are present | §4.3 — a blank `${PWD}` or a missing file should fail here, loudly, not halfway through |
+| 1 | Assert `cd /opt/pensieve` succeeded; `dockerCompose/.env` and `Caddyfile` are present | §4.3 — a missing file should fail here, loudly, not halfway through. Compose only *warns* on a missing `.env`, so this assert is the thing that actually stops a blank-secret boot |
 | 2 | **Record what is currently running** (`docker compose images`, and the current git ref) | Rollback is one command away only if you know what to roll back *to*. Print it prominently |
-| 3 | *(Checkout already happened in the bootstrap — §4.4)* Verify `HEAD` is at `v$VERSION` and that `compose.production.yaml` carries three `:$VERSION` pins | Brings the compose file, `Caddyfile`, and realm import to the matching revision — not just the images |
+| 3 | *(Checkout already happened in the bootstrap — §4.4)* Verify `HEAD` is at `v$VERSION` and that `dockerCompose/compose.production.yaml` carries three `:$VERSION` pins | Brings the compose file, `Caddyfile`, and realm import to the matching revision — not just the images |
 | 4 | **`pg_dump` BOTH databases** to a timestamped file outside the compose volumes | Every deploy is preceded by a backup. Include `keycloak-db` — losing it means losing every account |
-| 5 | `docker compose -f compose.production.yaml pull` | The slow part happens while the old version is still serving |
-| 6 | `docker compose -f compose.production.yaml up -d` | The switch. Only changed services restart. **10–60s of downtime** |
+| 5 | `docker compose -f dockerCompose/compose.production.yaml pull` | The slow part happens while the old version is still serving |
+| 6 | `docker compose -f dockerCompose/compose.production.yaml up -d` | The switch. Only changed services restart. **10–60s of downtime** |
 | 7 | **Wait for health, then smoke-test the public URLs** (§4.6, §4.7) | The step most often skipped by hand, and the only one that answers "did it actually work?" |
 | 8 | `docker image prune -f` | Old images fill a 4 GB disk faster than you would think |
 | 9 | Append version + timestamp to a deploy log; **on failure, print the rollback command** | The audit trail Pipeline A otherwise lacks, and an 11pm recovery path that is a copy-paste |
@@ -643,7 +670,7 @@ against.*
 | --- | --- |
 | **SMTP provider** | Not yet chosen. §3.1. Irreversible after Keycloak's first boot — decide deliberately |
 | **Domain and DNS host** | Not yet registered. §3.2 |
-| **`${PWD}` → `./` change** | Recommended in §4.3. A change to a reviewed artifact; make it deliberately and verify in B0 |
+| **~~`${PWD}` → `./` change~~** | **Done** 2026-08-13, alongside the move of the compose files — and the `.env` files with them — into `dockerCompose/`. Mounts are now file-relative, the project name is pinned, and `.env` still auto-loads because it moved too (no `--env-file` needed). §4.3 |
 | **DO Spaces for backups** | ~$5/mo plus a bucket. The alternative is dumping to the Droplet's own disk, which does not survive the box dying |
 | **Uptime monitoring** | Not in the original design. Once the site is public, something should tell you it is down before a user does. Cheap to add — an external check against `https://${APP_DOMAIN}/api/heartbeat` |
 
@@ -664,8 +691,8 @@ against.*
 | `localFiles/pipeline_notes.md` | The original design document — the *why* behind every decision. §3.3, §3.4, §3.5, §3.6, and §6 are the Pipeline B sections |
 | `scripts/release.sh` | Pipeline A's orchestrator — the reference implementation for script conventions |
 | `scripts/e2e-gate.sh` | Isolation and readiness-polling patterns |
-| `compose.production.yaml` | The production topology, with a first-deploy verification checklist in its header |
-| `.env.production.example` | Every production variable, annotated |
+| `dockerCompose/compose.production.yaml` | The production topology, with a first-deploy verification checklist in its header |
+| `dockerCompose/.env.production.example` | Every production variable, annotated |
 | `Caddyfile` | Edge routing and TLS for the three hostnames |
 | `keycloak/import-prod/pensieve-realm.json` | The production realm — no test users, no dev client, no anonymous DCR |
 | `keycloak/README.md` | Realm contents, clients, scopes, and how to mint a token by hand |

@@ -9,7 +9,7 @@
 # same choreography over the same seed files in src/main/resources/seeders so they never drift.
 #
 # Usage (against the local SECURED compose stack — the unsecured stack cannot be seeded, see below):
-#   docker compose -f compose.secured.yaml up -d
+#   docker compose -f dockerCompose/compose.secured.yaml up -d
 #   ./scripts/seed-test-data.sh
 #
 # Parameters (environment variables):
@@ -21,7 +21,7 @@
 #   KEYCLOAK_CLIENT   client used for the password grant (default: pensieve-test-client)
 #   KEYCLOAK_ADMIN_USER / KEYCLOAK_ADMIN_PASSWORD  Keycloak admin creds (default: admin / admin)
 #   SQL_CMD           command prefix that runs psql for the one bootstrap SQL statement
-#                     (default: docker compose -f compose.secured.yaml exec -T db psql -U postgres -d pensieve-db)
+#                     (default: docker compose -f dockerCompose/compose.secured.yaml exec -T db psql -U postgres -d pensieve-db)
 #                     e.g. for a host database: SQL_CMD="psql -h localhost -U postgres -d pensieve-db"
 #
 # Preconditions (each is checked in Step 0, which fails with a specific message rather than letting a
@@ -67,9 +67,10 @@ KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SEEDERS_DIR="$SCRIPT_DIR/../src/main/resources/seeders"
-# The compose file is named by absolute path so the default works from any working directory (compose
-# resolves the project name from the file's directory, so this still targets the same stack).
-SQL_CMD="${SQL_CMD:-docker compose -f $REPO_ROOT/compose.secured.yaml exec -T db psql -U postgres -d pensieve-db}"
+# The compose file is named by absolute path so the default works from any working directory. The stack it
+# targets is unambiguous either way: the compose file pins `name: the-game-pensieve-api`, so the project no
+# longer depends on where the file sits or where this script is run from.
+SQL_CMD="${SQL_CMD:-docker compose -f $REPO_ROOT/dockerCompose/compose.secured.yaml exec -T db psql -U postgres -d pensieve-db}"
 DEFAULT_SHOWCASE_EMAIL="showcase@internal.local"
 EMPTY_IMPORT_BODY='{"data":{"customFields":[],"toys":[],"systems":[],"videoGameBoxes":[],"boardGameBoxes":[],"metadata":[]}}'
 EMPTY_FILTERS='{"filters":[]}'
@@ -208,7 +209,7 @@ expect_status 200 "API heartbeat"
 # to the default-showcase owner as GUEST, and JIT-provisions nothing — there is no seeding to be done.
 jq -e '.data.secureMode == true' "$RESPONSE_FILE" >/dev/null || fail \
     "the API at $BASE_URL is running UNSECURED (heartbeat secureMode is not true); seeding needs the
-  \`secured\` profile. With the local stack:  docker compose -f compose.secured.yaml up -d"
+  \`secured\` profile. With the local stack:  docker compose -f dockerCompose/compose.secured.yaml up -d"
 
 log "Checking Keycloak at $KEYCLOAK_URL (realm $KEYCLOAK_REALM)"
 curl -sSf -o /dev/null "$KEYCLOAK_URL/realms/$KEYCLOAK_REALM/.well-known/openid-configuration" 2>/dev/null \
@@ -216,10 +217,10 @@ curl -sSf -o /dev/null "$KEYCLOAK_URL/realms/$KEYCLOAK_REALM/.well-known/openid-
   --import-realm only runs on a first boot into an empty volume, so a keycloak_data volume left over from
   an older realm keeps serving that older realm (and can predate the '$KEYCLOAK_CLIENT' client). To force
   a re-import without touching the app database:
-    docker compose -f compose.secured.yaml stop keycloak
-    docker compose -f compose.secured.yaml rm -f keycloak
+    docker compose -f dockerCompose/compose.secured.yaml stop keycloak
+    docker compose -f dockerCompose/compose.secured.yaml rm -f keycloak
     docker volume rm the-game-pensieve-api_keycloak_data
-    docker compose -f compose.secured.yaml up -d keycloak"
+    docker compose -f dockerCompose/compose.secured.yaml up -d keycloak"
 
 # Prove the admin credentials work before anything depends on them. kc_admin_token's own `fail` runs
 # inside a command substitution, so it can only exit that subshell — every later caller would carry on

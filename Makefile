@@ -6,13 +6,14 @@ MCP_REPO ?= ../the-game-pensieve-mcp
 
 .PHONY: release deploy rehearse
 
-# Stand the production stack up locally (compose.production.yaml + Caddyfile, unmodified, real TLS),
+# Stand the production stack up locally (dockerCompose/compose.production.yaml + Caddyfile, unmodified,
+# real TLS),
 # verify it, tear it down. No VERSION: it rehearses whatever the compose file currently pins.
-#   make rehearse                                   generates .env.rehearsal on first run
-#   make rehearse ENV_FILE=.env.rehearsal           an env file you filled in yourself
+#   make rehearse                                   generates dockerCompose/.env.rehearsal on first run
+#   make rehearse ENV_FILE=path/to/.env             an env file you filled in yourself
 #   SMTP_TEST_TO=you@example.com make rehearse      + the Phase B0 email check
 #   KEEP_STACK=1 CREATE_TEST_USER=1 make rehearse   + a user, to do the browser half by hand
-ENV_FILE ?= .env.rehearsal
+ENV_FILE ?= dockerCompose/.env.rehearsal
 
 rehearse:
 	./scripts/prod-rehearsal.sh "$(ENV_FILE)"

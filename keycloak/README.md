@@ -2,8 +2,10 @@
 
 Self-hosted Keycloak (**26.7**) that acts as the OAuth 2.1 Authorization Server for the MCP rollout
 (Phase 3 of `../localFiles/mcp_rollout.md`). Runs as the `keycloak` service in both development compose
-files, `../compose.unsecured.yaml` and `../compose.secured.yaml` (the second includes the first and only
-switches the backend to the `secured` profile — the Keycloak service is identical in each).
+files, `../dockerCompose/compose.unsecured.yaml` and `../dockerCompose/compose.secured.yaml` (the second
+includes the first and only switches the backend to the `secured` profile — the Keycloak service is
+identical in each). Those files bind-mount `import/` from here as `../keycloak/import`, a path relative to
+the compose file rather than to your shell, so it resolves the same wherever compose is run from.
 
 ## What's here
 
@@ -24,7 +26,7 @@ switches the backend to the `secured` profile — the Keycloak service is identi
   4. **self-service password reset** (`resetPasswordAllowed`; `verifyEmail` is deliberately **off**),
      with `smtpServer` pointed at the `mailpit` dev container — see [Account emails](#account-emails).
 - `import-prod/pensieve-realm.json` — the **production** realm, mounted by
-  `../compose.production.yaml`. Derived from the dev realm with the dev-only surface removed:
+  `../dockerCompose/compose.production.yaml`. Derived from the dev realm with the dev-only surface removed:
   **no test users**, **no `pensieve-test-client`** (no public client, no direct-access grants), **no
   anonymous DCR** (the Trusted Hosts policy is absent, so Keycloak's default policies deny anonymous
   registration — pre-register remote MCP hosts via the admin console instead), and
@@ -55,14 +57,14 @@ switches the backend to the `secured` profile — the Keycloak service is identi
 ```bash
 # from the repo root — imports the realm on first boot. Either development compose file works;
 # they define the same keycloak service.
-docker compose -f compose.unsecured.yaml up -d keycloak
+docker compose -f dockerCompose/compose.unsecured.yaml up -d keycloak
 ```
 
 Admin console: <http://localhost:8081> (admin / admin — dev only). Realm discovery:
 <http://localhost:8081/realms/pensieve/.well-known/openid-configuration>.
 
-The realm config lives entirely in the import file, so a clean `docker compose -f compose.unsecured.yaml
-down -v` + `up` rebuilds it exactly (no manual step). Edit `import/pensieve-realm.json` to change it.
+The realm config lives entirely in the import file, so a clean `docker compose -f
+dockerCompose/compose.unsecured.yaml down -v` + `up` rebuilds it exactly (no manual step). Edit `import/pensieve-realm.json` to change it.
 **`--import-realm` only imports into an empty volume**, so editing the file does nothing to a Keycloak
 that has already booted once — a stale `keycloak_data` volume is the usual reason a realm change, or a
 client the realm is supposed to ship, appears to be missing.
@@ -107,7 +109,7 @@ account that only ever JIT-provisions its own fresh row needs none of this.
 None of it works without SMTP. Dev points `smtpServer` at the **`mailpit`** container (`mailpit:1025`, no
 auth) so nothing leaves the machine — read the captured mail at <http://localhost:8025>. Production
 resolves `PENSIEVE_SMTP_*` from the service environment (`SMTP_*` in `.env`, see
-`../.env.production.example`); `STARTTLS`/`SSL` are a pair chosen by port (587 → STARTTLS, 465 → SSL).
+`../dockerCompose/.env.production.example`); `STARTTLS`/`SSL` are a pair chosen by port (587 → STARTTLS, 465 → SSL).
 
 **Onboarding an admin-created account:** since registration is off, send one email that lets the user
 pick their own password — no temporary password to hand over. Keeping `VERIFY_EMAIL` in the action list

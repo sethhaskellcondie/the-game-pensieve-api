@@ -2,9 +2,10 @@
 #
 # PRODUCTION REHEARSAL — run the real hosted stack on this workstation and verify it, then tear it down.
 #
-#   ./scripts/prod-rehearsal.sh [env-file]        # default env file: .env.rehearsal
+#   ./scripts/prod-rehearsal.sh [env-file]        # default: dockerCompose/.env.rehearsal
 #
-# WHAT MAKES THIS A REAL REHEARSAL: it runs `compose.production.yaml` and `Caddyfile` **unmodified** —
+# WHAT MAKES THIS A REAL REHEARSAL: it runs `dockerCompose/compose.production.yaml` and `Caddyfile`
+# **unmodified** —
 # the same files, the same topology, the same one-shot realm import, real TLS. Only the `.env` differs,
 # and only in its three domains. Three facts make that possible:
 #
@@ -18,7 +19,7 @@
 #      touch the public names.
 #
 # WHAT IT PROVES (see the CHECKS section for the full list):
-#   • compose.production.yaml actually comes up — it has never been run anywhere (plan §1.2)
+#   • dockerCompose/compose.production.yaml actually comes up — it has never been run anywhere (plan §1.2)
 #   • the one-shot Keycloak realm import resolves all ten ${PENSIEVE_*} placeholders (hazard §4.2)
 #   • the web client secret, redirect URIs, and the audience mapper agree with the sidecar's OAuth config
 #   • the backend is in secured mode and publishes no host port — a dropped `secured` profile (audit B3)
@@ -43,16 +44,17 @@
 #
 # ONE-SHOT IMPORT, ONE-SHOT VOLUMES. Keycloak imports the realm only on first boot with an empty
 # keycloak-db, so this script ALWAYS starts with `down -v`. A stale volume would skip the import and
-# quietly invalidate the entire rehearsal. The project name is `pensieve-prod-rehearsal`, distinct from
-# the dev stack (which uses this directory's name) and from the e2e gate's `pensieve-e2e`, so no volume
-# here can ever be the one production starts from.
+# quietly invalidate the entire rehearsal. The `-p pensieve-prod-rehearsal` below overrides the compose
+# file's own pinned `name: pensieve`, and is distinct from the dev stack (`the-game-pensieve-api`) and the
+# e2e gate (`pensieve-e2e`), so no volume here can ever be the one production starts from. That override is
+# load-bearing: without -p this script's `down -v` would target the real production project name.
 #
 # FAIL-FAST vs COLLECT. Readiness waits fail fast — nothing downstream can pass if the stack is not up.
 # The checks then all run and report together, deliberately: a rehearsal costs several minutes of boot,
 # so you want every problem in one pass, not one per iteration. Exit is non-zero if any check failed.
 #
 # Inputs (arguments and environment only — never prompts; conventions §3.5):
-#   $1                      env file                                     (default: .env.rehearsal)
+#   $1                      env file                        (default: dockerCompose/.env.rehearsal)
 #   KEEP_STACK=1            skip teardown, print the browser follow-ups and how to tear down later
 #   CREATE_TEST_USER=1      create a login-able user in the pensieve realm (implies the stack is kept)
 #   ALLOW_PUBLIC_DOMAINS=1  permit non-.localhost domains — required for a Tier 3 staging host, where
@@ -70,8 +72,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 PROJECT="pensieve-prod-rehearsal"
-COMPOSE_FILE="$REPO_ROOT/compose.production.yaml"
-ENV_FILE_ARG="${1:-.env.rehearsal}"
+COMPOSE_FILE="$REPO_ROOT/dockerCompose/compose.production.yaml"
+ENV_FILE_ARG="${1:-dockerCompose/.env.rehearsal}"
 WORK_DIR="$(mktemp -d)"
 CA_CERT="$WORK_DIR/caddy-root.crt"
 
@@ -79,8 +81,9 @@ START_TS="$(date +%s)"
 log()  { printf '\n=== [rehearsal] %s (t+%ss)\n' "$*" "$(( $(date +%s) - START_TS ))"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
-# ${PWD} bind mounts (Caddyfile, keycloak/import-prod) resolve from the compose working directory, so
-# run compose from the repo root, always (hazard §4.3).
+# The bind mounts (Caddyfile, keycloak/import-prod) are relative to dockerCompose/, so compose resolves them
+# identically from any working directory — the §4.3 hazard is closed at the source. The cd is kept so that a
+# relative env-file argument is interpreted against the repo root, which is what the default assumes.
 cd "$REPO_ROOT"
 ENV_FILE="$(cd "$(dirname "$ENV_FILE_ARG")" && pwd)/$(basename "$ENV_FILE_ARG")"
 compose() { docker compose -p "$PROJECT" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"; }
@@ -171,7 +174,7 @@ if [[ "${ALLOW_PUBLIC_DOMAINS:-0}" != "1" ]]; then
     done
 fi
 
-# The pins in compose.production.yaml are the artifact under test; do not override them. Warn if they
+# The pins in the compose file are the artifact under test; do not override them. Warn if they
 # are still :latest — deploy-production.sh will reject that, but a rehearsal of it is legitimate.
 PINS=()
 while IFS= read -r pin; do PINS+=("$pin"); done < <(
@@ -299,8 +302,9 @@ expect_json() { # expect_json URL JQ_FILTER
 
 # --- edge / TLS ---------------------------------------------------------------------------------
 # Reaching any https URL above already validated the chain against Caddy's root; this adds the
-# plain-HTTP redirect and the two ${PWD} bind mounts that hazard §4.3 warns can silently become
-# directories under a scrubbed environment.
+# plain-HTTP redirect and the two bind mounts that hazard §4.3 warns can silently become empty
+# directories. The mounts are now compose-file-relative rather than ${PWD}-based, which is what closed
+# that hazard — these two checks stay because they are what proves it stayed closed.
 redirects_to_https() {
     local code
     code="$(curl -sS -m 15 -o /dev/null -w '%{http_code}' "http://$APP_DOMAIN/")"

@@ -25,10 +25,10 @@ In the Harry Potter series, a Pensieve is a basin where wizards store thoughts a
 
 ## Try the Demo (No Clone Required)
 
-The fastest way to run The Game Pensieve is the demo: every image is pulled from Docker Hub, so the only requirement is [Docker](https://www.docker.com/products/docker-desktop/). Download [`compose.demo.yaml`](./compose.demo.yaml) anywhere and run it:
+The fastest way to run The Game Pensieve is the demo: every image is pulled from Docker Hub, so the only requirement is [Docker](https://www.docker.com/products/docker-desktop/). Download [`compose.demo.yaml`](./dockerCompose/compose.demo.yaml) anywhere and run it:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/sethhaskellcondie/the-game-pensieve-api/master/compose.demo.yaml
+curl -fsSLO https://raw.githubusercontent.com/sethhaskellcondie/the-game-pensieve-api/master/dockerCompose/compose.demo.yaml
 docker compose -f compose.demo.yaml up -d
 ```
 
@@ -52,7 +52,9 @@ Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and a
 | `frontend` | the Next.js app | 4200 |
 | `mailpit` | dev mail catcher; Keycloak's password-reset mail lands here | 8025 |
 
-Bring up only what you need — `docker compose -f compose.unsecured.yaml up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar. Rebuild the jar and re-run `docker compose -f compose.unsecured.yaml up -d --build backend` after changing Java code. Swap in `-f compose.secured.yaml` to run the same services with authentication on.
+The compose files live in [`dockerCompose/`](./dockerCompose). Run them from the repo root — every path inside them (the backend's build context, the Keycloak realm import, the Flyway config) is written relative to the compose file itself, so they resolve correctly from any working directory, and each file pins its compose project name rather than inheriting it from a directory.
+
+Bring up only what you need — `docker compose -f dockerCompose/compose.unsecured.yaml up -d db backend` for the API alone, `up -d backend mcp` to add the sidecar. Rebuild the jar and re-run `docker compose -f dockerCompose/compose.unsecured.yaml up -d --build backend` after changing Java code. Swap in `-f dockerCompose/compose.secured.yaml` to run the same services with authentication on.
 
 ### Option 2: Run the API Locally
 
@@ -60,7 +62,7 @@ Bring up only what you need — `docker compose -f compose.unsecured.yaml up -d 
 
 - The [Java 25 JDK](https://www.oracle.com/java/technologies/downloads/)
 - A PostgreSQL 16 database, provided either by:
-  - the Docker `db` service (`docker compose -f compose.unsecured.yaml up db`), or
+  - the Docker `db` service (`docker compose -f dockerCompose/compose.unsecured.yaml up db`), or
   - a [local PostgreSQL 16 install](https://www.postgresql.org/download/) (default credentials: user `postgres`, password `root`)
 
 **Steps**
@@ -74,11 +76,11 @@ The API is served on port `8080`.
 
 Authentication is controlled by the `secured` Spring profile — an **overlay** added alongside a datasource profile (`local`, `docker`), never used on its own.
 
-In Docker the mode is chosen by the docker-compose file — the whole difference between the two is the backend's active profiles, so `compose.secured.yaml` `include`s `compose.unsecured.yaml` and overrides only that. Both resolve to the same compose project, so switching modes reuses the same containers and volumes, and the database survives the switch:
+In Docker the mode is chosen by the docker-compose file — the whole difference between the two is the backend's active profiles, so `compose.secured.yaml` `include`s `compose.unsecured.yaml` and overrides only that. Both pin the same compose project name (`the-game-pensieve-api`), so switching modes reuses the same containers and volumes, and the database survives the switch:
 
 ```bash
-docker compose -f compose.unsecured.yaml up -d    # backend profiles: docker
-docker compose -f compose.secured.yaml   up -d    # backend profiles: docker,secured
+docker compose -f dockerCompose/compose.unsecured.yaml up -d    # backend profiles: docker
+docker compose -f dockerCompose/compose.secured.yaml   up -d    # backend profiles: docker,secured
 ```
 
 Running from source, the mode is chosen by the profiles you pass.
@@ -94,7 +96,7 @@ Running from source, the mode is chosen by the profiles you pass.
 Keycloak must be running and reachable at the configured issuer first:
 
 ```bash
-docker compose -f compose.unsecured.yaml up -d keycloak    # imports the dev realm on first boot
+docker compose -f dockerCompose/compose.unsecured.yaml up -d keycloak    # imports the dev realm on first boot
 ```
 
 Then start the API with both profiles. Use whichever form is convenient:

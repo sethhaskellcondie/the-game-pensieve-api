@@ -3,8 +3,21 @@
 # (backend, both databases, keycloak, mcp) is PRIVATE: reachable only on the compose network, no host ports.
 #
 # Images are the published artifacts — build + push them from their repos first (the frontend lives in
-# the-game-pensieve-web-v2; backend, mcp, and the realm live here). Values in ${...} come from a .env file
-# next to this one (see .env.production.example).
+# the-game-pensieve-web-v2; backend, mcp, and the realm live here).
+#
+# Values in ${...} come from a .env file NEXT TO THIS ONE, in this directory (see .env.production.example
+# here; on the Droplet that is /opt/pensieve/dockerCompose/.env). Compose auto-loads `.env` from the project
+# directory — the directory holding this file — so no --env-file flag is needed:
+#
+#   docker compose -f /opt/pensieve/dockerCompose/compose.production.yaml up -d
+#
+# A MISSING .env is not fatal at parse time: compose prints one `variable is not set` WARNING per ${VAR} and
+# interpolates a blank string, and the stack then dies on boot (postgres refuses a blank password, Caddy gets
+# an empty hostname). Read the warnings — do not scroll past them. scripts/deploy-production.sh asserts the
+# file exists in preflight and passes --env-file explicitly, which turns that into a hard error (exit 1).
+#
+# Bind mounts below are relative to THIS file (`..` = repo root), so they are correct regardless of the
+# working directory compose is invoked from — verified with `docker compose config` from an unrelated cwd.
 #
 # Keycloak imports the PRODUCTION realm file (keycloak/import-prod/pensieve-realm.json) — NOT the dev one.
 # The prod realm has no test users, no dev test client, no anonymous DCR, and sslRequired=external; its
@@ -18,6 +31,11 @@
 #   • remote MCP hosts (e.g. claude.ai connectors) are PRE-REGISTERED as clients via the admin console —
 #     there is deliberately no anonymous DCR in production.
 # The audience is validated by BOTH the sidecar and the backend; a mismatch rejects every token.
+
+# Pinned, not derived from the directory name: `docker compose ... down -v` must mean the same stack no matter
+# where the repo is checked out or which directory the operator is standing in. (This is the value the old
+# /opt/pensieve layout produced by accident; naming it makes it a guarantee.)
+name: pensieve
 
 services:
   caddy:
@@ -36,7 +54,7 @@ services:
       KC_ADMIN_UI_USER: ${KC_ADMIN_UI_USER}
       KC_ADMIN_UI_PASSWORD_HASH: ${KC_ADMIN_UI_PASSWORD_HASH}
     volumes:
-      - ${PWD}/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../Caddyfile:/etc/caddy/Caddyfile:ro   # relative to this file's directory, not to your shell
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -134,7 +152,7 @@ services:
       PENSIEVE_SMTP_STARTTLS: ${SMTP_STARTTLS}
       PENSIEVE_SMTP_SSL: ${SMTP_SSL}
     volumes:
-      - ${PWD}/keycloak/import-prod:/opt/keycloak/data/import:ro
+      - ../keycloak/import-prod:/opt/keycloak/data/import:ro   # relative to this file's directory
     depends_on:
       - keycloak-db
 

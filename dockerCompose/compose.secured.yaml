@@ -2,15 +2,20 @@
 # OAuth2 resource-server build. Use it when you need real authentication locally — the role/capability matrix,
 # multi-tenant RLS, admin impersonation, showcase grants — and to run `scripts/seed-test-data.sh`.
 #
-#   docker compose -f compose.secured.yaml up -d
+#   docker compose -f dockerCompose/compose.secured.yaml up -d
 #
 # This file `include`s compose.unsecured.yaml and overrides only what changes, so the two never drift: service
 # definitions, ports, volumes, and the db/flyway/keycloak/mailpit/frontend services all come from that file.
-# Both files resolve to the same compose project (the directory name), so switching between them reuses the
-# same containers and volumes — the database survives a mode switch.
+# Both files pin the same project `name:`, so switching between them reuses the same containers and volumes —
+# the database survives a mode switch.
 #
 # Production (compose.production.yaml) is secured too, but is otherwise a different topology: Caddy terminates
 # TLS, no service but Caddy publishes a port, Keycloak has its own database, and the prod realm is imported.
+
+# Must match compose.unsecured.yaml's name — that shared project is what makes a mode switch non-destructive.
+name: the-game-pensieve-api
+
+# Resolved relative to THIS file, so the pair moves as a unit.
 include:
   - compose.unsecured.yaml
 

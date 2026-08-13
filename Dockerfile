@@ -21,7 +21,7 @@ ENTRYPOINT ["java","-jar","/app/app.jar"]
 # run in the terminal (in this directory) with the command
 # docker build -t pensieve-api .
 # docker : build : -t (create the image with this tag name) : <tag-name> : . (directory of Dockerfile, here)
-# -----or run this with one of the compose files (compose.unsecured.yaml / compose.secured.yaml)-----
+# -----or run this with one of the compose files in dockerCompose/ (compose.unsecured / compose.secured)-----
 
 # Another way to setup a docker file that copies the source code and runs it in the container
 # https://www.docker.com/blog/kickstart-your-spring-boot-application-development/
