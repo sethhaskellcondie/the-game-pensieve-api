@@ -81,6 +81,55 @@ Production is defined by `dockerCompose/compose.production.yaml`, `Caddyfile`, a
 
 Production Keycloak imports its **own realm file** — `keycloak/import-prod/pensieve-realm.json`, not the dev one. The prod realm ships with the dev-only surface removed: **no test users**, **no `pensieve-test-client`** (no public client, no direct-access grants), **no anonymous DCR** (remote MCP hosts are pre-registered via the admin console), and `sslRequired=external`. Its deployment-specific values — the `pensieve:read` Audience mapper's `https://<MCP_DOMAIN>/mcp` audience, the `pensieve-web` redirect URIs/origins, and the web client secret — are `${PENSIEVE_*}` placeholders that Keycloak resolves from the service environment at import time (wired from `.env` in `dockerCompose/compose.production.yaml`), so there is **no manual pre-deploy realm edit**. The import runs once, on first boot with an empty `keycloak-db`. After the first deployment, decode an access token and verify `aud` and `iss`: the audience is validated by **both** the MCP sidecar and the backend resource server, so a mismatch (including a literal unsubstituted `${PENSIEVE_...}`) rejects every request.
 
+### Accounts and providers
+
+**Domain**
+
+- Registrar is `Porkbun`
+- DNS host is `Porkbun (registrar-provided DNS)`
+- Apex domain is `sethcondie.com`
+- Registered on `2026-08-13`
+
+**Hostnames.** 
+
+- APP_DOMAIN=pensieve.sethcondie.com
+- MCP_DOMAIN=mcp.pensieve.sethcondie.com
+- AUTH_DOMAIN=auth.pensieve.sethcondie.com
+
+**Email relay — Resend** 
+
+- Account email is `8bitdad7dc@gmail.com`
+- Verified domain is `pensieve.sethcondie.com`
+- Subdomain is verified and will be used, over the apex domain, because if a reputation issue comes up with, the subdomain it can be changed in the future. (With some manual syncing with the keycloak realm and this project.)
+- Verified on `2026-08-13`
+- SMTP_FROM is `no-reply@pensieve.sethcondie.com`
+- Replies to that address will be discarded
+- DNS records published (DKIM `TXT`, SPF, `MX` for bounces, DMARC) on `2026-08-13`
+
+`SMTP_FROM` is effectively frozen. Keycloak resolves it into the realm at first import and never reads
+`.env` for it again, so changing it later means editing the live realm by hand — at which point `.env`
+and the realm disagree. Pick the address users should see, then verify whichever domain permits it.
+
+Public SMTP settings — confirmed against the Resend dashboard 2026-08-13:
+
+- SMTP_HOST=smtp.resend.com
+- SMTP_PORT=465
+- SMTP_USER=resend (literally the string `resend`)
+- SMTP_STARTTLS=false
+- SMTP_SSL=true
+- SMTP_PASSWORD is the Resend API key, sending-access only — password manager only, never here and
+  never in git. Unlike `SMTP_FROM`, this one is cheap to rotate: revoke, regenerate, update `.env`,
+  restart Keycloak.
+
+Port and TLS flags are a **pair**, never mixed — `465 → STARTTLS=false, SSL=true` (implicit TLS, what
+we use, and what the Resend dashboard hands you); `587 → STARTTLS=true, SSL=false`. Resend listens on
+25, 465, 587, 2465, and 2587 at the same time, so the port is purely a client-side choice with nothing
+to configure on their end. Mixing the pair fails at connect time with a TLS handshake error that does
+not name the port as the cause.
+
+Note for provisioning: DigitalOcean blocks outbound port 25 by default and may restrict others pending
+review, so the Droplet's day-one connectivity test is against **465** — `nc -vz smtp.resend.com 465`.
+
 ## Testing Strategy
 
 The project uses a **diamond testing strategy**: a broad layer of integration tests that exercise the stack from the controller down, plus focused unit tests for the parts that need more rigor (notably custom fields and filters).

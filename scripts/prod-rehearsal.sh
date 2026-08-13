@@ -139,14 +139,19 @@ KC_ADMIN_UI_PASSWORD_HASH='$ui_hash'
 KC_ADMIN_UI_PASSWORD='$ui_password'
 
 # PLACEHOLDERS. Phase B0 (the email half of the rehearsal) needs the real relay values here,
-# plus SMTP_TEST_TO=<your inbox> on the command line.
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
+# plus SMTP_TEST_TO=<your inbox> on the command line: replace SMTP_FROM with the address on the domain
+# verified with Resend, and set SMTP_PASSWORD to the API key. SMTP_FROM is left as a placeholder rather
+# than blank so the realm import still gets a well-formed address on the topology-only run -- but a
+# placeholder From is rejected by the relay AFTER a successful authentication, which is a confusing way
+# to fail, so change it before setting SMTP_TEST_TO.
+# Port and TLS flags are a PAIR: 465 -> STARTTLS=false, SSL=true; 587 -> STARTTLS=true, SSL=false.
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
 SMTP_FROM=no-reply@pensieve.example.com
-SMTP_USER=
+SMTP_USER=resend
 SMTP_PASSWORD=
-SMTP_STARTTLS=true
-SMTP_SSL=false
+SMTP_STARTTLS=false
+SMTP_SSL=true
 EOF
     chmod 600 "$ENV_FILE"
 fi
