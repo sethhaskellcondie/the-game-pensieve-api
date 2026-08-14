@@ -30,6 +30,10 @@ Key files changed:
 - `api/ApiControllerAdvice.java` — handler for `ExceptionImportInProgress` → 409
 - `api/controllers/BackupImportController.java` — lock/unlock wrapping all four import endpoints
 
+*(Layout note, 2026-08-14: the endpoints now live in two controllers — `importFromFile` moved to
+`LocalFileImportController`, which exists only in unsecured builds. The lock is unchanged and still held by
+`BackupImportGateway`, so it covers both controllers; only the file list above is historical.)*
+
 **Scaling consideration:** `AtomicBoolean` is in-memory and scoped to a single JVM instance. If this app is ever horizontally scaled across multiple instances, the lock will not be shared and concurrent imports can still happen across nodes. The fix for that would be a distributed lock (e.g., a database row with `SELECT FOR UPDATE`, or a Redis `SETNX`), but is unnecessary for a single-instance deployment.
 
 ---
