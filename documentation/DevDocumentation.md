@@ -167,6 +167,15 @@ surface or of Keycloak's token endpoint. It is the first item in the post-launch
 open; gating the latter leaves real users at an unstyled login screen. `scripts/prod-rehearsal.sh` asserts
 both directions and will catch a mistake here.
 
+**A green rehearsal is the gate for the publish.** The order is rehearse → release, never the reverse:
+`scripts/prod-rehearsal.sh` is the only thing that exercises `dockerCompose/compose.production.yaml` and the
+`Caddyfile` as production will run them, and its first run found a login-blocking defect
+(`PastIssues.md`, the BFF-origin entry) that every other gate was structurally blind to. Published image
+tags are immutable, so a defect the rehearsal would have caught costs a whole version number once it ships.
+Run it after any change to the production topology — compose file, Caddyfile, realm, or the images — and
+run the SMTP half (`SMTP_TEST_TO=<real inbox>`) at least once against the real relay before a release that
+touches the realm's email settings, because those are baked at import.
+
 ### Accounts and providers
 
 **Domain**
@@ -190,6 +199,11 @@ both directions and will catch a mistake here.
 - Verified on `2026-08-13`
 - SMTP_FROM is `no-reply@pensieve.sethcondie.com`
 - Replies to that address will be discarded
+- First real send (2026-08-14, the Stage 4 rehearsal): Resend showed green **delivered**, but Yahoo placed
+  the message in **spam** — expected for a fresh sending domain with no reputation and DMARC at `p=none`.
+  The recipient marked it not-spam. "Delivered" only means the receiving server accepted the message;
+  recheck inbox placement once real users exist, because a password-reset link in spam is a locked-out
+  user (self-service reset is the only credential-recovery path).
 - DNS records published (DKIM `TXT`, SPF, `MX` for bounces, DMARC) on `2026-08-13`
 
 `SMTP_FROM` is effectively frozen. Keycloak resolves it into the realm at first import and never reads

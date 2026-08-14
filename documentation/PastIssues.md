@@ -178,3 +178,37 @@ create the log directory. Same result, 60 MB smaller image.
 is mounted over a path that already exists in the image, Docker seeds the volume with that directory's
 contents **and its ownership**. Create the directory only in the compose file and the volume arrives
 root-owned — which a non-root process cannot write to, so the app boots fine and silently logs nothing.
+
+---
+
+## Login was impossible behind the reverse proxy — the BFF derived its origin from its bind address
+
+**Symptom:** Found by the **first run of `scripts/prod-rehearsal.sh`** (2026-08-13). `GET
+https://pensieve.localhost/api/auth/login` redirected to Keycloak with
+`redirect_uri=https://0.0.0.0:3000/api/auth/callback`, which Keycloak refused with `HTTP 400 "Invalid
+parameter: redirect_uri"`. No login was possible in the production topology at all.
+
+**Root cause:** the frontend container runs the Next.js standalone server with `HOSTNAME=0.0.0.0
+PORT=3000`, and `new URL(request.url).origin` inside a Route Handler resolves to the *bind* address, not
+the proxied `Host` (the scheme was already right — `X-Forwarded-Proto` is honoured, the host is not).
+**Why no other gate could see it:** both e2e passes reach the frontend directly, so the request origin is
+always correct there; Caddy exists only in `dockerCompose/compose.production.yaml`, which had never been
+run anywhere before the rehearsal.
+
+**Fix (2026-08-13, web repo):** `src/lib/appOrigin.ts` returns `APP_ORIGIN` when set and falls back to the
+request's own origin; all three call sites (login, callback, logout) use it, and
+`dockerCompose/compose.production.yaml` wires `APP_ORIGIN: https://${APP_DOMAIN}` on the `frontend`
+service — **required behind the proxy, and the one piece of frontend configuration with no safe default**.
+Configuration rather than trusting `X-Forwarded-Host`, deliberately: the callback redirects the browser to
+`new URL(dest, origin)`, so an origin taken from a spoofable header is an open redirect. Full write-up:
+`future-plan-implement-pipeline-b.md` §4.9.
+
+**The general lesson:** this is the class of defect only a full-topology rehearsal can catch, and it is why
+a green `prod-rehearsal.sh` gates every publish. The Stage 4 re-run after the Stage 2–3 hardening
+(2026-08-14) passed all checks first try, including the real-relay SMTP send — but the test message
+**landed in the Yahoo recipient's spam folder** despite Resend showing green "delivered" and SPF/DKIM
+being verified. That is the exact gap the script warns about: "delivered" means the receiving server
+accepted the message, not that it reached the inbox. Expected for a brand-new sending domain with no
+reputation and DMARC at `p=none`; the recipient marked it not-spam, which trains the filter. Worth
+rechecking after real traffic exists — a password-reset link in spam is a locked-out user, since
+self-service reset is the only credential-recovery path.

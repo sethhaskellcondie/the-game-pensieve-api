@@ -194,6 +194,12 @@ driven all the way through, ending in a session whose role came from the backend
 point: the callback can only report a role after `GET /v1/auth/me` succeeds, so the secured backend has
 accepted the token's `aud` and `iss`. The probe user is deleted afterwards, pass or fail.
 
+The tally is **23 checks**, plus one more when `SMTP_TEST_TO` is set. The throwaway passwords the script
+generates — `Rehearse1<hex8>`, for both the login probe and `CREATE_TEST_USER` — deliberately satisfy the
+production realm's password policy (`length(12)`, mixed case, a digit). The two generators must track that
+policy: tighten it in `keycloak/import-prod/pensieve-realm.json` without updating them and the login-flow
+check — the strongest in the script — goes red for the wrong reason.
+
 One check deserves singling out. The login flow is deliberately **not** a hand-built authorize URL — it
 starts at `GET /api/auth/login` and follows the redirect, because the BFF derives `redirect_uri` from the
 origin it believes it is serving, and behind a reverse proxy that belief can be wrong in a way nothing else
