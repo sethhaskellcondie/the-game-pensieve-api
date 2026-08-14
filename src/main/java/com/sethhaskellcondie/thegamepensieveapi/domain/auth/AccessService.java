@@ -25,7 +25,9 @@ import java.util.Set;
  * <p>The matrix is the single source of truth for what each role may do. TRIAL holds the same capabilities as
  * PAID except {@code IMPORT} — a trial can evaluate the app and back up its data, but bulk import is a paid
  * feature. ADMIN holds every own-data capability plus {@code ACCESS_ADMIN}, the only role that may reach the
- * admin role-management API.
+ * admin role-management API, and {@code SEED}, which no other role holds: the seed endpoints import fixture
+ * files that ship in the image rather than caller-supplied data, so they are a maintainer tool, not a customer
+ * feature. A paying user still imports their own data through {@code IMPORT}.
  *
  * <p>{@link #can(Capability)} is the request-scoped check used by the per-request chokepoints (it reads the
  * role from {@link TenantContext} and is short-circuited off in the default build). {@link #can(Role,
@@ -44,7 +46,7 @@ public class AccessService {
         MATRIX.put(Role.PAID, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT));
         MATRIX.put(Role.LAPSED, Set.of(Capability.BACKUP));
         MATRIX.put(Role.ADMIN, Set.of(Capability.FILTER, Capability.WRITE, Capability.BACKUP, Capability.IMPORT,
-                Capability.ACCESS_ADMIN));
+                Capability.SEED, Capability.ACCESS_ADMIN));
     }
 
     private final boolean enforcementEnabled;

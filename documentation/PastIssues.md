@@ -57,3 +57,36 @@ spring.datasource.hikari.minimum-idle=1
 - **Fewer containers** — consolidating the 8 separate `filter-tests` DBs onto fewer containers would cut Docker resource pressure and the number of pools. Lower priority once the pool is capped.
 - **Lower `connectionTimeout`** — would surface a clear error instead of a silent hang if saturation ever recurs.
 - **Raise the container's `max_connections`** — only delays the wall; the pool cap is the real fix.
+---
+
+## A real personal collection was published in the Docker image and the public repository
+
+**Symptom:** None — nothing failed. That is what makes it worth recording: this was found by reading the `Dockerfile`, not by anything going wrong.
+
+**What happened:** `myCollection.json` (3.3 MB — a real personal games collection) is `COPY`ed into the API image, and `src/main/resources/full_collection_backup_sept_2025.json` (2.2 MB, a second real collection) sat in `src/main/resources`, so it shipped inside the jar. `sethcondie/the-game-pensieve-api:latest` was pushed **public** to Docker Hub on 2026-06-26 and had been pulled 127 times by the time this was noticed on **2026-08-14**. The repository at `github.com/sethhaskellcondie/the-game-pensieve-api` is public too, and both files are tracked in it, so they are also in the git history.
+
+`POST /v1/function/seedMyCollection` then made that data importable by any caller holding IMPORT — under the role matrix at the time, any PAID or ADMIN account.
+
+**Treat this as disclosed.** Removing the files from `HEAD` would not undo it: the data is in published image layers and in git history, and both are public. A history rewrite would be needed to change that, and it would not reach anything already pulled.
+
+**What was decided (2026-08-14), given that the data is already public:**
+
+- `full_collection_backup_sept_2025.json` was **deleted** — nothing in the codebase referenced it, so it was 2.2 MB of dead weight in every jar.
+- `myCollection.json` was **kept**, in the repo and in the image. Removing it would break the seed endpoint everywhere while un-disclosing nothing.
+- The seed endpoints were moved off IMPORT onto a new **SEED** capability that only ADMIN holds. This is the part that actually changes: the fixture files are the maintainer's data, so loading them is an operational tool, not something a paying customer should be able to fire into their own collection.
+
+**The general lesson, which is the reason this entry exists:** an image is a distribution channel. `COPY` puts a file on every machine that ever pulls the tag, and there is no recall. Before adding a data file to a `Dockerfile` or to `src/main/resources`, decide whether it is fixture data or real data — and if a file is only used by a developer convenience endpoint, it probably does not belong in the published artifact at all.
+
+---
+
+## Custom field names reached the filter SQL as an interpolated literal
+
+**Symptom:** None in normal use. A custom field created with a name like `zzz' OR pg_sleep(10)--` would execute that fragment as SQL the next time anyone filtered on that field — a stored, second-order injection.
+
+**Root cause:** `FilterService.formatWhereStatements` built the clause that selects which custom field is being filtered on by interpolating the name into a quoted SQL literal: `" AND fields1.name = '" + filter.getField() + "'"`. The name is fully user-controlled at creation time, and the filter denylist (`getBlacklistedWords`) only ever inspected the **operand**, never the field name — so nothing examined it between creation and execution.
+
+**Fix (2026-08-14):** the name is bound as a `?` parameter. Because `formatWhereStatements` and `formatOperands` are separate methods walking the same list, they now share an ordering contract: a custom field filter contributes **two** placeholders (name, then value), and a custom field *sort* contributes only the name — its `ORDER BY` is deferred to the end of the statement and carries no placeholder. `FilterServiceCustomFieldNameBindingTests` pins that ordering down; getting it wrong shifts every operand by one and returns wrong rows rather than raising an error, so it is worth the tests.
+
+A character allowlist on the name (`CustomField.isValidName`, enforced at creation and rename) was added as defense in depth. It is *not* the fix — the parameter binding is.
+
+**A trap worth remembering:** the obvious-looking cleanup here is wrong. The query already joins `custom_fields` on `values<i>.custom_field_id = fields<i>.id`, which makes the name clause *look* redundant — but that join places no constraint on **which** custom field, so the name clause is the only thing narrowing the query to the field being filtered on. Deleting it instead of binding it would make every custom field filter silently match values belonging to every custom field.

@@ -140,6 +140,10 @@ public class CustomFieldRepository {
     }
 
     public CustomField update(int id, String name, int order) {
+        //A rename is the other way a name reaches the database, so it is held to the same allowlist as creation.
+        if (!CustomField.isValidName(name)) {
+            throw new ExceptionFailedDbValidation("Custom Field Name: '" + name + "' is not a valid name. " + CustomField.nameRequirements());
+        }
         final String sql = """
                             UPDATE custom_fields SET name = ?, display_order = ? WHERE id = ?;
                 """;
@@ -167,6 +171,9 @@ public class CustomFieldRepository {
 
     private void customFieldDbValidation(CustomFieldRequestDto customField) {
         ExceptionFailedDbValidation exception = new ExceptionFailedDbValidation();
+        if (!CustomField.isValidName(customField.name())) {
+            exception.addException("Custom Field Name: '" + customField.name() + "' is not a valid name. " + CustomField.nameRequirements());
+        }
         if (!CustomField.getAllCustomFieldTypes().contains(customField.type())) {
             exception.addException("Custom Field Type: '" + customField.type() + "' is not a valid type. "
                     + "Valid types include [" + String.join(", ", CustomField.getAllCustomFieldTypes()) + "]");

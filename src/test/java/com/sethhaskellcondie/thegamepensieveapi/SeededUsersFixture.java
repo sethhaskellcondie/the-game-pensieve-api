@@ -1,6 +1,8 @@
 package com.sethhaskellcondie.thegamepensieveapi;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.core.io.ClassPathResource;
@@ -32,8 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * grants re-apply cleanly).
  *
  * <p>Requires the {@code secured} profile (the choreography exercises the real auth/role/RLS stack) and a
- * working directory of the repo root (the default-showcase step calls {@code POST /v1/function/seedSampleData},
- * which reads {@code sampleData.json} from the working directory — true under {@code ./mvnw test}).
+ * working directory of the repo root (the default-showcase step reads {@code sampleData.json} from the working
+ * directory — true under {@code ./mvnw test}).
  */
 public class SeededUsersFixture {
 
@@ -45,6 +47,9 @@ public class SeededUsersFixture {
     public static final String ADMIN_PASSWORD = "seeder-admin";
     /** The seeded default-showcase marker row (V1_13) that anonymous no-header requests resolve to. */
     public static final String DEFAULT_SHOWCASE_EMAIL = "showcase@internal.local";
+
+    /** Read from the working directory (the repo root under {@code ./mvnw test}), not the classpath. */
+    private static final String SAMPLE_DATA_FILE = "sampleData.json";
 
     public static final SeededUser TRIAL_1 = new SeededUser("trial1@email.com", "trial1", "TRIAL", "seedTrialData1.json", null, null);
     public static final SeededUser TRIAL_2 = new SeededUser("trial2@email.com", "trial2", "TRIAL", "seedTrialData2.json", null, null);
@@ -128,13 +133,24 @@ public class SeededUsersFixture {
      * admin imports for it through writable impersonation. Impersonation adopts the <em>target's</em> role, and
      * the unpinned marker row derives to LAPSED (no IMPORT) — so it is pinned PAID for the import and cleared
      * after (anonymous resolution to the default showcase does not depend on its role).
+     *
+     * <p>Posts the sample data through {@code /v1/function/import} rather than calling
+     * {@code /v1/function/seedSampleData}, even though the seed endpoint reads the same file. The seed endpoints
+     * are gated on SEED, which only ADMIN holds, and impersonation adopts the target's role — so the seed
+     * endpoint is unreachable here by construction: the target cannot be pinned ADMIN either, because
+     * {@code uq_users_single_admin} allows exactly one pinned admin and the bootstrap account already is it.
+     * Importing the payload is what a PAID account is permitted to do and is the same choreography every other
+     * seeded user follows.
      */
     private void seedDefaultShowcase(String adminToken) throws Exception {
         final int defaultOwnerId = userId(DEFAULT_SHOWCASE_EMAIL);
         pinRole(adminToken, defaultOwnerId, "PAID");
-        mockMvc.perform(post("/v1/function/seedSampleData")
+        final String sampleData = new String(Files.readAllBytes(Paths.get(SAMPLE_DATA_FILE)), StandardCharsets.UTF_8);
+        mockMvc.perform(post("/v1/function/import")
                         .header("Authorization", "Bearer " + adminToken)
-                        .header("X-Act-As-Owner", String.valueOf(defaultOwnerId)))
+                        .header("X-Act-As-Owner", String.valueOf(defaultOwnerId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":" + sampleData + "}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.errors").isEmpty());
         pinRole(adminToken, defaultOwnerId, null);

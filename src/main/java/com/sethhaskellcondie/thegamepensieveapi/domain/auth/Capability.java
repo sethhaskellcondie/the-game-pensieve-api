@@ -8,7 +8,8 @@ package com.sethhaskellcondie.thegamepensieveapi.domain.auth;
  *   <li>{@code FILTER} — run a filtered search (an unfiltered list is always allowed). Denied → 402.</li>
  *   <li>{@code WRITE} — create/update/delete a row. Denied → 403.</li>
  *   <li>{@code BACKUP} — export the caller's data. Denied → 403.</li>
- *   <li>{@code IMPORT} — import/seed data. Denied → 403.</li>
+ *   <li>{@code IMPORT} — import caller-supplied data. Denied → 403.</li>
+ *   <li>{@code SEED} — import one of the fixture files bundled in the image. Denied → 403.</li>
  *   <li>{@code ACCESS_ADMIN} — reach the admin role-management API. Denied → 403.</li>
  * </ul>
  */
@@ -17,5 +18,6 @@ public enum Capability {
     WRITE,
     BACKUP,
     IMPORT,
+    SEED,
     ACCESS_ADMIN
 }

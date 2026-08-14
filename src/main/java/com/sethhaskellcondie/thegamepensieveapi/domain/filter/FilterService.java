@@ -369,7 +369,14 @@ public class FilterService {
                 String fieldsAlias = "fields" + customFieldIndex;
                 String valuesAlias = "values" + customFieldIndex;
                 String optionsAlias = "options" + customFieldIndex;
-                whereStatements.add(" AND " + fieldsAlias + ".name = '" + filter.getField() + "'");
+                // The custom field's NAME is user-controlled (the user picks it at creation), so it is bound as a
+                // parameter, never interpolated. formatOperands() emits the matching operand — see the ordering
+                // contract documented there; the two methods must be changed together.
+                // This clause is NOT redundant with the JOIN: buildQueryWithCustomFieldJoins() joins custom_fields
+                // on values<i>.custom_field_id = fields<i>.id with no constraint on WHICH field, so this is the only
+                // thing selecting the field being filtered on. Dropping it makes every custom field filter match
+                // values belonging to every custom field.
+                whereStatements.add(" AND " + fieldsAlias + ".name = ?");
                 String statement = getCustomFilterWhereStatement(filter, valuesAlias, optionsAlias);
                 if (filter.getOperator().equals(OPERATOR_ORDER_BY) || filter.getOperator().equals(OPERATOR_ORDER_BY_DESC)) {
                     sortParts.add(statement.substring(" ORDER BY ".length()));
@@ -465,10 +472,24 @@ public class FilterService {
         return whereStatement;
     }
 
+    /**
+     * The operands for the '?' placeholders emitted by {@link #formatWhereStatements(List)}, in the order those
+     * placeholders appear in the assembled SQL. The two methods share an ordering contract and must be changed
+     * together.
+     *
+     * <p>A custom field filter contributes TWO placeholders — the field name clause first, then its value — so the
+     * name is added here before the value. A custom field SORT contributes only the name clause: its ORDER BY is
+     * deferred to the end of the statement list and carries no placeholder. The orderings line up because
+     * {@code validateAndOrderFilters} has already sorted the list into where → sort → limit → offset, which is the
+     * same order the statements are emitted in.
+     */
     public static List<Object> formatOperands(List<Filter> filters) {
         List<Object> operands = new ArrayList<>();
         for (Filter filter : filters) {
             final Object operand = filter.getOperand();
+            if (filter.isCustom()) {
+                operands.add(filter.getField());
+            }
             switch (filter.getOperator()) {
                 case OPERATOR_CONTAINS -> operands.add("%" + operand + "%");
                 case OPERATOR_STARTS_WITH -> operands.add(operand + "%");

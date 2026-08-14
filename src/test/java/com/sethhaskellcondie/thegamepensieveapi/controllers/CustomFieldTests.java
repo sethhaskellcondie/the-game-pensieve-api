@@ -66,8 +66,14 @@ public class CustomFieldTests {
         validateCustomFieldResponseBody(result, expectedName, expectedType, expectedEntityKey, 0);
     }
 
+    /**
+     * All three fields are invalid, and all three errors come back together — the validation collects rather
+     * than short-circuiting, so one round trip tells the caller everything that is wrong. The name is empty,
+     * which the name allowlist rejects: a custom field's name ends up in the filter query selecting which field
+     * is being filtered on, so it is held to a character allowlist rather than accepted as free text.
+     */
     @Test
-    void postCustomField_InvalidTypeInvalidKey_ReturnErrors() throws Exception {
+    void postCustomField_InvalidNameInvalidTypeInvalidKey_ReturnErrors() throws Exception {
         final String json = factory.formatCustomFieldPayload("", "invalid", "also_invalid");
 
         final ResultActions result = mockMvc.perform(
@@ -79,7 +85,29 @@ public class CustomFieldTests {
         result.andExpectAll(
                 status().isBadRequest(),
                 jsonPath("$.data").isEmpty(),
-                jsonPath("$.errors.length()").value(2)
+                jsonPath("$.errors.length()").value(3)
+        );
+    }
+
+    /**
+     * The name allowlist exists because the custom field name reaches the filter SQL. It is bound as a
+     * parameter there, so this is defense in depth — but a name carrying a quote should never reach the
+     * database in the first place.
+     */
+    @Test
+    void postCustomField_NameWithSqlMetacharacters_ReturnsError() throws Exception {
+        final String json = factory.formatCustomFieldPayload("zzz' OR pg_sleep(10)--", "text", "toy");
+
+        final ResultActions result = mockMvc.perform(
+                post(baseUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        );
+
+        result.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("$.data").isEmpty(),
+                jsonPath("$.errors.length()").value(1)
         );
     }
 

@@ -67,6 +67,19 @@ The default credentials in local/docker are user `postgres`, password `root`. Ov
 
 Row-Level Security is **not** gated by the profile — it runs identically in both builds; only the resolved owner id differs. `GET /v1/heartbeat` reports which build is running (`{"message": "thump thump", "secureMode": true|false}`), which is how the front end and the MCP sidecar discover the server's posture without a token.
 
+### The production guard: `secured` is enforced, not merely expected
+
+Because the default build is permit-all, **losing the `secured` profile is a silent failure.** A bad template, an env file that did not load, or a typo in `SPRING_PROFILES_ACTIVE` produces an app that starts cleanly against the real production datasource, logs nothing unusual, answers the heartbeat, and serves every endpoint to anonymous callers. Nothing about it announces that authentication is gone. `secureMode` in the heartbeat would report `false`, but only if someone happened to look.
+
+So production declares itself with a marker: **`PENSIEVE_ENV=production`**, set on the `backend` service in `compose.production.yaml`. `api/security/ProductionSecurityGuard` reads it during context refresh and **aborts startup** if the marker is present while `secured` is not active. The container exits rather than serving.
+
+Two properties of this design matter, and both are easy to undo by accident:
+
+- **The marker is a separate variable from the profile list, on purpose.** A guard keyed on `SPRING_PROFILES_ACTIVE` would be silenced by exactly the mistake it exists to catch — a line that lost `secured` has probably lost `docker` too, and an empty profile list would disarm the check entirely. Do not "simplify" it to read the profiles.
+- **The check is one-directional.** Running `secured` *without* the marker is normal and supported (the dev secured stack, the Testcontainers suites). Only marker-without-`secured` is fatal, and a marker value other than `production` (case-insensitive) does not arm it at all.
+
+This guard is invisible until it fires, and when it fires it aborts a deploy. The exception message names the missing profile and lists the active ones; if you meet it, the fix is the `SPRING_PROFILES_ACTIVE` line, not the guard.
+
 The resource-server settings live in `application-secured.properties` (`pensieve.oauth2.issuer`, `pensieve.oauth2.jwk-set-uri`, `pensieve.oauth2.audience`, each env-overridable as `PENSIEVE_OAUTH2_*`). `entitlement.trial-days` (env `ENTITLEMENT_TRIAL_DAYS`, default 30) is global.
 
 ## Authentication (Keycloak and OAuth 2.1)
@@ -147,12 +160,14 @@ Tests that exercise authentication (`*SecuredProfileTests`, `MultiTenancyTests`,
 
 ## Seeding Multi-Role Test Data
 
-The single-user seed endpoints (`/v1/function/seedSampleData`, `/seedMyCollection`) only populate one owner. To exercise every role (GUEST, TRIAL, PAID, LAPSED, ADMIN) and the showcase-switching features against realistic multi-user data, there is a **multirole seed set** with **two consumers** that must never share a database:
+The single-user seed endpoints (`/v1/function/seedSampleData`, `/seedMyCollection`) only populate one owner, and under `secured` they require the **SEED** capability, which only ADMIN holds. To exercise every role (GUEST, TRIAL, PAID, LAPSED, ADMIN) and the showcase-switching features against realistic multi-user data, there is a **multirole seed set** with **two consumers** that must never share a database:
 
 1. **Integration tests** — `SeededUsersFixture` seeds through MockMvc inside the test JVM; `SeededDataMatrixTests` asserts the capability/showcase matrix against it.
 2. **Live environments (dev/staging)** — `scripts/seed-test-data.sh` runs the same choreography over real HTTP for manual testing, front-end work, and smoke checks.
 
 Both load the same eight seed files from `src/main/resources/seeders/` and perform the same choreography, so they never drift. Never point the script at the integration-test database (the suite seeds itself), and never make a test depend on an externally pre-seeded database.
+
+**Neither consumer calls a seed endpoint** — both `POST /v1/function/import` with the payload in the request body, including for the default showcase (which reads `sampleData.json` from this repo). That is not an arbitrary choice: seeding requires the ADMIN-only SEED capability, impersonation (`X-Act-As-Owner`) adopts the **target's** role rather than the admin's, and `uq_users_single_admin` allows exactly one pinned admin — so an admin can never reach a seed endpoint on another account's behalf. Importing is what the temporary `PAID` pin in the choreography authorizes, and it removes any dependency on the server's working directory.
 
 ## Where to Find the Requirements
 

@@ -5,6 +5,7 @@ import com.sethhaskellcondie.thegamepensieveapi.api.ApiResponse;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupDataDto;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.BackupImportGateway;
 import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.ImportResultsDto;
+import com.sethhaskellcondie.thegamepensieveapi.domain.backupimport.LocalBackupFileStore;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionImportInProgress;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInternalError;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,11 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * There are no api tests for these endpoints, instead there are domain tests for the backupImportGateway
@@ -26,43 +27,24 @@ public class BackupImportController extends BaseController {
 
     private final BackupImportGateway gateway;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final String backupDataPath = "backup.json";
 
-    public BackupImportController(BackupImportGateway gateway) {
+    /**
+     * Present only in the default (unsecured, single-user) build — see {@link LocalBackupFileStore} for why a
+     * hosted build must not write backups to a shared file. When it is absent, {@code /v1/function/backup}
+     * returns the export in the response body and writes nothing to disk.
+     */
+    private final Optional<LocalBackupFileStore> localBackupFileStore;
+
+    public BackupImportController(BackupImportGateway gateway, Optional<LocalBackupFileStore> localBackupFileStore) {
         this.gateway = gateway;
+        this.localBackupFileStore = localBackupFileStore;
     }
 
     @PostMapping("v1/function/backup")
-    public ApiResponse<BackupDataDto> backupJsonToFile(HttpServletRequest request) {
-        final File file = new File(backupDataPath);
+    public ApiResponse<BackupDataDto> backupJson(HttpServletRequest request) {
         final BackupDataDto backupDataDto = gateway.getBackupData();
-        try {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, backupDataDto);
-        } catch (IOException e) {
-            throw new ExceptionInternalError("Failed to write backup data to file: " + backupDataPath, e);
-        }
+        localBackupFileStore.ifPresent(store -> store.write(backupDataDto));
         return buildResponse(backupDataDto, request);
-    }
-
-    @PostMapping("v1/function/importFromFile")
-    public ApiResponse<FormattedImportResultsData> importJsonFromFile(HttpServletRequest request) {
-        if (!gateway.tryStartImport()) {
-            throw new ExceptionImportInProgress();
-        }
-        try {
-            final BackupDataDto backupData;
-            try {
-                final byte[] fileData = Files.readAllBytes(Paths.get(backupDataPath));
-                backupData = objectMapper.readValue(fileData, BackupDataDto.class);
-            } catch (IOException e) {
-                throw new ExceptionInternalError("Failed to read backup data from file: " + backupDataPath, e);
-            }
-            final ImportResultsDto importResults = gateway.importBackupData(backupData);
-            final FormattedImportResultsData data = buildImportResultsData(importResults);
-            return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
-        } finally {
-            gateway.finishImport();
-        }
     }
 
     @PostMapping("v1/function/import")
@@ -73,7 +55,7 @@ public class BackupImportController extends BaseController {
         try {
             final BackupDataDto backupData = requestBody.get("data");
             final ImportResultsDto importResults = gateway.importBackupData(backupData);
-            final FormattedImportResultsData data = buildImportResultsData(importResults);
+            final FormattedImportResultsData data = FormattedImportResultsData.from(importResults);
             return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
         } finally {
             gateway.finishImport();
@@ -82,47 +64,47 @@ public class BackupImportController extends BaseController {
 
     @PostMapping("v1/function/seedSampleData")
     public ApiResponse<FormattedImportResultsData> seedSampleData(HttpServletRequest request) {
-        if (!gateway.tryStartImport()) {
-            throw new ExceptionImportInProgress();
-        }
-        try {
-            final BackupDataDto sampleData;
-            try {
-                final byte[] fileData = Files.readAllBytes(Paths.get("sampleData.json"));
-                sampleData = objectMapper.readValue(fileData, BackupDataDto.class);
-            } catch (IOException e) {
-                throw new ExceptionInternalError("Failed to read sample data from file sampleData.json: " + e.getMessage(), e);
-            }
-            final ImportResultsDto importResults = gateway.importBackupData(sampleData);
-            final FormattedImportResultsData data = buildImportResultsData(importResults);
-            return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
-        } finally {
-            gateway.finishImport();
-        }
+        return seedFromBundledFile("sampleData.json", request);
     }
 
     @PostMapping("v1/function/seedMyCollection")
     public ApiResponse<FormattedImportResultsData> seedMyCollection(HttpServletRequest request) {
+        return seedFromBundledFile("myCollection.json", request);
+    }
+
+    /**
+     * The two seed endpoints import a fixture file that ships in the image rather than caller-supplied data, so
+     * they route through {@code importSeedData} and require the SEED capability (ADMIN only) instead of IMPORT.
+     * A paying user has no reason to bulk-inject the maintainer's fixtures into their own collection; enforcement
+     * is off in the default build, so a local single-user instance keeps seeding freely.
+     */
+    private ApiResponse<FormattedImportResultsData> seedFromBundledFile(String fileName, HttpServletRequest request) {
         if (!gateway.tryStartImport()) {
             throw new ExceptionImportInProgress();
         }
         try {
-            final BackupDataDto myCollectionData;
+            final BackupDataDto seedData;
             try {
-                final byte[] fileData = Files.readAllBytes(Paths.get("myCollection.json"));
-                myCollectionData = objectMapper.readValue(fileData, BackupDataDto.class);
+                final byte[] fileData = Files.readAllBytes(Paths.get(fileName));
+                seedData = objectMapper.readValue(fileData, BackupDataDto.class);
             } catch (IOException e) {
-                throw new ExceptionInternalError("Failed to read collection data from file: myCollection.json", e);
+                throw new ExceptionInternalError("Failed to read seed data from file: " + fileName, e);
             }
-            final ImportResultsDto importResults = gateway.importBackupData(myCollectionData);
-            final FormattedImportResultsData data = buildImportResultsData(importResults);
+            final ImportResultsDto importResults = gateway.importSeedData(seedData);
+            final FormattedImportResultsData data = FormattedImportResultsData.from(importResults);
             return buildResponse(data, importResults.exceptionBackupImport().getMessages(), request);
         } finally {
             gateway.finishImport();
         }
     }
+}
 
-    private FormattedImportResultsData buildImportResultsData(ImportResultsDto importResults) {
+record FormattedImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys,
+                                  int existingSystems, int createdSystems, int existingVideoGameBoxes, int createdVideoGameBoxes,
+                                  int existingBoardGameBoxes, int createdBoardGameBoxes,
+                                  int existingMetadata, int createdMetadata) {
+
+    static FormattedImportResultsData from(ImportResultsDto importResults) {
         return new FormattedImportResultsData(
                 importResults.existingCustomFields(), importResults.createdCustomFields(),
                 importResults.existingToys(), importResults.createdToys(),
@@ -132,10 +114,4 @@ public class BackupImportController extends BaseController {
                 importResults.existingMetadata(), importResults.createdMetadata()
         );
     }
-}
-
-record FormattedImportResultsData(int existingCustomFields, int createdCustomFields, int existingToys, int createdToys,
-                                  int existingSystems, int createdSystems, int existingVideoGameBoxes, int createdVideoGameBoxes,
-                                  int existingBoardGameBoxes, int createdBoardGameBoxes,
-                                  int existingMetadata, int createdMetadata) {
 }

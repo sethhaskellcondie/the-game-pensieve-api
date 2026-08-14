@@ -27,9 +27,8 @@
 # Preconditions (each is checked in Step 0, which fails with a specific message rather than letting a
 # misconfiguration surface later as a confusing 401/403):
 #   - The API is running with SPRING_PROFILES_ACTIVE including "secured" (GET /v1/heartbeat must report
-#     secureMode=true), with its working directory at the repo root (the default-showcase step uses
-#     POST /v1/function/seedSampleData, which reads sampleData.json from the server's working directory;
-#     the Dockerfile copies it to the container's /app workdir, so the compose stack satisfies this).
+#     secureMode=true). Every payload this script sends is read from THIS repo and posted in a request
+#     body, so the server's own working directory does not matter.
 #     The permit-all build cannot be seeded at all: it resolves every request to the default-showcase
 #     owner as GUEST, so no users row is ever provisioned and the admin API answers 403.
 #   - Keycloak is running and reachable at KEYCLOAK_URL with the realm imported. Accounts are created in
@@ -276,8 +275,15 @@ DEFAULT_ID="$(user_id "$DEFAULT_SHOWCASE_EMAIL")"
 # Impersonation adopts the target's role, and the unpinned marker row derives to LAPSED (no
 # IMPORT) — pin it PAID for the import, then clear (anonymous resolution ignores its role).
 pin_role "$DEFAULT_ID" '"PAID"'
-request POST /v1/function/seedSampleData "$ADMIN_TOKEN" -H "X-Act-As-Owner: $DEFAULT_ID"
-expect_status 200 "seeding the default showcase (server reads sampleData.json from its working directory)"
+# Posts the payload through /v1/function/import rather than calling /v1/function/seedSampleData.
+# The seed endpoints are gated on SEED, which only ADMIN holds, and impersonation adopts the
+# TARGET's role — so the seed endpoint is unreachable here by construction, and the target cannot
+# be pinned ADMIN either (uq_users_single_admin allows exactly one, and it is this script's own
+# admin). Importing is what the PAID pin above authorizes, and it is the same call every other
+# seeded user makes. It also drops this step's dependency on the server's working directory.
+jq '{data: .}' "$REPO_ROOT/sampleData.json" > "$IMPORT_BODY_FILE"
+request POST /v1/function/import "$ADMIN_TOKEN" -H "X-Act-As-Owner: $DEFAULT_ID" --data-binary "@$IMPORT_BODY_FILE"
+expect_status 200 "seeding the default showcase"
 pin_role "$DEFAULT_ID" null
 
 # ============================ Step 5 — smoke assertions ============================

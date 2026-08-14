@@ -77,13 +77,18 @@ services:
       # origin, so a spoofable value would be an open redirect. (Unset elsewhere — the unproxied stacks
       # publish the frontend directly, where the request's own origin is already correct.)
       APP_ORIGIN: https://${APP_DOMAIN}
-      SESSION_SECRET: ${SESSION_SECRET}
+      # Seals gp_session, which holds live Keycloak access + refresh tokens. The `:?` guards on this and the
+      # three secrets below abort `docker compose up` when the value is missing or blank, instead of starting a
+      # stack that looks healthy but is not: an unset SESSION_SECRET used to fall back to a committed dev secret
+      # (public in the repo), so anyone could forge a session cookie. The BFF now also refuses to boot without
+      # it, but a compose-level guard fails in a second and names the variable, rather than in a container log.
+      SESSION_SECRET: "${SESSION_SECRET:?required — at least 32 chars, generate with openssl rand -base64 48}"
       # OIDC_ISSUER is browser-facing (login redirect + id_token iss); OIDC_INTERNAL_ISSUER is the
       # server-to-server token/refresh path over the internal network.
       OIDC_ISSUER: https://${AUTH_DOMAIN}/realms/pensieve
       OIDC_INTERNAL_ISSUER: http://keycloak:8080/realms/pensieve
       OIDC_CLIENT_ID: pensieve-web
-      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET:?required — one-shot, baked into the realm at first import}"
     depends_on:
       - backend
 
@@ -93,9 +98,14 @@ services:
     # NO ports: private. The backend runs Flyway on startup, so no separate migration service is needed.
     environment:
       SPRING_PROFILES_ACTIVE: docker,secured
+      # Declares this a production deployment. ProductionSecurityGuard reads it and refuses to start if
+      # `secured` is missing from the line above — without `secured` the app permits every request and disables
+      # every role check, and it boots green while doing so. The marker is deliberately a separate variable from
+      # the profile list, so the slip that drops `secured` cannot also disarm the guard that catches it.
+      PENSIEVE_ENV: production
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/pensieve-db
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD:?required — generate with openssl rand -base64 48}"
       # OAuth2 resource server. iss is the canonical public issuer; keys are fetched over the internal
       # network; aud is the public /mcp resource URL (must match the realm's Audience mapper).
       PENSIEVE_OAUTH2_ISSUER: https://${AUTH_DOMAIN}/realms/pensieve
@@ -137,11 +147,11 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_DB_PASSWORD: "${KC_DB_PASSWORD:?required — generate with openssl rand -base64 48}"
       # Resolved into the ${...} placeholders in keycloak/import-prod/pensieve-realm.json at import time.
       PENSIEVE_APP_DOMAIN: ${APP_DOMAIN}
       PENSIEVE_MCP_DOMAIN: ${MCP_DOMAIN}
-      PENSIEVE_WEB_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      PENSIEVE_WEB_CLIENT_SECRET: "${OIDC_CLIENT_SECRET:?required — must match the frontend OIDC_CLIENT_SECRET}"
       # SMTP relay for the realm's email verification and password-reset messages. STARTTLS/SSL are a pair:
       # port 587 -> STARTTLS=true, SSL=false; port 465 -> STARTTLS=false, SSL=true.
       PENSIEVE_SMTP_HOST: ${SMTP_HOST}

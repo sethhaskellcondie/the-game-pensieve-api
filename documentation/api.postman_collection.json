@@ -511,7 +511,8 @@
 						}
 					}
 				},
-				"url": "http://localhost:8080/v1/custom_fields"
+				"url": "http://localhost:8080/v1/custom_fields",
+				"description": "The name must start with a letter or digit and contain only letters, digits, spaces, and _ - . , ( ) / & + # : ? ! — 100 characters at most.\n\nThat allowlist is defense in depth: the name travels into the filter query, where it selects which custom field a search filter applies to. It is bound as a query parameter there, but keeping quotes and semicolons out of the column means a stored name can never seed an injection. The same rule applies to renames and to names arriving through the import endpoints, where a violating record fails individually and is reported in the envelope's errors array."
 			},
 			"response": []
 		},
@@ -656,7 +657,8 @@
 			"request": {
 				"method": "POST",
 				"header": [],
-				"url": "http://localhost:8080/v1/function/backup"
+				"url": "http://localhost:8080/v1/function/backup",
+				"description": "Exports the whole collection and returns it in the response body — save it from there. Requires the BACKUP capability (any authenticated role; GUEST/showcase views get 403).\n\nIn the DEFAULT (unsecured, single-user) build only, the same document is also written to backup.json in the server's working directory, so 'import from backup.json' can read it back. A secured deployment writes no file: that path is process-global with no record of who wrote it, so on a multi-tenant server one caller's export could be imported into another caller's account."
 			},
 			"response": []
 		},
@@ -702,7 +704,8 @@
 			"request": {
 				"method": "POST",
 				"header": [],
-				"url": "http://localhost:8080/v1/function/importFromFile"
+				"url": "http://localhost:8080/v1/function/importFromFile",
+				"description": "UNSECURED BUILDS ONLY — this route returns 404 under the secured profile.\n\nReads backup.json from the server's working directory (the file 'backup data' writes in that build) and imports it. It is a local convenience where the file has exactly one possible author. A hosted deployment restores through 'import from body' instead, which carries the document in the request body where it belongs to a single caller.\n\nReturns 409 if another import is already running."
 			},
 			"response": []
 		},
@@ -974,7 +977,8 @@
 			"request": {
 				"method": "POST",
 				"header": [],
-				"url": "http://localhost:8080/v1/function/seedSampleData"
+				"url": "http://localhost:8080/v1/function/seedSampleData",
+				"description": "ADMIN ONLY under the secured profile (the SEED capability) — a PAID caller gets 403. Unrestricted in the default single-user build.\n\nPopulates the database from sampleData.json, a fixture file bundled in the server's image. That is the maintainer's data rather than the caller's, which is why seeding is separated from IMPORT: a paying user may import their own backup, but not inject fixtures.\n\nImpersonation does not help here — X-Act-As-Owner adopts the TARGET's role, and only one account may be pinned ADMIN. To load this data onto another account, post sampleData.json through 'import from body' instead."
 			},
 			"response": []
 		},
@@ -983,7 +987,8 @@
 			"request": {
 				"method": "POST",
 				"header": [],
-				"url": "http://localhost:8080/v1/function/seedMyCollection"
+				"url": "http://localhost:8080/v1/function/seedMyCollection",
+				"description": "ADMIN ONLY under the secured profile (the SEED capability) — a PAID caller gets 403. Unrestricted in the default single-user build.\n\nPopulates the database from myCollection.json, bundled in the server's image. See 'seed sample data' for why SEED is separate from IMPORT."
 			},
 			"response": []
 		},

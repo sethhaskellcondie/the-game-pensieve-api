@@ -39,4 +39,18 @@ public class BackupImportGateway {
         }
         return service.importBackupData(backupDataDto);
     }
+
+    /**
+     * Import one of the fixture files bundled in the image. Mechanically identical to
+     * {@link #importBackupData(BackupDataDto)}, but gated on SEED rather than IMPORT: the data is the
+     * maintainer's, not the caller's, so seeding is an ADMIN tool and not something an IMPORT-capable customer
+     * should be able to fire into their own collection. Enforcement is off in the default permit-all build, so a
+     * local single-user instance seeds without restriction.
+     */
+    public ImportResultsDto importSeedData(BackupDataDto seedData) {
+        if (!access.can(Capability.SEED)) {
+            throw new ExceptionForbidden("Permission denied, admin access required to seed bundled data.");
+        }
+        return service.importBackupData(seedData);
+    }
 }

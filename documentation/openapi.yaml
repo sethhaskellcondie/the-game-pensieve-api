@@ -31,7 +31,7 @@ info:
     - **400 Bad Request** — input/validation failure (blank required field, malformed entity, invalid custom field value, duplicate that violates a uniqueness rule, invalid filter).
     - **401 Unauthorized** — authentication failed or is missing. Returned only when the API is running with the `secured` profile: a protected route was called without a valid Keycloak `Bearer` access token, or with an invalid/expired one. In the default (unsecured) build no route requires authentication and 401 is never returned.
     - **402 Payment Required** — (`secured` profile only) a role lacking the **FILTER** capability sent a **filtered** `/{entity}/function/search` request. In practice this is a **LAPSED** account: it may still list its own data with an empty `filters` array, but any non-empty filter needs an active subscription. See *Roles & Capabilities* below.
-    - **403 Forbidden** — (`secured` profile only) the caller's role lacks the capability for the action: a **WRITE** (create/update/delete), a **BACKUP** (`/v1/function/backup`), an **IMPORT** (`/v1/function/import`, `/importFromFile`, `/seedSampleData`, `/seedMyCollection`), or **admin** access (`/v1/admin/**` by a non-ADMIN caller). Also returned for a **valid token no account can be resolved or provisioned for** — a token with no `email` claim (minted without the `email` scope, or a service account), or whose email matches an existing account that is linked to a different login. Anonymous callers are rejected earlier with **401**. See *Roles & Capabilities* below.
+    - **403 Forbidden** — (`secured` profile only) the caller's role lacks the capability for the action: a **WRITE** (create/update/delete), a **BACKUP** (`/v1/function/backup`), an **IMPORT** (`/v1/function/import`), a **SEED** (`/v1/function/seedSampleData`, `/v1/function/seedMyCollection` — ADMIN only), or **admin** access (`/v1/admin/**` by a non-ADMIN caller). Also returned for a **valid token no account can be resolved or provisioned for** — a token with no `email` claim (minted without the `email` scope, or a service account), or whose email matches an existing account that is linked to a different login. Anonymous callers are rejected earlier with **401**. See *Roles & Capabilities* below.
     - **404 Not Found** — the requested resource (or an unknown route) does not exist. Also returned when an `X-Showcase` header names a slug that does not exist **or is not currently visible** (its owner is not PAID/ADMIN) — the two cases are deliberately indistinguishable.
     - **409 Conflict** — an import is already in progress (the import endpoints take a global lock).
     - **500 Internal Server Error** — an unexpected error; the array contains a generic message followed by the underlying exception message.
@@ -54,7 +54,9 @@ info:
     - **TRIAL** (new account, trial window active): full read, filter, write, and backup of its own data; **import is paid-only (403)**.
     - **PAID** (authenticated, active subscription): full read, filter, write, backup, and import of its own data.
     - **LAPSED** (authenticated, access window expired): may read/list its own data and back it up, but a **filtered** search returns **402** and write/import return **403**.
-    - **ADMIN** (pinned via `role_override`; exactly one — the operator): every own-data capability plus the admin role/showcase-management API. The admin owns the default showcase and edits it as their own collection.
+    - **ADMIN** (pinned via `role_override`; exactly one — the operator): every own-data capability plus the admin role/showcase-management API, and the only role holding **SEED**. The admin owns the default showcase and edits it as their own collection.
+
+    **SEED is separate from IMPORT on purpose.** IMPORT loads data the caller supplied in the request body — their own backup — and is a paid feature. SEED loads one of the fixture files bundled in the server's image (`sampleData.json`, `myCollection.json`), which are the maintainer's data, not the caller's. That is an operational tool rather than a customer feature, so a PAID account may import its own backup but receives **403** from the seed endpoints.
 
     Capability matrix (✓ = allowed; the denied response is in parentheses):
 
@@ -65,6 +67,7 @@ info:
     | WRITE (403) | ✗ | ✓ | ✓ | ✗ | ✓ |
     | BACKUP (403) | ✗ | ✓ | ✓ | ✓ | ✓ |
     | IMPORT (403) | ✗ | ✗ | ✓ | ✗ | ✓ |
+    | SEED (403) | ✗ | ✗ | ✗ | ✗ | ✓ |
     | ACCESS&#95;ADMIN (403) | ✗ | ✗ | ✗ | ✗ | ✓ |
 
     `*` GUEST reads/filters whichever **showcase** the request resolves to — the default showcase for anonymous no-header requests, or the one named by `X-Showcase` (RLS scopes the request to that owner). Anonymous writes/backup/import are blocked at authentication (**401**) before capabilities apply; on an authenticated showcase view they are **403**.
@@ -1711,10 +1714,16 @@ paths:
       summary: Create backup of all data
       description: |
         Export the entire collection (custom fields, toys, systems, video game boxes, board game
-        boxes, and metadata) as a single JSON document. The same document is also written to a
-        `backup.json` file in the application's working directory. The returned `data` object is in
-        the exact shape accepted by `POST /v1/function/import`, so a backup can be fed straight back
-        in. Timestamps in the export are epoch milliseconds.
+        boxes, and metadata) as a single JSON document. The returned `data` object is in the exact
+        shape accepted by `POST /v1/function/import`, so a backup can be fed straight back in.
+        Timestamps in the export are epoch milliseconds.
+
+        The response body is the whole backup — save it from there. Under the **default (unsecured,
+        single-user) build only**, the same document is additionally written to `backup.json` in the
+        application's working directory, for the local round trip with
+        `POST /v1/function/importFromFile`. A `secured` deployment writes no file: the path is
+        process-global with no record of who wrote it, so on a multi-tenant server it would let one
+        caller's export be read back into another caller's account.
       responses:
         '200':
           description: Backup data
@@ -1923,10 +1932,18 @@ paths:
     post:
       tags:
         - Data Management
-      summary: Import data from backup.json file
+      summary: Import data from backup.json file (unsecured builds only)
       description: |
-        Import collection data from a `backup.json` file located in the application's working
-        directory (the same file produced by `POST /v1/function/backup`). Same idempotent matching
+        **Not present under the `secured` profile — the route returns 404 there.** This is a
+        convenience for the default single-user build, where the working directory's `backup.json`
+        has exactly one possible author. A hosted deployment is multi-tenant and that file records
+        nothing about who wrote it, so importing it would pull whichever tenant's collection happens
+        to be on disk into the caller's account — with every request involved passing its capability
+        check. Secured deployments restore through `POST /v1/function/import`, which carries the
+        document in the request body where it belongs to one caller.
+
+        Imports collection data from the `backup.json` file in the application's working directory
+        (the same file `POST /v1/function/backup` writes in this build). Same idempotent matching
         and concurrency rules as `POST /v1/function/import`. Returns 200 with per-record failures in
         `exceptionBackupImport`; returns 409 if an import is already running.
       responses:
@@ -1962,12 +1979,21 @@ paths:
     post:
       tags:
         - Data Management
-      summary: Seed database with sample data
+      summary: Seed database with sample data (ADMIN only)
       description: |
         Populate the database from the bundled `sampleData.json` file. Behaves like an import:
         idempotent, returns the same `ImportResults` tally as the import endpoints, surfaces
         per-record failures in the envelope's `errors` array, and returns 409 if an import is
         already in progress.
+
+        **Requires the SEED capability, which only ADMIN holds** — a PAID caller receives 403.
+        The file is the maintainer's fixture data shipped in the server image, not the caller's own,
+        so seeding is an operational tool rather than a customer feature. Enforcement is off in the
+        default build, where a local single-user instance seeds freely.
+
+        Under `secured`, note that impersonation (`X-Act-As-Owner`) adopts the **target's** role, so
+        an admin cannot use it to seed on another account's behalf — post the payload to
+        `POST /v1/function/import` instead, which is what a PAID target is entitled to.
       responses:
         '200':
           description: Sample data seeded successfully (import results tally)
@@ -1997,12 +2023,15 @@ paths:
     post:
       tags:
         - Data Management
-      summary: Seed database with personal collection data
+      summary: Seed database with personal collection data (ADMIN only)
       description: |
         Populate the database from the bundled `myCollection.json` file (the author's personal
         collection). Behaves like an import: idempotent, returns an `ImportResults` tally, surfaces
         per-record failures in the envelope's `errors` array, and returns 409 if an import is already
         in progress.
+
+        **Requires the SEED capability, which only ADMIN holds** — a PAID caller receives 403. See
+        `POST /v1/function/seedSampleData` for why seeding is separated from IMPORT.
       responses:
         '200':
           description: Personal collection data seeded successfully (import results tally)
@@ -3236,8 +3265,21 @@ components:
       properties:
         name:
           type: string
-          description: Name of the custom field
+          description: |
+            Name of the custom field. Must start with a letter or digit and contain only letters,
+            digits, spaces, and `_ - . , ( ) / & + # : ? !` — at most 100 characters. Letters and
+            digits are Unicode-aware, so non-English names are accepted.
+
+            The allowlist exists because this name travels into the filter query, where it selects
+            which custom field a `/{entity}/function/search` filter applies to. It is bound as a
+            query parameter there, so the restriction is defense in depth rather than the primary
+            control — but quotes, semicolons and backslashes are kept out of the column entirely so
+            a stored name can never seed an injection. The same rule applies to a rename (`PATCH`)
+            and to names arriving through the import endpoints, where a violating record fails
+            individually and is reported in the envelope's `errors` array.
           minLength: 1
+          maxLength: 100
+          pattern: '^[\p{L}\p{N}][\p{L}\p{N} _\-.,()/&+#:?!]*$'
         type:
           type: string
           enum: [text, number, boolean, dropdown, radio_button, progress_bar]
