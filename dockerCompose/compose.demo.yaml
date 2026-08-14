@@ -34,6 +34,10 @@ services:
       # over the docker-compose network. With no OIDC_* set, the frontend detects the
       # unsecured posture from the backend heartbeat and hides all login UI.
       API_BASE_URL: http://backend:8080/v1
+      # A committed DEMO credential — fine here, never in production. The image runs
+      # NODE_ENV=production, where the BFF refuses to boot without a >=32-char SESSION_SECRET
+      # (it exits 1); with no OIDC_* set the session never holds tokens, so the value is inert.
+      SESSION_SECRET: demo-stack-session-secret-committed-and-public-not-for-production
     depends_on:
       - backend
   backend:

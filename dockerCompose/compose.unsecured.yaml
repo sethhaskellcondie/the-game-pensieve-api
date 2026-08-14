@@ -29,6 +29,10 @@ services:
       # Server-side only; must include the /v1 prefix. Reaches the backend service
       # over the docker-compose network.
       API_BASE_URL: http://backend:8080/v1
+      # A committed DEV credential, like the db password below — fine here, never in production.
+      # The image runs NODE_ENV=production, where the BFF refuses to boot without a >=32-char
+      # SESSION_SECRET (it exits 1; production's compose additionally guards it with `:?required`).
+      SESSION_SECRET: dev-stack-session-secret-committed-and-public-not-for-production
     depends_on:
       - backend
   backend:

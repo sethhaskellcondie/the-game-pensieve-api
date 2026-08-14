@@ -243,13 +243,21 @@ else
 fi
 docker network create pensieve-smoke >/dev/null
 docker run -d --name pensieve-smoke-db --network pensieve-smoke --network-alias db \
-    -e POSTGRES_PASSWORD=root -e POSTGRES_DB=pensieve-db postgres:16.2-alpine >/dev/null
+    -e POSTGRES_PASSWORD=root -e POSTGRES_DB=pensieve-db postgres:16.15-alpine >/dev/null
+# SPRING_DATASOURCE_PASSWORD must be passed explicitly: application-docker.properties deliberately
+# ships no default (a run without a password must fail loudly), so this throwaway stack supplies its
+# own dev credential the same way compose.unsecured.yaml and compose.demo.yaml do.
 docker run -d --name pensieve-smoke-api --network pensieve-smoke --network-alias backend \
     --platform "$SMOKE_PLATFORM" "${PULL_ARGS[@]}" -p "127.0.0.1:$SMOKE_API_PORT:8080" \
-    -e SPRING_PROFILES_ACTIVE=docker "$API_IMAGE:$SMOKE_TAG" >/dev/null
+    -e SPRING_PROFILES_ACTIVE=docker -e SPRING_DATASOURCE_PASSWORD=root \
+    "$API_IMAGE:$SMOKE_TAG" >/dev/null
+# SESSION_SECRET: the image runs NODE_ENV=production, where the BFF exits 1 without a >=32-char
+# secret. A throwaway value — this stack is unsecured, so the session never holds tokens.
 docker run -d --name pensieve-smoke-web --network pensieve-smoke \
     --platform "$SMOKE_PLATFORM" "${PULL_ARGS[@]}" -p "127.0.0.1:$SMOKE_WEB_PORT:3000" \
-    -e API_BASE_URL=http://backend:8080/v1 "$WEB_IMAGE:$SMOKE_TAG" >/dev/null
+    -e API_BASE_URL=http://backend:8080/v1 \
+    -e SESSION_SECRET=release-smoke-throwaway-session-secret-not-for-production \
+    "$WEB_IMAGE:$SMOKE_TAG" >/dev/null
 docker run -d --name pensieve-smoke-mcp --network pensieve-smoke \
     --platform "$SMOKE_PLATFORM" "${PULL_ARGS[@]}" -p "127.0.0.1:$SMOKE_MCP_PORT:3000" \
     -e API_BASE_URL=http://backend:8080/v1 -e PORT=3000 "$MCP_IMAGE:$SMOKE_TAG" >/dev/null

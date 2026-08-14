@@ -42,6 +42,11 @@ Notes worth knowing:
   `KC_HOSTNAME_BACKCHANNEL_DYNAMIC` lets in-network containers still fetch JWKS at `http://keycloak:8080`.
 - The MCP sidecar's `MCP_AUTH_MODE` is unset (= `auto`), so it sees `secureMode=false` on the backend
   heartbeat and keeps OAuth enforcement off here.
+- The frontend carries a **committed dev `SESSION_SECRET`** (this file and `compose.demo.yaml` each have
+  their own). The web image runs `NODE_ENV=production`, where the BFF refuses to boot without a ≥32-char
+  secret — it exits 1 and the container crash-loops. That guard exists for production, where the value is
+  a real secret guarded by `:?required`; here a public dev credential is the point, exactly like the dev
+  db password.
 
 ## `compose.secured.yaml` — development, OAuth2 enforced
 

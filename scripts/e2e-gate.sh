@@ -156,6 +156,13 @@ check_realm() {
 wait_for "postgres accepting connections" 90 compose exec -T db pg_isready -U postgres -d pensieve-db
 # First boot runs every Flyway migration; the JVM itself is the slow part after that.
 wait_for "backend heartbeat (secureMode=$EXPECTED_SECURE_MODE)" 180 check_heartbeat
+# The Playwright suite drives its OWN dev server, so these two containers are exercised by nothing
+# below — without an explicit wait a crash-looping frontend or mcp image sails through the gate.
+# That happened: the BFF's fail-fast SESSION_SECRET guard crash-looped the frontend in every compose
+# stack that lacked the variable, and the 1.0.0 release dry run only caught it at the step-7 smoke.
+# /api/auth/session is the image's own baked-in healthcheck route (see the web repo's Dockerfile).
+wait_for "frontend container /api/auth/session" 120 curl -fsS -m 2 "http://localhost:14200/api/auth/session"
+wait_for "mcp container /healthz" 60 curl -fsS -m 2 "http://localhost:18090/healthz"
 if [[ "$MODE" == secured ]]; then
     # Realm import runs on first boot with the project-scoped (fresh) keycloak volume: 30-60s.
     wait_for "keycloak realm 'pensieve'" 180 check_realm

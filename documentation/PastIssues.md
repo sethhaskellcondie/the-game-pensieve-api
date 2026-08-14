@@ -212,3 +212,59 @@ accepted the message, not that it reached the inbox. Expected for a brand-new se
 reputation and DMARC at `p=none`; the recipient marked it not-spam, which trains the filter. Worth
 rechecking after real traffic exists — a password-reset link in spam is a locked-out user, since
 self-service reset is the only credential-recovery path.
+
+---
+
+## The release smoke stack broke when the default DB password was removed
+
+**Symptom:** The first `1.0.0` release dry run (`PUBLISH=no ./scripts/release.sh …`) failed at step 7,
+the emulated-arch smoke, after every unit and e2e gate had passed. The backend smoke container looped on
+`PSQLException: The server requested SCRAM-based authentication, but no password was provided` until the
+300s heartbeat wait timed out.
+
+**Root cause:** The pre-deploy hardening pass removed the committed default
+`spring.datasource.password=root` from `application-docker.properties`, moving the dev credential into
+`compose.unsecured.yaml` and `compose.demo.yaml` — deliberately, so a `docker`-profile run with no
+password fails loudly. The sweep covered every *compose* consumer, but step 7 of `release.sh` builds its
+throwaway stack with raw `docker run` commands, and it had been silently depending on that committed
+default all along. The e2e gates (steps 4–5) kept passing because they run the compose files.
+
+**Fix:** `release.sh` now passes `-e SPRING_DATASOURCE_PASSWORD=root` to the smoke API container, with a
+comment explaining why the stack supplies its own dev credential. The smoke db image was also aligned to
+`postgres:16.15-alpine` while in there (it still said 16.2 from before the base-image bump).
+
+**Lesson:** when removing a fallback credential, grep for every consumer of the *profile*, not just the
+compose files — `docker run` invocations in scripts carry their own env and don't inherit the sweep.
+
+---
+
+## The frontend container crash-looped in every dev/demo stack, and no gate noticed
+
+**Symptom:** The second `1.0.0` release dry run failed at step 7 again — one service further along. The
+backend was healthy, but the smoke wait on the frontend's `/api/heartbeat` timed out. The container had
+exited immediately with `Refusing to start: SESSION_SECRET is required in production…` and was gone by the
+time logs were collected.
+
+**Root cause, in two layers:**
+
+1. The web image bakes `NODE_ENV=production` (it runs a `next build` standalone server), and the B4
+   hardening made the BFF exit 1 at boot when `SESSION_SECRET` is missing or under 32 characters. Only
+   `compose.production.yaml` set the variable — so the frontend service in `compose.unsecured.yaml`,
+   `compose.secured.yaml` (by include), and `compose.demo.yaml` had been crash-looping since B4 landed,
+   along with the raw `docker run` web container in `release.sh`'s step-7 smoke.
+2. Nothing caught it earlier because **no gate ever exercised the containerized frontend.** The Playwright
+   suite drives its own `next dev` server on port 3000 (`NODE_ENV=development`, where the dev-secret
+   fallback is allowed), and `e2e-gate.sh` waited only on Postgres, the backend, and Keycloak. Both e2e
+   gates passed with a dead frontend container in the stack — the release smoke was the first check in the
+   entire pipeline that boots the web *image* and asks it a question.
+
+**Fix:** committed dev-grade `SESSION_SECRET` values on the frontend service in `compose.unsecured.yaml`
+and `compose.demo.yaml` (a public dev credential is correct there, exactly like the dev db password — the
+guard exists for production, which requires a real value via `:?required`); a throwaway secret in
+`release.sh`'s smoke `docker run`; and two new readiness waits in `e2e-gate.sh` — the frontend's
+`/api/auth/session` (the image's own healthcheck route) and the mcp sidecar's `/healthz` — so a
+crash-looping image now fails the gate in minutes instead of surfacing at the step-7 smoke, 25 minutes in.
+
+**Lesson:** a service that is in the stack but exercised by nothing is worse than absent — it *looks*
+covered. When a boot-time guard is added to a service, every stack that runs the image needs the variable,
+and at least one gate must actually talk to the container the users will run.

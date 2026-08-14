@@ -93,8 +93,13 @@ built. The one exception is the secured pass's backend, which compose builds fro
 Dockerfile — the same artifact by another name.
 
 Readiness is checked, never assumed: `depends_on` waits for container start, not service readiness, so the
-script polls Postgres with `pg_isready`, the backend heartbeat for the **expected `secureMode` value**, and
-(secured only) the Keycloak realm endpoint.
+script polls Postgres with `pg_isready`, the backend heartbeat for the **expected `secureMode` value**, the
+frontend container's `/api/auth/session` (the image's own baked-in healthcheck route), the mcp container's
+`/healthz`, and (secured only) the Keycloak realm endpoint. The frontend and mcp waits exist because the
+Playwright suite drives its **own** dev server — nothing else in the gate exercises those two containers, so
+without an explicit wait a crash-looping image sails through. That happened: the BFF's fail-fast
+`SESSION_SECRET` guard crash-looped the frontend in every compose stack that lacked the variable, and only
+the release's step-7 smoke caught it (see `PastIssues.md`).
 
 Inputs and knobs:
 
