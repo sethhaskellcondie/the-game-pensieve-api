@@ -12,7 +12,16 @@
     <module name="BeforeExecutionExclusionFileFilter">
         <property name="fileNamePattern" value="module\-info\.java$"/>
     </module>
-    
+
+    <!-- The Spring Boot entry point holds nothing but `main`, so HideUtilityClassConstructor asks for a
+         private constructor. It cannot have one: @SpringBootApplication implies @Configuration, and Spring
+         instantiates configuration classes through a CGLIB subclass, which needs a non-private constructor.
+         The check and the framework genuinely disagree here, so the check is turned off for that one file. -->
+    <module name="SuppressionSingleFilter">
+        <property name="checks" value="HideUtilityClassConstructor"/>
+        <property name="files" value="TheGamePensieveApiApplication\.java$"/>
+    </module>
+
     <!-- Checks for whitespace -->
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>

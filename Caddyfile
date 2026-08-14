@@ -3,27 +3,92 @@
 # public ports; it terminates TLS (automatic HTTPS via Let's Encrypt) and routes each hostname to a private
 # backing service on the compose network. The {$VARS} are read from the caddy service's environment.
 #
+# This file is CHECKED OUT AT THE VERSION TAG on the Droplet — it is not runtime configuration. Changing
+# anything here means cutting a release, so it is worth getting right before the first publish.
+#
 # DNS: point A/AAAA records for APP_DOMAIN, MCP_DOMAIN, and AUTH_DOMAIN at this host before first start so
 # Caddy can complete the ACME HTTP/TLS challenge.
-
 {
 	email {$ACME_EMAIL}
 }
 
+# ---------------------------------------------------------------------------------------------------
+# Shared response headers. Caddy adds NONE of these by default — an unconfigured site ships no HSTS, no
+# nosniff, no framing policy. Applied to all three hostnames via `import security_headers`.
+#
+# Delete a line here only if you know what it was protecting against:
+#
+#   Strict-Transport-Security  Tells the browser to refuse plain HTTP to this host for a year, so an
+#                              attacker on the network cannot strip TLS off the FIRST request the way
+#                              Caddy's own http->https redirect can be stripped. `preload` is deliberately
+#                              omitted: submitting to the browsers' preload list is close to irreversible
+#                              and covers subdomains you may not control yet.
+#   X-Content-Type-Options     Stops MIME sniffing. Every one of these hosts serves JSON that a browser
+#                              could otherwise be talked into treating as HTML, and therefore as script.
+#   Referrer-Policy            Keeps the full URL out of the Referer header on cross-origin navigations.
+#                              Password-reset and admin-action links carry single-use tokens IN THE URL;
+#                              this is what stops one leaking to a third-party site the user clicks to.
+#   Content-Security-Policy    frame-ancestors 'none' — clickjacking. It replaces X-Frame-Options, which
+#                              is obsolete and which every current browser ignores in its favor. Scoped to
+#                              framing ONLY: a full CSP for a Next.js app needs script-src work that is not
+#                              a launch-blocker and would silently break the app if guessed at.
+#   X-Frame-Options            Belt and braces for anything ancient. Harmless where frame-ancestors wins.
+#
+# `header` sets these on every response, including errors. -Server strips Caddy's own banner: version
+# disclosure is free reconnaissance and costs nothing to remove.
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Content-Security-Policy "frame-ancestors 'none'"
+		X-Frame-Options "DENY"
+		-Server
+	}
+}
+
 # The web app (Next.js BFF).
 {$APP_DOMAIN} {
+	import security_headers
+
+	# Body cap at the edge. POST /v1/function/import (reached through this app) binds an arbitrarily large
+	# JSON document fully into heap; on a 4 GB box with a 1 GB JVM ceiling, a single large upload is an
+	# out-of-memory kill of the backend. Caddy answers 413 without reading the body, so the request never
+	# reaches Node or the JVM. The app enforces its own cap too (server.tomcat.max-http-request-header-size
+	# / spring.servlet.multipart in the API) — this is the outer of two, not the only one.
+	#
+	# 10 MB is sized from real data: the largest collection backup in this repo is ~3.3 MB. Raise it if a
+	# legitimate import ever 413s, and raise the app-side cap in the same release.
+	request_body {
+		max_size 10MB
+	}
+
 	reverse_proxy frontend:3000
 }
 
 # The MCP sidecar. The resource lives at https://{$MCP_DOMAIN}/mcp; the sidecar also serves its
 # /.well-known/oauth-protected-resource metadata and /healthz on this host.
 {$MCP_DOMAIN} {
+	import security_headers
+
+	# JSON-RPC tool calls, not uploads. 1 MB is generous for the largest filter payload a tool can send.
+	request_body {
+		max_size 1MB
+	}
+
 	reverse_proxy mcp:3000
 }
 
 # Keycloak. Caddy forwards X-Forwarded-* headers by default; the keycloak service trusts them
 # (KC_PROXY_HEADERS=xforwarded) and stamps the canonical issuer https://{$AUTH_DOMAIN}/realms/pensieve.
 {$AUTH_DOMAIN} {
+	import security_headers
+
+	# Login forms and token requests. 1 MB is far more than any of them needs.
+	request_body {
+		max_size 1MB
+	}
+
 	# The admin console (/admin) and the master realm it authenticates against (/realms/master) sit behind
 	# an extra basic-auth prompt, so Keycloak's admin login is not exposed to drive-by scanning. The console
 	# is a SPA that calls /admin/realms/... over XHR; the browser replays the credentials automatically
@@ -43,3 +108,9 @@
 
 	reverse_proxy keycloak:8080
 }
+
+# Rate limiting is deliberately ABSENT. Caddy's `rate_limit` is a third-party plugin, so adding it means
+# building and maintaining a custom Caddy image — a change to the edge artifact itself, which is more than
+# a launch wants. The partial mitigation in place is the production realm's brute-force protection, which
+# is per-ACCOUNT and not per-IP, so it does nothing for volumetric abuse of the anonymous read surface or
+# of Keycloak's token endpoint. This is the first item in the post-launch backlog; see the launch plan.

@@ -24,13 +24,15 @@
   },
   "accessTokenLifespan": 900,
   "actionTokenGeneratedByUserLifespan": 900,
+  "revokeRefreshToken": true,
+  "refreshTokenMaxReuse": 0,
   "bruteForceProtected": true,
   "permanentLockout": false,
   "failureFactor": 10,
   "waitIncrementSeconds": 60,
   "maxFailureWaitSeconds": 900,
   "maxDeltaTimeSeconds": 43200,
-  "passwordPolicy": "length(8) and digits(1) and lowerCase(1)",
+  "passwordPolicy": "length(12) and digits(1) and lowerCase(1) and upperCase(1) and notUsername and notEmail and passwordHistory(3)",
   "eventsEnabled": true,
   "eventsExpiration": 2592000,
   "adminEventsEnabled": true,
@@ -44,8 +46,7 @@
     "email",
     "profile",
     "roles",
-    "web-origins",
-    "pensieve:read"
+    "web-origins"
   ],
   "defaultOptionalClientScopes": [
     "address",
@@ -746,7 +747,7 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "https://${PENSIEVE_APP_DOMAIN}/*"
+        "post.logout.redirect.uris": "https://${PENSIEVE_APP_DOMAIN}##https://${PENSIEVE_APP_DOMAIN}/"
       },
       "defaultClientScopes": [
         "acr",

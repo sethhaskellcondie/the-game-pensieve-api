@@ -94,6 +94,79 @@ Production is defined by `dockerCompose/compose.production.yaml`, `Caddyfile`, a
 
 Production Keycloak imports its **own realm file** — `keycloak/import-prod/pensieve-realm.json`, not the dev one. The prod realm ships with the dev-only surface removed: **no test users**, **no `pensieve-test-client`** (no public client, no direct-access grants), **no anonymous DCR** (remote MCP hosts are pre-registered via the admin console), and `sslRequired=external`. Its deployment-specific values — the `pensieve:read` Audience mapper's `https://<MCP_DOMAIN>/mcp` audience, the `pensieve-web` redirect URIs/origins, and the web client secret — are `${PENSIEVE_*}` placeholders that Keycloak resolves from the service environment at import time (wired from `.env` in `dockerCompose/compose.production.yaml`), so there is **no manual pre-deploy realm edit**. The import runs once, on first boot with an empty `keycloak-db`. After the first deployment, decode an access token and verify `aud` and `iss`: the audience is validated by **both** the MCP sidecar and the backend resource server, so a mismatch (including a literal unsubstituted `${PENSIEVE_...}`) rejects every request.
 
+**Prod-only realm hardening** (full rationale in `keycloak/README.md`): a stronger password policy
+(`length(12)` plus mixed case, `notUsername`/`notEmail`, `passwordHistory(3)`) — not mirrored to dev, where
+it would break the test suite's fixture accounts; **refresh-token rotation** (`revokeRefreshToken: true`,
+`refreshTokenMaxReuse: 0`), which makes a second presentation of a spent refresh token a session-revoking
+event, so the web BFF single-flights its silent refresh (`the-game-pensieve-web-v2/src/proxy.ts`) rather
+than letting concurrent `/api/*` calls each spend the same token; a **pinned** post-logout redirect instead
+of a wildcard; and **`pensieve:read` removed from the realm's default client scopes**. That last one is the
+structural difference between the two realms and the one most likely to surprise: the `/mcp` audience is
+attached by a mapper on that scope, so while it was a realm default, every client in the realm — including
+`admin-cli`, which has direct-access grants — minted tokens the backend and sidecar accepted. `pensieve-web`
+lists the scope explicitly and is unaffected; a **hand-registered MCP connector must be given it explicitly**
+or its tokens carry no audience at all. The sidecar now also *requires* the scope rather than merely
+advertising it, answering `403 insufficient_scope`.
+
+**Startup ordering, healthchecks, and resource limits** are covered in
+[`dockerComposeExplainer.md`](dockerComposeExplainer.md#healthchecks-and-startup-order): every service has a
+healthcheck and `depends_on: condition: service_healthy`, and every service has a `mem_limit`/`cpus` ceiling
+sized for the 4 GB box. Note that compose **reports** an unhealthy container but does not restart it —
+`restart: unless-stopped` reacts only to a process exiting.
+
+**Backend logs** live on the `backend_logs` volume at `/var/log/pensieve` (`PENSIEVE_LOG_PATH`). Without
+that mount the log is written into the container's writable layer and destroyed on every redeploy. Read it
+with `docker compose -f dockerCompose/compose.production.yaml exec backend cat /var/log/pensieve/spring.log`.
+An unexpected 500 no longer echoes the exception message to the caller — it returns a fixed message plus a
+random reference id, and the real exception is logged against that id. `ApiControllerAdvice` is reachable by
+**anonymous** callers through the permit-all showcase read surface, and a Postgres `DataAccessException`
+message carries the failing SQL, constraint names, and the internal host `db:5432`. When a user reports an
+error, ask for the reference id and grep the log for it.
+
+### The edge posture
+
+Caddy is the security boundary as well as the TLS terminator, and it adds nothing by default — an
+unconfigured Caddy site ships no HSTS, no `nosniff`, no framing policy. The `Caddyfile` therefore defines a
+`(security_headers)` snippet and imports it into all three site blocks: **HSTS** (one year,
+`includeSubDomains`, deliberately **without** `preload` — that submission is close to irreversible and
+covers subdomains you may not control yet), **`X-Content-Type-Options: nosniff`**, **`Referrer-Policy:
+strict-origin-when-cross-origin`**, and **`Content-Security-Policy: frame-ancestors 'none'`** with
+`X-Frame-Options: DENY` behind it. Caddy's own `Server` banner is stripped.
+
+`Referrer-Policy` is the one whose motivation is specific rather than generic: password-reset and
+`execute-actions-email` links carry single-use tokens **in the URL**, and the policy is what keeps a full
+reset URL out of the `Referer` header when the user clicks onward to a third-party site. The CSP is scoped
+to framing only — a full CSP for a Next.js app needs `script-src` work that is not a launch blocker and
+would break the app silently if guessed at.
+
+**Request bodies are capped twice.** `POST /v1/function/import` binds an `@RequestBody Map` that Jackson
+materializes fully into the heap before the controller runs, and Spring Boot has no setting that covers a
+JSON body (`max-http-form-post-size` is form-encoded only, `spring.servlet.multipart.*` is multipart only).
+On a 4 GB host with a 1 GB-capped JVM beside two databases and Keycloak, one oversized upload is an
+out-of-memory kill that costs an attacker a single request. So:
+
+- **At the edge**, Caddy's `request_body max_size` — 10 MB on the app host, 1 MB on the MCP and auth hosts.
+  This enforces on bytes actually received, so it also covers a chunked request that declares no length.
+- **In the app**, `RequestSizeLimitFilter` (`pensieve.max-request-body-bytes`, 10 MB) refuses on
+  `Content-Length` with a 413 before anything is deserialized, and runs ahead of the security chain — there
+  is no reason to authenticate a request that is going to be refused on size. It deliberately does not wrap
+  the input stream to count bytes, because the limit would then trip inside Jackson's read and Spring would
+  bury it in `HttpMessageNotReadableException`, turning a clean 413 into a misleading 500.
+
+The two numbers are meant to move together: raise one and raise the other in the same release. 10 MB is
+sized from real data — the largest collection backup in this repo is ~3.3 MB.
+
+**Rate limiting is deliberately absent**, and this is the largest known gap at launch. Caddy's `rate_limit`
+is a third-party plugin, so adding it means building and maintaining a custom Caddy image — a change to the
+edge artifact itself. The partial mitigation in place is the production realm's brute-force protection,
+which is **per-account, not per-IP**, so it does nothing about volumetric abuse of the anonymous read
+surface or of Keycloak's token endpoint. It is the first item in the post-launch backlog.
+
+**Do not widen the basic-auth matcher** on the auth host. `/realms/pensieve/*` (authorize, token, JWKS,
+`.well-known`) and `/resources/*` (static assets for the console *and* the public login pages) must stay
+open; gating the latter leaves real users at an unstyled login screen. `scripts/prod-rehearsal.sh` asserts
+both directions and will catch a mistake here.
+
 ### Accounts and providers
 
 **Domain**

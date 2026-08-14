@@ -145,8 +145,91 @@ Differences from the secured dev stack, beyond TLS:
   unconditionally instead of probing.
 - **A basic-auth gate** in front of Keycloak's `/admin` and `/realms/master` (in the `Caddyfile`), separate
   from the Keycloak admin password.
+- **Healthchecks on every service, and `depends_on: condition: service_healthy`** — see below.
+- **`mem_limit` and `cpus` on every service** — see below.
+- **A `backend_logs` volume** mounted at `/var/log/pensieve`, with `PENSIEVE_LOG_PATH` pointing
+  `logging.file.path` at it. Without the mount the log is written into the container's writable layer and
+  destroyed on every redeploy — precisely the moment you want to read it. Read it with
+  `docker compose -f dockerCompose/compose.production.yaml exec backend cat /var/log/pensieve/spring.log`.
+  Logback rotates daily / at 10 MB / 7 days, and `logging.logback.rollingpolicy.total-size-cap=200MB` bounds
+  the total, because a full disk on a single-host stack takes down both databases and Caddy's certificate
+  store at the same time.
+- **Missing secrets abort the `up`.** `SESSION_SECRET`, `OIDC_CLIENT_SECRET`, `POSTGRES_PASSWORD`, and
+  `KC_DB_PASSWORD` use the `${VAR:?message}` form, so a blank or unset value fails in about a second and
+  names the variable, instead of starting a stack that looks healthy and is not. (YAML trap: the `:?`
+  message must not contain `": "` — an unquoted scalar breaks on it. The values are double-quoted and the
+  messages avoid the colon.)
 - The project name is pinned to `pensieve`, so `down -v` means the same stack no matter which directory the
   operator is standing in.
+
+### Healthchecks and startup order
+
+Every service defines a healthcheck, and `depends_on` uses the `condition: service_healthy` form rather than
+the bare list. Two reasons, and the second is the one people forget:
+
+1. **Ordering.** Bare `depends_on` waits for a container to *start*, not to be ready. Postgres needs a moment
+   before it accepts connections, Keycloak's first boot imports the realm for 30–60 s, and the backend runs
+   every Flyway migration before it opens a port. Without readiness gates the dependents come up, fail their
+   first call, and `restart: unless-stopped` turns that into a crash loop that eventually settles — a slow,
+   noisy boot that looks like a bug.
+2. **Honest status.** `docker compose ps` reports "running" for a hung JVM that will never serve a request.
+   With a healthcheck it reports "unhealthy", which is what an operator and a deploy script both need.
+   **Note that compose does not restart an unhealthy container** — `restart: unless-stopped` reacts only to
+   a process exiting. The healthcheck reports; it does not remediate.
+
+The chain is deliberately wide rather than deep, so first boot is not fully serial:
+
+```
+keycloak-db ─▶ keycloak ─┐
+db ─▶ backend ─▶ frontend ├─▶ caddy
+           └──▶ mcp ──────┘
+```
+
+The backend does **not** wait on Keycloak: it fetches JWKS lazily on the first token it sees, so gating its
+boot on the realm import would add a minute to every deploy for nothing.
+
+| Service | Probe | Notes |
+|---|---|---|
+| `caddy` | `wget` the loopback admin API on `:2019` | Never published. Deliberately *not* a site URL: on first boot Caddy is still completing ACME, and a failing probe there would report on a certificate, not on Caddy. |
+| `frontend` | `GET /api/auth/session` (in the image) | Always 200 — it degrades to a guest view rather than erroring — and it is excluded from the proxy matcher, so it triggers no token refresh. Deliberately not `/api/heartbeat`, which proxies the **backend** and would call this container unhealthy whenever the backend hiccups. It does exercise the iron-session config, so a bad `SESSION_SECRET` shows up here too. |
+| `backend` | `curl /v1/heartbeat` (in the image) | `permitAll` in both profiles, so no token. 180 s start period for Flyway. `curl` is installed in the image for exactly this, and for debugging — the Temurin base ships neither curl nor wget. |
+| `mcp` | `GET /healthz` (in the image) | Public, and does not touch the backend. |
+| `keycloak` | bash `/dev/tcp` to `:9000/health/ready` | Needs `KC_HEALTH_ENABLED=true`. The Keycloak image is UBI-micro based and ships **no curl and no wget**, only bash — hence the raw-socket form. It matches the `200 OK` status line rather than grepping the body for `"UP"`, because `/health/ready` answers 503 while a sub-check is down but its body still contains `"UP"` for every sub-check that is fine. 300 s start period: the first boot imports the realm. |
+| `db`, `keycloak-db` | `pg_isready -U <user> -d <db>` | `-U`/`-d` are not optional — bare `pg_isready` probes user "root" against database "root" and answers only by accident of Postgres replying at all. |
+
+### Resource limits
+
+`mem_limit` and `cpus` on every service, sized for the 4 GB Droplet. Without them one runaway container takes
+the whole box with it, and on a single-host stack that means the app, **both** databases, and Caddy's
+certificate store at once.
+
+| Service | `mem_limit` | `cpus` |
+|---|---|---|
+| `backend` | 1g | 1.5 |
+| `keycloak` | 1g | 1.5 |
+| `frontend` | 512m | 1.0 |
+| `db` | 512m | 1.0 |
+| `keycloak-db` | 384m | 1.0 |
+| `caddy` | 256m | 0.5 |
+| `mcp` | 256m | 0.5 |
+
+Totals ~2.9 GB, leaving the OS and the 2 GB swap file room to work. These are **ceilings, not
+reservations** — nothing is pre-allocated. The backend's 1 GB is not a heap size: the JVM's container-aware
+default takes ¼ of the limit as heap and the rest covers metaspace, code cache, and thread stacks.
+
+`mem_limit`/`cpus` are the v2 spelling, which is what plain `docker compose` honors. `deploy.resources` is
+Swarm-only and is **silently ignored** here — if you see it in an example, it does nothing.
+
+### Third-party image pins and patch cadence
+
+All three pinned third-party images are checked out at the version tag on the Droplet, so changing one
+requires a release. Review them at each release:
+
+| Image | Pinned as | Cadence |
+|---|---|---|
+| `postgres` | `16.15-alpine`, exactly | Bump deliberately, within 16.x only. A **major** move (16 → 17) is not a restart: Postgres refuses to start against a data directory written by another major version, and migrating means a dump and restore with the stack down. |
+| `quay.io/keycloak/keycloak` | `26.7` (floats to the newest 26.7.x on pull) | Minor bumps read the release notes first — realm behavior is involved. |
+| `caddy` | `2` (floats within the major) | Low risk. |
 
 **After the first deploy, verify** (the realm import runs once, on first boot with an empty `keycloak-db`):
 decode an access token and check `aud == https://${MCP_DOMAIN}/mcp` and
@@ -169,7 +252,27 @@ secrets (`SESSION_SECRET`, `OIDC_CLIENT_SECRET`, `POSTGRES_PASSWORD`, `KC_DB_PAS
 admin), the Caddy basic-auth credential, and the SMTP relay Keycloak sends verification and password-reset
 mail through.
 
-Two traps the file calls out: **a missing `.env` is not a parse-time failure** — compose prints one
+**The distinction the file leads with is one-shot vs restartable.** Keycloak's `--import-realm` runs exactly
+once, against an empty `keycloak-db` volume, so a handful of these variables are baked into the realm
+database at first boot and never read again:
+
+| One-shot (frozen at first boot) | Restartable |
+|---|---|
+| `OIDC_CLIENT_SECRET` — becomes the `pensieve-web` client secret | `AUTH_DOMAIN`, `ACME_EMAIL` |
+| every `SMTP_*` — becomes the realm's Email settings | `SESSION_SECRET`, `POSTGRES_PASSWORD`, `KC_DB_PASSWORD` |
+| `APP_DOMAIN`, `MCP_DOMAIN` — *in their realm role only* (login redirect URIs, the post-logout URI, the `/mcp` audience mapper) | `KC_ADMIN_UI_USER`, `KC_ADMIN_UI_PASSWORD_HASH` |
+
+`APP_DOMAIN` and `MCP_DOMAIN` are the trap worth naming: they are restartable everywhere *else* — Caddy,
+`APP_ORIGIN`, both token validators — so changing one moves half the system while the realm silently does
+not follow. `KC_ADMIN_USER`/`KC_ADMIN_PASSWORD` are a third category: not frozen, just never consulted
+again after the first boot, which is why the plan has you blank them once a real admin account exists.
+
+"One-shot" does **not** mean unrecoverable. The realm is a live database and nearly all of it is editable in
+the admin console — but the moment you edit it there, `.env` and `pensieve-realm.json` stop being the source
+of truth and nothing warns you. The only genuinely unrecoverable thing is the `keycloak_db_data` volume
+itself, because `users.keycloak_sub` in the app database is a unique reference into it.
+
+Two more traps the file calls out: **a missing `.env` is not a parse-time failure** — compose prints one
 `variable is not set` warning per `${VAR}`, interpolates blanks, and the stack then dies on boot (Postgres
 refuses a blank password, Caddy gets an empty hostname), so read the warnings. And the **bcrypt hash must be
 single-quoted**, because it contains `$` signs. `scripts/deploy-production.sh` turns the missing-file case

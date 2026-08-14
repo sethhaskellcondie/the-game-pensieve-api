@@ -34,12 +34,13 @@ info:
     - **403 Forbidden** — (`secured` profile only) the caller's role lacks the capability for the action: a **WRITE** (create/update/delete), a **BACKUP** (`/v1/function/backup`), an **IMPORT** (`/v1/function/import`), a **SEED** (`/v1/function/seedSampleData`, `/v1/function/seedMyCollection` — ADMIN only), or **admin** access (`/v1/admin/**` by a non-ADMIN caller). Also returned for a **valid token no account can be resolved or provisioned for** — a token with no `email` claim (minted without the `email` scope, or a service account), or whose email matches an existing account that is linked to a different login. Anonymous callers are rejected earlier with **401**. See *Roles & Capabilities* below.
     - **404 Not Found** — the requested resource (or an unknown route) does not exist. Also returned when an `X-Showcase` header names a slug that does not exist **or is not currently visible** (its owner is not PAID/ADMIN) — the two cases are deliberately indistinguishable.
     - **409 Conflict** — an import is already in progress (the import endpoints take a global lock).
-    - **500 Internal Server Error** — an unexpected error; the array contains a generic message followed by the underlying exception message.
+    - **413 Payload Too Large** — the request body exceeds the server's cap (10 MB by default, `pensieve.max-request-body-bytes`). Refused on the declared `Content-Length` before the body is deserialized, so nothing about its contents has been validated. In production a reverse proxy enforces the same cap ahead of the API and may answer 413 itself. `POST /v1/function/import` is the endpoint that realistically reaches this.
+    - **500 Internal Server Error** — an unexpected error. The array contains a **fixed** generic message plus a random **reference id**, and never the underlying exception message: part of the read surface is anonymous, and a database error message carries the failing SQL, table and constraint names, and internal hostnames. The real exception is logged server-side against that same id, so quoting it in a bug report is what makes the failure findable. Do not parse a 500 body for meaning — the id is the only useful part, and its format is not a stable contract.
     - **200 OK with populated `errors`** — the backup/import endpoints report partial failures here: the import still returns HTTP 200, but `errors` lists the records that could not be processed. Always inspect `errors` on these endpoints even on a 200.
 
     ## Data Ownership & Multi-Tenancy
     All collection data (systems, toys, video games and boxes, board games and boxes, custom fields and their options/values, and metadata) is **owned by a single account and isolated per owner**. Ownership is enforced in the database with PostgreSQL Row-Level Security, so a request can only ever read or write the caller's own rows — the isolation holds even against direct SQL.
-    - **Secured build** (`secured` profile): the owner is the authenticated user (from the `Bearer` token). Reads, searches, and writes are automatically scoped to that user; another owner's records are invisible (a read by id returns **404**, and they never appear in list/search results). Ownership is assigned by the server on create — there is no `owner` field in any request or response body. **Showcase** data is world-readable: under the secured profile the read surface — `GET /v1/{entity}/{id}`, `POST /v1/{entity}/function/search`, `GET /v1/filters/{entity}`, `GET /v1/function/counts`, the custom-field definitions (`GET /v1/custom_fields/entity/{key}` and `GET /v1/custom_fields`), and four metadata keys (`GET /v1/metadata/{ui-settings, default_sort_options, saved-filters, saved-filter-categories}`) — is reachable **without a token** (anonymous requests resolve to the **default showcase** owner); writes always require authentication.
+    - **Secured build** (`secured` profile): the owner is the authenticated user (from the `Bearer` token). Reads, searches, and writes are automatically scoped to that user; another owner's records are invisible (a read by id returns **404**, and they never appear in list/search results). Ownership is assigned by the server on create — there is no `owner` field in any request or response body. **Showcase** data is world-readable: under the secured profile the read surface — `GET /v1/{entity}/{id}`, `POST /v1/{entity}/function/search`, `GET /v1/filters/{entity}`, `GET /v1/function/counts`, the custom-field definitions (`GET /v1/custom_fields/entity/{key}` and `GET /v1/custom_fields`), and four metadata keys (`GET /v1/metadata/{ui-settings, default_sort_options, saved-filters, saved-filter-categories}`) — is reachable **without a token** (anonymous requests resolve to the **default showcase** owner); writes always require authentication. Those same four keys are also the **only** metadata a showcase view may read *at all*: on any `X-Showcase` request, authenticated or not, another key returns **403** and the list-all `GET /v1/metadata` is narrowed to them. The allowlist is keyed on "is this a showcase view", not on whether a token was presented, so holding an account does not widen it.
     - **Default (unsecured) build**: anonymous requests resolve to the single seeded, world-readable **default showcase** owner, preserving the original single-collection behavior for the public site. The showcase owner's records are **not** visible to an authenticated user — each user sees only their own.
     - Metadata keys are unique **per owner** (two owners may each use the same key).
 
@@ -2359,10 +2360,20 @@ paths:
         - Metadata
       summary: Get all metadata
       description: |
-        Retrieve all metadata entries. On a showcase view (`X-Showcase`, GUEST-scoped) the owner's
-        entries are returned but `ui-settings` is replaced with the fixed guest settings (see
-        `GET /v1/metadata/{key}`). This list-all route is **not** part of the anonymous read surface —
-        it requires a token under the `secured` profile.
+        Retrieve all metadata entries.
+
+        On a showcase view (`X-Showcase`, GUEST-scoped) the result is **narrowed to the four keys the
+        showcase renders from** — `ui-settings`, `default_sort_options`, `saved-filters`,
+        `saved-filter-categories` — and `ui-settings` is replaced with the fixed guest settings (see
+        `GET /v1/metadata/{key}`). Every other key the owner has stored is omitted; they are dropped
+        rather than refused, because a list endpoint returning fewer rows is the natural shape and a 403
+        here would itself reveal that the owner has other keys.
+
+        This list-all route is **not** part of the anonymous read surface — it requires a token under the
+        `secured` profile. That is precisely why the narrowing exists: an authenticated caller satisfies
+        that requirement, so without it, any account could send `X-Showcase` and enumerate a showcase
+        owner's entire metadata table. Off a showcase view (an authenticated owner reading their own) the
+        full list is returned unchanged.
       responses:
         '200':
           description: List of all metadata
@@ -2386,9 +2397,11 @@ paths:
       description: |
         Retrieve a specific metadata entry by its unique key.
 
-        **Showcase view (`X-Showcase`, GUEST-scoped).** Four keys form part of the anonymous,
-        showcase-scoped read surface (reachable **without a token**): `ui-settings`,
-        `default_sort_options`, `saved-filters`, and `saved-filter-categories`. On a showcase view:
+        **Showcase view (`X-Showcase`, GUEST-scoped).** Exactly four keys are readable on a showcase
+        view: `ui-settings`, `default_sort_options`, `saved-filters`, and `saved-filter-categories`.
+        Any other key is refused with **403**, whether or not the caller holds a token — the allowlist is
+        enforced on "is this a showcase view", not on "did you authenticate". (These same four are also
+        the ones reachable **without a token** at all.) On a showcase view:
         - `ui-settings` returns a **fixed guest payload** — beginner mode on, every other mode off,
           both collection default views `"list"`, every standard field shown — *independent of* the
           owner's own stored settings (it is synthesized, so it is returned even if the owner has no
@@ -2416,6 +2429,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataDataResponse'
+        '403':
+          description: |
+            The request is a showcase view (`X-Showcase`) and the key is not one of the four the showcase
+            renders from. 403 rather than 404 deliberately: the key may well exist on the owner's row, and
+            answering 404 would still distinguish existing keys from non-existent ones while being a lie.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Metadata not found, or the `X-Showcase` header named a slug that does not exist or is not currently visible
           content:
@@ -3671,6 +3693,16 @@ components:
       description: |
         Returned for any failed request. `data` is null and `errors` is an array of human-readable
         message strings — one entry per problem detected. Note there is no `roundTripMs` field on errors.
+
+        **4xx errors describe the problem. 5xx errors deliberately do not.** An unexpected server error
+        returns a fixed message plus a random reference id — never the underlying exception message. The
+        real exception is written to the server log against that same id, so a caller who reports the id
+        can have their failure looked up exactly. Do not parse a 5xx `errors` array for meaning; the only
+        machine-useful part is the id, and its format is not a stable contract.
+
+        This matters because part of the read surface is anonymous: before this, a Postgres error message
+        reached unauthenticated callers carrying the failing SQL, table and constraint names, and the
+        internal database hostname.
       properties:
         data:
           type: 'null'
@@ -3684,6 +3716,44 @@ components:
         errors:
           - "title cannot be blank"
           - "systemId must be a positive integer"
+
+    ServerErrorResponse:
+      type: object
+      description: |
+        The shape of a 500. Same envelope as `ErrorResponse`, but the contents are fixed: a generic
+        message and a reference id correlating to a server log entry. See `ErrorResponse` for why.
+      properties:
+        data:
+          type: 'null'
+        errors:
+          type: array
+          items:
+            type: string
+      example:
+        data: null
+        errors:
+          - "Something went wrong. The error has been logged; quote the reference id if you report it."
+          - "Reference id: 3f2b1c88-9a4d-4a1e-9b77-0c5d2e6f1a30"
+
+    PayloadTooLargeResponse:
+      type: object
+      description: |
+        Returned for a request body larger than the server's cap (10 MB by default,
+        `pensieve.max-request-body-bytes`). Refused before the body is deserialized, so no validation of
+        its contents has taken place. A reverse proxy in front of the API may enforce its own, lower cap
+        and answer 413 itself — in production Caddy caps the app host at 10 MB and the MCP and auth hosts
+        at 1 MB. `POST /v1/function/import` is the endpoint that realistically reaches this.
+      properties:
+        data:
+          type: 'null'
+        errors:
+          type: array
+          items:
+            type: string
+      example:
+        data: null
+        errors:
+          - "Request body is too large. The maximum is 10485760 bytes."
 
 tags:
   - name: System

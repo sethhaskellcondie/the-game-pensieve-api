@@ -1,5 +1,24 @@
 # Keycloak — MCP Authorization Server (self-hosted)
 
+> ## ⚠️ One-way door: `import-prod/pensieve-realm.json` is imported exactly once
+>
+> `--import-realm` runs on the **first boot against an empty `keycloak-db` volume, and never again.**
+> Every value in the production realm file — the password policy, refresh-token rotation, the SMTP block,
+> the client secret, the audience mapper, the scope layout — is frozen at that moment. Editing the JSON or
+> `.env` afterwards changes nothing.
+>
+> Correcting a mistake means one of two things, and neither is cheap:
+>
+> - **Edit the live realm by hand** in the admin console. The realm is a database, so most settings really
+>   are editable — but `pensieve-realm.json` silently stops being the source of truth from then on, and the
+>   drift is invisible until someone rebuilds from the file.
+> - **Destroy `keycloak_db_data` and re-import.** That deletes every user account. `users.keycloak_sub` in
+>   the app database is a unique reference into that volume, so every existing user is orphaned from their
+>   collection and silently JIT-provisions an empty new row. **Never run `down -v` on the Droplet.**
+>
+> Get this file right before the first `docker compose up`. The dev realm in `import/` carries no such
+> weight — wipe and re-import it freely.
+
 Self-hosted Keycloak (**26.7**) that acts as the OAuth 2.1 Authorization Server for the MCP rollout
 (Phase 3 of `../localFiles/mcp_rollout.md`). Runs as the `keycloak` service in both development compose
 files, `../dockerCompose/compose.unsecured.yaml` and `../dockerCompose/compose.secured.yaml` (the second
@@ -40,10 +59,30 @@ the compose file rather than to your shell, so it resolves the same wherever com
   **Prod-only hardening (deliberately NOT mirrored into the dev realm):**
   - `bruteForceProtected` (10 failures, temporary lockout, no permanent lockout) — mirroring it would
     make any test that exercises a failed login flaky once the counter trips.
-  - `passwordPolicy: length(8) and digits(1) and lowerCase(1)` — the Admin API enforces the policy on
-    admin-create, and `KeycloakTestSupport.ensureUser` creates its users with the password `password`
-    (no digit), so mirroring this breaks the test suite. Keycloak has no generic "any letter" rule;
-    `lowerCase(1)` is the closest, which means an all-caps `PASSWORD1` is rejected.
+  - `passwordPolicy: length(12) and digits(1) and lowerCase(1) and upperCase(1) and notUsername and
+    notEmail and passwordHistory(3)` — this is the **only interactive credential** on a public app, and
+    `registrationAllowed: false` means self-service reset is the only recovery path, so it is worth more
+    than Keycloak's defaults. The Admin API enforces the policy on admin-create, and
+    `KeycloakTestSupport.ensureUser` creates its users with the password `password`, so mirroring this
+    breaks the test suite outright — that is why it stays prod-only.
+    Notes on the individual rules: Keycloak has no generic "any letter" rule, so `lowerCase(1)` +
+    `upperCase(1)` is the closest thing to "mixed case"; `notUsername`/`notEmail` reject a password *equal
+    to* the username or email address (they are not substring checks); `passwordHistory(3)` blocks reusing
+    the last three passwords, which matters because the reset flow is the recovery path and a user who
+    resets back to the compromised password has recovered nothing.
+    **`scripts/prod-rehearsal.sh` generates throwaway passwords against this policy** (`Rehearse1<hex>`,
+    17 chars) in two places. Change the policy and those must change with it, or the strongest check in
+    the script — a real login, end to end — fails at `kc set-password` for a reason that has nothing to do
+    with the login path.
+  - **Refresh-token rotation** — `revokeRefreshToken: true`, `refreshTokenMaxReuse: 0`. Keycloak issues a
+    new refresh token on every refresh either way; what this adds is *invalidating the old one*. Without
+    it a leaked refresh token stays usable for the full session lifespan (and, with `offline_access`, for
+    the full 30-day offline lifespan) no matter how many times the real client has refreshed since.
+    ⚠️ **`maxReuse: 0` makes a second presentation of a spent token a session-revoking event, not a
+    no-op.** The web BFF is built for that: `the-game-pensieve-web-v2/src/proxy.ts` single-flights the
+    refresh and keeps a 60-second replay window, so concurrent `/api/*` calls and requests that were
+    already in flight when the cookie rotated all share one token exchange. Removing that would log users
+    out roughly every 15 minutes. A pre-registered MCP connector must persist the rotated token too.
   - `eventsEnabled` / `adminEventsEnabled` (30-day retention) — the audit trail. Admin events are the
     more valuable half: they record who changed what in the console, which is the only trace of a
     post-deploy change that this import file no longer describes.
@@ -51,6 +90,15 @@ the compose file rather than to your shell, so it resolves the same wherever com
     unbounded (`offlineSessionMaxLifespanEnabled` defaults to `false`); this pins a hard monthly
     re-auth and reaps abandoned connectors well before that.
     These govern MCP connector tokens — see [Offline tokens](#offline-tokens-for-mcp-connectors).
+  - **`pensieve:read` is NOT a realm default client scope.** See
+    [Audience segmentation](#audience-segmentation-prod-only) below — this is the one structural
+    difference between the two realms, and the one most likely to surprise you.
+  - **The post-logout redirect is pinned**, not a wildcard: `post.logout.redirect.uris` on `pensieve-web`
+    lists `https://${PENSIEVE_APP_DOMAIN}` and its trailing-slash form, matching how the login
+    `redirectUris` were already pinned. The BFF sends its own origin and nothing else
+    (`src/app/api/auth/logout/route.ts` → `postLogoutRedirectUri: appOrigin(request)`), so the previous
+    `https://…/*` accepted a whole family of URLs nothing ever asks for. Add a value here if a future
+    logout ever needs to land on a path.
 
 ## Bring it up
 
@@ -69,17 +117,61 @@ dockerCompose/compose.unsecured.yaml down -v` + `up` rebuilds it exactly (no man
 that has already booted once — a stale `keycloak_data` volume is the usual reason a realm change, or a
 client the realm is supposed to ship, appears to be missing.
 
+## Audience segmentation (prod only)
+
+**The `/mcp` audience is attached by a mapper on the `pensieve:read` client scope** — Keycloak does not
+honor the RFC 8707 `resource` parameter, so a scope mapper is the only way tokens carry `aud` at all. Both
+the sidecar and the backend validate that audience, which makes "who holds `pensieve:read`" the same
+question as "whose tokens are accepted."
+
+In the **dev** realm `pensieve:read` sits in `defaultDefaultClientScopes`, so every client in the realm
+gets it. In the **prod** realm it does not; only clients that list it explicitly do.
+
+Why they differ, in both directions:
+
+- **Prod removes it** because a realm default is assigned to every client Keycloak creates, including the
+  built-ins it makes at realm creation — `admin-cli`, `account`, `security-admin-console`, and the rest.
+  `admin-cli` has direct-access grants on, so with `pensieve:read` as a realm default any user's
+  username+password could mint a token carrying `aud=https://<MCP>/mcp` and be accepted by both the
+  sidecar and the API, bypassing the BFF entirely. Segmentation was nil. `pensieve-web` lists the scope in
+  its own `defaultClientScopes`, so **the web app is unaffected** — and it must stay that way, because the
+  backend rejects any token without that audience.
+- **Dev keeps it** because dev enables anonymous DCR for localhost (the Trusted Hosts policy, for the MCP
+  Inspector). A dynamically registered client is created with the realm defaults and nothing else, so
+  taking `pensieve:read` off the dev realm default would leave every Inspector-registered client with no
+  audience and no way to reach `/mcp`. Production ships no DCR, so it has no equivalent need.
+
+**Consequence for production:** a hand-registered MCP connector gets **no** `pensieve:read` automatically.
+Attach it to the client explicitly, or its tokens carry no audience and every `/mcp` call fails. See
+[Offline tokens](#offline-tokens-for-mcp-connectors).
+
+**The sidecar now checks the scope, not just the audience.** `the-game-pensieve-mcp/src/httpApp.ts`
+verifies the bearer and then requires every scope in `MCP_OAUTH_REQUIRED_SCOPES` (default: whatever
+`MCP_OAUTH_SCOPES` advertises, i.e. `pensieve:read`). A verified-but-under-scoped token gets **403 with
+`WWW-Authenticate: Bearer error="insufficient_scope", scope="pensieve:read"`** — 403 rather than 401 per
+RFC 6750 §3.1, because re-presenting the same credential would fail identically and a client that reads
+401 as "start the OAuth dance" would loop. Setting `MCP_OAUTH_REQUIRED_SCOPES=""` turns the check off; it
+is the escape hatch if a connector cannot be granted the scope, and it leaves audience as the only gate.
+The sidecar also pins `algorithms: ["RS256"]` on `jwtVerify` (`src/auth.ts`).
+
 ## Verify
 
 ```bash
 # token with the right claims (password grant for scripting; authcode+PKCE yields the same token).
-# NOTE: request only scope=openid — pensieve:read/email are default client scopes and attach
-# automatically; requesting a default scope by name is rejected by Keycloak as invalid_scope.
+# NOTE: request only scope=openid — pensieve:read/email are default client scopes ON THIS CLIENT and
+# attach automatically; requesting a default scope by name is rejected by Keycloak as invalid_scope.
 curl -s -X POST http://localhost:8081/realms/pensieve/protocol/openid-connect/token \
   -d client_id=pensieve-test-client -d grant_type=password \
   -d username=seth -d password=password -d 'scope=openid' | jq -r .access_token
 # decode it: aud == http://localhost:8090/mcp, scope has pensieve:read, email + sub present, RS256
 ```
+
+> ⚠️ **This is the dev realm and it does not generalize to production.** `pensieve-test-client` does not
+> exist in prod (no public client, no direct-access grants), so there is no password grant to script with
+> — drive a real authorization-code flow instead. And `scope=openid` only picks up `pensieve:read` because
+> the *client* lists it as a default scope; in prod that is true of `pensieve-web` and of nothing else
+> until you attach it. If a prod token comes back with no `aud`, the client is missing the scope — see
+> [Audience segmentation](#audience-segmentation-prod-only).
 
 Or drive an interactive authcode + PKCE flow with `npx @modelcontextprotocol/inspector`.
 
@@ -202,10 +294,22 @@ So an actively-used connector lives 30 days; an idle one dies at 10.
 `offline_access` is a realm *optional* scope, so it is only issued when a client is granted it. When
 pre-registering a connector client via the admin console:
 
-1. Add `offline_access` to that client's scopes. If the client requests the scope itself, adding it as
+1. **Add `pensieve:read` as a *default* client scope.** It is not a realm default in production (see
+   [Audience segmentation](#audience-segmentation-prod-only)), so a freshly registered client gets none of
+   it: no `pensieve:read` in the token's `scope`, and — because the audience mapper lives on that scope —
+   no `aud` either. The sidecar refuses such a token twice over, first on audience and then on scope. This
+   is the step that is easy to miss, because nothing about the client's own settings hints at it.
+2. Add `offline_access` to that client's scopes. If the client requests the scope itself, adding it as
    an **optional** scope is enough; if it does not, add it as a **default** scope so Keycloak issues it
    unconditionally — then confirm by decoding the resulting token rather than assuming.
-2. Leave `pensieve-web` alone. The BFF has a human present and should keep short online sessions;
+3. **Decode the token before declaring victory.** Check `aud == https://<MCP_DOMAIN>/mcp`, that `scope`
+   contains `pensieve:read`, and that `typ` is `Offline` on the refresh token. Each of the three failure
+   modes looks identical from the client's side — "it stopped working" — and they are fixed in different
+   places.
+4. **The connector must persist the rotated refresh token.** Production runs `revokeRefreshToken: true`
+   with `refreshTokenMaxReuse: 0`, so a connector that re-presents the token it used last time has its
+   whole offline session revoked, not merely that request refused.
+5. Leave `pensieve-web` alone. The BFF has a human present and should keep short online sessions;
    `offline_access` stays optional-and-unrequested there.
 
 Note that the sidecar advertises only `pensieve:read` in its protected-resource metadata

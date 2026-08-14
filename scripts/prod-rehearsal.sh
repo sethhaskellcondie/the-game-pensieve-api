@@ -512,11 +512,18 @@ check "tokenless POST /mcp is refused with a challenge" mcp_enforces
 # issuer), the id_token's `iss`, and — because the callback calls GET /v1/auth/me with the access token
 # before it can report a role — that the SECURED BACKEND accepted the token's `aud` and `iss`. A role of
 # "unknown" means the backend rejected it, which is exactly the mismatch a bad audience mapper causes.
+#
+# The throwaway passwords below are generated to satisfy the PRODUCTION realm's password policy:
+#   length(12) and digits(1) and lowerCase(1) and upperCase(1) and notUsername and notEmail and
+#   passwordHistory(3)
+# `kc set-password` goes through the Admin API, which enforces the policy, so a password that misses any
+# rule fails there and this check goes red for a reason that has nothing to do with the login path it
+# exists to prove. If the policy in keycloak/import-prod/pensieve-realm.json changes, change these with it.
 if [[ "$KC_ADMIN_OK" == "1" ]]; then
     login_flow() {
         local user pass jar authurl action cb final role email status uid
         user="rehearsal-login-probe"
-        pass="rehearse1$(openssl rand -hex 4)"   # realm policy: length(8) and digits(1) and lowerCase(1)
+        pass="Rehearse1$(openssl rand -hex 4)"   # 17 chars; satisfies the prod realm policy (see note below)
         jar="$WORK_DIR/login-jar.txt"; rm -f "$jar"
         # firstName/lastName are NOT optional here: without a complete profile Keycloak interrupts the
         # login with its VERIFY_PROFILE required action and never issues a code.
@@ -609,7 +616,7 @@ fi
 # --- optional: a user to complete the browser half with --------------------------------------------
 if [[ "${CREATE_TEST_USER:-0}" == "1" && "$KC_ADMIN_OK" == "1" ]]; then
     TEST_USER="rehearsal"
-    TEST_PASSWORD="rehearse1$(openssl rand -hex 4)"   # realm policy: length(8) and digits(1) and lowerCase(1)
+    TEST_PASSWORD="Rehearse1$(openssl rand -hex 4)"   # 17 chars; same policy constraints as the login probe
     # firstName/lastName included deliberately: without them Keycloak's VERIFY_PROFILE required action
     # interrupts the first login with a profile form, which is not what you are here to look at.
     if kc create users -r pensieve -s "username=$TEST_USER" -s enabled=true \

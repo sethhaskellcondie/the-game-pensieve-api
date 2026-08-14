@@ -10,6 +10,8 @@ import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionInval
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionMalformedEntity;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionPaymentRequired;
 import com.sethhaskellcondie.thegamepensieveapi.domain.exceptions.ExceptionResourceNotFound;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,17 +22,31 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @ControllerAdvice
 public class ApiControllerAdvice {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiControllerAdvice.class);
+
+    /**
+     * What an unexpected 500 tells the caller. Deliberately says nothing about the failure: these two
+     * handlers catch anything the application did not anticipate, and the most common thing to land here is
+     * a Postgres {@code DataAccessException} whose message carries the failing SQL, the constraint name, and
+     * the internal hostname {@code db:5432}. The showcase read surface is reachable WITHOUT a token, so that
+     * message was being handed to anonymous callers.
+     * <p>
+     * The detail is not lost — it goes to the log with a correlation id, and the same id goes to the caller.
+     * "Something broke, here is the id" is enough for a user to report and enough for you to grep for.
+     */
+    private static final String GENERIC_500_MESSAGE = "Something went wrong. The error has been logged; quote the reference id if you report it.";
 
     //----Handle General Errors----
     @ExceptionHandler(value = {Exception.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public Map<String, List<String>> handleGeneralException(Exception e) {
-        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Something went wrong. Generic Exception Caught.", e.getMessage()));
-        return body.formatError();
+        return logAndFormat("Generic Exception Caught", e);
     }
 
 
@@ -38,7 +54,18 @@ public class ApiControllerAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public Map<String, List<String>> handleRuntimeException(RuntimeException e) {
-        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(List.of("Something went wrong. Generic RuntimeException Caught.", e.getMessage()));
+        return logAndFormat("Generic RuntimeException Caught", e);
+    }
+
+    /**
+     * Log the real exception against a fresh correlation id and return only that id to the caller. The id is
+     * a random UUID rather than anything derived from the request, so it leaks nothing on its own.
+     */
+    private Map<String, List<String>> logAndFormat(String context, Exception e) {
+        final String errorId = UUID.randomUUID().toString();
+        LOGGER.error("Unhandled exception [errorId={}] ({})", errorId, context, e);
+        FormattedResponseBody<List<String>> body = new FormattedResponseBody<>(
+                List.of(GENERIC_500_MESSAGE, "Reference id: " + errorId));
         return body.formatError();
     }
 

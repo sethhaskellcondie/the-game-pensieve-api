@@ -24,8 +24,9 @@ public class MetadataGateway {
 
     public List<Metadata> getAllMetadata() {
         final List<Metadata> allMetadata = repository.getAllMetadata();
-        // A showcase view reads the owner's metadata via RLS, but ui-settings is overridden with the fixed guest
-        // settings so the public read surface never exposes the owner's personal editor preferences.
+        // A showcase view reads the owner's metadata via RLS, but the result is narrowed to the four keys the
+        // showcase actually renders from, and ui-settings is overridden with the fixed guest settings so the
+        // public read surface never exposes the owner's personal editor preferences.
         if (access.isShowcaseView()) {
             return ShowcaseMetadata.withGuestUiSettings(allMetadata);
         }
@@ -33,10 +34,17 @@ public class MetadataGateway {
     }
 
     public Metadata getByKey(String key) {
-        // Serve the fixed guest ui-settings for a showcase view; every other key (e.g. default_sort_options) passes
-        // through to the owner's own row so a guest mirrors the owner's configured default sort.
-        if (access.isShowcaseView() && ShowcaseMetadata.UI_SETTINGS_KEY.equals(key)) {
-            return ShowcaseMetadata.guestUiSettings();
+        if (access.isShowcaseView()) {
+            // A showcase view may read ONLY the allowlisted keys. Enforced here rather than only in
+            // SecurityConfig's anonymous URL allowlist, because an authenticated caller satisfies
+            // authenticated() on every metadata route and could otherwise send X-Showcase to scope RLS into
+            // the owner's tenant and read any key they liked. See ShowcaseMetadata.SHOWCASE_READABLE_KEYS.
+            requireShowcaseReadable(key);
+            // Serve the fixed guest ui-settings; the other three pass through to the owner's own row so a
+            // guest mirrors the owner's configured default sort and saved filters.
+            if (ShowcaseMetadata.UI_SETTINGS_KEY.equals(key)) {
+                return ShowcaseMetadata.guestUiSettings();
+            }
         }
         return repository.getByKey(key);
     }
@@ -57,6 +65,15 @@ public class MetadataGateway {
     private void requireWrite() {
         if (!access.can(Capability.WRITE)) {
             throw new ExceptionForbidden("An active subscription is required to create, update, or delete data.");
+        }
+    }
+
+    // 403 rather than 404: the key may well exist on the owner's row, and pretending otherwise would be a
+    // lie that still answers the attacker's question differently for existing and non-existing keys.
+    private void requireShowcaseReadable(String key) {
+        if (!ShowcaseMetadata.isReadableByShowcase(key)) {
+            throw new ExceptionForbidden(
+                    "A showcase view may only read the metadata it renders from (" + ShowcaseMetadata.readableKeysForMessage() + ").");
         }
     }
 }

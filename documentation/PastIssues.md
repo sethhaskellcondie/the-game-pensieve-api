@@ -94,3 +94,87 @@ spring.datasource.hikari.minimum-idle=1
 A character allowlist on the name (`CustomField.isValidName`, enforced at creation and rename) was added as defense in depth. It is *not* the fix — the parameter binding is.
 
 **A trap worth remembering:** the obvious-looking cleanup here is wrong. The query already joins `custom_fields` on `values<i>.custom_field_id = fields<i>.id`, which makes the name clause *look* redundant — but that join places no constraint on **which** custom field, so the name clause is the only thing narrowing the query to the field being filtered on. Deleting it instead of binding it would make every custom field filter silently match values belonging to every custom field.
+
+---
+
+## A showcase visitor could read the owner's *other* metadata by holding any account
+
+**Symptom:** None visible. `GET /v1/metadata/{key}` and the list-all `GET /v1/metadata`, sent with
+`X-Showcase: <someone's slug>` and **any valid token**, returned the showcase owner's saved filters, sort
+preferences, and whatever else they had stored — not just the four keys a showcase renders from.
+
+**Root cause:** the enumeration guard was an *anonymous-only* URL allowlist. `SecurityConfig`'s
+`PUBLIC_METADATA_READ` opens exactly four metadata routes to callers with no token, and it was doing double
+duty as the policy. But the security chain's job ends at "may this caller reach this URL": every metadata
+route also matches `.anyRequest().authenticated()`, so an authenticated caller passed the chain on any key,
+and `X-Showcase` then scoped RLS into the owner's tenant. Registering an account was the entire cost of the
+bypass. The list-all route was worse: it is not in the anonymous allowlist at all, which made it *look*
+protected, while in fact it was reachable by anyone with a token and returned the owner's whole table.
+
+**Fix (2026-08-14):** the allowlist moved into `MetadataGateway`, keyed on `access.isShowcaseView()` rather
+than on whether a token was presented — `ShowcaseMetadata.SHOWCASE_READABLE_KEYS`. `getByKey` throws
+`ExceptionForbidden` (403) for anything outside it; `getAllMetadata` narrows the list instead of refusing,
+because a 403 on a list endpoint would itself confirm that the owner has other keys. 403 rather than 404 on
+the single-key read for the same reason: the key may well exist, and 404 would still separate existing keys
+from non-existent ones while being a lie.
+
+**The general lesson:** a URL allowlist on the security chain answers "who may reach this route", never
+"what may this request see". Any rule that depends on *request context* — a header, a tenant, a view mode —
+has to be enforced where that context lives. The two lists must now be kept in step, and both say so.
+`SecurityConfig.PUBLIC_METADATA_READ` and `ShowcaseMetadata.SHOWCASE_READABLE_KEYS` are the same four keys
+for different questions.
+
+---
+
+## Health-checking the Keycloak container: no curl, no wget, only bash
+
+**Symptom:** Every obvious `healthcheck:` for the `keycloak` service fails instantly with
+`exec: "curl": executable file not found`.
+
+**Root cause:** the official Keycloak image is built on `ubi9-micro`. It ships `/bin/bash` (`kc.sh` needs
+it) and essentially nothing else — no curl, no wget, no busybox applets. There is no HTTP client in the
+container to probe with.
+
+**Fix (2026-08-14):** use bash's `/dev/tcp` pseudo-device, which opens a socket without any external
+binary, and set `KC_HEALTH_ENABLED=true` — health endpoints are off by default and, since Keycloak 25, live
+on the **management** interface (port 9000), not the HTTP port:
+
+```yaml
+test:
+  - CMD
+  - bash
+  - -c
+  - "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; grep -q '200 OK' <&3"
+```
+
+Two details that are easy to get wrong:
+
+- **Match the HTTP status line, not the body.** The obvious `grep -q '"UP"'` is wrong: `/health/ready`
+  answers **503** while a sub-check is down, but its JSON body still contains `"status": "UP"` for every
+  sub-check that *is* up. A body grep therefore reports a degraded Keycloak as healthy.
+- **Double the backslashes in the YAML.** `\r\n` in a double-quoted YAML scalar becomes a literal control
+  character in the file; `\\r\\n` passes the two-character escape through for `printf` to expand. Both
+  work, but only the second leaves a config file people can diff and edit.
+
+Same class of problem, different answer, for the backend: `eclipse-temurin` has no HTTP client either, so
+the API `Dockerfile` installs `curl` outright. That is worth the ~5 MB for a second reason — the backend
+publishes no host port in production, so `docker compose exec backend curl localhost:8080/v1/heartbeat` is
+the only way to interrogate it directly.
+
+---
+
+## `chown -R` in a Dockerfile silently duplicates every file it touches
+
+**Symptom:** Adding a non-root `USER` to the API image grew it by 33 MB — almost exactly the size of the
+jar and the two JSON data files that were already in it.
+
+**Root cause:** `RUN chown -R app:app /app` after the `COPY`s. A `RUN` creates a layer containing every
+file it modifies, and changing ownership modifies every file — so the whole of `/app` was stored twice.
+
+**Fix (2026-08-14):** `COPY --chown=pensieve:pensieve …` on each copy instead, leaving only a tiny `RUN` to
+create the log directory. Same result, 60 MB smaller image.
+
+**Related, and the reason that log directory is created in the image at all:** when an empty *named volume*
+is mounted over a path that already exists in the image, Docker seeds the volume with that directory's
+contents **and its ownership**. Create the directory only in the compose file and the volume arrives
+root-owned — which a non-root process cannot write to, so the app boots fine and silently logs nothing.

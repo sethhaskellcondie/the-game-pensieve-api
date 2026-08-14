@@ -946,6 +946,22 @@
 			"response": []
 		},
 		{
+			"name": "read showcase NON-allowlisted key (X-Showcase) -> 403",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Showcase",
+						"value": "seths-collection",
+						"disabled": true
+					}
+				],
+				"description": "A showcase view may read ONLY the four keys the showcase renders from (ui-settings, default_sort_options, saved-filters, saved-filter-categories). Any other key is refused with 403 whether or not a token is presented -- the allowlist is enforced on 'is this a showcase view', not on 'did you authenticate', so having an account does not widen it. Enable the X-Showcase header to see the refusal; without it this is an ordinary owner read and returns the row. 403 rather than 404 is deliberate: the key may well exist on the owner's row, and 404 would still distinguish existing keys from non-existent ones while being a lie. The same narrowing applies to the list-all GET /v1/metadata, which under X-Showcase returns only those four keys.",
+				"url": "http://localhost:8080/v1/metadata/user_settings"
+			},
+			"response": []
+		},
+		{
 			"name": "update metadata value",
 			"request": {
 				"method": "PATCH",

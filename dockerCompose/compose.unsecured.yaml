@@ -43,6 +43,11 @@ services:
       - "8080:8080" #host port:container port
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      # The dev database password, matching POSTGRES_PASSWORD on the db service below. It lives HERE and not
+      # as a default in application-docker.properties: a committed default password is a credential that
+      # works against any deployment whose operator forgot to override it. With no default, the `docker`
+      # profile fails to connect loudly instead. Production sets this from its .env.
+      SPRING_DATASOURCE_PASSWORD: root
   mcp:
     # The sidecar lives in its own repo (the-game-pensieve-mcp) and is consumed here as a published
     # image, the same way the front end is. To run local sidecar changes, build the image from that
@@ -78,7 +83,9 @@ services:
       - ../src/main/resources/migrations:/flyway/sql       # these are host volumes (bind mounts), and the
       - ../docker-flyway.config:/flyway/conf/flyway.config # host paths resolve from THIS file's directory
   db:
-    image: postgres:16.2-alpine
+    # Kept in step with compose.production.yaml (16.15-alpine). Patch bumps inside 16.x are
+    # drop-in; a MAJOR move is not, and would need a dump and restore. See dockerComposeExplainer.md.
+    image: postgres:16.15-alpine
     ports:
       - "5432:5432" #host port:container port
     environment:

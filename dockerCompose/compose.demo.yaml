@@ -41,9 +41,11 @@ services:
     ports:
       - "8080:8080" #host port:container port
     environment:
-      # `docker` alone = permit-all. The datasource (db:5432, postgres/root, pensieve-db)
-      # is baked into the profile, so no datasource environment is needed here.
+      # `docker` alone = permit-all. The profile supplies the host and username (db:5432, postgres,
+      # pensieve-db); only the password is passed in, because application-docker.properties deliberately
+      # carries no default for it — see the note in compose.unsecured.yaml.
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_PASSWORD: root
     depends_on:
       - db
   mcp:
@@ -59,7 +61,9 @@ services:
     depends_on:
       - backend
   db:
-    image: postgres:16.2-alpine
+    # Kept in step with compose.production.yaml (16.15-alpine). Patch bumps inside 16.x are
+    # drop-in; a MAJOR move is not, and would need a dump and restore. See dockerComposeExplainer.md.
+    image: postgres:16.15-alpine
     # No published port: nothing outside the compose network needs the database, and not
     # binding 5432 avoids colliding with any Postgres already on the host.
     environment:

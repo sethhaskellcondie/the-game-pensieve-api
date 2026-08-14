@@ -32,6 +32,31 @@
 #     there is deliberately no anonymous DCR in production.
 # The audience is validated by BOTH the sidecar and the backend; a mismatch rejects every token.
 
+# HEALTHCHECKS AND STARTUP ORDER. Every service defines one, and `depends_on` uses `condition:
+# service_healthy` rather than the bare list form. `depends_on` on its own waits for a container to *start*,
+# which is nearly worthless here: Postgres needs a moment before it accepts connections, Keycloak's first
+# boot imports the realm for 30-60s, and the backend runs every Flyway migration before it opens a port.
+# Without real readiness gates the dependents come up, fail their first call, and `restart: unless-stopped`
+# turns that into a crash loop that eventually settles — a slow, noisy boot that looks like a bug.
+#
+# The other half of the value is honest status: `docker compose ps` reports "running" for a hung JVM that
+# will never serve a request. With a healthcheck it reports "unhealthy", which is what an operator and a
+# deploy script both need to see. (Note that compose does NOT restart an unhealthy container — `restart:
+# unless-stopped` reacts only to a process exiting. The healthcheck reports; it does not remediate.)
+#
+# The chain is deliberately WIDE rather than deep, so first boot is not fully serial:
+#   keycloak-db ─▶ keycloak ─┐
+#   db ─▶ backend ─▶ frontend ├─▶ caddy
+#              └──▶ mcp ──────┘
+# The backend does NOT wait on Keycloak: it fetches JWKS lazily on the first token it sees, so gating its
+# boot on the realm import would add a minute to every deploy for nothing.
+#
+# RESOURCE LIMITS. `mem_limit`/`cpus` on every service, sized for the 4 GB Droplet. Without them one runaway
+# container takes the whole box down with it — and on a single-host stack that means the app, BOTH
+# databases, and Caddy's certificate store at once. The limits below total ~2.9 GB, leaving the OS and the
+# 2 GB swap file room to work. They are ceilings, not reservations. `mem_limit` is the v2 spelling and is
+# what plain `docker compose` honors; `deploy.resources` is Swarm-only and is silently ignored here.
+
 # Pinned, not derived from the directory name: `docker compose ... down -v` must mean the same stack no matter
 # where the repo is checked out or which directory the operator is standing in. (This is the value the old
 # /opt/pensieve layout produced by accident; naming it makes it a guarantee.)
@@ -57,10 +82,25 @@ services:
       - ../Caddyfile:/etc/caddy/Caddyfile:ro   # relative to this file's directory, not to your shell
       - caddy_data:/data
       - caddy_config:/config
+    # Caddy's own admin API on :2019 is loopback-only and never published; it answers as soon as the config
+    # is loaded, which is exactly the liveness signal wanted here. Do NOT probe a site URL instead: on first
+    # boot Caddy is still completing the ACME challenge, and a failing probe there would say "unhealthy"
+    # about a certificate, not about Caddy.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2019/config/"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    mem_limit: 256m
+    cpus: 0.5
     depends_on:
-      - frontend
-      - mcp
-      - keycloak
+      frontend:
+        condition: service_healthy
+      mcp:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
 
   frontend:
     image: sethcondie/the-game-pensieve-web:latest # built + pushed from the-game-pensieve-web-v2 (OIDC BFF)
@@ -89,8 +129,14 @@ services:
       OIDC_INTERNAL_ISSUER: http://keycloak:8080/realms/pensieve
       OIDC_CLIENT_ID: pensieve-web
       OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET:?required — one-shot, baked into the realm at first import}"
+    # The HEALTHCHECK is baked into the image (GET /api/auth/session — see the web repo's Dockerfile for why
+    # that route and not /api/heartbeat). Next.js holds a modest heap; 512m is comfortable for the
+    # standalone server, which serves RSC payloads and proxies JSON rather than doing real work.
+    mem_limit: 512m
+    cpus: 1.0
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   backend:
     image: sethcondie/the-game-pensieve-api:latest
@@ -111,9 +157,20 @@ services:
       PENSIEVE_OAUTH2_ISSUER: https://${AUTH_DOMAIN}/realms/pensieve
       PENSIEVE_OAUTH2_JWK_SET_URI: http://keycloak:8080/realms/pensieve/protocol/openid-connect/certs
       PENSIEVE_OAUTH2_AUDIENCE: https://${MCP_DOMAIN}/mcp
+      # Where logging.file.path points (application.properties defaults it to a relative path for local
+      # runs). Backed by the backend_logs volume below — without a mount the log is written inside the
+      # container's writable layer and is destroyed on every redeploy, which is precisely when you want it.
+      PENSIEVE_LOG_PATH: /var/log/pensieve
+    volumes:
+      - backend_logs:/var/log/pensieve
+    # The HEALTHCHECK is baked into the image (curl /v1/heartbeat, with a 180s start period for Flyway).
+    # 1g is the JVM's ceiling, not its appetite: the heap is left to the JVM's own container-aware default
+    # (¼ of the limit) and the rest covers metaspace, code cache, and thread stacks.
+    mem_limit: 1g
+    cpus: 1.5
     depends_on:
-      - db
-      - keycloak
+      db:
+        condition: service_healthy
 
   mcp:
     image: sethcondie/the-game-pensieve-mcp:latest
@@ -127,8 +184,17 @@ services:
       MCP_OAUTH_ISSUER: https://${AUTH_DOMAIN}/realms/pensieve
       MCP_OAUTH_JWKS_URI: http://keycloak:8080/realms/pensieve/protocol/openid-connect/certs
       MCP_OAUTH_AUDIENCE: https://${MCP_DOMAIN}/mcp
+      # Verified tokens must also CARRY this scope, not merely be advertised it. Left at the default
+      # (= MCP_OAUTH_SCOPES = pensieve:read) and stated here because it is the second half of taking
+      # pensieve:read off the realm's default client scopes — see keycloak/README.md § Audience
+      # segmentation. Set it to "" only if a connector cannot be granted the scope in Keycloak.
+      MCP_OAUTH_SCOPES: pensieve:read
+    # The HEALTHCHECK is baked into the image (GET /healthz).
+    mem_limit: 256m
+    cpus: 0.5
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.7
@@ -138,6 +204,9 @@ services:
     # canonical public issuer; BACKCHANNEL_DYNAMIC lets in-network services fetch JWKS via keycloak:8080.
     command: start --import-realm
     environment:
+      # Exposes /health/* on the MANAGEMENT interface (port 9000 since KC 25, never published) for the
+      # healthcheck below. Off by default.
+      KC_HEALTH_ENABLED: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
       KC_HOSTNAME: https://${AUTH_DOMAIN}
@@ -163,11 +232,41 @@ services:
       PENSIEVE_SMTP_SSL: ${SMTP_SSL}
     volumes:
       - ../keycloak/import-prod:/opt/keycloak/data/import:ro   # relative to this file's directory
+    # The Keycloak image is UBI-micro based and ships NO curl and NO wget — only bash. Hence the /dev/tcp
+    # trick, which is a bash builtin: open a socket on fd 3, write a raw HTTP/1.1 request, and match the
+    # status line. Matching "200 OK" rather than grepping the JSON for "UP" is deliberate: /health/ready
+    # answers 503 while a sub-check is down, but its body still contains "status": "UP" for every sub-check
+    # that IS up, so a naive grep would call a degraded Keycloak healthy. Before the management port is
+    # listening at all the connect fails outright, which is also correctly unhealthy.
+    # start_period is generous because the FIRST boot imports the realm (30-60s locally, longer on the
+    # Droplet with a cold pull); subsequent boots are much faster.
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        # The backslashes are DOUBLED so printf receives the two-character escapes \r \n and emits the CRLFs
+        # itself. Writing them singly makes YAML expand them into literal control characters inside this
+        # file — which happens to work, but leaves invisible CRs in a config file that people diff and edit.
+        - "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; grep -q '200 OK' <&3"
+      interval: 15s
+      timeout: 10s
+      start_period: 300s
+      retries: 10
+    mem_limit: 1g
+    cpus: 1.5
     depends_on:
-      - keycloak-db
+      keycloak-db:
+        condition: service_healthy
 
+  # Both databases stay on the 16.x line. A MINOR bump (16.x -> 17.x) is not a restart — Postgres refuses
+  # to start against a data directory written by a different major version, and migrating means a dump and
+  # restore with the stack down. Patch releases inside 16.x are drop-in. Patch cadence for the pinned
+  # third-party images, all three of which are checked out at the version tag and so need a release to
+  # change: postgres exactly (16.15-alpine), keycloak by minor (26.7 -> latest 26.7.x on pull), caddy by
+  # major (2). Review them at each release; bump postgres deliberately, never automatically.
   db:
-    image: postgres:16.2-alpine
+    image: postgres:16.15-alpine
     restart: unless-stopped
     # NO ports: private.
     environment:
@@ -176,20 +275,44 @@ services:
       POSTGRES_DB: pensieve-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # -U/-d are not optional: bare `pg_isready` probes user "root" against database "root" (it defaults to
+    # the OS user), which answers "accepting connections" only by accident of Postgres replying at all.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pensieve-db"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 10
+    mem_limit: 512m
+    cpus: 1.0
 
   keycloak-db:
-    image: postgres:16.2-alpine
+    image: postgres:16.15-alpine
     restart: unless-stopped
     # NO ports: private. Keycloak's own store, separate from the app database.
+    # ⚠️ keycloak_db_data is the irreplaceable volume: users.keycloak_sub in the APP database is a unique
+    # reference into it. Lose it and every existing user is orphaned from their collection. Never `down -v`.
     environment:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
       POSTGRES_DB: keycloak
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 10
+    mem_limit: 384m
+    cpus: 1.0
 
 volumes:
   postgres_data:
   keycloak_db_data:
   caddy_data:
   caddy_config:
+  # The backend's rolling log file. Named rather than a host bind mount so it survives a redeploy without
+  # depending on a path existing on the Droplet; read it with
+  # `docker compose -f dockerCompose/compose.production.yaml exec backend cat /var/log/pensieve/spring.log`.
+  backend_logs:

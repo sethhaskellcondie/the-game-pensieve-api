@@ -15,6 +15,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -195,7 +198,90 @@ public class MetadataShowcaseSecuredProfileTests extends SecuredProfileTest {
                 "When the owner updates their saved filters, the showcase view stays in sync.");
     }
 
+    /**
+     * Given a showcase owner with a metadata key the showcase does not render from, then a DIFFERENT
+     * authenticated account sending {@code X-Showcase: <owner slug>} is refused (403) rather than served the
+     * owner's row.
+     *
+     * <p>This is the case the anonymous URL allowlist in {@code SecurityConfig} never covered. That list
+     * decides only what a caller with no token may reach; an authenticated caller satisfies
+     * {@code authenticated()} on every metadata route, so the header alone used to scope RLS into the
+     * owner's tenant and hand over any key asked for. Enforcement now lives in {@code MetadataGateway},
+     * keyed on {@code isShowcaseView()} rather than on whether a token was presented.
+     */
+    @Test
+    void showcaseView_AuthenticatedCaller_CannotReadAKeyOutsideTheAllowlist() throws Exception {
+        final ShowcaseOwner owner = createShowcaseOwner();
+        putMetadata(owner.token(), "owner_private_notes", "{\"secret\":\"not for guests\"}");
+
+        // A second, unrelated account — having ANY account is the whole cost of the old bypass.
+        final String otherToken = registerAndLogin(factory.randomEmail());
+
+        mockMvc.perform(get(METADATA_URL + "/owner_private_notes")
+                        .header("Authorization", "Bearer " + otherToken)
+                        .header(SHOWCASE_HEADER, owner.slug()))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * The same key, read by the owner with no showcase header, is theirs and comes back normally. Without
+     * this the test above could pass for the wrong reason — a key that is simply unreadable by anyone.
+     */
+    @Test
+    void ownerWithoutHeader_ReadsTheirOwnNonShowcaseKey() throws Exception {
+        final ShowcaseOwner owner = createShowcaseOwner();
+        putMetadata(owner.token(), "owner_private_notes", "{\"secret\":\"not for guests\"}");
+
+        final JsonNode own = readValue(mockMvc.perform(get(METADATA_URL + "/owner_private_notes")
+                .header("Authorization", "Bearer " + owner.token())).andExpect(status().isOk()));
+
+        assertEquals("not for guests", own.get("secret").asText(),
+                "The owner's own read of their own key is unchanged.");
+    }
+
+    /**
+     * Given an owner with both showcase keys and private ones, then the list-all {@code GET /v1/metadata}
+     * under a showcase view returns only the keys a showcase renders from — while the owner's own list-all
+     * still returns everything.
+     *
+     * <p>List-all is the enumeration route: it is not in the anonymous allowlist at all, so it was reachable
+     * only by an authenticated caller — who could then read the owner's entire metadata table in one call.
+     */
+    @Test
+    void showcaseView_ListAll_IsNarrowedToTheShowcaseKeys() throws Exception {
+        final ShowcaseOwner owner = createShowcaseOwner();
+        putMetadata(owner.token(), "saved-filters", "{\"filters\":[]}");
+        putMetadata(owner.token(), "owner_private_notes", "{\"secret\":\"not for guests\"}");
+        final String otherToken = registerAndLogin(factory.randomEmail());
+
+        final List<String> guestKeys = keysFrom(mockMvc.perform(get(METADATA_URL)
+                .header("Authorization", "Bearer " + otherToken)
+                .header(SHOWCASE_HEADER, owner.slug())).andExpect(status().isOk()));
+
+        assertFalse(guestKeys.contains("owner_private_notes"),
+                "A showcase view must not enumerate the owner's other metadata. Saw: " + guestKeys);
+        assertTrue(guestKeys.contains("saved-filters"),
+                "The keys the showcase actually renders from are still there. Saw: " + guestKeys);
+        assertTrue(guestKeys.contains("ui-settings"),
+                "The synthesized guest ui-settings is still appended. Saw: " + guestKeys);
+
+        final List<String> ownKeys = keysFrom(mockMvc.perform(get(METADATA_URL)
+                .header("Authorization", "Bearer " + owner.token())).andExpect(status().isOk()));
+        assertTrue(ownKeys.contains("owner_private_notes"),
+                "The owner's own list-all is untouched — the narrowing is showcase-only. Saw: " + ownKeys);
+    }
+
     // ------------------------------- Private helpers -------------------------------
+
+    /** The `key` of every metadata record in a list-all response. */
+    private List<String> keysFrom(ResultActions result) throws Exception {
+        final String body = result.andReturn().getResponse().getContentAsString();
+        final JsonNode data = objectMapper.readTree(body).get("data");
+        final List<String> keys = new ArrayList<>();
+        data.forEach(node -> keys.add(node.get("key").asText()));
+        return keys;
+    }
+
 
     private record ShowcaseOwner(String email, String token, String slug) {
     }
