@@ -176,6 +176,12 @@ Run it after any change to the production topology — compose file, Caddyfile, 
 run the SMTP half (`SMTP_TEST_TO=<real inbox>`) at least once against the real relay before a release that
 touches the realm's email settings, because those are baked at import.
 
+**The version intended for first production boot is `1.0.0`** — released 2026-08-14, the first version ever
+published (there is no earlier tag). The Droplet's first deploy checks out `v1.0.0` explicitly, not
+"whatever is newest": that tag is the one whose images passed the full release gate and whose compose pins,
+`Caddyfile`, and realm import were rehearsed together. If a later version exists by then because something
+needed fixing, this line is what gets updated — the deploy still names its version deliberately.
+
 ### Accounts and providers
 
 **Domain**

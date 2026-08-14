@@ -69,6 +69,15 @@ end.
 One accepted gap worth knowing: the multi-arch publish in step 6 **rebuilds**, so the pushed artifact is not
 byte-identical to the one the gates ran.
 
+**The first real publish (`1.0.0`, 2026-08-14) ran steps 6–8 for real for the first time**, and they behaved
+exactly as the `PUBLISH=no` form predicted — the push, the manifest verification, the `--pull always` smoke
+against the just-pushed images, and the pin-bump/tag/push all completed with no surprises and nothing to
+correct. The step-6 rebuild was a full buildx cache hit (~56s including the pushes). The road there is the
+part worth remembering: the dry run's step-7 smoke failed twice, each time catching a real defect that every
+earlier gate was structurally blind to (see `PastIssues.md` — the smoke stack's missing datasource password,
+then the frontend image crash-looping without `SESSION_SECRET`). The smoke is the only stage that boots the
+web and mcp *images* with a bare `docker run`, which is exactly what makes it worth its place.
+
 ## `e2e-gate.sh` — the isolated end-to-end gate
 
 ```

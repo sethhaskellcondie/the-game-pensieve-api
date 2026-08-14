@@ -44,9 +44,12 @@ positional argument.** Build to that signature and the Makefile needs no change.
 
 ### 1.2 What is NOT done
 
-- **Phase A4 — the first real publish — has not been run.** `PUBLISH=no` rehearsed the entire release
-  end to end successfully, but nothing has been pushed to Docker Hub and **no version tag exists**.
-  This matters for sequencing; see §3.3.
+- ~~**Phase A4 — the first real publish — has not been run.**~~ **Done 2026-08-14: `1.0.0`.** All three
+  images are on Docker Hub at `:1.0.0` (and `:latest`, same digests), each manifest verified to carry
+  `linux/amd64` + `linux/arm64`; `v1.0.0` is tagged and pushed, and the compose pins in that tag read
+  `1.0.0`. The dry run before it caught two real defects at the step-7 smoke (see `PastIssues.md`: the
+  smoke stack's missing datasource password, and the frontend image crash-looping without
+  `SESSION_SECRET`); the real run was green end to end.
 - **No part of Pipeline B exists.** No Droplet, no domain, no SMTP relay, no deploy script.
 - **`dockerCompose/compose.production.yaml` now runs and verifies locally** via `scripts/prod-rehearsal.sh`
   (Phase B0, automated 2026-08-13) — **all 23 checks green**, including a full login driven end to end.
@@ -124,7 +127,7 @@ Three hostnames, three A (and ideally AAAA) records pointed at the Droplet's IP:
 instant — set them up early and verify with `dig +short <domain>` from somewhere other than your own
 machine.
 
-### 3.3 Run Phase A4 — the first real release
+### 3.3 Run Phase A4 — the first real release — ✅ done 2026-08-14, version `1.0.0` (see §1.2)
 
 **Do this before B3.** Two reasons:
 
