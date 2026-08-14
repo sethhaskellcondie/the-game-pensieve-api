@@ -182,6 +182,19 @@ published (there is no earlier tag). The Droplet's first deploy checks out `v1.0
 `Caddyfile`, and realm import were rehearsed together. If a later version exists by then because something
 needed fixing, this line is what gets updated — the deploy still names its version deliberately.
 
+**Deploying and rolling back** *(⚠️ unverified — written at launch Stage 6, before the Droplet exists;
+launch Stage 11 verifies both live and removes this banner)*: `make deploy VERSION=X.Y.Z` runs
+`scripts/deploy-production.sh` — local preflight that fails in seconds (version shape, `latest` rejected,
+tag on origin, all three images on Docker Hub with `linux/amd64`, host reachable), then one SSH call that
+checks out `v$VERSION` on the Droplet and runs `scripts/deploy-production-remote.sh`: assert → record the
+running version → verify pins → `pg_dump` both databases → pull → `up -d` → wait for the public URLs and
+assert the running containers are `:$VERSION` → prune → append to the deploy log. **Rollback is the same
+command with the previous version tag** — no separate rollback script, deliberately; the deploy prints the
+exact rollback command on failure and after success. Migrations are forward-only (kept additive), so an
+image rollback never rolls back the schema. Rehearse with `DRY_RUN=yes` — every check runs, nothing
+changes, including on the Droplet (it fetches tags but does not move the checkout). Both halves are
+documented in full in `scriptExplainer.md`.
+
 ### Accounts and providers
 
 **Domain**

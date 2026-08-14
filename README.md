@@ -127,6 +127,21 @@ curl http://localhost:8080/v1/heartbeat
 
 Additional documentation lives in the [`documentation/`](./documentation) directory:
 
+### Deploying to production
+
+> ⚠️ **Unverified** — written before the production host exists; verified live at launch Stage 11,
+> which removes this banner.
+
+```bash
+make deploy VERSION=1.0.0     # preflight locally, then deploy that released version to the Droplet
+```
+
+Rollback is the same command with the previous version — there is deliberately no separate rollback
+script. The deploy prints the rollback command on every failure and after every success; migrations are
+forward-only (kept additive), so rolling the image back never rolls the schema back. Rehearse either
+direction first with `DRY_RUN=yes ./scripts/deploy-production.sh <version>` — every check runs, nothing
+changes. Full detail: [`documentation/scriptExplainer.md`](./documentation/scriptExplainer.md).
+
 ## License
 
 This project is proprietary. Copyright (c) 2023-2026 Seth Condie. All rights reserved. The source is publicly viewable, but no rights to use, copy, modify, or distribute it are granted without prior written permission. Versions distributed before this change remain available under the MIT License. See [`LICENSE`](./LICENSE) for the full terms.

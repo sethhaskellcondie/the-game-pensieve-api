@@ -1,16 +1,19 @@
 # Script Explainer
 
-Four scripts live in `scripts/`. Two are gates you run yourself; one orchestrates the whole release; one
-seeds a live environment with test data. They compose like this:
+Six scripts live in `scripts/`. Two are gates you run yourself; one orchestrates the whole release; one
+seeds a live environment with test data; two deploy a released version to production. They compose like
+this:
 
 ```
 make release VERSION=x.y.z  →  scripts/release.sh  ─┬─→ scripts/e2e-gate.sh secured ─→ scripts/seed-test-data.sh
                                                     └─→ scripts/e2e-gate.sh demo
 
 make rehearse               →  scripts/prod-rehearsal.sh        (independent — rehearses the deploy, not the release)
+
+make deploy VERSION=x.y.z   →  scripts/deploy-production.sh ──ssh──→ scripts/deploy-production-remote.sh (on the Droplet)
 ```
 
-Conventions all four share: `set -euo pipefail`; **arguments and environment only, never interactive
+Conventions all six share: `set -euo pipefail`; **arguments and environment only, never interactive
 prompts**; the repo root is resolved from the script's own location, so they work from any working directory;
 non-zero exit on any failure; and every one of them is re-runnable.
 
@@ -20,6 +23,8 @@ non-zero exit on any failure; and every one of them is re-runnable.
 | `e2e-gate.sh` | Throwaway stack + full Playwright suite, one mode per run | called by `release.sh` (steps 4 and 5) |
 | `seed-test-data.sh` | Seeds a live secured stack with the multi-role test data set | `./scripts/seed-test-data.sh` |
 | `prod-rehearsal.sh` | Stands the real production stack up locally with TLS and verifies it | `make rehearse` |
+| `deploy-production.sh` | Local preflight (fails in seconds), then one SSH call to the Droplet | `make deploy VERSION=1.0.0` |
+| `deploy-production-remote.sh` | The nine deploy steps, on the Droplet: backup → pull → switch → verify | never run directly — the wrapper's SSH bootstrap invokes it |
 
 ---
 
@@ -265,9 +270,73 @@ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keyc
 
 ---
 
+## `deploy-production.sh` — the deploy wrapper (local half)
+
+```
+make deploy VERSION=1.0.0                          # the normal entry point
+DRY_RUN=yes ./scripts/deploy-production.sh 1.0.0   # rehearse: every check runs, nothing changes anywhere
+DEPLOY_HOST=user@1.2.3.4 make deploy VERSION=1.0.0 # override the default ssh alias (pensieve-prod)
+```
+
+> ⚠️ **Unverified against a real Droplet** — written at launch Stage 6, before the Droplet exists
+> (launch plan Stage 11 verifies both halves live and removes this banner). The `DRY_RUN=yes` path has
+> been run clean locally, including the remote half's read-only rehearsal.
+
+Preflight only — four checks that fail in seconds, before production is touched: version shape (with
+`latest` rejected explicitly and by name — a moving tag never deploys to production), the `v$VERSION`
+tag exists on origin, **all three images exist on Docker Hub at `:$VERSION` with `linux/amd64` in the
+manifest** (deploying a version whose frontend was never pushed is the single most likely mistake, and a
+single-arch arm64 push is invisible until the amd64 Droplet pulls it), and the host answers over SSH in
+`BatchMode` (a password prompt would hang a CI runner forever).
+
+Then one SSH call. Its sequencing is load-bearing (pipeline doc §4.4): bash reads a script file
+incrementally while executing it, so the remote script must never `git checkout` over itself. The inline
+bootstrap checks out `v$VERSION` **first** and only then `exec bash`es the remote script, opening the
+new file fresh. In a dry run the bootstrap fetches tags but does **not** move the checkout.
+
+**Rollback is this same script with the previous version tag.** There is deliberately no `rollback.sh` —
+a second code path exercised only during an emergency is worse than none. The remote half prints the
+exact rollback command on every failure and at the end of every successful deploy.
+
+## `deploy-production-remote.sh` — the deploy, on the Droplet
+
+Never run directly — the wrapper's bootstrap is the only intended caller, and the script refuses to
+proceed if `HEAD` is not exactly `v$VERSION` (which is the bootstrap's job to arrange). It lives in this
+repo **so it is versioned in the same commit** as `compose.production.yaml`, the `Caddyfile`, and the
+realm import: the deploy checks out the tag, so those four move together and can never drift apart. It
+reads `dockerCompose/.env` on the box; no secret ever crosses the wire.
+
+The nine steps: **assert** (`.env` + `Caddyfile` + tools present — compose only *warns* on a missing
+`.env` and boots blank secrets, so this assert is what actually stops that) → **record** what is running
+(the rollback target, printed before anything changes) → **verify** `HEAD` is `v$VERSION` and the compose
+file carries three `:$VERSION` pins → **back up both databases** (`pg_dump` via `compose exec`, gzipped,
+timestamped, to `$BACKUP_DIR`, default `/opt/pensieve-backups` — outside the checkout and every compose
+volume; an empty dump aborts the deploy) → **pull** (the slow part, while the old version still serves) →
+**`up -d`** (the switch; 10–60s of downtime) → **health + version verification** → **prune** →
+**deploy log** (`$BACKUP_DIR/deploy.log`: timestamp, version, previous version, who).
+
+Step 7 is what makes the script trustworthy, and it must not be weakened: the app-chain check
+(`https://$APP_DOMAIN/api/heartbeat` → `.status=="online" and .secureMode==true`) crosses Caddy, TLS,
+the frontend, the private network, and the backend, *and* proves secured mode — a dropped `secured`
+profile fails here as a named check rather than fail-open (audit B3). Then Keycloak's realm endpoint,
+mcp's `/healthz`, and finally an assertion that the **running containers** are actually `:$VERSION` — a
+deploy that silently half-worked is the failure mode the script exists to prevent. On any wait timeout it
+dumps the failing service's logs before exiting, so a failed deploy explains itself without a second
+round trip.
+
+What a green deploy does **not** prove: that a login completes end to end (nothing here drives a
+browser), that email reaches an inbox, or anything about the realm's one-shot import (first boot only —
+the checklist in `compose.production.yaml`'s header covers that, once, by hand). First deploy behavior:
+no databases exist yet, so the backup step notes that and moves on, and `previous=(none)` means a
+failure prints "nothing to roll back to" instead of a rollback command.
+
+---
+
 ## Which script do I want?
 
 - **Cutting a release** → `make release VERSION=x.y.z`; rehearse it first with `PUBLISH=no`.
 - **Just want the e2e suite against a clean stack** → `./scripts/e2e-gate.sh secured <web-repo>`.
 - **Need real accounts and data in the local secured stack** → `./scripts/seed-test-data.sh`.
 - **About to deploy, or changed anything in the production topology** → `make rehearse`.
+- **Deploying (or rolling back) a released version** → `make deploy VERSION=x.y.z`; rehearse it first
+  with `DRY_RUN=yes`. Rollback is the same command with the previous version.

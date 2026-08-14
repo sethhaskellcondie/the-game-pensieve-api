@@ -50,7 +50,10 @@ positional argument.** Build to that signature and the Makefile needs no change.
   `1.0.0`. The dry run before it caught two real defects at the step-7 smoke (see `PastIssues.md`: the
   smoke stack's missing datasource password, and the frontend image crash-looping without
   `SESSION_SECRET`); the real run was green end to end.
-- **No part of Pipeline B exists.** No Droplet, no domain, no SMTP relay, no deploy script.
+- **Pipeline B is part-built (updated 2026-08-14).** The domain, DNS, and SMTP relay exist (launch plan
+  Stage 1); both deploy scripts are **written and dry-run clean locally** (`deploy-production.sh` +
+  `deploy-production-remote.sh`, launch Stage 6) but ⚠️ **unverified against a real host** — B3/B4's live
+  verification still stands. No Droplet exists yet.
 - **`dockerCompose/compose.production.yaml` now runs and verifies locally** via `scripts/prod-rehearsal.sh`
   (Phase B0, automated 2026-08-13) — **all 23 checks green**, including a full login driven end to end.
   The first run was 20/23: the three reds were one real login-blocking defect in the web BFF, now
@@ -464,8 +467,13 @@ created and verified by email, and a decoded token carries the correct issuer an
 
 Transcribe B3 into two scripts. See §6 for the detailed specification and §7 for the patterns to copy.
 
-- [ ] **`scripts/deploy-production.sh <version>`** — the local wrapper. Preflight, then one SSH call.
-- [ ] **`scripts/deploy-production-remote.sh <version>`** — the server-side script, living in this repo
+> **Update 2026-08-14 (launch plan Stage 6):** both scripts are already written to this specification and
+> `DRY_RUN=yes` runs clean locally, end to end — the launch plan deliberately writes them *before* B3 so
+> the first by-hand deploy can lean on their preflight. B3's live run remains their real verification;
+> expect it to correct them, and treat the ⚠️ unverified banners in the docs as accurate until then.
+
+- [x] **`scripts/deploy-production.sh <version>`** — the local wrapper. Preflight, then one SSH call.
+- [x] **`scripts/deploy-production-remote.sh <version>`** — the server-side script, living in this repo
       so it is versioned in the same commit as `dockerCompose/compose.production.yaml`, the `Caddyfile`, and the realm
       import. Those four can then never drift apart.
 - [ ] `make deploy VERSION=…` already invokes the wrapper — no Makefile change needed (§1.1).
