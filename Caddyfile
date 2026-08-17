@@ -36,20 +36,34 @@
 #
 # `header` sets these on every response, including errors. -Server strips Caddy's own banner: version
 # disclosure is free reconnaissance and costs nothing to remove.
+#
+# The framing pair lives in its own snippet because the AUTH host must not import it (found on the
+# first-deploy bringup, 2026-08-17): the Keycloak admin console frames ITS OWN origin for its
+# third-party-cookie check (/realms/master/protocol/openid-connect/3p-cookies/step1.html), and a
+# browser receiving both Caddy's `frame-ancestors 'none'` and Keycloak's own `'self'` enforces the
+# intersection — 'none' — so the console dies on "Timeout when waiting for 3rd party check iframe
+# message." Keycloak stamps its own framing policy (frame-ancestors 'self') on every UI page, so the
+# auth host stays clickjacking-protected without Caddy's copy; the app and MCP hosts set no framing
+# headers of their own and keep Caddy's.
 (security_headers) {
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+(deny_framing) {
+	header {
 		Content-Security-Policy "frame-ancestors 'none'"
 		X-Frame-Options "DENY"
-		-Server
 	}
 }
 
 # The web app (Next.js BFF).
 {$APP_DOMAIN} {
 	import security_headers
+	import deny_framing
 
 	# Body cap at the edge. POST /v1/function/import (reached through this app) binds an arbitrarily large
 	# JSON document fully into heap; on a 4 GB box with a 1 GB JVM ceiling, a single large upload is an
@@ -70,6 +84,7 @@
 # /.well-known/oauth-protected-resource metadata and /healthz on this host.
 {$MCP_DOMAIN} {
 	import security_headers
+	import deny_framing
 
 	# JSON-RPC tool calls, not uploads. 1 MB is generous for the largest filter payload a tool can send.
 	request_body {
@@ -81,6 +96,8 @@
 
 # Keycloak. Caddy forwards X-Forwarded-* headers by default; the keycloak service trusts them
 # (KC_PROXY_HEADERS=xforwarded) and stamps the canonical issuer https://{$AUTH_DOMAIN}/realms/pensieve.
+# Deliberately NO `import deny_framing` here — see the snippet's comment. Keycloak sets its own
+# frame-ancestors 'self' on every UI page; adding Caddy's 'none' breaks the admin console.
 {$AUTH_DOMAIN} {
 	import security_headers
 

@@ -294,11 +294,12 @@ DNS not resolving yet.
       `PENSIEVE_` strings; the client secret matches `OIDC_CLIENT_SECRET`; the `redirectUris` were
       also proven externally (Keycloak redirects errors *back to* the callback URL, which it only
       does for a registered URI). A literal placeholder means wiping `keycloak-db` and re-importing.
-- [ ] Decode a real access token: `aud == https://mcp.pensieve.sethcondie.com/mcp` and
+- [x] Decode a real access token: `aud == https://mcp.pensieve.sethcondie.com/mcp` and
       `iss == https://auth.pensieve.sethcondie.com/realms/pensieve`. In this BFF the token never
       reaches a browser — the equivalent proof happens during bootstrap: after first login,
       `/api/auth/session` reporting a real role means the secured backend accepted `aud` and `iss`
-      (`"unknown"` is exactly what a bad audience mapper produces).
+      (`"unknown"` is exactly what a bad audience mapper produces). Verified 2026-08-17: the
+      bootstrap login claimed the showcase row and the session reported role ADMIN.
 - [x] `https://pensieve.sethcondie.com/api/heartbeat` → `.status == "online"` **and
       `.secureMode == true`**. Verified 2026-08-17.
 - [x] `https://mcp.pensieve.sethcondie.com/healthz` → 200; tokenless `POST /mcp` → 401 with a
@@ -325,18 +326,54 @@ DNS not resolving yet.
 Procedure in
 [`DevDocumentation.md`](DevDocumentation.md#bootstrap-claim-the-seeded-default-showcase-row):
 
-- [ ] Create your account in the `pensieve` realm, set a password, and **flip Email verified → On by
+> **Surprise found 2026-08-17, during this step:** at `v1.0.0` the Keycloak **admin console does not
+> work through Caddy** — the console frames its own origin for a third-party-cookie check, and the
+> edge's `frame-ancestors 'none'` blocks it ("Timeout when waiting for 3rd party check iframe
+> message"). The Caddyfile fix (framing headers split out of `security_headers`; the auth host relies
+> on Keycloak's own `frame-ancestors 'self'`) rides release **1.0.1**. Until it is deployed, all
+> admin work goes through `kcadm` inside the container — the account below was created that way:
+> `kc create users -r pensieve -s username=… -s email=… -s emailVerified=true -s enabled=true`
+> then `kc set-password -r pensieve --username … --new-password '…'` (prod policy: 12+ chars, mixed
+> case, not username/email).
+
+- [x] Create your account in the `pensieve` realm, set a password, and **flip Email verified → On by
       hand** — `verifyEmail` is off by design, and claim-by-email requires `email_verified: true`
       (an unverified account logs in fine but gets a 403 email-conflict instead of claiming the row).
-- [ ] `UPDATE users SET email = 'you@domain.com', role_override = 'ADMIN' WHERE is_public_showcase;`
-- [ ] Log in once — the first authenticated call stamps `keycloak_sub` on that row.
-- [ ] **Harden:** enable OTP; create a real admin, delete the bootstrap one, and blank
-      `KC_ADMIN_USER`/`KC_ADMIN_PASSWORD` in `.env` (`KC_BOOTSTRAP_ADMIN_*` only applies to a first
-      boot on an empty DB).
-- [ ] **Confirm a real email arrives** — trigger a password reset. First end-to-end proof of the
-      SMTP path against real deliverability. Check the spam folder.
-- [ ] Exercise the app: log in, create a record, log out, log back in, confirm persistence and that
-      you see only your own data.
+      Done 2026-08-17 via kcadm (console blocked — see the surprise above).
+- [x] `UPDATE users SET email = 'you@domain.com', role_override = 'ADMIN' WHERE is_public_showcase;`
+      Done 2026-08-17: `psql` in the `db` container (`-U postgres -d pensieve-db`), `UPDATE 1`.
+- [x] Log in once — the first authenticated call stamps `keycloak_sub` on that row. Done 2026-08-17:
+      `linked = t` in the users table, `/api/auth/session` reported role ADMIN (which also closed the
+      token `aud`/`iss` verification item above).
+- [ ] **Harden:** enable OTP (done 2026-08-17, forced via the `CONFIGURE_TOTP` required action —
+      the account console may be framing-blocked like the admin console until 1.0.1); **still open,
+      deferred until the 1.0.1 Caddyfile fix restores the admin console:** create a real admin,
+      delete the bootstrap one, and blank `KC_ADMIN_USER`/`KC_ADMIN_PASSWORD` in `.env`
+      (`KC_BOOTSTRAP_ADMIN_*` only applies to a first boot on an empty DB).
+- [x] **Confirm a real email arrives** — trigger a password reset. First end-to-end proof of the
+      SMTP path against real deliverability. Check the spam folder. Done 2026-08-17, after fixing
+      the second surprise of the day, below.
+- [x] Exercise the app: log in, create a record, log out, log back in, confirm persistence and that
+      you see only your own data. Done 2026-08-17.
+
+> **Surprise #2, 2026-08-17 — the realm baked broken SMTP values.** The password-reset email never
+> arrived (Keycloak's "email sent" page shows success regardless — anti-enumeration). Root cause:
+> the production `.env` was transcribed from the 2026-08-14 password-manager draft, which carried
+> **`SMTP_STARTTLS=true` / `SMTP_SSL=false`** (the 587-style pair, wrong for 2465 — dies at the TLS
+> handshake) and the **placeholder from-domain `no-reply@pensieve.example.com`** (unverified with
+> Resend). The realm import baked those values. Two lessons for the record:
+>
+> 1. **`kc get realms/pensieve --fields smtpServer` returning `{ }` does NOT mean "no SMTP config"**
+>    — Keycloak masks the block on read to protect the password. Diagnose sends via the keycloak
+>    container log (`grep -iE 'mail|smtp'`) and the realm events (`SEND_RESET_PASSWORD` vs
+>    `SEND_RESET_PASSWORD_ERROR`), never by reading the realm back.
+> 2. **The recovery for a badly-baked SMTP block is a live realm edit**, exactly as the one-way-door
+>    note promises: `kc update realms/pensieve -s 'smtpServer={...}'` with the full object (all
+>    values as strings, `"starttls": "false"`, `"ssl": "true"`, the real from-domain and API key).
+>    Persists in `keycloak-db`; verified fixed 2026-08-17 — reset email delivered to the inbox.
+>
+> The Droplet `.env`, the password-manager copy, and `.env.production.example` (from-address now
+> prefilled with the real value instead of a placeholder) were all corrected the same day.
 
 **Docs, same day, from the transcript:** write the "first bringup" procedure that actually worked
 into this file as a new section; correct the bootstrap section in `DevDocumentation.md` if it behaved
