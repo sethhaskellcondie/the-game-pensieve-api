@@ -1,6 +1,8 @@
-# Production topology (Phase 6). Caddy is the ONLY service publishing ports (80/443) and terminates TLS;
-# it reverse-proxies three hostnames — the web app, the MCP sidecar, and Keycloak. Everything else
-# (backend, both databases, keycloak, mcp) is PRIVATE: reachable only on the compose network, no host ports.
+# Production topology (Phase 6). Caddy is the ONLY service publishing internet-facing ports (80/443) and
+# terminates TLS; it reverse-proxies three hostnames — the web app, the MCP sidecar, and Keycloak.
+# Everything else (backend, both databases, keycloak, mcp) is PRIVATE: reachable only on the compose
+# network, with one deliberate exception — the app database publishes 5432 on the Droplet's LOOPBACK
+# interface only, for IDE access over an SSH tunnel (see the db service).
 #
 # Images are the published artifacts — build + push them from their repos first (the frontend lives in
 # the-game-pensieve-web-v2; backend, mcp, and the realm live here).
@@ -222,7 +224,7 @@ services:
       PENSIEVE_MCP_DOMAIN: ${MCP_DOMAIN}
       PENSIEVE_WEB_CLIENT_SECRET: "${OIDC_CLIENT_SECRET:?required — must match the frontend OIDC_CLIENT_SECRET}"
       # SMTP relay for the realm's email verification and password-reset messages. STARTTLS/SSL are a pair:
-      # port 587 -> STARTTLS=true, SSL=false; port 465 -> STARTTLS=false, SSL=true.
+      # port 587/2587 -> STARTTLS=true, SSL=false; port 465/2465 -> STARTTLS=false, SSL=true.
       PENSIEVE_SMTP_HOST: ${SMTP_HOST}
       PENSIEVE_SMTP_PORT: ${SMTP_PORT}
       PENSIEVE_SMTP_FROM: ${SMTP_FROM}
@@ -268,7 +270,12 @@ services:
   db:
     image: postgres:16.15-alpine
     restart: unless-stopped
-    # NO ports: private.
+    # Loopback-only publish: 127.0.0.1 binding means this is unreachable from the internet regardless of
+    # firewall rules — only a shell already on the Droplet (i.e. an SSH tunnel) can connect. Exists so an
+    # IDE database client can tunnel in; see "Connecting an IDE to the production database" in
+    # documentation/buildFromScratch.md.
+    ports:
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

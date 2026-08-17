@@ -126,9 +126,12 @@ audience mapper, not a reachable URL — remapping it would fail every token.
 
 ## `compose.production.yaml` — the hosted deployment
 
-Caddy is the **only** service publishing ports (80/443); it terminates TLS and reverse-proxies three
-hostnames — the web app, the MCP sidecar, and Keycloak. Everything else (backend, both databases, keycloak,
-mcp) is private to the compose network with no host ports.
+Caddy is the **only** service publishing internet-facing ports (80/443); it terminates TLS and
+reverse-proxies three hostnames — the web app, the MCP sidecar, and Keycloak. Everything else (backend,
+both databases, keycloak, mcp) is private to the compose network, with one deliberate exception: the app
+database publishes `127.0.0.1:5432` on the Droplet's loopback only, so an IDE can reach it through an SSH
+tunnel (see "Connecting an IDE to the production database" in `buildFromScratch.md`). Loopback bindings are
+unreachable from outside the box regardless of firewall rules.
 
 ```
 docker compose -f /opt/pensieve/dockerCompose/compose.production.yaml up -d

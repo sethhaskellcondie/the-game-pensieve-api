@@ -1,0 +1,421 @@
+# Build From Scratch — the production host
+
+This is the operations runbook for the production server: every account, provider, and provisioning
+step needed to build — or rebuild — the host from nothing, with the results recorded as each step was
+actually performed. The launch was originally driven from a working plan in `localFiles/`, which is
+untracked and does not survive a clone; **this file is the durable record.** Steps below are marked
+✅ done (with what happened) or ⬜ not yet done (with exactly what to do).
+
+Division of labor with the other docs:
+
+- [`DevDocumentation.md`](DevDocumentation.md) — the code, the local dev environment, and the
+  production *topology* (compose file, Caddyfile, edge posture, how the deploy scripts work).
+- [`dockerComposeExplainer.md`](dockerComposeExplainer.md) — every compose file and env file.
+- [`scriptExplainer.md`](scriptExplainer.md) — every script in `scripts/`, including the deploy pair.
+- **This file** — the *host* the topology runs on: providers, the Droplet, provisioning, first
+  bringup, backups, and the operational rules that only exist on the box.
+
+---
+
+## ⚠️ The one-way doors
+
+Everything below is arranged around four things that cannot be undone. Read this section before
+touching the production host, every time.
+
+1. **The Keycloak realm import runs exactly once**, on first boot with an empty `keycloak-db`. Every
+   value in `keycloak/import-prod/pensieve-realm.json` — password policy, refresh-token rotation, the
+   SMTP block, `OIDC_CLIENT_SECRET`, the audience mapper — is baked at that moment. Editing `.env` or
+   the JSON afterwards changes nothing; correcting a mistake means destroying the volume, which
+   destroys every user account.
+2. **`keycloak_db_data` is irreplaceable.** `users.keycloak_sub` is a UNIQUE foreign reference into
+   it. Lose the volume and every `sub` changes: existing users are orphaned from their collections and
+   silently JIT-provision empty new rows. **Never run `down -v` on the production host.**
+3. **Published image tags are immutable.** `:X.Y.Z` on Docker Hub is permanent. A fix after publish
+   is a new version.
+4. **`compose.production.yaml` and the `Caddyfile` are checked out at the version tag** on the host —
+   they are not runtime configuration. Changing them means a new release.
+
+---
+
+## Accounts and providers
+
+**Domain**
+
+- Registrar is `Porkbun`
+- DNS host is `Porkbun (registrar-provided DNS)`
+- Apex domain is `sethcondie.com`
+- Registered on `2026-08-13`
+
+**Hostnames.**
+
+- APP_DOMAIN=pensieve.sethcondie.com
+- MCP_DOMAIN=mcp.pensieve.sethcondie.com
+- AUTH_DOMAIN=auth.pensieve.sethcondie.com
+
+These are permanent. `AUTH_DOMAIN` is the token issuer, `MCP_DOMAIN` is the `aud` claim, and both are
+baked into three services and every issued token — there is no rename path.
+
+**Email relay — Resend**
+
+- Account email is `8bitdad7dc@gmail.com`
+- Verified domain is `pensieve.sethcondie.com`
+- Subdomain is verified and will be used, over the apex domain, because if a reputation issue comes
+  up with the subdomain it can be changed in the future. (With some manual syncing with the keycloak
+  realm and this project.)
+- Verified on `2026-08-13`
+- SMTP_FROM is `no-reply@pensieve.sethcondie.com`
+- Replies to that address will be discarded
+- First real send (2026-08-14, the launch rehearsal): Resend showed green **delivered**, but Yahoo
+  placed the message in **spam** — expected for a fresh sending domain with no reputation and DMARC
+  at `p=none`. The recipient marked it not-spam. "Delivered" only means the receiving server accepted
+  the message; recheck inbox placement once real users exist, because a password-reset link in spam
+  is a locked-out user (self-service reset is the only credential-recovery path).
+- DNS records published (DKIM `TXT`, SPF, `MX` for bounces, DMARC) on `2026-08-13`
+
+`SMTP_FROM` is effectively frozen. Keycloak resolves it into the realm at first import and never reads
+`.env` for it again, so changing it later means editing the live realm by hand — at which point `.env`
+and the realm disagree. Pick the address users should see, then verify whichever domain permits it.
+
+Public SMTP settings — confirmed against the Resend dashboard 2026-08-13; port changed 465 → 2465 on
+2026-08-17 (see step 5 below — DigitalOcean blocks the standard ports and denied the unblock ticket):
+
+- SMTP_HOST=smtp.resend.com
+- SMTP_PORT=2465
+- SMTP_USER=resend (literally the string `resend`)
+- SMTP_STARTTLS=false
+- SMTP_SSL=true
+- SMTP_PASSWORD is the Resend API key, sending-access only — password manager only, never here and
+  never in git. Unlike `SMTP_FROM`, this one is cheap to rotate: revoke, regenerate, update `.env`,
+  restart Keycloak.
+
+Port and TLS flags are a **pair**, never mixed — `465/2465 → STARTTLS=false, SSL=true` (implicit TLS,
+what we use); `587/2587 → STARTTLS=true, SSL=false`. Resend listens on 25, 465, 587, 2465, and 2587 at
+the same time, so the port is purely a client-side choice with nothing to configure on their end —
+2465 is byte-for-byte identical to 465 except the TCP port. Mixing the pair fails at connect time with
+a TLS handshake error that does not name the port as the cause.
+
+**DNS zone hazard, learned the hard way:** Porkbun installs a **wildcard `*` CNAME** to its parking
+page on every new domain. It was deleted during setup. With it in place *every* name in the zone
+resolves, so `NXDOMAIN` disappears as a signal and no DNS check can distinguish "record correct" from
+"record missing." If the zone is ever rebuilt, delete the wildcard again first. Two
+`_acme-challenge.sethcondie.com` TXT records also exist from Porkbun's free-SSL feature — harmless
+(Caddy uses HTTP-01, not DNS-01), do not be confused by them.
+
+**Hosting — DigitalOcean**
+
+- Droplet name: `pensieve-project` <!-- confirm/update after the rename -->
+- Region / size: _(record: region slug)_ / 4 GB RAM, Ubuntu LTS (~$24/mo)
+- Public IP: _(record after provisioning; also the value the three A records point at)_
+- Auth: SSH key only; password login disabled at creation. Additional machines get access by
+  appending their own public key to `~/.ssh/authorized_keys` (and updating the firewall's port-22
+  source) — never by copying the private key around.
+
+**Why 4 GB.** The stack's steady-state working set is ~2.3 GB before the OS: backend JVM ~700 MB,
+Keycloak ~800 MB, two Postgres ~200 MB each, Next.js ~200 MB, sidecar ~100 MB, Caddy ~50 MB. The
+compose file caps every service (`mem_limit`/`cpus`, ~3.9 GB of ceilings) so one runaway container
+cannot take down the rest. 2 GB cannot hold the working set; 8 GB buys nothing.
+
+---
+
+## Provisioning — the build order
+
+Performed 2026-08-14 onward. Each step records what was actually done, so a rebuild can follow this
+top to bottom.
+
+### ✅ 1. Create the Droplet
+
+4 GB Ubuntu LTS, SSH-key auth chosen at creation (which disables password login). Verify access:
+`ssh root@<droplet-ip>`.
+
+### ✅ 2. Swap file — 2 GB, persistent
+
+Non-negotiable: Keycloak's startup is memory-hungry enough to OOM-kill a neighbour without it.
+
+```bash
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+free -h    # Swap: must show 2.0Gi
+```
+
+### ✅ 3. Docker Engine and Compose plugin
+
+Installed from Docker's official repository (not Ubuntu's `docker.io` package):
+
+```bash
+curl -fsSL https://get.docker.com | sh
+docker run hello-world
+docker compose version
+```
+
+### ✅ 4. Firewall — DO cloud firewall, attached to the Droplet
+
+| Direction | Rule | Source / Destination |
+|---|---|---|
+| Inbound | TCP 22 (SSH) | workstation IP only _(record the IP here)_ |
+| Inbound | TCP 80 | all IPv4 / all IPv6 |
+| Inbound | TCP 443 | all IPv4 / all IPv6 |
+| Outbound | ICMP, all TCP, all UDP | all (DO defaults) |
+
+Deliberately **cloud firewall only, no `ufw`** — one place to update, not two. When the workstation's
+IP changes, SSH times out; the fix is editing the port-22 source in the DO dashboard (browser), with
+the Droplet's recovery console as the fallback. Open outbound is required: the host reaches Docker
+Hub, GitHub, Let's Encrypt, and Resend.
+
+### ✅ 5. Outbound SMTP to Resend — **resolved via port 2465** (DO ticket denied)
+
+```bash
+nc -vz -w 5 smtp.resend.com 2465
+```
+
+**History.** Port 465 timed out 2026-08-14: DigitalOcean blocks outbound SMTP (25/465/587) on newer
+accounts. Support ticket submitted 2026-08-14 was **denied 2026-08-15** — DO would not lift the block.
+
+**Resolution 2026-08-17.** Resend also listens on 2465 (implicit TLS) and 2587 (STARTTLS), which sit
+outside DO's block. Both connected from the Droplet on the first try. The deployment now uses **2465**,
+which keeps the exact TLS flags proven in the launch rehearsal (`STARTTLS=false, SSL=true`) — the only
+value that changed anywhere is `SMTP_PORT`. Updated the same day in `.env.production.example`,
+`.env.rehearsal`, and the password-manager copy of the production values.
+
+This was a hard gate for the first deploy (the realm import bakes the SMTP config and runs once); it
+is now clear. If this check is ever re-run on a rebuild, test the port actually used (2465) — a result
+on any other port proves nothing.
+
+### ⬜ 6. Unattended security upgrades
+
+```bash
+apt install -y unattended-upgrades
+dpkg-reconfigure -plow unattended-upgrades   # answer Yes
+```
+
+### ⬜ 7. Docker daemon log rotation
+
+A 4 GB disk fills faster than you expect, and a full disk takes down both databases and Caddy's cert
+store at once. Write `/etc/docker/daemon.json`:
+
+```json
+{ "log-driver": "json-file", "log-opts": { "max-size": "10m", "max-file": "3" } }
+```
+
+Then `systemctl restart docker`.
+
+### ⬜ 8. Docker Hub login
+
+```bash
+docker login -u sethcondie    # paste the ACCESS TOKEN found in the password manager, never the account password
+```
+
+Anonymous pulls are rate-limited; hitting the limit mid-deploy is a miserable way to find out.
+
+### ⬜ 9. Read-only GitHub deploy key and clone
+
+On the Droplet: `ssh-keygen -t ed25519 -C "pensieve-droplet-deploy"`, add the **public** key in
+GitHub → this repo → Settings → Deploy keys, **read-only** (leave "Allow write access" unchecked).
+GitHub key's name: pensieve-droplet-deploy. Then:
+
+```bash
+git clone git@github.com:sethhaskellcondie/the-game-pensieve-api.git /opt/pensieve
+```
+
+`/opt/pensieve` is the exact path the deploy scripts assume.
+
+### ⬜ 10. DNS — point the three A records at the Droplet
+
+In Porkbun, create A records for `pensieve.sethcondie.com`, `mcp.pensieve.sethcondie.com`, and
+`auth.pensieve.sethcondie.com`, all pointing at the Droplet's public IP. Verify **from off-network**
+(a machine that is not the workstation — e.g. a phone off wifi):
+
+```bash
+dig +short pensieve.sethcondie.com          # → the Droplet IP
+dig +short mcp.pensieve.sethcondie.com      # → the Droplet IP
+dig +short auth.pensieve.sethcondie.com     # → the Droplet IP
+```
+
+Caddy's ACME certificate challenge runs on first boot; without resolving DNS there are no
+certificates and nothing serves. (And remember the wildcard-CNAME hazard above — with a wildcard in
+the zone this verification is worthless.)
+
+### Provisioning exit criteria
+
+SSH works · `docker run hello-world` works · `/opt/pensieve` is a clean checkout · `free -h` shows
+the 2 GB swap · all three hostnames resolve to this box from outside · `nc -vz -w 5 smtp.resend.com
+2465` connects (step 5).
+
+---
+
+## ⬜ Configure the environment (`.env`)
+
+The SMTP gate (step 5) is resolved; nothing blocks this section.
+
+1. `cp /opt/pensieve/dockerCompose/.env.production.example /opt/pensieve/dockerCompose/.env` and fill
+   **every** value. `nano /opt/pensieve/dockerCompose/.env` It must sit beside the compose file — that is where compose autoloads it from.
+   A complete file-shaped draft already exists in the password manager (saved 2026-08-14) —
+   transcribe from it, don't re-derive.
+2. Generate each secret with `openssl rand -base64 48`: `SESSION_SECRET` (≥32 chars — enforced at
+   boot), `OIDC_CLIENT_SECRET`, `POSTGRES_PASSWORD`, `KC_DB_PASSWORD`, `KC_ADMIN_PASSWORD`.
+3. `KC_ADMIN_UI_PASSWORD_HASH` from `docker run --rm caddy:2 caddy hash-password --plaintext '…'`.
+   **Single-quote it in `.env`** — bcrypt hashes are full of `$`.
+4. **Use the exact SMTP values proven in the rehearsal — copy from the password manager, do not
+   retype from memory.**
+5. `chmod 600 dockerCompose/.env`. Store the final copy back in the password manager — **this file
+   exists in exactly one place.**
+6. Re-read the one-way-doors section at the top. The next command is the door.
+
+If any variable is ambiguous or confusing while filling it in, fix
+`dockerCompose/.env.production.example` and `dockerComposeExplainer.md` immediately — the first
+cold read of that file is unrecoverable once you know the answers.
+
+---
+
+## ⬜ First deploy, by hand
+
+**Do not start until outbound SMTP (step 5 above) is confirmed working.** By hand, not with the
+script — you cannot script a procedure you have not performed. **Keep a live transcript**: paste
+every command and its output into a scratch file as you go. This happens exactly once, and the
+transcript is the specification for verifying `deploy-production-remote.sh` afterward.
+
+```bash
+cd /opt/pensieve
+git fetch --tags && git checkout v1.0.0     # confirm the three image pins read 1.0.0, not latest
+docker compose -f dockerCompose/compose.production.yaml up -d
+```
+
+**Any `variable is not set` warning ⇒ stop.** (The `:?` guards abort on blank secrets rather than
+booting insecure.) Then `docker compose -f dockerCompose/compose.production.yaml logs -f` — Keycloak's
+realm import (30–60s) and the backend's Flyway run dominate first boot; be generous with timeouts.
+Confirm Caddy obtained certificates for all three hostnames — ACME failures here are almost always
+DNS not resolving yet.
+
+### Verification checklist (the rehearsal's assertions, now against real DNS and real TLS)
+
+- [x] **No literal `${PENSIEVE_…}` survived substitution** anywhere in the realm — the highest-value
+      check. Verified 2026-08-17: kcadm sweep of the realm, clients, and client-scopes found zero
+      `PENSIEVE_` strings; the client secret matches `OIDC_CLIENT_SECRET`; the `redirectUris` were
+      also proven externally (Keycloak redirects errors *back to* the callback URL, which it only
+      does for a registered URI). A literal placeholder means wiping `keycloak-db` and re-importing.
+- [ ] Decode a real access token: `aud == https://mcp.pensieve.sethcondie.com/mcp` and
+      `iss == https://auth.pensieve.sethcondie.com/realms/pensieve`. In this BFF the token never
+      reaches a browser — the equivalent proof happens during bootstrap: after first login,
+      `/api/auth/session` reporting a real role means the secured backend accepted `aud` and `iss`
+      (`"unknown"` is exactly what a bad audience mapper produces).
+- [x] `https://pensieve.sethcondie.com/api/heartbeat` → `.status == "online"` **and
+      `.secureMode == true`**. Verified 2026-08-17.
+- [x] `https://mcp.pensieve.sethcondie.com/healthz` → 200; tokenless `POST /mcp` → 401 with a
+      `WWW-Authenticate` challenge; anonymous dynamic client registration refused — as a **403**
+      from the Trusted Hosts policy (`Host not trusted`), not the 401 the rehearsal predicted; the
+      policy refuses before auth is even considered. Verified 2026-08-17.
+- [x] The Caddy gate, **both directions**: `/admin` prompts for basic auth;
+      `/realms/pensieve/.well-known/openid-configuration` returns 200 with no prompt; the login page
+      renders **styled** (unstyled = the matcher is too broad; the page's three `/resources/…` CSS
+      files each returned 200 `text/css`). Verified 2026-08-17. Note: the authorization endpoint
+      refuses a request without PKCE (`Missing parameter: code_challenge_method`) — correct
+      behavior, not a defect.
+- [x] Every service except Caddy publishes no host port. Verified 2026-08-17 via `docker ps`.
+      **One deliberate exception added later the same day:** the app database (`db`) publishes
+      `127.0.0.1:5432` — loopback only, unreachable from the internet — for IDE access over an SSH
+      tunnel. See "Connecting an IDE to the production database" below. When re-running this check,
+      the expected `docker ps` output is Caddy on `0.0.0.0:80/443` and db on `127.0.0.1:5432` and
+      nothing else.
+- [x] Realm settings took: brute force on, password policy, session timeouts — verified 2026-08-17
+      via kcadm. "A login under Events" can only exist after the bootstrap login; check it then.
+
+### Bootstrap the admin
+
+Procedure in
+[`DevDocumentation.md`](DevDocumentation.md#bootstrap-claim-the-seeded-default-showcase-row):
+
+- [ ] Create your account in the `pensieve` realm, set a password, and **flip Email verified → On by
+      hand** — `verifyEmail` is off by design, and claim-by-email requires `email_verified: true`
+      (an unverified account logs in fine but gets a 403 email-conflict instead of claiming the row).
+- [ ] `UPDATE users SET email = 'you@domain.com', role_override = 'ADMIN' WHERE is_public_showcase;`
+- [ ] Log in once — the first authenticated call stamps `keycloak_sub` on that row.
+- [ ] **Harden:** enable OTP; create a real admin, delete the bootstrap one, and blank
+      `KC_ADMIN_USER`/`KC_ADMIN_PASSWORD` in `.env` (`KC_BOOTSTRAP_ADMIN_*` only applies to a first
+      boot on an empty DB).
+- [ ] **Confirm a real email arrives** — trigger a password reset. First end-to-end proof of the
+      SMTP path against real deliverability. Check the spam folder.
+- [ ] Exercise the app: log in, create a record, log out, log back in, confirm persistence and that
+      you see only your own data.
+
+**Docs, same day, from the transcript:** write the "first bringup" procedure that actually worked
+into this file as a new section; correct the bootstrap section in `DevDocumentation.md` if it behaved
+differently than written; record every surprise in `PastIssues.md`.
+
+---
+
+## ⬜ Backups and monitoring — immediately after first deploy
+
+Before there is data worth losing, not after the deploy script is proven.
+
+- [ ] **`pg_dump` cron for BOTH databases** to off-box storage (DO Spaces, ~$5/mo). `keycloak-db` is
+      the one people forget, and it is the irreplaceable one.
+- [ ] **DO snapshots** as well — snapshots solve "the box died"; the dump cron solves "I need
+      Tuesday's data."
+- [ ] **Rehearse a restore, and write the restore runbook here *while restoring*** — including the
+      two-database consistency question (app rows reference Keycloak identities by `keycloak_sub`;
+      restoring one without the other orphans users). An untested backup is a hope.
+- [ ] External uptime monitoring on `https://pensieve.sethcondie.com/api/heartbeat`, the MCP
+      `/healthz`, and TLS certificate expiry. Disk-space monitoring on the box.
+- [ ] Record the debugging path: nothing publishes an internet-facing port except Caddy, so shells
+      go through `docker compose exec <service> …`; the backend's internal heartbeat is reachable
+      with `docker compose exec backend curl localhost:8080/v1/heartbeat`. (The app database is the
+      loopback-only exception — `psql` works from the Droplet at `127.0.0.1:5432`, and from a
+      workstation through an SSH tunnel; see the IDE section below.)
+
+---
+
+## Connecting an IDE to the production database
+
+The app database publishes **`127.0.0.1:5432` on the Droplet only** (added to
+`compose.production.yaml` 2026-08-17). A loopback binding is invisible to the internet no matter
+what the firewall says — the only way in is to already have a shell on the box, which is exactly
+what an SSH tunnel is. Nothing to open in the DO cloud firewall.
+
+IntelliJ setup (Database tool window → `+` → Data Source → PostgreSQL):
+
+1. **SSH/SSL tab** → check *Use SSH tunnel* → create an SSH configuration: the Droplet's IP,
+   port 22, your SSH user, *Key pair* auth pointing at the same private key `ssh` uses.
+2. **General tab** — these values are from the *Droplet's* perspective, because traffic exits the
+   tunnel there:
+   - Host `127.0.0.1`, port `5432`
+   - User `postgres`, password = `POSTGRES_PASSWORD` from `/opt/pensieve/dockerCompose/.env`
+   - Database `pensieve-db`
+3. **Set the data source to Read-only** (Options tab). This is production; the IDE will otherwise
+   happily run an UPDATE with no WHERE clause.
+
+The same recipe works for plain `psql` (`ssh -N -L 5432:127.0.0.1:5432 <droplet>` then connect to
+localhost) and, if ever needed, for `keycloak-db` — publish it on a *different* loopback port
+(e.g. `127.0.0.1:5433:5432`) rather than colliding with the app db. It is deliberately not
+published today.
+
+---
+
+## ⬜ Prove the deploy script
+
+- [ ] `DRY_RUN=yes make deploy VERSION=1.0.0` against the live host — every check, no changes.
+- [ ] Fold in anything from the first-deploy transcript the script should do and doesn't.
+- [ ] Cut a trivial `1.0.1` through `release.sh` and deploy it for real (10–60s downtime is
+      accepted, not a bug).
+- [ ] **Test the rollback deliberately while nothing is at stake:** deploy `1.0.1` → `1.0.0` →
+      confirm → `1.0.1` again.
+- [ ] Confirm preflight rejects a wrong/unpublished version in seconds.
+- [ ] Then: remove the *unverified* banners on the deploy sections in `README.md` and
+      `DevDocumentation.md`, and finalize `scriptExplainer.md` with real timings.
+
+Remember: **rollback does not roll back the database.** Migrations stay additive so the previous
+image runs against the newer schema.
+
+---
+
+## ⬜ Open the doors
+
+- [ ] Register remote MCP hosts by hand (production ships no anonymous DCR); grant `offline_access`
+      and **attach `pensieve:read` explicitly** (it is no longer a realm default); decode the
+      resulting token to confirm an offline token was actually issued.
+- [ ] Onboard real users only once the SMTP path is proven — every account is admin-created and
+      self-service reset is the only recovery path. Write the onboarding procedure down as it is
+      first performed (create in admin console, set email verified, send `execute-actions-email`).
+- [ ] Check production-bound data for pre-2026-07-30 corrupted `baseSetId` rows before they become
+      v1's data — re-import cannot repair them.
+- [ ] Third-party notices and a privacy / data-handling statement.

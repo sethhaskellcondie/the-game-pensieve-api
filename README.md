@@ -125,7 +125,9 @@ curl http://localhost:8080/v1/heartbeat
 
 ## Documentation
 
-Additional documentation lives in the [`documentation/`](./documentation) directory:
+Additional documentation lives in the [`documentation/`](./documentation) directory. The production
+host — providers, Droplet provisioning, first bringup, backups — has its own runbook:
+[`documentation/buildFromScratch.md`](./documentation/buildFromScratch.md).
 
 ### Deploying to production
 

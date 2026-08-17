@@ -144,9 +144,10 @@ KC_ADMIN_UI_PASSWORD='$ui_password'
 # than blank so the realm import still gets a well-formed address on the topology-only run -- but a
 # placeholder From is rejected by the relay AFTER a successful authentication, which is a confusing way
 # to fail, so change it before setting SMTP_TEST_TO.
-# Port and TLS flags are a PAIR: 465 -> STARTTLS=false, SSL=true; 587 -> STARTTLS=true, SSL=false.
+# Port and TLS flags are a PAIR: 465/2465 -> STARTTLS=false, SSL=true; 587/2587 -> STARTTLS=true,
+# SSL=false. 2465 matches production, where DigitalOcean blocks outbound 25/465/587.
 SMTP_HOST=smtp.resend.com
-SMTP_PORT=465
+SMTP_PORT=2465
 SMTP_FROM=no-reply@pensieve.example.com
 SMTP_USER=resend
 SMTP_PASSWORD=

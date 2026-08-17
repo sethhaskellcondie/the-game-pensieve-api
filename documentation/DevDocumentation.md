@@ -88,6 +88,10 @@ The resource-server settings live in `application-secured.properties` (`pensieve
 
 ## Deployment (production topology)
 
+This section covers the *topology* — the compose file, the Caddyfile, the edge posture, and how the
+deploy scripts work. The production *host* (providers, Droplet provisioning, first bringup, backups)
+is documented in [`buildFromScratch.md`](buildFromScratch.md).
+
 Production is defined by `dockerCompose/compose.production.yaml`, `Caddyfile`, and `dockerCompose/.env.production.example` (copy to `.env` in that same directory and fill in). The `.env` lives beside the compose file so compose auto-loads it — `docker compose -f dockerCompose/compose.production.yaml up -d` needs no `--env-file`. A *missing* `.env` only warns, per variable, and then the stack dies on boot, so the deploy script asserts it exists. The file pins `name: pensieve` as its compose project, so the project no longer depends on the checkout directory's name. **Caddy is the only public service** — it terminates TLS and binds ports 80/443, reverse-proxying three hostnames to private services: the app (`frontend`), the MCP sidecar (`mcp`), and auth (`keycloak`). Everything else — `backend`, `db`, `keycloak`, `keycloak-db`, `mcp`, and `frontend` — is private with no published ports and is reachable only over the docker-compose network.
 
 **Production runs secured.** The backend is started with `SPRING_PROFILES_ACTIVE: docker,secured` and its `PENSIEVE_OAUTH2_*` env, the sidecar with `MCP_AUTH_MODE=required`, and Keycloak has its own Postgres (`keycloak-db`), separate from the app database. There is **no `flyway` service** here — the production backend runs Flyway on startup — and the app database keeps a named volume. It matches `dockerCompose/compose.secured.yaml` in posture, and is the opposite of `dockerCompose/compose.unsecured.yaml` (see [Security Mode in Docker](#security-mode-in-docker)).
@@ -195,59 +199,79 @@ image rollback never rolls back the schema. Rehearse with `DRY_RUN=yes` — ever
 changes, including on the Droplet (it fetches tags but does not move the checkout). Both halves are
 documented in full in `scriptExplainer.md`.
 
+### Bootstrap: claim the seeded default showcase row
+
+A fresh database has exactly one user: migration `V1_13` seeds a row with
+`email = 'showcase@internal.local'` and `is_public_showcase = TRUE` (a partial unique index guarantees there
+is only ever one), and every anonymous request resolves to it — it is the default showcase whose data guests
+see. `V1_19` added `users.keycloak_sub` (nullable, UNIQUE); NULL means "not yet linked to a Keycloak
+account". The bootstrap makes this seeded row *yours*: your email, the ADMIN pin, and — on your first
+login — your Keycloak `sub` stamped onto it.
+
+The mechanism is `OwnerResolver.resolveOrProvision`, which resolves every authenticated request in this
+order:
+
+1. **By `sub`** — if a row is linked to the token's `sub`, that row wins, unconditionally.
+2. **Claim by email** — no row by `sub`, and the token's `email_verified` claim is `true`: an existing row
+   with the token's email (trimmed, lowercased) is claimed by stamping the `sub` onto it. The verified-email
+   requirement is a takeover guard — without it, anyone who registered your address at the IdP could claim
+   your row.
+3. **JIT trial** — otherwise a fresh 30-day TRIAL row is inserted for this identity. If the insert hits the
+   email UNIQUE constraint (a row with that address exists but step 2 did not apply — almost always an
+   unverified email), the request is refused with a 403 naming the conflict.
+
+**⚠️ Step order is load-bearing: run the SQL *before* the first login.** Log in first and step 3 JIT-creates
+a TRIAL row linked to your `sub`; from then on step 1 always wins and the showcase row can never be claimed.
+Recovery: `DELETE FROM users WHERE keycloak_sub = '<your sub>' AND NOT is_public_showcase;` (safe only while
+the mistaken row owns no data), then redo the procedure.
+
+The procedure, shown with the production compose file (any secured stack works the same):
+
+1. **Create your account in Keycloak.** Admin console (in production: `https://<AUTH_DOMAIN>/admin`, through
+   the Caddy basic-auth gate, then the Keycloak admin login) → switch realm **master → pensieve** → Users →
+   Create user: set username and email, and flip **Email verified → On** — by hand, every time. The realm
+   ships with `verifyEmail` off by design (accounts are admin-created, there is no open registration), so
+   nothing flips it for you; an unverified account logs in fine but skips the claim path and gets the 403
+   email-conflict from step 3 above. Then Credentials → Set password with **Temporary off**.
+2. **Point the seeded row at your email and pin ADMIN:**
+
+   ```bash
+   docker compose -f dockerCompose/compose.production.yaml exec db \
+     psql -U postgres -d pensieve-db \
+     -c "UPDATE users SET email = 'you@domain.com', role_override = 'ADMIN' WHERE is_public_showcase;"
+   ```
+
+   The email **must be lowercase** — Keycloak stores emails lowercased and the resolver compares the
+   normalized form, so a mixed-case address here never matches. `role_override = 'ADMIN'` outranks the
+   billing-derived role outright, and `uq_users_single_admin` allows exactly one pinned admin — this UPDATE
+   fails if another row is already pinned.
+3. **Log in once** through the app. The first authenticated API call claims the row by verified email and
+   stamps `keycloak_sub`; there is nothing else to trigger.
+4. **Verify the claim took**, from both sides:
+
+   ```bash
+   docker compose -f dockerCompose/compose.production.yaml exec db \
+     psql -U postgres -d pensieve-db \
+     -c "SELECT id, email, role_override, keycloak_sub IS NOT NULL AS linked FROM users WHERE is_public_showcase;"
+   ```
+
+   `linked` must be `t`, and `GET /api/auth/session` in the logged-in browser (which calls
+   `GET /v1/auth/me` behind the scenes) must report role `ADMIN` — `unknown` means the backend rejected the
+   token, not that the claim failed.
+
+After the claim, harden per the checklist in [`buildFromScratch.md`](buildFromScratch.md): enable OTP on the
+account, create a permanent Keycloak admin and delete the bootstrap one, and blank
+`KC_ADMIN_USER`/`KC_ADMIN_PASSWORD` in `.env` (`KC_BOOTSTRAP_ADMIN_*` only ever applies to a first boot on
+an empty `keycloak-db`).
+
 ### Accounts and providers
 
-**Domain**
+Moved to [`buildFromScratch.md`](buildFromScratch.md), the operations runbook for the production
+host. Registrar, DNS, hostnames, the Resend relay and SMTP settings, and the Droplet's provisioning
+record all live there — this document keeps the production *topology*; the host it runs on and the
+providers around it are buildFromScratch territory.
 
-- Registrar is `Porkbun`
-- DNS host is `Porkbun (registrar-provided DNS)`
-- Apex domain is `sethcondie.com`
-- Registered on `2026-08-13`
 
-**Hostnames.** 
-
-- APP_DOMAIN=pensieve.sethcondie.com
-- MCP_DOMAIN=mcp.pensieve.sethcondie.com
-- AUTH_DOMAIN=auth.pensieve.sethcondie.com
-
-**Email relay — Resend** 
-
-- Account email is `8bitdad7dc@gmail.com`
-- Verified domain is `pensieve.sethcondie.com`
-- Subdomain is verified and will be used, over the apex domain, because if a reputation issue comes up with, the subdomain it can be changed in the future. (With some manual syncing with the keycloak realm and this project.)
-- Verified on `2026-08-13`
-- SMTP_FROM is `no-reply@pensieve.sethcondie.com`
-- Replies to that address will be discarded
-- First real send (2026-08-14, the Stage 4 rehearsal): Resend showed green **delivered**, but Yahoo placed
-  the message in **spam** — expected for a fresh sending domain with no reputation and DMARC at `p=none`.
-  The recipient marked it not-spam. "Delivered" only means the receiving server accepted the message;
-  recheck inbox placement once real users exist, because a password-reset link in spam is a locked-out
-  user (self-service reset is the only credential-recovery path).
-- DNS records published (DKIM `TXT`, SPF, `MX` for bounces, DMARC) on `2026-08-13`
-
-`SMTP_FROM` is effectively frozen. Keycloak resolves it into the realm at first import and never reads
-`.env` for it again, so changing it later means editing the live realm by hand — at which point `.env`
-and the realm disagree. Pick the address users should see, then verify whichever domain permits it.
-
-Public SMTP settings — confirmed against the Resend dashboard 2026-08-13:
-
-- SMTP_HOST=smtp.resend.com
-- SMTP_PORT=465
-- SMTP_USER=resend (literally the string `resend`)
-- SMTP_STARTTLS=false
-- SMTP_SSL=true
-- SMTP_PASSWORD is the Resend API key, sending-access only — password manager only, never here and
-  never in git. Unlike `SMTP_FROM`, this one is cheap to rotate: revoke, regenerate, update `.env`,
-  restart Keycloak.
-
-Port and TLS flags are a **pair**, never mixed — `465 → STARTTLS=false, SSL=true` (implicit TLS, what
-we use, and what the Resend dashboard hands you); `587 → STARTTLS=true, SSL=false`. Resend listens on
-25, 465, 587, 2465, and 2587 at the same time, so the port is purely a client-side choice with nothing
-to configure on their end. Mixing the pair fails at connect time with a TLS handshake error that does
-not name the port as the cause.
-
-Note for provisioning: DigitalOcean blocks outbound port 25 by default and may restrict others pending
-review, so the Droplet's day-one connectivity test is against **465** — `nc -vz smtp.resend.com 465`.
 
 ## Testing Strategy
 
