@@ -103,12 +103,21 @@ resolves, so `NXDOMAIN` disappears as a signal and no DNS check can distinguish 
 
 **Hosting — DigitalOcean**
 
-- Droplet name: `pensieve-project` <!-- confirm/update after the rename -->
-- Region / size: _(record: region slug)_ / 4 GB RAM, Ubuntu LTS (~$24/mo)
-- Public IP: _(record after provisioning; also the value the three A records point at)_
+- Droplet name / hostname: `pensieve-project` (created with a typo — `pensive-project`, missing an
+  "e"; the dashboard name and the box's hostname/`/etc/hosts` were both corrected 2026-08-17.
+  Cosmetic only: SSH goes by IP, DNS by IP, and the compose project name is pinned — nothing
+  functional ever referenced the hostname)
+- Region / size: `nyc1` / 4 GB RAM, Ubuntu LTS (~$24/mo)
+- Public IP: `159.203.179.41` (also the value the three A records point at)
 - Auth: SSH key only; password login disabled at creation. Additional machines get access by
   appending their own public key to `~/.ssh/authorized_keys` (and updating the firewall's port-22
   source) — never by copying the private key around.
+- The workstation reaches it as `ssh pensieve-prod` — a `Host pensieve-prod` alias in
+  `~/.ssh/config` (User root, the IP above, `IdentityFile ~/.ssh/id_ed25519`, `AddKeysToAgent yes`,
+  `UseKeychain yes`). The key is passphrase-protected; the passphrase lives in the macOS Keychain
+  via a one-time `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`, which is what lets the deploy
+  script's `BatchMode=yes` connections work without a prompt. This alias is the deploy scripts'
+  default `DEPLOY_HOST`.
 
 **Why 4 GB.** The stack's steady-state working set is ~2.3 GB before the OS: backend JVM ~700 MB,
 Keycloak ~800 MB, two Postgres ~200 MB each, Next.js ~200 MB, sidecar ~100 MB, Caddy ~50 MB. The
@@ -381,24 +390,156 @@ differently than written; record every surprise in `PastIssues.md`.
 
 ---
 
-## ⬜ Backups and monitoring — immediately after first deploy
+## ✅ Backups and monitoring — immediately after first deploy
 
-Before there is data worth losing, not after the deploy script is proven.
+Before there is data worth losing, not after the deploy script is proven. Built 2026-08-17; the
+single remaining follow-up is confirming the first *scheduled* backup run the morning of
+2026-08-18 (see the first bullet).
 
-- [ ] **`pg_dump` cron for BOTH databases** to off-box storage (DO Spaces, ~$5/mo). `keycloak-db` is
-      the one people forget, and it is the irreplaceable one.
-- [ ] **DO snapshots** as well — snapshots solve "the box died"; the dump cron solves "I need
-      Tuesday's data."
-- [ ] **Rehearse a restore, and write the restore runbook here *while restoring*** — including the
+- [x] **`pg_dump` cron for BOTH databases** to off-box storage (DO Spaces, ~$5/mo). `keycloak-db` is
+      the one people forget, and it is the irreplaceable one. Done 2026-08-17 — see "The backup
+      system" below for the script, the cron entry, and the Spaces setup. First manual run verified
+      end to end (both dumps landed in Spaces); **first *scheduled* run still to be confirmed the
+      morning of 2026-08-18** (`/var/log/pensieve-backup.log` empty + the day's pair in Spaces).
+- [x] **DO snapshots** as well — snapshots solve "the box died"; the dump cron solves "I need
+      Tuesday's data." **Decision 2026-08-17: on-demand snapshots, not automated weekly Backups.**
+      Take one manually (dashboard → Droplet → Snapshots) before anything risky — a deploy of a new
+      version, an OS upgrade, host-level config changes. The daily dump cron is the data-safety
+      layer; a snapshot only buys rebuild *speed*, and without one a dead box means re-walking the
+      provisioning section of this file from the top (hours, not minutes). Revisit automated weekly
+      Backups (~20% of Droplet cost) if that trade stops feeling right. A running-box snapshot is
+      only crash-consistent — that is why the dump cron exists alongside it.
+- [x] **Rehearse a restore, and write the restore runbook here *while restoring*** — including the
       two-database consistency question (app rows reference Keycloak identities by `keycloak_sub`;
-      restoring one without the other orphans users). An untested backup is a hope.
-- [ ] External uptime monitoring on `https://pensieve.sethcondie.com/api/heartbeat`, the MCP
-      `/healthz`, and TLS certificate expiry. Disk-space monitoring on the box.
-- [ ] Record the debugging path: nothing publishes an internet-facing port except Caddy, so shells
+      restoring one without the other orphans users). An untested backup is a hope. Done 2026-08-17
+      on the workstation against the day's real dumps — runbook below, written during the restore.
+      The rehearsal surfaced one real gotcha (cluster-level roles are not in the dumps) now baked
+      into the runbook.
+- [x] External uptime monitoring on `https://pensieve.sethcondie.com/api/heartbeat`, the MCP
+      `/healthz`, and TLS certificate expiry. Disk-space monitoring on the box. Done 2026-08-17:
+      - **UptimeRobot** (free tier), two monitors, both green: a **keyword** monitor on
+        `/api/heartbeat` alerting when `online` is *missing* (catches an error page served with a
+        200, which a plain status check calls healthy), and a plain HTTP monitor on the MCP
+        `/healthz`. 5-minute interval. Alerts go to a real inbox, deliberately not an
+        `@pensieve.sethcondie.com` address — a down box can't tell you it's down.
+      - **TLS expiry**: no separate paid check. Caddy auto-renews ~30 days out, and the heartbeat
+        monitor goes red the moment TLS actually breaks; that's the accepted coverage.
+      - **Disk**: DO metrics agent (`do-agent`) installed on the Droplet 2026-08-17 (the
+        `curl -sSL https://repos.insights.digitalocean.com/install.sh | bash` installer; verified
+        `active` + `enabled`), with a dashboard alert policy on Disk Utilization — threshold 80%
+        for 5 minutes → email. Disk was at 10% on install day.
+- [x] Record the debugging path: nothing publishes an internet-facing port except Caddy, so shells
       go through `docker compose exec <service> …`; the backend's internal heartbeat is reachable
       with `docker compose exec backend curl localhost:8080/v1/heartbeat`. (The app database is the
       loopback-only exception — `psql` works from the Droplet at `127.0.0.1:5432`, and from a
       workstation through an SSH tunnel; see the IDE section below.)
+
+### The backup system (installed 2026-08-17)
+
+**Off-box storage.** DO Spaces bucket `pensieve-backup` (private, region `sfo3` — deliberately
+noted: that is cross-region from the `nyc1` Droplet, so the off-box copies do not share the
+Droplet's failure domain), reached from the
+Droplet via `rclone` with a remote named `spaces` (`provider=DigitalOcean`,
+`endpoint=sfo3.digitaloceanspaces.com`, `acl=private`; the key pair lives in the password manager
+and in `/root/.config/rclone/rclone.conf`, mode 600). The Spaces key may be bucket-scoped — a scoped
+key gets `AccessDenied` on `rclone lsd spaces:` (list-all-buckets) while working fine inside the
+bucket, so test with `rclone lsd spaces:pensieve-backup`, not against the bare remote. A scoped key
+is preferred: this credential lives on the production box.
+
+**The script** is `/usr/local/bin/pensieve-backup.sh` (mode 700) — deliberately *outside*
+`/opt/pensieve`, so tag checkouts during deploys never interact with it. Reproduced here in full
+because the Droplet copy is the only copy:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+STAMP=$(date +%F_%H%M)
+DIR=/opt/backups
+mkdir -p "$DIR"
+
+# Both dumps back-to-back so the keycloak_sub cross-reference stays as
+# consistent as two separate databases can be. Custom format (-Fc) is
+# compressed and is what pg_restore expects.
+docker exec pensieve-db-1          pg_dump -U postgres -d pensieve-db -Fc > "$DIR/pensieve-db_$STAMP.dump"
+docker exec pensieve-keycloak-db-1 pg_dump -U keycloak -d keycloak    -Fc > "$DIR/keycloak-db_$STAMP.dump"
+
+# Off-box copy, then prune: 7 days local, 30 days in Spaces.
+rclone copy "$DIR" spaces:pensieve-backup/pg-dumps
+find "$DIR" -name '*.dump' -mtime +7 -delete
+rclone delete --min-age 30d spaces:pensieve-backup/pg-dumps
+```
+
+Design notes: `docker exec` with the pinned container names (not `docker compose exec`) so cron
+needs no compose parsing and no `.env`; the dumps run over the containers' unix sockets, so **no
+database password appears anywhere in the backup path**; `set -euo pipefail` means a failed dump
+aborts the run *before* the prune lines — old backups are never deleted on a day no new one was
+made. Local dumps live in `/opt/backups` (mode 700 — they contain user emails).
+
+**The cron entry** (root's crontab): `15 3 * * * /usr/local/bin/pensieve-backup.sh >> /var/log/pensieve-backup.log 2>&1`
+— daily 03:15 UTC. A healthy run prints nothing, so **an empty (or absent) log is the good
+outcome**; anything in it is an error. Retention: one pair per day, 7 days on the box, 30 days in
+Spaces.
+
+### Restore runbook (rehearsed 2026-08-17 against that day's real dumps)
+
+The unit of restore is the **timestamped pair** — always both dumps from the same run. The app db's
+`users.keycloak_sub` is a reference into keycloak-db; a keycloak-db older than the app db is the
+dangerous direction (app rows pointing at identities that don't exist yet = orphaned users, the
+one-way-door failure). Restoring the pair makes the consistency question moot.
+
+1. **Get a pair.** From Spaces (`rclone copy spaces:pensieve-backup/pg-dumps/<name>.dump .`), the
+   Droplet (`scp 'root@<droplet-ip>:/opt/backups/*.dump' .`), or the DO dashboard.
+2. **Create the cluster-level roles FIRST.** This is the gotcha the rehearsal found: `pg_dump` is
+   per-database, but roles are cluster-level and are **not in the dump**. Restoring without them
+   spews ~122 `role "app_rls" does not exist` / `role "keycloak" does not exist` errors from the
+   GRANT and ALTER OWNER statements — the *data* still lands, but the app db's RLS grants are
+   silently missing, which breaks row-level security when the backend connects. On a fresh cluster:
+
+   ```sql
+   CREATE ROLE app_rls NOLOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS;  -- matches V1_14
+   CREATE ROLE keycloak LOGIN PASSWORD '<KC_DB_PASSWORD>';
+   ```
+
+   In the production topology the roles already exist per container (Flyway's V1_14 made `app_rls`
+   in `db`; the image's `POSTGRES_USER` made `keycloak` in `keycloak-db`) — this step matters when
+   restoring into any *fresh* Postgres: a rebuilt volume, a rehearsal container, a new host.
+3. **Restore** (rehearsal form, into a scratch `postgres:16.15-alpine` container; on a real rebuild
+   the same two `pg_restore` lines run in the respective db containers):
+
+   ```bash
+   docker run -d --name restore-test -e POSTGRES_PASSWORD=test postgres:16.15-alpine
+   docker cp pensieve-db_<stamp>.dump  restore-test:/tmp/
+   docker cp keycloak-db_<stamp>.dump  restore-test:/tmp/
+   docker exec restore-test psql -U postgres -c "CREATE ROLE app_rls NOLOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS;" -c "CREATE ROLE keycloak LOGIN PASSWORD 'test';"
+   docker exec restore-test createdb -U postgres pensieve-db
+   docker exec restore-test createdb -U postgres -O keycloak keycloak
+   docker exec restore-test pg_restore -U postgres -d pensieve-db /tmp/pensieve-db_<stamp>.dump
+   docker exec restore-test pg_restore -U postgres -d keycloak   /tmp/keycloak-db_<stamp>.dump
+   ```
+
+   With the roles in place first, both restores complete with **zero** errors (verified).
+4. **Verify — data, then linkage.** A successful command is not a successful restore:
+
+   ```bash
+   # app db: the users table and its keycloak linkage
+   docker exec restore-test psql -U postgres -d pensieve-db -c \
+     "SELECT count(*) AS total, count(*) FILTER (WHERE keycloak_sub IS NOT NULL) AS linked,
+             count(*) FILTER (WHERE is_public_showcase) AS showcase FROM users;"
+   # keycloak db: the accounts
+   docker exec restore-test psql -U postgres -d keycloak -c \
+     "SELECT username, email, email_verified, enabled FROM user_entity
+      WHERE realm_id = (SELECT id FROM realm WHERE name='pensieve');"
+   # the cross-database consistency proof: these two values must be EQUAL
+   docker exec restore-test psql -U postgres -d pensieve-db -c "SELECT keycloak_sub FROM users;"
+   docker exec restore-test psql -U postgres -d keycloak    -c "SELECT id FROM user_entity WHERE username='<user>';"
+   ```
+
+   Rehearsal result 2026-08-17: 1 user, linked, showcase; bootstrap account present and verified;
+   `keycloak_sub` == `user_entity.id` exactly. Then `docker rm -f restore-test`.
+
+Re-rehearse this runbook occasionally (and after any schema change that touches roles or RLS) —
+it is only as good as the last time it was true.
 
 ---
 
