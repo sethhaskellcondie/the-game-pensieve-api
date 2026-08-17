@@ -131,11 +131,8 @@ host — providers, Droplet provisioning, first bringup, backups — has its own
 
 ### Deploying to production
 
-> ⚠️ **Unverified** — written before the production host exists; verified live at launch Stage 11,
-> which removes this banner.
-
 ```bash
-make deploy VERSION=1.0.0     # preflight locally, then deploy that released version to the Droplet
+make deploy VERSION=1.0.1     # preflight locally, then deploy that released version to the Droplet
 ```
 
 Rollback is the same command with the previous version — there is deliberately no separate rollback

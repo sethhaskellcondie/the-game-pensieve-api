@@ -16,10 +16,14 @@
 #   1. version shape is X.Y.Z (optionally -suffix); `latest` is rejected EXPLICITLY — a moving tag
 #      never deploys to production
 #   2. the git tag v$VERSION exists on origin — the Droplet deploys by checking that tag out
-#   3. all three images exist on Docker Hub at :$VERSION and their manifests carry linux/amd64 —
+#   3. the tag CONTAINS scripts/deploy-production-remote.sh — found by the 1.0.0 rollback test
+#      (2026-08-17): a tag cut before the deploy pipeline existed has no remote script, so the
+#      bootstrap's checkout deletes the very file it is about to exec, leaving the Droplet checkout
+#      moved with nothing deployed; such versions can only be deployed/rolled back by hand
+#   4. all three images exist on Docker Hub at :$VERSION and their manifests carry linux/amd64 —
 #      deploying a version whose frontend was never pushed is the single most likely mistake, and a
 #      single-arch arm64 push is invisible until the amd64 Droplet pulls it
-#   4. the deploy host answers over SSH (BatchMode — a prompt would mean a CI runner hangs forever)
+#   5. the deploy host answers over SSH (BatchMode — a prompt would mean a CI runner hangs forever)
 #
 # THE HANDOFF (§4.4 of the pipeline doc — the sequencing is load-bearing): bash reads a script file
 # incrementally while executing it, so the remote script must NEVER `git checkout` over itself. The
@@ -68,14 +72,24 @@ DRY_RUN="${DRY_RUN:-no}"
 [[ "$VERSION" != "latest" ]] || fail "refusing to deploy 'latest' — production deploys immutable version tags only"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]] \
     || fail "version '$VERSION' is not X.Y.Z (optionally -suffix, e.g. 1.0.1-rc1)"
-note "preflight 1/4: version shape ok ($VERSION)"
+note "preflight 1/5: version shape ok ($VERSION)"
 
 # --- 2. the tag exists on origin ----------------------------------------------------------------
 [[ -n "$(git -C "$REPO_ROOT" ls-remote --tags origin "refs/tags/v$VERSION")" ]] \
     || fail "tag v$VERSION does not exist on origin — release it first (make release VERSION=$VERSION)"
-note "preflight 2/4: tag v$VERSION exists on origin"
+note "preflight 2/5: tag v$VERSION exists on origin"
 
-# --- 3. all three images exist on Docker Hub, and carry linux/amd64 -----------------------------
+# --- 3. the tag carries the remote deploy script ------------------------------------------------
+# The bootstrap checks the tag out and THEN execs scripts/deploy-production-remote.sh from it; a tag
+# that predates the deploy pipeline (v1.0.0) has no such file, and the checkout would delete the
+# script mid-handoff — discovered by the deliberate 1.0.0 rollback test. Fetch tags first so the
+# content check inspects the same ref the Droplet will.
+git -C "$REPO_ROOT" fetch --tags --quiet origin
+git -C "$REPO_ROOT" cat-file -e "refs/tags/v$VERSION:scripts/deploy-production-remote.sh" 2>/dev/null \
+    || fail "tag v$VERSION does not contain scripts/deploy-production-remote.sh — it predates the deploy pipeline and can only be deployed/rolled back by hand (see buildFromScratch.md)"
+note "preflight 3/5: tag v$VERSION carries the remote deploy script"
+
+# --- 4. all three images exist on Docker Hub, and carry linux/amd64 -----------------------------
 docker info >/dev/null 2>&1 || fail "docker daemon is not running (needed to inspect the Hub manifests)"
 for image in "${IMAGES[@]}"; do
     manifest="$(docker buildx imagetools inspect "$image:$VERSION" 2>&1)" \
@@ -83,16 +97,16 @@ for image in "${IMAGES[@]}"; do
     grep -q 'linux/amd64' <<<"$manifest" \
         || fail "$image:$VERSION exists but its manifest has no linux/amd64 entry — the Droplet cannot run it"
 done
-note "preflight 3/4: all three images on Docker Hub at :$VERSION with linux/amd64"
+note "preflight 4/5: all three images on Docker Hub at :$VERSION with linux/amd64"
 
-# --- 4. the host answers ------------------------------------------------------------------------
+# --- 5. the host answers ------------------------------------------------------------------------
 if ssh -o BatchMode=yes -o ConnectTimeout=10 "$DEPLOY_HOST" true 2>/dev/null; then
-    note "preflight 4/4: $DEPLOY_HOST reachable over SSH"
+    note "preflight 5/5: $DEPLOY_HOST reachable over SSH"
     HOST_REACHABLE=yes
 else
     [[ "$DRY_RUN" == "yes" ]] \
         || fail "$DEPLOY_HOST is not reachable over SSH (define a Host alias in ~/.ssh/config, or set DEPLOY_HOST)"
-    note "preflight 4/4: WARNING — $DEPLOY_HOST not reachable; tolerated because DRY_RUN=yes"
+    note "preflight 5/5: WARNING — $DEPLOY_HOST not reachable; tolerated because DRY_RUN=yes"
     HOST_REACHABLE=no
 fi
 

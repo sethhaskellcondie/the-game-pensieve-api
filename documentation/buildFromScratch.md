@@ -569,20 +569,45 @@ published today.
 
 ---
 
-## ⬜ Prove the deploy script
+## ✅ Prove the deploy script — done 2026-08-17
 
-- [ ] `DRY_RUN=yes make deploy VERSION=1.0.0` against the live host — every check, no changes.
-- [ ] Fold in anything from the first-deploy transcript the script should do and doesn't.
-- [ ] Cut a trivial `1.0.1` through `release.sh` and deploy it for real (10–60s downtime is
-      accepted, not a bug).
-- [ ] **Test the rollback deliberately while nothing is at stake:** deploy `1.0.1` → `1.0.0` →
-      confirm → `1.0.1` again.
-- [ ] Confirm preflight rejects a wrong/unpublished version in seconds.
-- [ ] Then: remove the *unverified* banners on the deploy sections in `README.md` and
-      `DevDocumentation.md`, and finalize `scriptExplainer.md` with real timings.
+- [x] `DRY_RUN=yes make deploy VERSION=1.0.0` against the live host — all four (now five) preflights
+      passed and the remote half rehearsed all nine steps read-only, correctly naming the running
+      stack and the rollback target. Nothing changed.
+- [x] Fold in anything from the first-deploy transcript the script should do and doesn't — the
+      transcript was just `git fetch --tags && git checkout v1.0.0` + `up -d`; the script does both
+      and adds everything the hand deploy lacked. The *rollback test* (below) found two real gaps
+      instead, both folded in the same day.
+- [x] Cut `1.0.1` through `release.sh` (not trivial after all — it carries the Caddyfile
+      admin-console fix, the loopback db port, and the SMTP 2465 change) and deployed it for real:
+      **1m54s** end to end, backups → pull → switch → health green → containers verified `:1.0.1`.
+      The framing headers were confirmed from outside: auth host now serves only Keycloak's
+      `frame-ancestors 'self'`; app and MCP hosts kept `'none'` + `DENY`.
+- [x] **Rollback tested deliberately: `1.0.1` → `1.0.0` → confirm → `1.0.1` (1m02s).** It earned
+      its keep — two findings:
+      1. **`v1.0.0` predates the deploy scripts**, so the bootstrap's `git checkout v1.0.0` deleted
+         `deploy-production-remote.sh` before exec'ing it — failing mid-handoff and leaving the
+         checkout moved (old Caddyfile on disk) under a still-running 1.0.1 stack. The rollback was
+         completed by copying the current remote script into the v1.0.0 checkout's `scripts/` and
+         running it there (it must sit at `/opt/pensieve/scripts/` — it resolves the repo root from
+         its own path). Fix: a new preflight in `deploy-production.sh` refuses, in ~1s and with the
+         reason named, any tag not containing the remote script. `v1.0.0` is hand-deploy-only,
+         permanently; every tag from `1.0.1` on carries the scripts.
+      2. **A rolled-back Caddyfile never took effect**: compose does not recreate a container
+         because a bind-mounted file's content changed, so caddy kept serving the 1.0.1 config from
+         memory (confirmed by headers) while v1.0.0's Caddyfile sat on disk. Benign in that
+         direction — but forward-deploying a Caddyfile-only change would silently not land. Fix: the
+         remote script's step 6 now follows `up -d` with a graceful zero-downtime `caddy reload`
+         (fails the deploy if the config is refused). Rides the first tag after 1.0.1.
+- [x] Preflight rejection confirmed in seconds: unpublished `1.0.2` refused in ~1s at the tag check
+      before any SSH; `latest` refused by name; malformed `1.0` refused by shape. All exit 1.
+- [x] Banners removed from `README.md` and `DevDocumentation.md`; `scriptExplainer.md` finalized
+      with the real timings above.
 
 Remember: **rollback does not roll back the database.** Migrations stay additive so the previous
-image runs against the newer schema.
+image runs against the newer schema. And **rollback to `v1.0.0` specifically is by hand** (finding
+1 above): copy the current `scripts/deploy-production-remote.sh` into the checkout and run it from
+`/opt/pensieve`.
 
 ---
 

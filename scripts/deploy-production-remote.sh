@@ -16,7 +16,9 @@
 #   4. backup    pg_dump BOTH databases to $BACKUP_DIR — losing keycloak-db loses every user account
 #                (users.keycloak_sub references it); every deploy is preceded by a backup, no exceptions
 #   5. pull      the slow part, while the old version is still serving
-#   6. up -d     the switch; only changed services restart; expect 10-60s of downtime
+#   6. up -d     the switch; only changed services restart; expect 10-60s of downtime; then a
+#                graceful `caddy reload`, because compose never recreates for a bind-mounted config
+#                change alone — without it a Caddyfile-only change (or rollback) silently never lands
 #   7. health    wait for the public URLs to answer correctly, then assert the running containers are
 #                actually :$VERSION — the step most often skipped by hand, and the only one that
 #                answers "did it work?"; a deploy that silently half-worked is the failure mode this
@@ -189,9 +191,27 @@ fi
 step "6. up -d (the switch)"
 # ================================================================================================
 if [[ "$DRY_RUN" == "yes" ]]; then
-    printf 'dry run: would run `docker compose up -d --remove-orphans` — expect 10-60s of downtime.\n'
+    printf 'dry run: would run `docker compose up -d --remove-orphans` — expect 10-60s of downtime —\n'
+    printf 'dry run: then gracefully reload caddy so the checked-out Caddyfile is the one serving.\n'
 else
     compose up -d --remove-orphans
+    # A bind-mounted config is invisible to `up -d`: compose only recreates on image/definition
+    # changes, so a deploy (or rollback) whose Caddyfile differs can leave caddy serving the OLD
+    # config from memory — found by the deliberate 1.0.0 rollback test (2026-08-17), where the
+    # rolled-back Caddyfile on disk never took effect. `caddy reload` is a zero-downtime graceful
+    # config swap and a no-op when the container was just recreated anyway. Retried briefly because
+    # a just-recreated caddy may still be booting; a reload that never succeeds fails the deploy —
+    # otherwise step 7 would green-light health checks served by the previous version's config.
+    reload_ok=no
+    for _ in 1 2 3 4 5; do
+        if compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile >/dev/null 2>&1; then
+            reload_ok=yes
+            break
+        fi
+        sleep 3
+    done
+    [[ "$reload_ok" == "yes" ]] || fail "caddy did not accept a config reload — the tag's Caddyfile is not serving (invalid config, or caddy is down)"
+    printf 'caddy reloaded — the checked-out Caddyfile is the config now serving.\n'
 fi
 
 # ================================================================================================

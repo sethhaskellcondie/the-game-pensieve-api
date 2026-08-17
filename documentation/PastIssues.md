@@ -268,3 +268,52 @@ crash-looping image now fails the gate in minutes instead of surfacing at the st
 **Lesson:** a service that is in the stack but exercised by nothing is worse than absent — it *looks*
 covered. When a boot-time guard is added to a service, every stack that runs the image needs the variable,
 and at least one gate must actually talk to the container the users will run.
+
+## Rolling back to v1.0.0 deleted the deploy script out from under itself
+
+**Symptom:** The deliberate rollback test (2026-08-17, first thing proven after `1.0.1` went live) died
+instantly: `bash: scripts/deploy-production-remote.sh: No such file or directory`, exit 127, before any
+remote step ran. Worse than the error itself: the bootstrap's `git checkout v1.0.0` **had already
+happened**, so the Droplet was left with the old Caddyfile and compose file on disk while the 1.0.1
+stack kept serving — a state where any container restart would pick up the wrong config.
+
+**Root cause:** The deploy scripts were committed *after* `v1.0.0` was tagged. The wrapper's bootstrap
+deliberately checks out the target tag first and only then execs the remote script *from that tag* (so
+script, compose file, Caddyfile, and realm import always move together) — but for a tag that predates
+the scripts, the checkout deletes the very file the next command execs. A second, smaller trap surfaced
+while recovering: the remote script resolves the repo root from **its own path** (`SCRIPT_DIR/..`), so
+running a copy from `/tmp` fails its asserts — a copied script must sit at `/opt/pensieve/scripts/`.
+
+**Fix:** The rollback was completed by copying the current remote script into the v1.0.0 checkout's
+`scripts/` directory and running it from `/opt/pensieve` (then deleting the untracked copy so the next
+checkout wouldn't refuse to overwrite it). Permanently: `deploy-production.sh` gained a preflight that
+refuses, in about a second and with the reason named, any tag that does not contain
+`scripts/deploy-production-remote.sh`. `v1.0.0` is hand-deploy-only forever; every later tag carries
+the scripts.
+
+**Lesson:** "the script rides the tag it deploys" is a great coupling right up until you point it at a
+tag from before the script existed. Any self-referential deploy design has a boundary at its own birth —
+find it with a deliberate test while nothing is at stake, not during a 2am emergency rollback.
+
+## The rollback "reverted" the Caddyfile on disk but Caddy kept serving the new config
+
+**Symptom:** After the successful rollback to `1.0.0`, the auth host still served 1.0.1's framing
+behavior (Keycloak's own `frame-ancestors 'self'`, no Caddy-injected `'none'`) even though v1.0.0's
+Caddyfile — which *does* inject `frame-ancestors 'none'` on every host — was checked out on disk. The
+rollback's step 6 showed `pensieve-caddy-1 Running`, not `Recreated`.
+
+**Root cause:** The Caddyfile is a read-only bind mount, and compose only recreates a container when
+its image or service definition changes — **file content behind a bind mount is invisible to it.**
+Caddy loads its config once at start and keeps it in memory. Benign in this direction (the fixed config
+stayed live); the dangerous direction is a forward deploy whose only change is the Caddyfile: `up -d`
+would restart nothing and the change would silently never land, while step 7's health checks — served
+happily by the stale config — wave it through.
+
+**Fix:** step 6 of `deploy-production-remote.sh` now follows `up -d` with a graceful
+`caddy reload --config /etc/caddy/Caddyfile` (zero downtime, a no-op if caddy was just recreated,
+retried briefly while caddy boots, and a hard deploy failure if the config is refused). In the tag
+being deployed from 1.0.2 onward.
+
+**Lesson:** `up -d` converges containers, not configuration. Every bind-mounted config file needs an
+explicit reload/restart story in the deploy path, or changes to it only apply by coincidence — whenever
+something *else* happens to recreate the container.

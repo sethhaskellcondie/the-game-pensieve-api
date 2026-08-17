@@ -278,13 +278,17 @@ DRY_RUN=yes ./scripts/deploy-production.sh 1.0.0   # rehearse: every check runs,
 DEPLOY_HOST=user@1.2.3.4 make deploy VERSION=1.0.0 # override the default ssh alias (pensieve-prod)
 ```
 
-> ⚠️ **Unverified against a real Droplet** — written at launch Stage 6, before the Droplet exists
-> (launch plan Stage 11 verifies both halves live and removes this banner). The `DRY_RUN=yes` path has
-> been run clean locally, including the remote half's read-only rehearsal.
+Verified live 2026-08-17 against the production Droplet: dry run clean, `1.0.1` deployed for real
+(**1m54s** end to end including pull and all health checks), then a deliberate rollback to `1.0.0`
+and a redeploy of `1.0.1` (**1m02s** — images already on the box). Preflight rejects an
+unpublished, malformed, or `latest` version in **~1 second**, before any SSH.
 
-Preflight only — four checks that fail in seconds, before production is touched: version shape (with
+Preflight only — five checks that fail in seconds, before production is touched: version shape (with
 `latest` rejected explicitly and by name — a moving tag never deploys to production), the `v$VERSION`
-tag exists on origin, **all three images exist on Docker Hub at `:$VERSION` with `linux/amd64` in the
+tag exists on origin, **the tag contains `scripts/deploy-production-remote.sh`** (a tag cut before the
+deploy pipeline existed — `v1.0.0` — has no remote script, and the bootstrap's checkout would delete
+the very file it is about to exec; such versions deploy/roll back by hand only — found by the live
+rollback test), **all three images exist on Docker Hub at `:$VERSION` with `linux/amd64` in the
 manifest** (deploying a version whose frontend was never pushed is the single most likely mistake, and a
 single-arch arm64 push is invisible until the amd64 Droplet pulls it), and the host answers over SSH in
 `BatchMode` (a password prompt would hang a CI runner forever).
@@ -312,7 +316,10 @@ The nine steps: **assert** (`.env` + `Caddyfile` + tools present — compose onl
 file carries three `:$VERSION` pins → **back up both databases** (`pg_dump` via `compose exec`, gzipped,
 timestamped, to `$BACKUP_DIR`, default `/opt/pensieve-backups` — outside the checkout and every compose
 volume; an empty dump aborts the deploy) → **pull** (the slow part, while the old version still serves) →
-**`up -d`** (the switch; 10–60s of downtime) → **health + version verification** → **prune** →
+**`up -d`** (the switch; 10–60s of downtime) **followed by a graceful `caddy reload`** (compose never
+recreates a container because a bind-mounted file changed, so without the reload a Caddyfile-only
+change — or its rollback — silently never takes effect; found by the live rollback test, rides the
+first tag after 1.0.1) → **health + version verification** → **prune** →
 **deploy log** (`$BACKUP_DIR/deploy.log`: timestamp, version, previous version, who).
 
 Step 7 is what makes the script trustworthy, and it must not be weakened: the app-chain check
