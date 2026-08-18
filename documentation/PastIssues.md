@@ -317,3 +317,37 @@ being deployed from 1.0.2 onward.
 **Lesson:** `up -d` converges containers, not configuration. Every bind-mounted config file needs an
 explicit reload/restart story in the deploy path, or changes to it only apply by coincidence — whenever
 something *else* happens to recreate the container.
+
+## The admin console's basic-auth popup could never be satisfied — one Authorization header, two auths
+
+**Symptom:** With 1.0.1's framing fix live, the Keycloak admin console finally got past its iframe
+check, through the Caddy gate popup, through Keycloak's own login — and then presented a *third*
+credential prompt that no password on earth could satisfy. Entering the gate credentials just
+re-prompted, forever. DevTools told the story: `GET /admin/serverinfo` → **401**,
+`WWW-Authenticate: Basic realm="restricted"`, `Server: Caddy` — with the console dead behind an
+"Unable to determine error message" banner.
+
+**Root cause:** The Caddy gate matched all of `/admin/*`, which includes the **Admin REST API** the
+console SPA drives itself with. Those calls carry `Authorization: Bearer <admin token>` — and a
+request has exactly **one** `Authorization` header. The two schemes are mutually exclusive on the same
+route: send Bearer and Caddy's `basic_auth` rejects the missing Basic; answer the popup and the
+browser retries with Basic, which sails through Caddy only for Keycloak to reject the missing Bearer.
+An unwinnable loop, by construction. The Caddyfile's own comment claimed "the browser replays the
+credentials automatically … the whole console works from one login" — written before anyone could
+reach this code path, because at 1.0.0 the frame-ancestors defect blocked the console *earlier* in the
+same flow. Two defects, same feature, peeled in order.
+
+**Fix:** Narrow the matcher to what never carries an Authorization header of its own — the console
+pages (`/admin`, `/admin/master/console/*`) and the master realm (`/realms/master/*`) — and leave the
+Admin REST API (`/admin/realms/*`, `/admin/serverinfo`, …) to Keycloak's own bearer enforcement, which
+refuses every unauthenticated call anyway. What the narrower gate gives up: basic-auth shielding of
+the API routes against pre-auth CVEs. What it keeps: the gate on the admin *login* surface, where
+password guessing would actually happen. `prod-rehearsal.sh` now asserts the API's 401 is **not** a
+Basic challenge, so re-widening the matcher fails the rehearsal. Scripted-admin ergonomics improved as
+a side effect: REST calls need only the bearer token; only *minting* the token (master realm, no
+Authorization header of its own) still crosses the gate with `-u`.
+
+**Lesson:** basic auth at the edge and bearer auth at the service compose only on routes that never
+send their own `Authorization` header — the header is a singleton, and any route where both schemes
+claim it is not "double-protected", it is *unreachable*. When layering an edge gate over an API,
+walk the routes by what credential each request actually carries, not by path prefix.

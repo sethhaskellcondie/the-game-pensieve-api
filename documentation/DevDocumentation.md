@@ -168,8 +168,13 @@ surface or of Keycloak's token endpoint. It is the first item in the post-launch
 
 **Do not widen the basic-auth matcher** on the auth host. `/realms/pensieve/*` (authorize, token, JWKS,
 `.well-known`) and `/resources/*` (static assets for the console *and* the public login pages) must stay
-open; gating the latter leaves real users at an unstyled login screen. `scripts/prod-rehearsal.sh` asserts
-both directions and will catch a mistake here.
+open; gating the latter leaves real users at an unstyled login screen. The Admin REST API
+(`/admin/realms/*`, `/admin/serverinfo`, …) must stay open too — the console calls it with
+`Authorization: Bearer`, a request has exactly one `Authorization` header, and a basic-auth gate there
+is therefore unsatisfiable: the credential popup loops forever (found live 2026-08-17; the gate now
+covers only the console pages and `/realms/master/*`). Keycloak enforces its own bearer token on every
+Admin API route. `scripts/prod-rehearsal.sh` asserts the open/gated directions and will catch a
+mistake here.
 
 **A green rehearsal is the gate for the publish.** The order is rehearse → release, never the reverse:
 `scripts/prod-rehearsal.sh` is the only thing that exercises `dockerCompose/compose.production.yaml` and the
@@ -229,7 +234,8 @@ the mistaken row owns no data), then redo the procedure.
 The procedure, shown with the production compose file (any secured stack works the same):
 
 1. **Create your account in Keycloak.** Admin console (in production: `https://<AUTH_DOMAIN>/admin`, through
-   the Caddy basic-auth gate, then the Keycloak admin login) → switch realm **master → pensieve** → Users →
+   the Caddy basic-auth gate, then the Keycloak admin login — expect the gate popup a *second* time after
+   the redirect; same gate credentials, there is no third pair) → switch realm **master → pensieve** → Users →
    Create user: set username and email, and flip **Email verified → On** — by hand, every time. The realm
    ships with `verifyEmail` off by design (accounts are admin-created, there is no open registration), so
    nothing flips it for you; an unverified account logs in fine but skips the claim path and gets the 403

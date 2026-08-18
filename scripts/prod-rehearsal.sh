@@ -24,8 +24,9 @@
 #   • the web client secret, redirect URIs, and the audience mapper agree with the sidecar's OAuth config
 #   • the backend is in secured mode and publishes no host port — a dropped `secured` profile (audit B3)
 #     shows up here as a named failure, not as a silent fail-open in production
-#   • Caddy's basic-auth gate covers /admin and /realms/master and does NOT cover the login pages or
-#     their /resources/ assets — the hazard called out in the Caddyfile itself
+#   • Caddy's basic-auth gate covers the console pages and /realms/master and does NOT cover the login
+#     pages, their /resources/ assets, or the Admin REST API (gating the API bricks the console — the
+#     Authorization header collision called out in the Caddyfile itself)
 #   • anonymous dynamic client registration is refused
 #   • Flyway migrated a clean production-shaped database
 #   • A REAL LOGIN COMPLETES. A throwaway user is created and the authorization-code + PKCE flow is
@@ -332,14 +333,23 @@ private_ports() {
     for svc in frontend backend mcp keycloak db keycloak-db; do
         cid="$(compose ps -q "$svc" 2>/dev/null)" || continue
         [[ -n "$cid" ]] || continue
+        if [[ "$svc" == "db" ]]; then
+            # The app db deliberately publishes 127.0.0.1:5432 for IDE access over an SSH tunnel
+            # (compose.production.yaml, 2026-08-17). Loopback-only is the invariant this check
+            # protects: any binding on a non-loopback address is a failure.
+            ports="$(docker inspect -f '{{json .NetworkSettings.Ports}}' "$cid" \
+                | jq -r 'to_entries[] | select(.value != null) | .value[] | select(.HostIp != "127.0.0.1") | .HostIp + ":" + .HostPort' | tr '\n' ' ')"
+            [[ -z "${ports// /}" ]] || bad+="db published beyond loopback: $ports; "
+            continue
+        fi
         ports="$(docker inspect -f '{{json .NetworkSettings.Ports}}' "$cid" \
             | jq -r 'to_entries[] | select(.value != null) | .key' | tr '\n' ' ')"
         [[ -z "${ports// /}" ]] || bad+="$svc publishes $ports; "
     done
     [[ -z "$bad" ]] || { echo "$bad"; return 1; }
-    echo "caddy is the only service with host ports"
+    echo "caddy public, db loopback-only, everything else private"
 }
-check "every service except caddy is private (no host ports)" private_ports
+check "no public host ports (caddy is the edge; db is loopback-only)" private_ports
 
 flyway_ok() {
     local failed total
@@ -436,6 +446,26 @@ else
     skip "/admin opens with the basic-auth credentials" \
         "set KC_ADMIN_UI_PASSWORD (plaintext of the bcrypt hash) to run the positive half of this check"
 fi
+
+# The Admin REST API must NOT be behind the gate: the console calls it with `Authorization: Bearer`,
+# a request has exactly one Authorization header, and a basic-auth challenge there is unsatisfiable —
+# the console's credential popup loops forever (found live 2026-08-17). Keycloak enforces its own
+# bearer token on these routes, so unauthenticated must still be refused — just not by Caddy.
+admin_api_ungated() {
+    local code challenge
+    code="$(http_code "https://$AUTH_DOMAIN/admin/serverinfo")"
+    [[ "$code" == "401" || "$code" == "403" ]] \
+        || { echo "/admin/serverinfo -> HTTP $code (expected Keycloak to refuse with 401/403)"; return 1; }
+    challenge="$("${CURL[@]}" -D - -o /dev/null "https://$AUTH_DOMAIN/admin/serverinfo" \
+        | tr -d '\r' | awk 'tolower($1) == "www-authenticate:" { print $2 }')"
+    # grep -i, not ${challenge,,}: macOS ships bash 3.2, which lacks case-conversion expansion.
+    if grep -qi '^basic' <<<"$challenge"; then
+        echo "/admin/serverinfo answers a BASIC challenge — the gate matcher covers the Admin REST API again, which bricks the console (Authorization header collision)"
+        return 1
+    fi
+    echo "HTTP $code with a non-Basic challenge (Keycloak's own auth, not the Caddy gate)"
+}
+check "Admin REST API is refused by Keycloak, not the Caddy gate (gate there bricks the console)" admin_api_ungated
 
 # --- the login flow, driven the way the app actually drives it -------------------------------------
 # Deliberately NOT a hand-built authorize URL. The BFF derives redirect_uri from the origin it believes

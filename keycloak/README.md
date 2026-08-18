@@ -211,14 +211,15 @@ reachable before it is the only password-reset route the user has.
 
 ```bash
 curl -X PUT "$KC/admin/realms/pensieve/users/$USER_ID/execute-actions-email?client_id=pensieve-web&redirect_uri=https://$APP_DOMAIN" \
-  -u "$KC_ADMIN_UI_USER:$KC_ADMIN_UI_PASSWORD" \
   -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
   -d '["VERIFY_EMAIL","UPDATE_PASSWORD"]'
 ```
 
-In production the `-u` is required as well as the bearer token — see
-[Admin console access](#admin-console-access). Minting `$ADMIN_TOKEN` needs it too, because the master
-realm's token endpoint sits behind the same gate:
+Admin REST calls like this one need only the bearer token — the API paths are deliberately outside the
+Caddy gate, because a request has exactly one `Authorization` header and it is already spent on the
+bearer (see [Admin console access](#admin-console-access)). Minting `$ADMIN_TOKEN` is the one call that
+*does* need the gate credential, because the master realm's token endpoint sits behind it and a token
+request carries no `Authorization` header of its own:
 
 ```bash
 ADMIN_TOKEN=$(curl -s -u "$KC_ADMIN_UI_USER:$KC_ADMIN_UI_PASSWORD" \
@@ -249,23 +250,34 @@ not resolve inside the Testcontainers Keycloak, which is harmless: no test trigg
 ## Admin console access
 
 In production Caddy publishes all of `AUTH_DOMAIN`, which would put Keycloak's admin login on the open
-internet. The `Caddyfile` puts a **basic-auth prompt in front of `/admin/*` and `/realms/master/*`** —
-a second credential (`KC_ADMIN_UI_USER` / `KC_ADMIN_UI_PASSWORD_HASH` in `.env`, hash from
-`caddy hash-password`) layered on top of the Keycloak admin password itself.
+internet. The `Caddyfile` puts a **basic-auth prompt in front of the console pages (`/admin`,
+`/admin/master/console/*`) and the master realm (`/realms/master/*`)** — a second credential
+(`KC_ADMIN_UI_USER` / `KC_ADMIN_UI_PASSWORD_HASH` in `.env`, hash from `caddy hash-password`) layered
+on top of the Keycloak admin password itself.
 
-Two paths are deliberately left open, and adding them to the matcher will break the site:
+Paths deliberately left open — adding any of them to the matcher will break the site:
 
 - **`/realms/pensieve/*`** — authorize, token, JWKS, `.well-known`. Every login and every token depends
   on these being anonymous.
 - **`/resources/*`** — static assets for the admin console *and* the public login pages. Gate it and
   real users get an unstyled login screen.
+- **The Admin REST API (`/admin/realms/*`, `/admin/serverinfo`, …)** — the matcher was originally all
+  of `/admin/*`, and that can never work: the console SPA calls these routes with
+  `Authorization: Bearer <admin token>`, a request has exactly one `Authorization` header, and so a
+  basic-auth gate there is unsatisfiable — the browser's credential popup loops forever regardless of
+  what is typed (found 2026-08-17, the first time the console got past the framing fix; the fix rode
+  the release after 1.0.1). These routes are not open in any meaningful sense: Keycloak requires a
+  valid admin bearer token on every one of them.
 
 Consequences worth knowing:
 
-- The console itself works fine from one prompt: it is a SPA calling `/admin/realms/...` over XHR, and
-  the browser replays the credentials automatically.
-- **Scripted admin calls need `-u` as well as the bearer token**, including the call that mints the
-  bearer token — see [Onboarding an admin-created account](#account-emails).
+- Logging into the console prompts the gate **twice** in a fresh browser session: once for the console
+  page, and usually once more after Keycloak's login redirects back and the SPA starts calling the API
+  (browsers don't always replay basic-auth credentials across that hop). Same `KC_ADMIN_UI_*`
+  credentials both times; there is no third credential.
+- **Scripted Admin REST calls need only the bearer token.** The exception is *minting* that token —
+  the master realm's token endpoint is behind the gate and a token request has a free `Authorization`
+  header, so that one call takes `-u` — see [Onboarding an admin-created account](#account-emails).
 - Basic auth is a scanning barrier, not a substitute for a strong Keycloak admin password. Enable OTP
   on the admin account too (Account → Signing in → Two-factor authentication).
 

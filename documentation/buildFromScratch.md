@@ -341,6 +341,19 @@ Procedure in
 > message"). The Caddyfile fix (framing headers split out of `security_headers`; the auth host relies
 > on Keycloak's own `frame-ancestors 'self'`) rides release **1.0.1**. Until it is deployed, all
 > admin work goes through `kcadm` inside the container — the account below was created that way:
+>
+> **Surprise #3, found the same evening once 1.0.1's framing fix was live:** the console got further
+> and then hit an **unpassable basic-auth popup** — the Caddy gate originally covered all of
+> `/admin/*`, but the console SPA calls the Admin REST API with `Authorization: Bearer`, a request
+> has exactly one `Authorization` header, and so the gate on those routes can never be satisfied
+> (send Basic → Keycloak rejects the missing bearer; send Bearer → Caddy rejects the missing Basic;
+> the popup loops forever). Diagnosed from DevTools: `GET /admin/serverinfo` → 401,
+> `WWW-Authenticate: Basic realm="restricted"`, served by Caddy. The fix narrows the gate to the
+> console pages + `/realms/master/*`, leaving the Admin REST API to Keycloak's own bearer
+> enforcement; `prod-rehearsal.sh` gained a check (24 now) asserting the API's refusal is NOT a
+> Basic challenge. Rides the release after 1.0.1. Full write-up in `PastIssues.md`. Expect the gate
+> popup **twice** per fresh browser session (page load, then again after the login redirect) — same
+> credentials both times; there is no third credential pair.
 > `kc create users -r pensieve -s username=… -s email=… -s emailVerified=true -s enabled=true`
 > then `kc set-password -r pensieve --username … --new-password '…'` (prod policy: 12+ chars, mixed
 > case, not username/email).
@@ -354,11 +367,12 @@ Procedure in
 - [x] Log in once — the first authenticated call stamps `keycloak_sub` on that row. Done 2026-08-17:
       `linked = t` in the users table, `/api/auth/session` reported role ADMIN (which also closed the
       token `aud`/`iss` verification item above).
-- [ ] **Harden:** enable OTP (done 2026-08-17, forced via the `CONFIGURE_TOTP` required action —
-      the account console may be framing-blocked like the admin console until 1.0.1); **still open,
-      deferred until the 1.0.1 Caddyfile fix restores the admin console:** create a real admin,
+- [ ] **Harden:** enable OTP (done 2026-08-17, forced via the `CONFIGURE_TOTP` required action);
+      **still open, now deferred until the release after 1.0.1** (1.0.1's framing fix got the console
+      to its next blocker — surprise #3 above, the gate/bearer collision): create a real admin,
       delete the bootstrap one, and blank `KC_ADMIN_USER`/`KC_ADMIN_PASSWORD` in `.env`
-      (`KC_BOOTSTRAP_ADMIN_*` only applies to a first boot on an empty DB).
+      (`KC_BOOTSTRAP_ADMIN_*` only applies to a first boot on an empty DB). Interim admin work
+      continues through `kcadm` in the container.
 - [x] **Confirm a real email arrives** — trigger a password reset. First end-to-end proof of the
       SMTP path against real deliverability. Check the spam folder. Done 2026-08-17, after fixing
       the second surprise of the day, below.
