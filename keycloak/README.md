@@ -262,9 +262,12 @@ The admin surface is protected by Keycloak itself, which is sound only while ALL
    apps natively (and WebAuthn/passkeys, if ever wanted).
 3. **Brute-force detection enabled on the master realm** (Realm settings → Security defenses; 10
    failures, temporary lockout — matching what the pensieve realm's import bakes). The master realm
-   defaults to OFF, and this is runtime realm config, not part of any import: **on a rebuild with a
-   fresh `keycloak-db` it must be re-enabled by hand.** It also throttles the token endpoint's
-   direct password grant (`admin-cli`), which cannot be disabled — `kcadm` authenticates through it.
+   defaults to OFF, and this is runtime realm config, not part of any import — but a rebuild cannot
+   silently lose it: `deploy-production-remote.sh` (step 7) re-asserts it via kcadm on any deploy
+   where `.env` carries non-blank `KC_ADMIN_*`, which is exactly the fresh-bootstrap state where the
+   setting can have reverted. Steady-state deploys (credentials blanked) skip the step; the setting
+   persists in `keycloak-db`. It also throttles the token endpoint's direct password grant
+   (`admin-cli`), which cannot be disabled — `kcadm` authenticates through it.
 
 Every `/admin` API call requires a valid admin bearer token regardless — the real exposure is the
 login page and the token endpoint, which is exactly what the three controls protect.

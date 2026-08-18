@@ -329,7 +329,11 @@ live rollback test, 2026-08-17 — and the graceful `caddy reload` tried first i
 a single-file bind mount pins the Caddyfile's *inode* at container start while git checkout replaces
 the file, so the reload re-reads the stale file and exits 0 — found live 2026-08-18 when the 1.0.2
 gate fix deployed green while the edge kept serving the old matcher; see PastIssues) →
-**health + version verification** → **prune** →
+**health + version verification** (which ends with a conditional hardening pass: whenever `.env`
+carries non-blank `KC_ADMIN_*` — true exactly when a fresh `keycloak-db` was just bootstrapped, the
+one state where the setting can have reverted — kcadm asserts **master-realm brute-force detection
+ON**; steady-state deploys with blanked credentials skip it, since the setting persists in
+`keycloak-db`) → **prune** →
 **deploy log** (`$BACKUP_DIR/deploy.log`: timestamp, version, previous version, who).
 
 Step 7 is what makes the script trustworthy, and it must not be weakened: the app-chain check

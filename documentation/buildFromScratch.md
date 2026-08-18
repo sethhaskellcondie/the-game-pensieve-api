@@ -266,8 +266,11 @@ The SMTP gate (step 5) is resolved; nothing blocks this section.
 3. ~~`KC_ADMIN_UI_PASSWORD_HASH` from `caddy hash-password`~~ — **gone since 2026-08-18**: the
    basic-auth gate was removed with its variables (see the admin-console saga below and in
    `PastIssues.md`). The console's protection is Keycloak-side: strong admin password, enforced
-   OTP, and master-realm brute-force detection — **the last one is runtime realm config that a
-   rebuild must re-enable by hand** (Realm settings → Security defenses, 10 failures, temporary).
+   OTP, and master-realm brute-force detection — the last one is runtime realm config that a fresh
+   `keycloak-db` reverts to OFF, and the deploy script re-asserts it automatically on any deploy
+   where `KC_ADMIN_*` are still set in `.env` (i.e. right after a bootstrap; see
+   `scriptExplainer.md` step 7). Only a rebuild that never runs the deploy script needs the hand
+   version (Realm settings → Security defenses, 10 failures, temporary).
 4. **Use the exact SMTP values proven in the rehearsal — copy from the password manager, do not
    retype from memory.**
 5. `chmod 600 dockerCompose/.env`. Store the final copy back in the password manager — **this file
@@ -375,7 +378,9 @@ Procedure in
 > was put in place *before* the removal shipped: strong unique admin password, **OTP enforced via
 > the `CONFIGURE_TOTP` required action** on the admin account, and **brute-force detection enabled
 > on the master realm** (10 failures, temporary — applied live via the Admin API; it is runtime
-> realm config, so a rebuild must re-enable it by hand). The `KC_ADMIN_UI_*` variables left the
+> realm config that a fresh `keycloak-db` reverts, so the deploy script re-asserts it whenever
+> `.env` still carries the `KC_ADMIN_*` bootstrap credentials — the credential window and the risk
+> window coincide). The `KC_ADMIN_UI_*` variables left the
 > compose file, the env example, and the rehearsal with it. All four rounds are written up in
 > `PastIssues.md`; the rehearsal (25 checks) pins the gate's *absence* — nothing on the auth host
 > may answer a Basic challenge.

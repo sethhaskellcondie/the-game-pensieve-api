@@ -223,7 +223,9 @@ if [[ "$DRY_RUN" == "yes" ]]; then
     printf '  app chain   https://%s/api/heartbeat    -> .status=="online" and .secureMode==true (300s)\n' "$APP_DOMAIN"
     printf '  keycloak    https://%s/realms/pensieve  -> .realm=="pensieve" (300s)\n' "$AUTH_DOMAIN"
     printf '  mcp         https://%s/healthz          -> HTTP 200 (120s)\n' "$MCP_DOMAIN"
-    printf 'then assert the running backend/frontend/mcp containers are all :%s.\n' "$VERSION"
+    printf 'then assert the running backend/frontend/mcp containers are all :%s,\n' "$VERSION"
+    printf 'then, IF KC_ADMIN_* are set in .env (i.e. a fresh keycloak-db bootstrap), assert master-realm\n'
+    printf 'brute-force detection ON via kcadm; skipped in steady state (credentials blanked).\n'
 else
     # The app-chain check is the most valuable single probe in the system: it crosses Caddy, TLS, the
     # frontend, the private network, and the backend, AND asserts secured mode — a dropped `secured`
@@ -242,6 +244,35 @@ else
             || fail "$service is running $image, not :$VERSION — the switch did not take"
     done
     printf 'all three services are running :%s and the public URLs answer correctly.\n' "$VERSION"
+
+    # --- master-realm hardening, conditional on bootstrap credentials --------------------------------
+    # Brute-force detection on the MASTER realm is runtime realm config: it is not in any import file,
+    # and a rebuild with a fresh keycloak-db silently reverts it to Keycloak's default (OFF). Since the
+    # basic-auth gate was removed (2026-08-18), it is one of the three controls protecting the admin
+    # login — so a rebuild must not be able to forget it. The trick: a fresh keycloak-db is exactly the
+    # state where .env MUST carry KC_ADMIN_* (the bootstrap admin only materializes from them on first
+    # boot), and steady state is exactly where they are blanked. So assert the setting whenever the
+    # credentials exist, and skip when they don't — the risk window and the credential window coincide.
+    # kcadm runs INSIDE the keycloak container (the image has no curl; localhost needs no TLS).
+    KC_HARDEN_USER="$(env_val KC_ADMIN_USER)"
+    KC_HARDEN_PW="$(env_val KC_ADMIN_PASSWORD)"
+    if [[ -n "$KC_HARDEN_USER" && -n "$KC_HARDEN_PW" ]]; then
+        if compose exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials \
+                --server http://localhost:8080 --realm master \
+                --user "$KC_HARDEN_USER" --password "$KC_HARDEN_PW" \
+                --config /tmp/kcadm-deploy.config >/dev/null 2>&1 \
+           && compose exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/master \
+                -s bruteForceProtected=true -s permanentLockout=false -s failureFactor=10 \
+                --config /tmp/kcadm-deploy.config >/dev/null 2>&1; then
+            printf 'master-realm hardening: brute-force detection asserted ON (bootstrap credentials present in .env).\n'
+        else
+            printf 'WARNING: KC_ADMIN_* are set in .env but kcadm could not apply master-realm hardening.\n'
+            printf 'WARNING: either the credentials are stale (blank them if the bootstrap admin is gone) or the\n'
+            printf 'WARNING: realm needs hand attention: verify brute-force detection is ON (Realm settings -> Security defenses).\n'
+        fi
+    else
+        printf 'master-realm hardening: skipped — KC_ADMIN_* blanked in .env (steady state; the setting persists in keycloak-db).\n'
+    fi
 fi
 
 # ================================================================================================

@@ -465,9 +465,12 @@ required); and **brute-force detection enabled on the master realm** (10 failure
 lockout, matching the pensieve realm's import). Keycloak already demands a valid admin bearer token
 on every `/admin` API call, so the exposed surface is the login page and token endpoint — exactly
 what those three controls cover. Two standing cautions: master-realm brute-force protection is
-**runtime realm config** — a rebuild with a fresh `keycloak-db` silently reverts it to OFF and it
-must be re-enabled by hand; and `admin-cli`'s direct password grant cannot be disabled (`kcadm`
-authenticates through it), which is why the brute-force setting is load-bearing.
+**runtime realm config** — a rebuild with a fresh `keycloak-db` silently reverts it to OFF, which is
+why `deploy-production-remote.sh` step 7 re-asserts it via kcadm on any deploy where `.env` still
+carries non-blank `KC_ADMIN_*` (a fresh bootstrap is exactly the state where those credentials must
+exist, so the credential window and the risk window coincide; steady-state deploys skip it); and
+`admin-cli`'s direct password grant cannot be disabled (`kcadm` authenticates through it), which is
+why the brute-force setting is load-bearing.
 
 **Lesson:** when a security control needs four increasingly-clever repairs to coexist with the thing
 it protects, the cost is no longer the breakage — it is that every future session starts with "which
