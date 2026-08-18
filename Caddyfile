@@ -106,42 +106,24 @@
 		max_size 1MB
 	}
 
-	# The gate covers exactly the INTERACTIVE admin login surface — the pages a human sees on the way
-	# in — and nothing else: the console shell, the master realm's login page (openid-connect/auth is
-	# where the form renders), and login-actions (where the form POSTs). Those are all top-level
-	# browser navigations, and browsers replay cached basic-auth credentials reliably on top-level
-	# navigations — so the whole console session costs ONE gate prompt, at the front door.
+	# There is deliberately NO basic-auth gate in front of the admin console — decided 2026-08-18
+	# after four rounds of the gate breaking the console in a new way each time (full write-ups in
+	# documentation/PastIssues.md: the Bearer/Basic one-Authorization-header collision on the Admin
+	# REST API, mid-session popups on background token refreshes whose cancel logged the admin out,
+	# and the navigation menu vanishing when the gate swallowed the console's own whoami endpoint).
+	# Basic auth fundamentally does not compose with a SPA that sends its own Authorization header.
 	#
-	# Everything programmatic is deliberately outside the gate, learned the hard way in three rounds
-	# (2026-08-17/18, PastIssues has the full write-ups):
-	#   - The Admin REST API (/admin/realms/*, /admin/serverinfo, ...) carries `Authorization: Bearer`;
-	#     HTTP has exactly one Authorization header, so a basic-auth gate there is UNSATISFIABLE — the
-	#     credential popup loops forever no matter what is typed. Keycloak enforces its own bearer
-	#     token on every call.
-	#   - The console's background requests under /realms/master (token refresh, the session-status
-	#     iframe, the 3p-cookie check pages) are fetches and iframes, where browsers do NOT reliably
-	#     replay basic credentials — gating them causes surprise mid-session popups, and canceling one
-	#     kills the session (the token refresh is load-bearing). Keycloak's own auth protects the
-	#     token endpoint's sensitive grants.
-	#
-	# The one brute-forceable path this leaves open is the master realm's token endpoint (direct
-	# password grant, client_id=admin-cli). The compensating control is Keycloak-side, not Caddy-side:
-	# BRUTE-FORCE DETECTION MUST BE ENABLED ON THE MASTER REALM (Realm settings → Security defenses),
-	# matching what the pensieve realm's import already bakes. Do not "fix" it by re-gating the token
-	# endpoint — that is the mid-session popup bug again. (Direct grants on admin-cli cannot be
-	# disabled either: kcadm authenticates through them.)
-	#
-	# Also deliberately NOT matched, and do not add them:
-	#   /realms/pensieve/*  — authorize, token, JWKS, .well-known. The entire app depends on these.
-	#   /resources/*        — static assets for the console AND the public login pages. Gating this leaves
-	#                         real users staring at an unstyled login screen.
-	#
-	# NOTE: scripted admin REST calls against the public hostname need only the Keycloak bearer token —
-	# no basic-auth `-u` anywhere, including the token request itself (see keycloak/README.md).
-	@admin path /admin /admin/ /admin/master/console/* /realms/master/protocol/openid-connect/auth /realms/master/login-actions/*
-	basic_auth @admin {
-		{$KC_ADMIN_UI_USER} {$KC_ADMIN_UI_PASSWORD_HASH}
-	}
+	# The admin surface is protected by Keycloak itself instead, and REMOVING THE GATE IS ONLY SOUND
+	# WHILE ALL THREE OF THESE HOLD (all live as of 2026-08-18):
+	#   1. a strong, unique admin password;
+	#   2. OTP (2FA) on every account holding the master `admin` role — enforced via the
+	#      CONFIGURE_TOTP required action;
+	#   3. brute-force detection ENABLED on the MASTER realm (10 failures, temporary lockout — the
+	#      pensieve realm bakes the same at import; master defaults to OFF and was flipped by hand:
+	#      Realm settings → Security defenses).
+	# Keycloak requires a valid admin bearer token on every /admin API call, so the real exposure is
+	# the login and token endpoints — which is exactly what 1-3 protect. If any of them is ever
+	# undone, revisit this decision rather than resurrecting the gate as it was.
 
 	reverse_proxy keycloak:8080
 }

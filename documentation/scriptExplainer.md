@@ -213,12 +213,14 @@ driven all the way through, ending in a session whose role came from the backend
 point: the callback can only report a role after `GET /v1/auth/me` succeeds, so the secured backend has
 accepted the token's `aud` and `iss`. The probe user is deleted afterwards, pass or fail.
 
-The tally is **26 checks**, plus one more when `SMTP_TEST_TO` is set (the three newest, added
-2026-08-17/18, pin the admin-gate shape: the Admin REST API and the master token endpoint must be
-refused by Keycloak's own auth and NOT by the Caddy gate — a Basic challenge on the former bricks
-the console outright, and on the latter causes mid-session popups whose cancel logs the admin out —
-while the master realm's metadata staying ungated proves the matcher covers only the interactive
-login surface; see PastIssues). The throwaway passwords the script
+The tally is **25 checks**, plus one more when `SMTP_TEST_TO` is set. Five of them (added
+2026-08-17/18) pin the *absence* of any basic-auth gate on the auth host: the console page must
+simply load, and the Admin REST API, the master token endpoint, the console's runtime API
+(`config`/`whoami`), and the realm metadata must all answer with Keycloak's own auth — never a
+Basic challenge. A gate existed briefly and broke the console four different ways (Bearer/Basic
+header collision, mid-session popups, vanished navigation menu — all in PastIssues) before being
+removed in favor of Keycloak-side controls (strong password + enforced OTP + master-realm
+brute-force detection). The throwaway passwords the script
 generates — `Rehearse1<hex8>`, for both the login probe and `CREATE_TEST_USER` — deliberately satisfy the
 production realm's password policy (`length(12)`, mixed case, a digit). The two generators must track that
 policy: tighten it in `keycloak/import-prod/pensieve-realm.json` without updating them and the login-flow

@@ -166,19 +166,17 @@ edge artifact itself. The partial mitigation in place is the production realm's 
 which is **per-account, not per-IP**, so it does nothing about volumetric abuse of the anonymous read
 surface or of Keycloak's token endpoint. It is the first item in the post-launch backlog.
 
-**Do not widen the basic-auth matcher** on the auth host — it covers exactly the interactive admin
-login surface (console shell, master login page, login-actions) and nothing else. `/realms/pensieve/*`
-(authorize, token, JWKS, `.well-known`) and `/resources/*` (static assets for the console *and* the
-public login pages) must stay open; gating the latter leaves real users at an unstyled login screen.
-The Admin REST API must stay open — the console calls it with `Authorization: Bearer`, a request has
-exactly one `Authorization` header, and a basic-auth gate there is therefore unsatisfiable: the
-credential popup loops forever (found live 2026-08-17). The rest of `/realms/master/*` (token
-endpoint, session iframes) must stay open too — the console session-refreshes through them in
-background fetches where browsers don't replay basic credentials, so gating them causes mid-session
-popups whose cancel logs the admin out (found live 2026-08-18). Keycloak enforces its own auth on all
-of it; the compensating control for the open master token endpoint is brute-force detection enabled
-on the master realm. `scripts/prod-rehearsal.sh` asserts the open/gated directions and will catch a
-mistake here.
+**There is no basic-auth gate on the auth host** — one existed briefly (2026-08-17/18) and broke
+the admin console four different ways before being removed; the four `PastIssues.md` entries are the
+required reading before ever reintroducing one. The short version: basic auth cannot compose with a
+SPA that sends its own `Authorization: Bearer` header, and browsers only replay basic credentials
+reliably on top-level navigations — never on the console's background fetches and iframes. The admin
+surface is protected by Keycloak itself instead: strong unique password, OTP enforced via the
+`CONFIGURE_TOTP` required action on every `admin`-role account, and brute-force detection enabled on
+the master realm (runtime config — re-enable it by hand on any rebuild). `/realms/pensieve/*`
+(authorize, token, JWKS, `.well-known`) and `/resources/*` remain public as the app requires.
+`scripts/prod-rehearsal.sh` pins the shape: the console page must load and nothing on the host may
+answer a Basic challenge.
 
 **A green rehearsal is the gate for the publish.** The order is rehearse → release, never the reverse:
 `scripts/prod-rehearsal.sh` is the only thing that exercises `dockerCompose/compose.production.yaml` and the

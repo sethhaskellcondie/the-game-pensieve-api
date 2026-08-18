@@ -263,8 +263,11 @@ The SMTP gate (step 5) is resolved; nothing blocks this section.
    transcribe from it, don't re-derive.
 2. Generate each secret with `openssl rand -base64 48`: `SESSION_SECRET` (≥32 chars — enforced at
    boot), `OIDC_CLIENT_SECRET`, `POSTGRES_PASSWORD`, `KC_DB_PASSWORD`, `KC_ADMIN_PASSWORD`.
-3. `KC_ADMIN_UI_PASSWORD_HASH` from `docker run --rm caddy:2 caddy hash-password --plaintext '…'`.
-   **Single-quote it in `.env`** — bcrypt hashes are full of `$`.
+3. ~~`KC_ADMIN_UI_PASSWORD_HASH` from `caddy hash-password`~~ — **gone since 2026-08-18**: the
+   basic-auth gate was removed with its variables (see the admin-console saga below and in
+   `PastIssues.md`). The console's protection is Keycloak-side: strong admin password, enforced
+   OTP, and master-realm brute-force detection — **the last one is runtime realm config that a
+   rebuild must re-enable by hand** (Realm settings → Security defenses, 10 failures, temporary).
 4. **Use the exact SMTP values proven in the rehearsal — copy from the password manager, do not
    retype from memory.**
 5. `chmod 600 dockerCompose/.env`. Store the final copy back in the password manager — **this file
@@ -320,7 +323,9 @@ DNS not resolving yet.
       renders **styled** (unstyled = the matcher is too broad; the page's three `/resources/…` CSS
       files each returned 200 `text/css`). Verified 2026-08-17. Note: the authorization endpoint
       refuses a request without PKCE (`Missing parameter: code_challenge_method`) — correct
-      behavior, not a defect.
+      behavior, not a defect. **(Superseded 2026-08-18: the gate was removed entirely — see the
+      admin-console saga below. On a re-run, the expectation is inverted: nothing on the auth host
+      answers a Basic challenge, and the console page loads straight to Keycloak's login.)**
 - [x] Every service except Caddy publishes no host port. Verified 2026-08-17 via `docker ps`.
       **One deliberate exception added later the same day:** the app database (`db`) publishes
       `127.0.0.1:5432` — loopback only, unreachable from the internet — for IDE access over an SSH
@@ -356,15 +361,24 @@ Procedure in
 > fixed live with a hand `up -d --force-recreate caddy`, and permanently in the deploy script — see
 > the Prove-the-deploy-script section and `PastIssues.md`). Full write-up in `PastIssues.md`.
 >
-> **Final matcher iteration, same day:** with the fix live, the console *worked* but still threw
-> stray gate popups mid-session — the remaining gated `/realms/master/*` endpoints (token refresh,
-> session iframes) are background fetches where browsers don't replay basic credentials, and
-> canceling the token-refresh prompt logs the admin out. The matcher now covers **only the
-> interactive login surface** (console shell, master login page, login-actions), all top-level
-> navigations where credential replay is reliable: one gate prompt at the front door, then the
-> Keycloak login, then nothing. Compensating control for the now-open master token endpoint:
-> **brute-force detection enabled on the master realm** (done via the console the same day — the
-> pensieve realm already had it baked at import). Rides the first tag after 1.0.2.
+> **Matcher iterations three and four, next day (2026-08-18):** with the collision fix live (1.0.2,
+> after the stale-mount recreate), the console *worked* but threw stray gate popups mid-session —
+> the remaining gated `/realms/master/*` endpoints (token refresh, session iframes) are background
+> fetches where browsers don't replay basic credentials, and canceling the token-refresh prompt
+> logs the admin out. Round three (1.0.3) narrowed the gate to the interactive login surface. Then
+> round four: the console's navigation menu vanished for every account — the `/admin/master/console/*`
+> wildcard was swallowing the console's own runtime API (`config`, `whoami`; the menu is built from
+> `whoami`, a Bearer fetch — the collision again, one segment deeper).
+>
+> **Final resolution, 2026-08-18: the gate was removed entirely.** Four rounds of a basic-auth layer
+> fighting a Bearer-authenticated SPA was the design telling us no. Protection is Keycloak-side and
+> was put in place *before* the removal shipped: strong unique admin password, **OTP enforced via
+> the `CONFIGURE_TOTP` required action** on the admin account, and **brute-force detection enabled
+> on the master realm** (10 failures, temporary — applied live via the Admin API; it is runtime
+> realm config, so a rebuild must re-enable it by hand). The `KC_ADMIN_UI_*` variables left the
+> compose file, the env example, and the rehearsal with it. All four rounds are written up in
+> `PastIssues.md`; the rehearsal (25 checks) pins the gate's *absence* — nothing on the auth host
+> may answer a Basic challenge.
 > `kc create users -r pensieve -s username=… -s email=… -s emailVerified=true -s enabled=true`
 > then `kc set-password -r pensieve --username … --new-password '…'` (prod policy: 12+ chars, mixed
 > case, not username/email).

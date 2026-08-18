@@ -421,3 +421,56 @@ Basic challenge.
 "the browser replays credentials" is true for pages and false-enough for fetches and iframes that any
 gated path a SPA touches in the background will eventually prompt — and the prompt will look broken,
 because it queues per-request. Gate the front door, not the hallways.
+
+## Every admin saw a console containing only "Manage realms" — the gate had swallowed `whoami`
+
+**Symptom:** After the interactive-login-surface matcher went live (1.0.3), the console was reachable
+and stable — but the left navigation showed a single item, "Manage realms", for *every* account,
+including a freshly minted temporary super-admin. Realm pages greeted the admin with "click the
+corresponding menu items in the left navigation bar" above a navigation bar with no menu items.
+Occasional cancelable gate popups continued. It looked exactly like a missing-roles problem; probing
+the Admin API directly with the same accounts' tokens returned 200s everywhere, ruling that out.
+
+**Root cause:** The matcher's console entry was `/admin/master/console/*` — and Keycloak serves the
+console's own runtime API one path segment below the page: `/admin/master/console/config` and
+`/admin/master/console/whoami`. Both are background fetches; `whoami` carries `Authorization: Bearer`
+and is the single source the console uses to decide which menu sections you may see. Gated, it 401s
+(the one-Authorization-header collision, round four), the fetch dies with the canceled popup, and the
+console renders the only navigation it can prove you're entitled to: none.
+
+**Fix:** Match the console *page* exactly — `/admin`, `/admin/`, `/admin/master/console`,
+`/admin/master/console/` — no wildcard. The HTML document is the only thing served at those exact
+paths; `config`/`whoami` fall outside the gate and are protected the same way as the Admin REST API
+(Keycloak's own auth — `whoami` refuses tokens that aren't the console's). The rehearsal pins it
+(27 checks): `config` and `whoami` must never answer a Basic challenge.
+
+**Lesson:** the same SPA that taught "gate the front door, not the hallways" also keeps a mail slot
+*in* the front door. When gating a path prefix that serves an application shell, enumerate what else
+lives under that prefix — a SPA's own bootstrap endpoints usually live beside its HTML, and they are
+hallway traffic even though their URL looks like the door.
+
+## The admin gate, final chapter: removed in favor of Keycloak-side controls
+
+**Decision (2026-08-18):** After four rounds of the Caddy basic-auth gate breaking the admin console
+in a new way each time — the Bearer/Basic one-Authorization-header collision on the Admin REST API,
+the stale-inode deploy that kept serving the old matcher, mid-session popups whose cancel logged the
+admin out, and finally the navigation menu vanishing when the wildcard swallowed the console's
+`whoami` — the gate was removed entirely. Each fix was correct and each shrank the gate, but the
+trajectory was the design talking: **basic auth at the edge cannot compose with a SPA that carries
+its own `Authorization` header and lives on background fetches.**
+
+**What replaced it, all live before the removal shipped:** a strong unique admin password; **OTP
+enforced** on the admin account via the `CONFIGURE_TOTP` required action (not merely available —
+required); and **brute-force detection enabled on the master realm** (10 failures, temporary
+lockout, matching the pensieve realm's import). Keycloak already demands a valid admin bearer token
+on every `/admin` API call, so the exposed surface is the login page and token endpoint — exactly
+what those three controls cover. Two standing cautions: master-realm brute-force protection is
+**runtime realm config** — a rebuild with a fresh `keycloak-db` silently reverts it to OFF and it
+must be re-enabled by hand; and `admin-cli`'s direct password grant cannot be disabled (`kcadm`
+authenticates through it), which is why the brute-force setting is load-bearing.
+
+**Lesson:** when a security control needs four increasingly-clever repairs to coexist with the thing
+it protects, the cost is no longer the breakage — it is that every future session starts with "which
+prompt is this and is cancel safe?" A control the operator cannot predict is a control the operator
+will eventually click through. Prefer fewer, native layers (the IdP's own 2FA + lockout) over an
+extra layer that fights the protocol.
