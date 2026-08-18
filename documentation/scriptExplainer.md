@@ -213,9 +213,12 @@ driven all the way through, ending in a session whose role came from the backend
 point: the callback can only report a role after `GET /v1/auth/me` succeeds, so the secured backend has
 accepted the token's `aud` and `iss`. The probe user is deleted afterwards, pass or fail.
 
-The tally is **24 checks**, plus one more when `SMTP_TEST_TO` is set (the 24th, added 2026-08-17,
-asserts the Admin REST API is refused by Keycloak's own bearer auth and NOT by the Caddy gate — a
-Basic challenge there bricks the admin console; see PastIssues). The throwaway passwords the script
+The tally is **26 checks**, plus one more when `SMTP_TEST_TO` is set (the three newest, added
+2026-08-17/18, pin the admin-gate shape: the Admin REST API and the master token endpoint must be
+refused by Keycloak's own auth and NOT by the Caddy gate — a Basic challenge on the former bricks
+the console outright, and on the latter causes mid-session popups whose cancel logs the admin out —
+while the master realm's metadata staying ungated proves the matcher covers only the interactive
+login surface; see PastIssues). The throwaway passwords the script
 generates — `Rehearse1<hex8>`, for both the login probe and `CREATE_TEST_USER` — deliberately satisfy the
 production realm's password policy (`length(12)`, mixed case, a digit). The two generators must track that
 policy: tighten it in `keycloak/import-prod/pensieve-realm.json` without updating them and the login-flow
@@ -318,10 +321,13 @@ The nine steps: **assert** (`.env` + `Caddyfile` + tools present — compose onl
 file carries three `:$VERSION` pins → **back up both databases** (`pg_dump` via `compose exec`, gzipped,
 timestamped, to `$BACKUP_DIR`, default `/opt/pensieve-backups` — outside the checkout and every compose
 volume; an empty dump aborts the deploy) → **pull** (the slow part, while the old version still serves) →
-**`up -d`** (the switch; 10–60s of downtime) **followed by a graceful `caddy reload`** (compose never
-recreates a container because a bind-mounted file changed, so without the reload a Caddyfile-only
-change — or its rollback — silently never takes effect; found by the live rollback test, rides the
-first tag after 1.0.1) → **health + version verification** → **prune** →
+**`up -d`** (the switch; 10–60s of downtime) **followed by an unconditional force-recreate of caddy**
+(two stacked findings: compose never recreates a container because a bind-mounted file changed — the
+live rollback test, 2026-08-17 — and the graceful `caddy reload` tried first is also useless, because
+a single-file bind mount pins the Caddyfile's *inode* at container start while git checkout replaces
+the file, so the reload re-reads the stale file and exits 0 — found live 2026-08-18 when the 1.0.2
+gate fix deployed green while the edge kept serving the old matcher; see PastIssues) →
+**health + version verification** → **prune** →
 **deploy log** (`$BACKUP_DIR/deploy.log`: timestamp, version, previous version, who).
 
 Step 7 is what makes the script trustworthy, and it must not be weakened: the app-chain check

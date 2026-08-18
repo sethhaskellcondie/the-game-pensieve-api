@@ -106,33 +106,39 @@
 		max_size 1MB
 	}
 
-	# The admin console pages (/admin/master/console) and the master realm they authenticate against
-	# (/realms/master) sit behind an extra basic-auth prompt, so Keycloak's admin login is not exposed
-	# to drive-by scanning.
+	# The gate covers exactly the INTERACTIVE admin login surface — the pages a human sees on the way
+	# in — and nothing else: the console shell, the master realm's login page (openid-connect/auth is
+	# where the form renders), and login-actions (where the form POSTs). Those are all top-level
+	# browser navigations, and browsers replay cached basic-auth credentials reliably on top-level
+	# navigations — so the whole console session costs ONE gate prompt, at the front door.
 	#
-	# The Admin REST API (/admin/realms/*, /admin/serverinfo, ...) is deliberately NOT gated — this
-	# matcher was originally /admin/* and that could never work (found 2026-08-17, the first time the
-	# console got past the framing fix): the console SPA calls the API with `Authorization: Bearer
-	# <admin token>`, and HTTP has exactly one Authorization header, so a basic-auth gate on those
-	# routes is unsatisfiable — the browser popup loops forever no matter what is typed (send Basic and
-	# Keycloak rejects the missing bearer; send Bearer and Caddy rejects the missing Basic). The API is
-	# not open: Keycloak itself requires a valid admin bearer token on every call. What the narrower
-	# gate gives up is basic-auth shielding of the API routes against pre-auth CVEs; the admin LOGIN
-	# surface (where password guessing would happen) stays gated. The console's own token and
-	# 3p-cookie-check requests under /realms/master carry no Authorization header, so the browser's
-	# cached basic credentials cover them silently.
+	# Everything programmatic is deliberately outside the gate, learned the hard way in three rounds
+	# (2026-08-17/18, PastIssues has the full write-ups):
+	#   - The Admin REST API (/admin/realms/*, /admin/serverinfo, ...) carries `Authorization: Bearer`;
+	#     HTTP has exactly one Authorization header, so a basic-auth gate there is UNSATISFIABLE — the
+	#     credential popup loops forever no matter what is typed. Keycloak enforces its own bearer
+	#     token on every call.
+	#   - The console's background requests under /realms/master (token refresh, the session-status
+	#     iframe, the 3p-cookie check pages) are fetches and iframes, where browsers do NOT reliably
+	#     replay basic credentials — gating them causes surprise mid-session popups, and canceling one
+	#     kills the session (the token refresh is load-bearing). Keycloak's own auth protects the
+	#     token endpoint's sensitive grants.
 	#
-	# Deliberately NOT matched, and do not add them:
+	# The one brute-forceable path this leaves open is the master realm's token endpoint (direct
+	# password grant, client_id=admin-cli). The compensating control is Keycloak-side, not Caddy-side:
+	# BRUTE-FORCE DETECTION MUST BE ENABLED ON THE MASTER REALM (Realm settings → Security defenses),
+	# matching what the pensieve realm's import already bakes. Do not "fix" it by re-gating the token
+	# endpoint — that is the mid-session popup bug again. (Direct grants on admin-cli cannot be
+	# disabled either: kcadm authenticates through them.)
+	#
+	# Also deliberately NOT matched, and do not add them:
 	#   /realms/pensieve/*  — authorize, token, JWKS, .well-known. The entire app depends on these.
 	#   /resources/*        — static assets for the console AND the public login pages. Gating this leaves
 	#                         real users staring at an unstyled login screen.
-	#   /admin/realms/* and the rest of the Admin REST API — see above; a basic-auth gate there bricks
-	#                         the console. Bearer-protected by Keycloak.
 	#
-	# NOTE: scripted admin REST calls against the public hostname need only the bearer token again, but
-	# fetching that token from /realms/master still crosses the gate, so the token request itself needs
-	# `-u "$KC_ADMIN_UI_USER:<password>"` (see keycloak/README.md).
-	@admin path /admin /admin/ /admin/master/console/* /realms/master/*
+	# NOTE: scripted admin REST calls against the public hostname need only the Keycloak bearer token —
+	# no basic-auth `-u` anywhere, including the token request itself (see keycloak/README.md).
+	@admin path /admin /admin/ /admin/master/console/* /realms/master/protocol/openid-connect/auth /realms/master/login-actions/*
 	basic_auth @admin {
 		{$KC_ADMIN_UI_USER} {$KC_ADMIN_UI_PASSWORD_HASH}
 	}

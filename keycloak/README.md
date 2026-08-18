@@ -215,20 +215,18 @@ curl -X PUT "$KC/admin/realms/pensieve/users/$USER_ID/execute-actions-email?clie
   -d '["VERIFY_EMAIL","UPDATE_PASSWORD"]'
 ```
 
-Admin REST calls like this one need only the bearer token — the API paths are deliberately outside the
-Caddy gate, because a request has exactly one `Authorization` header and it is already spent on the
-bearer (see [Admin console access](#admin-console-access)). Minting `$ADMIN_TOKEN` is the one call that
-*does* need the gate credential, because the master realm's token endpoint sits behind it and a token
-request carries no `Authorization` header of its own:
+Admin REST calls like this one — and the token minting below — need only Keycloak's own credentials;
+no basic-auth `-u` anywhere. Both paths are deliberately outside the Caddy gate: the API because a
+request has exactly one `Authorization` header and it is already spent on the bearer, and the token
+endpoint because the console session-refreshes through it in background fetches where browsers don't
+replay basic credentials (see [Admin console access](#admin-console-access)):
 
 ```bash
-ADMIN_TOKEN=$(curl -s -u "$KC_ADMIN_UI_USER:$KC_ADMIN_UI_PASSWORD" \
+ADMIN_TOKEN=$(curl -s \
   -X POST "$KC/realms/master/protocol/openid-connect/token" \
   -d client_id=admin-cli -d grant_type=password \
   -d "username=$KC_ADMIN_USER" -d "password=$KC_ADMIN_PASSWORD" | jq -r .access_token)
 ```
-
-(Locally, neither `-u` applies — the dev Keycloak is not behind Caddy.)
 
 **Link lifespans:** a user-initiated reset link lives **15 minutes**
 (`actionTokenGeneratedByUserLifespan: 900`, raised from Keycloak's 5-minute default — five minutes is
@@ -250,34 +248,40 @@ not resolve inside the Testcontainers Keycloak, which is harmless: no test trigg
 ## Admin console access
 
 In production Caddy publishes all of `AUTH_DOMAIN`, which would put Keycloak's admin login on the open
-internet. The `Caddyfile` puts a **basic-auth prompt in front of the console pages (`/admin`,
-`/admin/master/console/*`) and the master realm (`/realms/master/*`)** — a second credential
-(`KC_ADMIN_UI_USER` / `KC_ADMIN_UI_PASSWORD_HASH` in `.env`, hash from `caddy hash-password`) layered
-on top of the Keycloak admin password itself.
+internet. The `Caddyfile` puts a **basic-auth prompt in front of exactly the interactive login
+surface** — the console shell (`/admin`, `/admin/master/console/*`), the master realm's login page
+(`/realms/master/protocol/openid-connect/auth`), and the form's target (`/realms/master/login-actions/*`)
+— a second credential (`KC_ADMIN_UI_USER` / `KC_ADMIN_UI_PASSWORD_HASH` in `.env`, hash from
+`caddy hash-password`) layered on top of the Keycloak admin password itself. Those are all top-level
+navigations, where browsers reliably replay cached basic credentials, so a console session costs **one
+gate prompt, at the front door** — then the Keycloak login, and no prompts after that.
 
-Paths deliberately left open — adding any of them to the matcher will break the site:
+Everything programmatic is deliberately outside the gate, learned in three rounds on 2026-08-17/18
+(full write-ups in `documentation/PastIssues.md`) — adding any of these back will break the console:
 
 - **`/realms/pensieve/*`** — authorize, token, JWKS, `.well-known`. Every login and every token depends
   on these being anonymous.
 - **`/resources/*`** — static assets for the admin console *and* the public login pages. Gate it and
   real users get an unstyled login screen.
-- **The Admin REST API (`/admin/realms/*`, `/admin/serverinfo`, …)** — the matcher was originally all
-  of `/admin/*`, and that can never work: the console SPA calls these routes with
-  `Authorization: Bearer <admin token>`, a request has exactly one `Authorization` header, and so a
-  basic-auth gate there is unsatisfiable — the browser's credential popup loops forever regardless of
-  what is typed (found 2026-08-17, the first time the console got past the framing fix; the fix rode
-  the release after 1.0.1). These routes are not open in any meaningful sense: Keycloak requires a
-  valid admin bearer token on every one of them.
+- **The Admin REST API (`/admin/realms/*`, `/admin/serverinfo`, …)** — the console SPA calls these
+  with `Authorization: Bearer <admin token>`; a request has exactly one `Authorization` header, so a
+  basic-auth gate there is unsatisfiable — the credential popup loops forever regardless of what is
+  typed. Keycloak requires a valid admin bearer token on every one of these routes.
+- **The rest of `/realms/master/*`** (token endpoint, session-status iframe, 3p-cookie check pages) —
+  the console session-refreshes and polls through these in background fetches and iframes, where
+  browsers do *not* reliably replay basic credentials: gating them produces surprise mid-session
+  popups, and canceling the token-refresh one logs the admin out.
+
+The one brute-forceable path this leaves open is the master token endpoint (direct password grant via
+`admin-cli`). The compensating control is Keycloak-side: **brute-force detection must be enabled on
+the master realm** (Realm settings → Security defenses), matching what the pensieve realm's import
+already bakes. Do not re-gate the token endpoint instead, and do not disable direct grants on
+`admin-cli` — `kcadm` authenticates through them.
 
 Consequences worth knowing:
 
-- Logging into the console prompts the gate **twice** in a fresh browser session: once for the console
-  page, and usually once more after Keycloak's login redirects back and the SPA starts calling the API
-  (browsers don't always replay basic-auth credentials across that hop). Same `KC_ADMIN_UI_*`
-  credentials both times; there is no third credential.
-- **Scripted Admin REST calls need only the bearer token.** The exception is *minting* that token —
-  the master realm's token endpoint is behind the gate and a token request has a free `Authorization`
-  header, so that one call takes `-u` — see [Onboarding an admin-created account](#account-emails).
+- **Scripted Admin REST calls need only the bearer token**, including the call that mints it — no
+  basic-auth `-u` anywhere — see [Onboarding an admin-created account](#account-emails).
 - Basic auth is a scanning barrier, not a substitute for a strong Keycloak admin password. Enable OTP
   on the admin account too (Account → Signing in → Two-factor authentication).
 

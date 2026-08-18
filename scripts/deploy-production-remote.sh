@@ -16,9 +16,11 @@
 #   4. backup    pg_dump BOTH databases to $BACKUP_DIR — losing keycloak-db loses every user account
 #                (users.keycloak_sub references it); every deploy is preceded by a backup, no exceptions
 #   5. pull      the slow part, while the old version is still serving
-#   6. up -d     the switch; only changed services restart; expect 10-60s of downtime; then a
-#                graceful `caddy reload`, because compose never recreates for a bind-mounted config
-#                change alone — without it a Caddyfile-only change (or rollback) silently never lands
+#   6. up -d     the switch; only changed services restart; expect 10-60s of downtime; then caddy is
+#                force-recreated unconditionally: compose never recreates for a bind-mounted config
+#                change, and a graceful reload cannot work either — the single-file bind mount pins
+#                the Caddyfile's inode at container start, and git checkout replaces the file, so a
+#                reload re-reads the STALE file and reports success. Only a recreate rebinds it.
 #   7. health    wait for the public URLs to answer correctly, then assert the running containers are
 #                actually :$VERSION — the step most often skipped by hand, and the only one that
 #                answers "did it work?"; a deploy that silently half-worked is the failure mode this
@@ -192,26 +194,25 @@ step "6. up -d (the switch)"
 # ================================================================================================
 if [[ "$DRY_RUN" == "yes" ]]; then
     printf 'dry run: would run `docker compose up -d --remove-orphans` — expect 10-60s of downtime —\n'
-    printf 'dry run: then gracefully reload caddy so the checked-out Caddyfile is the one serving.\n'
+    printf 'dry run: then FORCE-RECREATE caddy so the checked-out Caddyfile is the one serving.\n'
 else
     compose up -d --remove-orphans
-    # A bind-mounted config is invisible to `up -d`: compose only recreates on image/definition
-    # changes, so a deploy (or rollback) whose Caddyfile differs can leave caddy serving the OLD
-    # config from memory — found by the deliberate 1.0.0 rollback test (2026-08-17), where the
-    # rolled-back Caddyfile on disk never took effect. `caddy reload` is a zero-downtime graceful
-    # config swap and a no-op when the container was just recreated anyway. Retried briefly because
-    # a just-recreated caddy may still be booting; a reload that never succeeds fails the deploy —
-    # otherwise step 7 would green-light health checks served by the previous version's config.
-    reload_ok=no
-    for _ in 1 2 3 4 5; do
-        if compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile >/dev/null 2>&1; then
-            reload_ok=yes
-            break
-        fi
-        sleep 3
-    done
-    [[ "$reload_ok" == "yes" ]] || fail "caddy did not accept a config reload — the tag's Caddyfile is not serving (invalid config, or caddy is down)"
-    printf 'caddy reloaded — the checked-out Caddyfile is the config now serving.\n'
+    # Caddy is ALWAYS recreated, even when compose sees no change in its service. Two stacked
+    # findings force this:
+    #   1. A bind-mounted config is invisible to `up -d` — compose recreates on image/definition
+    #      changes only, so a deploy whose only Caddyfile differs restarts nothing (found by the
+    #      deliberate 1.0.0 rollback test, 2026-08-17).
+    #   2. The first fix — a graceful `caddy reload` — is NOT enough: the Caddyfile is a
+    #      single-FILE bind mount, which binds the file's INODE at container start, and git
+    #      checkout replaces files by rename. After a deploy the container still reads the
+    #      PREVIOUS version's file, so the reload re-loads the stale config and exits 0 (found
+    #      live 2026-08-18: the 1.0.2 gate fix deployed green while the edge kept serving 1.0.1's
+    #      matcher; host and container inodes differed). Only a recreate rebinds the path.
+    # Costs ~2-3s of extra edge downtime inside a step that already accepts 10-60s. TLS certs are
+    # unaffected (they live in the caddy_data volume). Step 7's health checks then prove the
+    # recreated caddy serves.
+    compose up -d --force-recreate caddy
+    printf 'caddy force-recreated — the checked-out Caddyfile is the config now serving.\n'
 fi
 
 # ================================================================================================

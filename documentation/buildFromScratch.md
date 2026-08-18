@@ -351,9 +351,20 @@ Procedure in
 > `WWW-Authenticate: Basic realm="restricted"`, served by Caddy. The fix narrows the gate to the
 > console pages + `/realms/master/*`, leaving the Admin REST API to Keycloak's own bearer
 > enforcement; `prod-rehearsal.sh` gained a check (24 now) asserting the API's refusal is NOT a
-> Basic challenge. Rides the release after 1.0.1. Full write-up in `PastIssues.md`. Expect the gate
-> popup **twice** per fresh browser session (page load, then again after the login redirect) — same
-> credentials both times; there is no third credential pair.
+> Basic challenge. Rode release 1.0.2 (2026-08-18) — **but deploying it surfaced surprise #4: the
+> stale-inode bind mount** (deploy green, edge still serving the old matcher, caddy "Up 19 hours";
+> fixed live with a hand `up -d --force-recreate caddy`, and permanently in the deploy script — see
+> the Prove-the-deploy-script section and `PastIssues.md`). Full write-up in `PastIssues.md`.
+>
+> **Final matcher iteration, same day:** with the fix live, the console *worked* but still threw
+> stray gate popups mid-session — the remaining gated `/realms/master/*` endpoints (token refresh,
+> session iframes) are background fetches where browsers don't replay basic credentials, and
+> canceling the token-refresh prompt logs the admin out. The matcher now covers **only the
+> interactive login surface** (console shell, master login page, login-actions), all top-level
+> navigations where credential replay is reliable: one gate prompt at the front door, then the
+> Keycloak login, then nothing. Compensating control for the now-open master token endpoint:
+> **brute-force detection enabled on the master realm** (done via the console the same day — the
+> pensieve realm already had it baked at import). Rides the first tag after 1.0.2.
 > `kc create users -r pensieve -s username=… -s email=… -s emailVerified=true -s enabled=true`
 > then `kc set-password -r pensieve --username … --new-password '…'` (prod policy: 12+ chars, mixed
 > case, not username/email).
@@ -610,9 +621,13 @@ published today.
       2. **A rolled-back Caddyfile never took effect**: compose does not recreate a container
          because a bind-mounted file's content changed, so caddy kept serving the 1.0.1 config from
          memory (confirmed by headers) while v1.0.0's Caddyfile sat on disk. Benign in that
-         direction — but forward-deploying a Caddyfile-only change would silently not land. Fix: the
-         remote script's step 6 now follows `up -d` with a graceful zero-downtime `caddy reload`
-         (fails the deploy if the config is refused). Rides the first tag after 1.0.1.
+         direction — but forward-deploying a Caddyfile-only change would silently not land. First
+         fix (rode 1.0.2): a graceful `caddy reload` after `up -d` — **which proved insufficient
+         the very next day**: a single-file bind mount pins the file's *inode* at container start,
+         and git checkout replaces the file, so the reload re-read the stale copy and exited 0
+         while the edge kept serving the old config (the 1.0.2 deploy, 2026-08-18; both PastIssues
+         entries). Final fix: step 6 force-recreates caddy unconditionally — only a recreate
+         rebinds the mount. Rides the first tag after 1.0.2.
 - [x] Preflight rejection confirmed in seconds: unpublished `1.0.2` refused in ~1s at the tag check
       before any SSH; `latest` refused by name; malformed `1.0` refused by shape. All exit 1.
 - [x] Banners removed from `README.md` and `DevDocumentation.md`; `scriptExplainer.md` finalized

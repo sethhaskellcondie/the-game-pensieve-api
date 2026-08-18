@@ -431,12 +431,16 @@ dcr_rejected() {
 check "anonymous dynamic client registration is refused" dcr_rejected
 
 # --- the Caddy admin gate, in both directions ------------------------------------------------------
-# The Caddyfile's own comment warns that gating too much leaves real users on an unstyled login screen.
-# So: assert the console IS gated, and that the login page and its assets are NOT.
+# The gate covers exactly the INTERACTIVE login surface (console shell, master auth page,
+# login-actions) and nothing programmatic — gating more causes either the unpassable Bearer-collision
+# popup or mid-session popups whose cancel kills the console session (PastIssues, 2026-08-17/18).
+# So: assert the interactive surface IS gated, and the programmatic surface is NOT.
 check "/admin is behind basic auth (401 without credentials)" \
     expect_code '^401$' "https://$AUTH_DOMAIN/admin/master/console/"
-check "/realms/master is behind basic auth (401 without credentials)" \
-    expect_code '^401$' "https://$AUTH_DOMAIN/realms/master/"
+check "master realm LOGIN PAGE is behind basic auth (401 without credentials)" \
+    expect_code '^401$' "https://$AUTH_DOMAIN/realms/master/protocol/openid-connect/auth"
+check "master realm metadata is NOT gated (over-gating causes mid-session console popups)" \
+    expect_code '^200$' "https://$AUTH_DOMAIN/realms/master"
 
 if [[ -n "${KC_ADMIN_UI_PASSWORD:-}" ]]; then
     check "/admin opens with the basic-auth credentials" \
@@ -466,6 +470,23 @@ admin_api_ungated() {
     echo "HTTP $code with a non-Basic challenge (Keycloak's own auth, not the Caddy gate)"
 }
 check "Admin REST API is refused by Keycloak, not the Caddy gate (gate there bricks the console)" admin_api_ungated
+
+# The master TOKEN endpoint must not be gated either: the console refreshes its session through it
+# with a background fetch, where browsers do not reliably replay basic credentials — a gate there
+# means mid-session popups, and canceling one logs the admin out (found live 2026-08-18). The
+# compensating control for leaving it open is brute-force detection ON in the master realm.
+token_ungated() {
+    local challenge
+    challenge="$("${CURL[@]}" -D - -o /dev/null -X POST \
+        "https://$AUTH_DOMAIN/realms/master/protocol/openid-connect/token" \
+        | tr -d '\r' | awk 'tolower($1) == "www-authenticate:" { print $2 }')"
+    if grep -qi '^basic' <<<"$challenge"; then
+        echo "the master token endpoint answers a BASIC challenge — mid-session console popups are back"
+        return 1
+    fi
+    echo "no Basic challenge (Keycloak handles its own auth)"
+}
+check "master token endpoint is NOT behind the gate (gate there breaks console sessions)" token_ungated
 
 # --- the login flow, driven the way the app actually drives it -------------------------------------
 # Deliberately NOT a hand-built authorize URL. The BFF derives redirect_uri from the origin it believes

@@ -314,6 +314,10 @@ happily by the stale config — wave it through.
 retried briefly while caddy boots, and a hard deploy failure if the config is refused). In the tag
 being deployed from 1.0.2 onward.
 
+> **Update 2026-08-18: the reload fix was itself insufficient** — it reloads a *stale* copy of the
+> file and reports success. See the next entry ("`caddy reload` reloaded the old Caddyfile...");
+> the real fix is an unconditional force-recreate of caddy in step 6.
+
 **Lesson:** `up -d` converges containers, not configuration. Every bind-mounted config file needs an
 explicit reload/restart story in the deploy path, or changes to it only apply by coincidence — whenever
 something *else* happens to recreate the container.
@@ -351,3 +355,69 @@ Authorization header of its own) still crosses the gate with `-u`.
 send their own `Authorization` header — the header is a singleton, and any route where both schemes
 claim it is not "double-protected", it is *unreachable*. When layering an edge gate over an API,
 walk the routes by what credential each request actually carries, not by path prefix.
+
+## `caddy reload` reloaded the old Caddyfile — a single-file bind mount pins the inode
+
+**Symptom:** The 1.0.2 deploy — carrying the admin-gate matcher fix — ran green end to end: checkout
+at the tag, health checks passed, deploy log written, and step 6's new `caddy reload` reported
+success. Yet the edge kept serving the **old** gate config: `/admin/serverinfo` still answered
+`WWW-Authenticate: Basic realm="restricted"`, and the admin console hit the same unpassable popup the
+release was meant to fix. `docker ps` gave the tell: every service freshly recreated except
+`pensieve-caddy-1 … Up 19 hours`.
+
+**Root cause:** The Caddyfile is a **single-file** bind mount (`../Caddyfile:/etc/caddy/Caddyfile`).
+Docker binds a single file by *inode* at container start. `git checkout` (like most tools) replaces
+files by writing a new one and renaming it over the old path — a **new inode**. From that moment the
+host path and the container path are two different files: the host had the 1.0.2 Caddyfile
+(inode 825015), the container still saw 1.0.1's (inode 819885, verified side by side). So
+`caddy reload --config /etc/caddy/Caddyfile` inside the container did exactly what it was told —
+re-parsed the stale file, loaded the config it was already running, and exited 0. The deploy's
+success signal was truthful about the reload and wrong about the outcome.
+
+**Fix:** step 6 now runs `docker compose up -d --force-recreate caddy` unconditionally after the main
+`up -d`. A recreate rebinds the mount path, picking up the current inode. ~2–3s of extra edge
+downtime inside a step that already accepts 10–60s; TLS certificates are untouched (they live in the
+`caddy_data` volume, not the container). The one-off remediation on the box was the same command by
+hand. Note the rehearsal could never catch this class of bug: it always boots a fresh stack, where
+container creation happens *after* checkout and the mount is never stale — this failure mode only
+exists on a host whose containers outlive a `git checkout`.
+
+**Lesson:** a single-file bind mount is a snapshot, not a window — after any rename-style replacement
+the container is reading a file that no longer has a name on the host. For config that must track a
+git checkout, either mount the *directory* or recreate the container; never trust an in-place reload.
+And a deploy step that "verifies" its own mechanism (reload exited 0) is weaker than one that
+verifies the *outcome* (the served config changed) — the second kind is what step 7 exists for, and
+this bug lived precisely in the gap between them.
+
+## Mid-session gate popups in the admin console — background fetches don't replay basic auth
+
+**Symptom:** With the narrowed 1.0.2 gate live (and the stale caddy mount recreated), the admin
+console finally loaded — but navigating it kept throwing the Caddy basic-auth popup at random
+moments, and the popup rejected the correct gate password. Canceling it sometimes worked (the console
+carried on) and sometimes **logged the admin out entirely**.
+
+**Root cause:** The matcher still covered all of `/realms/master/*`, and the console continuously
+talks to that realm in the background: token refresh (`protocol/openid-connect/token`), the
+session-status iframe, the 3p-cookie check pages. Those are `fetch()` calls and iframes — and
+browsers only replay cached basic-auth credentials *reliably* on **top-level navigations**. When
+several background requests 401 at once, the browser queues one credential prompt per request, so
+entering the (correct) password on one prompt is immediately followed by the next — indistinguishable
+from a rejection. Canceling the prompt attached to a session-status poll was harmless; canceling the
+one attached to the token refresh killed the session. Which one you got was luck.
+
+**Fix:** The gate now covers **exactly the interactive login surface** — the console shell (`/admin`,
+`/admin/`, `/admin/master/console/*`), the master login page (`/realms/master/protocol/openid-connect/auth`),
+and the form target (`/realms/master/login-actions/*`). All top-level navigations; one prompt at the
+front door, then the Keycloak login, then silence. Everything programmatic under `/realms/master/*`
+is open and protected by Keycloak's own auth. The deliberate trade: the master token endpoint accepts
+direct password grants (`admin-cli`) unauthenticated-by-Caddy, so **brute-force detection must be ON
+in the master realm** (Realm settings → Security defenses) — the same protection the pensieve realm's
+import bakes. Direct grants on `admin-cli` cannot be disabled as a further hardening: `kcadm`
+authenticates through them. `prod-rehearsal.sh` pins the shape from both directions (26 checks now):
+login page gated, realm metadata and token endpoint answering with Keycloak's own auth, never a
+Basic challenge.
+
+**Lesson:** basic auth composes with a browser app only on top-level navigations. The mental model
+"the browser replays credentials" is true for pages and false-enough for fetches and iframes that any
+gated path a SPA touches in the background will eventually prompt — and the prompt will look broken,
+because it queues per-request. Gate the front door, not the hallways.
