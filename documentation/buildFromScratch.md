@@ -397,11 +397,18 @@ Procedure in
 - [x] Log in once — the first authenticated call stamps `keycloak_sub` on that row. Done 2026-08-17:
       `linked = t` in the users table, `/api/auth/session` reported role ADMIN (which also closed the
       token `aud`/`iss` verification item above).
-- [ ] **Harden:** enable OTP (done 2026-08-17, forced via the `CONFIGURE_TOTP` required action);
-      **still open, now deferred until the release after 1.0.1** (1.0.1's framing fix got the console
-      to its next blocker — surprise #3 above, the gate/bearer collision): create a real admin,
-      delete the bootstrap one, and blank `KC_ADMIN_USER`/`KC_ADMIN_PASSWORD` in `.env`
-      (`KC_BOOTSTRAP_ADMIN_*` only applies to a first boot on an empty DB). Interim admin work
+- [x] **Harden — done 2026-08-18, exactly as originally written, after a detour.** A permanent,
+      personally-named admin was created in the master realm (realm role `admin`, password set
+      non-temporary, OTP forced via the `CONFIGURE_TOTP` required action and configured at first
+      login, full console access verified), and then BOTH bootstrap-created accounts were deleted:
+      the original first-boot `admin` and the `tmpadmin` recovery account. `KC_ADMIN_USER` /
+      `KC_ADMIN_PASSWORD` are blanked in `.env`. The master realm now holds exactly one user.
+      Two operational notes from the detour, for the next person: Keycloak marks every
+      bootstrap-created admin as a **temporary account** — it shows a banner, greys out the
+      username field, and wants replacing, so "rename the bootstrap admin" is not a supported
+      shortcut; and if all admin access is ever lost, the recovery recipe is
+      `kc.sh bootstrap-admin user` inside the keycloak container (needs `-e TMP_PW=...` and
+      `-e KC_HTTP_MANAGEMENT_PORT=9001` on the exec — full write-up in PastIssues). Interim admin work
       continues through `kcadm` in the container.
 - [x] **Confirm a real email arrives** — trigger a password reset. First end-to-end proof of the
       SMTP path against real deliverability. Check the spam folder. Done 2026-08-17, after fixing

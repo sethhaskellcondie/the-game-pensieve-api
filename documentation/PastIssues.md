@@ -477,3 +477,41 @@ it protects, the cost is no longer the breakage — it is that every future sess
 prompt is this and is cancel safe?" A control the operator cannot predict is a control the operator
 will eventually click through. Prefer fewer, native layers (the IdP's own 2FA + lockout) over an
 extra layer that fights the protocol.
+
+## Recovering Keycloak admin access, and why the bootstrap admin cannot simply be kept
+
+**Symptom(s):** During the admin-account hardening, the logged-in admin appeared to lose access
+(sparse console, a 403 on the users page — actually a stale session from editing the very account
+that was logged in), and later the plan to "rename the bootstrap `admin` into the real admin" hit a
+greyed-out username field plus a persistent "logged in as a temporary admin user" banner.
+
+**What Keycloak actually does:** every admin account created by the bootstrap mechanism — the
+first-boot `KC_BOOTSTRAP_ADMIN_*` user and anything made by `kc.sh bootstrap-admin user` — is marked
+a **temporary admin**: the console banners it, restricts editing it (the greyed username), and
+expects it to be replaced. The supported end state is a *normal* user created in the master realm,
+granted the realm role **`admin`** (one composite — full rights over all realms), password set
+non-temporary, OTP forced via the `CONFIGURE_TOTP` required action — and then every
+bootstrap-created account deleted. The master realm ends with exactly one user.
+
+**The recovery recipe (proven live 2026-08-18):** if all admin access is ever lost — deleted
+account, forgotten password, under-privileged survivor — Keycloak 26 can mint a fresh temporary
+super-admin against the EXISTING database, no volume wipe involved:
+
+```bash
+docker compose -f dockerCompose/compose.production.yaml exec \
+  -e TMP_PW='<throwaway>' -e KC_HTTP_MANAGEMENT_PORT=9001 \
+  keycloak /opt/keycloak/bin/kc.sh bootstrap-admin user --username tmpadmin --password:env TMP_PW
+```
+
+Three sharp edges, each found the hard way: `--password:env` reads the variable **inside the
+container**, so it must be passed with `exec -e`; the command boots a second Keycloak instance that
+will collide with the running one's management port unless `KC_HTTP_MANAGEMENT_PORT` is overridden;
+and the interactive prompt form needs a real TTY. Log in as the temporary account, repair or
+recreate the real admin, then **delete the temporary account** — its password has been on a command
+line.
+
+**Lesson:** the sanctioned path and the expedient path diverge here: Keycloak deliberately makes
+bootstrap accounts second-class so they don't calcify into permanent identities. Fighting that
+(renaming, keeping) costs more than following it (create real, grant `admin`, delete bootstrap).
+And when access looks lost, check what the *API* says with a directly-minted token before trusting
+what the console shows — a stale session and missing roles look identical from the browser.
