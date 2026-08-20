@@ -76,6 +76,15 @@ services:
       MCP_DOMAIN: ${MCP_DOMAIN}
       AUTH_DOMAIN: ${AUTH_DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL}
+      # Optional typo-catcher host that 301s to APP_DOMAIN (see the Caddyfile's alias site block).
+      # The `:-alias.localhost` fallback is REQUIRED and must stay in sync with the Caddyfile's own
+      # `{$APP_ALIAS_DOMAIN:alias.localhost}` default. Caddy's `{$VAR:default}` only applies when the
+      # variable is UNSET: passing it through as an empty string instead makes the site address empty,
+      # at which point Caddy reads the block as a global options block and the WHOLE config fails to
+      # load with "unrecognized global option: import" — every host down, not just the alias. Compose's
+      # `:-` covers unset and empty alike, so the container never sees a blank value. (Verified against
+      # caddy:2 with `caddy adapt`, 2026-08-20.)
+      APP_ALIAS_DOMAIN: ${APP_ALIAS_DOMAIN:-alias.localhost}
       # (The former KC_ADMIN_UI_* basic-auth gate variables were removed 2026-08-18 along with the
       # gate itself — see the Caddyfile's auth-host comment for the decision and its preconditions.)
     volumes:

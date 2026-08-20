@@ -165,7 +165,10 @@ done
 (( ${#SESSION_SECRET} >= 32 )) || fail "SESSION_SECRET must be >= 32 chars (got ${#SESSION_SECRET})"
 
 if [[ "${ALLOW_PUBLIC_DOMAINS:-0}" != "1" ]]; then
-    for domain in "$APP_DOMAIN" "$MCP_DOMAIN" "$AUTH_DOMAIN"; do
+    # APP_ALIAS_DOMAIN is optional and usually unset here — compose then supplies alias.localhost, which
+    # passes this check like any other .localhost name. It is included so that setting it to a real typo
+    # host cannot smuggle a public name past the guard the other three are held to.
+    for domain in "$APP_DOMAIN" "$MCP_DOMAIN" "$AUTH_DOMAIN" "${APP_ALIAS_DOMAIN:-alias.localhost}"; do
         [[ "$domain" == *.localhost ]] \
             || fail "domain '$domain' is not a .localhost name. A public domain makes Caddy hit the REAL ACME endpoint and serve the real hostnames — set ALLOW_PUBLIC_DOMAINS=1 only if that is what you want (Tier 3 staging host)."
     done

@@ -51,9 +51,14 @@ touching the production host, every time.
 - APP_DOMAIN=pensieve.sethcondie.com
 - MCP_DOMAIN=mcp.pensieve.sethcondie.com
 - AUTH_DOMAIN=auth.pensieve.sethcondie.com
+- APP_ALIAS_DOMAIN=pensive.sethcondie.com  *(typo alias, added 2026-08-20 — 301s to APP_DOMAIN)*
 
-These are permanent. `AUTH_DOMAIN` is the token issuer, `MCP_DOMAIN` is the `aud` claim, and both are
-baked into three services and every issued token — there is no rename path.
+The first three are permanent. `AUTH_DOMAIN` is the token issuer, `MCP_DOMAIN` is the `aud` claim,
+and both are baked into three services and every issued token — there is no rename path.
+
+`APP_ALIAS_DOMAIN` is the opposite: pure edge config, in the Caddyfile and nowhere else, changeable
+or removable in any release. It exists because `pensieve` gets typed `pensive`, and it is a redirect
+and never a second origin — see step 10.
 
 **Email relay — Resend**
 
@@ -108,7 +113,7 @@ resolves, so `NXDOMAIN` disappears as a signal and no DNS check can distinguish 
   Cosmetic only: SSH goes by IP, DNS by IP, and the compose project name is pinned — nothing
   functional ever referenced the hostname)
 - Region / size: `nyc1` / 4 GB RAM, Ubuntu LTS (~$24/mo)
-- Public IP: `159.203.179.41` (also the value the three A records point at)
+- Public IP: `159.203.179.41` (also the value the four A records point at)
 - Auth: SSH key only; password login disabled at creation. Additional machines get access by
   appending their own public key to `~/.ssh/authorized_keys` (and updating the firewall's port-22
   source) — never by copying the private key around.
@@ -229,17 +234,29 @@ git clone git@github.com:sethhaskellcondie/the-game-pensieve-api.git /opt/pensie
 
 `/opt/pensieve` is the exact path the deploy scripts assume.
 
-### ⬜ 10. DNS — point the three A records at the Droplet
+### ⬜ 10. DNS — point the four A records at the Droplet
 
-In Porkbun, create A records for `pensieve.sethcondie.com`, `mcp.pensieve.sethcondie.com`, and
-`auth.pensieve.sethcondie.com`, all pointing at the Droplet's public IP. Verify **from off-network**
-(a machine that is not the workstation — e.g. a phone off wifi):
+In Porkbun, create A records for `pensieve.sethcondie.com`, `mcp.pensieve.sethcondie.com`,
+`auth.pensieve.sethcondie.com`, and `pensive.sethcondie.com`, all pointing at the Droplet's public
+IP. Verify **from off-network** (a machine that is not the workstation — e.g. a phone off wifi):
 
 ```bash
 dig +short pensieve.sethcondie.com          # → the Droplet IP
 dig +short mcp.pensieve.sethcondie.com      # → the Droplet IP
 dig +short auth.pensieve.sethcondie.com     # → the Droplet IP
+dig +short pensive.sethcondie.com           # → the Droplet IP  (typo alias, added 2026-08-20)
 ```
+
+The fourth is the **typo alias**: `pensive` without the second "e", which is how the domain gets
+misspelled in practice. It is not a fourth way into the app — Caddy answers it with a 301 to
+`pensieve.sethcondie.com`, path and query intact (`APP_ALIAS_DOMAIN` in the env, alias site block in
+the Caddyfile). It gets its own Let's Encrypt certificate, so **the A record has to exist before the
+release carrying the Caddyfile change is deployed**; deploy first and ACME fails for that host alone
+while the other three keep serving, and Caddy retries on its own once DNS appears.
+
+Never add the alias to `APP_ORIGIN`, to the `pensieve-web` redirect URIs, or to Keycloak's allowed
+origins. Reaching the app *through* the alias would scope session cookies to the wrong host and
+break login with no visible error; the 301 is what guarantees nobody does.
 
 Caddy's ACME certificate challenge runs on first boot; without resolving DNS there are no
 certificates and nothing serves. (And remember the wildcard-CNAME hazard above — with a wildcard in
@@ -248,7 +265,7 @@ the zone this verification is worthless.)
 ### Provisioning exit criteria
 
 SSH works · `docker run hello-world` works · `/opt/pensieve` is a clean checkout · `free -h` shows
-the 2 GB swap · all three hostnames resolve to this box from outside · `nc -vz -w 5 smtp.resend.com
+the 2 GB swap · all four hostnames resolve to this box from outside · `nc -vz -w 5 smtp.resend.com
 2465` connects (step 5).
 
 ---
@@ -668,12 +685,54 @@ image runs against the newer schema. And **rollback to `v1.0.0` specifically is 
 
 ## ⬜ Open the doors
 
-- [ ] Register remote MCP hosts by hand (production ships no anonymous DCR); grant `offline_access`
+- [x] Register remote MCP hosts by hand (production ships no anonymous DCR); grant `offline_access`
       and **attach `pensieve:read` explicitly** (it is no longer a realm default); decode the
-      resulting token to confirm an offline token was actually issued.
+      resulting token to confirm an offline token was actually issued. **Done 2026-08-18** — the
+      claude.ai connector, registered exactly per the procedure below; first natural-language
+      question against the live collection returned correct data.
 - [ ] Onboard real users only once the SMTP path is proven — every account is admin-created and
       self-service reset is the only recovery path. Write the onboarding procedure down as it is
       first performed (create in admin console, set email verified, send `execute-actions-email`).
 - [ ] Check production-bound data for pre-2026-07-30 corrupted `baseSetId` rows before they become
       v1's data — re-import cannot repair them.
 - [ ] Third-party notices and a privacy / data-handling statement.
+
+### Registering a remote MCP host (performed 2026-08-18 — the claude.ai connector)
+
+One OAuth client per host, created by hand in the admin console (anonymous DCR is refused in prod —
+the 403 `Host not trusted` in the verification checklist is that refusal working). The conceptual
+background — why `pensieve:read` and `offline_access` must be attached explicitly, and the offline
+session bounds — is in `keycloak/README.md` ("Offline tokens for MCP connectors"); this is the
+click-path that worked.
+
+1. **Create the client.** Admin console → realm **pensieve** → Clients → Create client:
+   - Client ID `claude-ai-connector` (name each client for its host)
+   - **Client authentication On** (confidential); **Standard flow only** — Direct access grants
+     and everything else unchecked
+   - Valid redirect URIs — both, exact: `https://claude.ai/api/mcp/auth_callback` and
+     `https://claude.com/api/mcp/auth_callback`. Web origins blank (the token exchange is
+     server-to-server).
+   - Credentials tab → client secret to the password manager
+   - Advanced tab → PKCE Code Challenge Method **S256**
+2. **Attach the two scopes** (Client scopes tab → Add client scope) — the step nothing on the
+   client hints at: **`pensieve:read` as Default** (carries the `aud` mapper; without it the sidecar
+   refuses the token twice over) and **`offline_access` as Default** (the sidecar's metadata never
+   asks for it, so Optional would silently never be issued).
+3. **Pre-flight in the console** before touching the host: client → Client scopes → **Evaluate**
+   sub-tab → pick a user → Generated access token must show
+   `aud == https://mcp.pensieve.sethcondie.com/mcp` and both scopes in `scope`.
+4. **Configure the host.** claude.ai → Settings → Connectors → Add custom connector: URL
+   `https://mcp.pensieve.sethcondie.com/mcp`; Advanced settings → the client ID and secret
+   (supplying them makes claude.ai skip DCR). The browser window that opens is Keycloak — log in
+   with the **pensieve-realm** user account (not the master-realm admin).
+5. **Verify server-side** — the token lives on Anthropic's servers, so the proof an offline token
+   was issued is the **Offline session** on Users → \<user\> → Sessions (it can only exist if a
+   `typ: Offline` refresh token was minted), plus the functional test: ask a question, get correct
+   data, scoped to that user's own collection.
+
+Operating notes: an idle connector expires at 10 days, an active one at 30 (`offlineSessionIdleTimeout`
+/ `offlineSessionMaxLifespan`) — periodic "reconnect" prompts in claude.ai are the realm settings
+working. Revoke access by deleting the offline session or the consent on the user; no password change
+needed. **Claude Code is a different registration problem** (localhost callback, DCR/CIMD, no fixed
+redirect URI) — this recipe does not transfer; see the CIMD note in `keycloak/README.md` when that
+host is wanted.

@@ -6,15 +6,15 @@
 # This file is CHECKED OUT AT THE VERSION TAG on the Droplet — it is not runtime configuration. Changing
 # anything here means cutting a release, so it is worth getting right before the first publish.
 #
-# DNS: point A/AAAA records for APP_DOMAIN, MCP_DOMAIN, and AUTH_DOMAIN at this host before first start so
-# Caddy can complete the ACME HTTP/TLS challenge.
+# DNS: point A/AAAA records for APP_DOMAIN, MCP_DOMAIN, AUTH_DOMAIN, and APP_ALIAS_DOMAIN at this host
+# before first start so Caddy can complete the ACME HTTP/TLS challenge.
 {
 	email {$ACME_EMAIL}
 }
 
 # ---------------------------------------------------------------------------------------------------
 # Shared response headers. Caddy adds NONE of these by default — an unconfigured site ships no HSTS, no
-# nosniff, no framing policy. Applied to all three hostnames via `import security_headers`.
+# nosniff, no framing policy. Applied to all four hostnames via `import security_headers`.
 #
 # Delete a line here only if you know what it was protecting against:
 #
@@ -78,6 +78,32 @@
 	}
 
 	reverse_proxy frontend:3000
+}
+
+# Typo-catcher for the app host: people drop the second "e" in "pensieve" and land on a name that would
+# otherwise NXDOMAIN. Caddy gets its OWN certificate for the alias, so the alias's A record must exist
+# before this deploys — if it does not, ACME fails for this site alone and the other three hosts keep
+# serving. Every request is answered with a 301 to the same path and query on APP_DOMAIN; {uri} is
+# path + query, so a deep link survives the redirect instead of dumping the visitor on the home page.
+#
+# This host is a redirect ONLY, and deliberately so. It is not in APP_ORIGIN, not a pensieve-web redirect
+# URI, and not a Keycloak allowed origin. A browser that actually REACHED the app through the alias would
+# get its session cookies scoped to the wrong host and a login that fails with no error; the 301 means it
+# never gets that far. Add further misspellings by comma-separating them onto this same site address.
+#
+# The `:alias.localhost` default is load-bearing, not decoration. A blank site address is not "no site":
+# Caddy reads the block as a GLOBAL OPTIONS block and the entire config fails to load — all four hosts
+# down, over an optional feature. The default keeps scripts/prod-rehearsal.sh working, since it runs this
+# same file with .localhost names and no alias set, at the cost of one internal-CA certificate for a host
+# that resolves nowhere.
+#
+# The default only fires when the variable is UNSET. A variable set to the EMPTY STRING substitutes empty
+# and takes the whole config down anyway, which is why compose.production.yaml passes this through as
+# ${APP_ALIAS_DOMAIN:-alias.localhost} rather than ${APP_ALIAS_DOMAIN:-}. Change one default, change both.
+{$APP_ALIAS_DOMAIN:alias.localhost} {
+	import security_headers
+
+	redir https://{$APP_DOMAIN}{uri} permanent
 }
 
 # The MCP sidecar. The resource lives at https://{$MCP_DOMAIN}/mcp; the sidecar also serves its
