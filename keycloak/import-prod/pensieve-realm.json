@@ -23,6 +23,7 @@
     "ssl": "${PENSIEVE_SMTP_SSL}"
   },
   "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 3600,
   "actionTokenGeneratedByUserLifespan": 900,
   "revokeRefreshToken": true,
   "refreshTokenMaxReuse": 0,
