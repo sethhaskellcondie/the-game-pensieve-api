@@ -120,7 +120,7 @@ services:
         condition: service_started
 
   frontend:
-    image: sethcondie/the-game-pensieve-web:1.0.5 # built + pushed from the-game-pensieve-web-v2 (OIDC BFF)
+    image: sethcondie/the-game-pensieve-web:1.0.6 # built + pushed from the-game-pensieve-web-v2 (OIDC BFF)
     restart: unless-stopped
     # NO public ports: served behind Caddy at https://${APP_DOMAIN}.
     environment:
@@ -156,7 +156,7 @@ services:
         condition: service_healthy
 
   backend:
-    image: sethcondie/the-game-pensieve-api:1.0.5
+    image: sethcondie/the-game-pensieve-api:1.0.6
     restart: unless-stopped
     # NO ports: private. The backend runs Flyway on startup, so no separate migration service is needed.
     environment:
@@ -190,7 +190,7 @@ services:
         condition: service_healthy
 
   mcp:
-    image: sethcondie/the-game-pensieve-mcp:1.0.5
+    image: sethcondie/the-game-pensieve-mcp:1.0.6
     restart: unless-stopped
     # NO public ports: served behind Caddy at https://${MCP_DOMAIN}/mcp.
     environment:
