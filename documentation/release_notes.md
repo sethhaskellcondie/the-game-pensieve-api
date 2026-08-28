@@ -6,3 +6,8 @@
   Droplet's `dockerCompose/.env.production` before deploying; the A record is already live.
 - Added sorting to the saved filters. At least one filter is still required to store a saved filter.
 - Updated the mobile UI headers and buttons to leave more room for the games' information.
+
+- # 1.0.6 released 8-28-2026
+
+- Updated the heartbeat endpoint to return the version number
+- Further updated the mobile UI headers and buttons to leave even more room for the games' information.
