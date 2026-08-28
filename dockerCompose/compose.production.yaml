@@ -35,7 +35,8 @@
 # The audience is validated by BOTH the sidecar and the backend; a mismatch rejects every token.
 
 # HEALTHCHECKS AND STARTUP ORDER. Every service defines one, and `depends_on` uses `condition:
-# service_healthy` rather than the bare list form. `depends_on` on its own waits for a container to *start*,
+# service_healthy` rather than the bare list form — with ONE deliberate exception, caddy's dependency on
+# keycloak, which is service_started so that an auth outage cannot black out the entire site (see there). `depends_on` on its own waits for a container to *start*,
 # which is nearly worthless here: Postgres needs a moment before it accepts connections, Keycloak's first
 # boot imports the realm for 30-60s, and the backend runs every Flyway migration before it opens a port.
 # Without real readiness gates the dependents come up, fail their first call, and `restart: unless-stopped`
@@ -66,7 +67,7 @@ name: pensieve
 
 services:
   caddy:
-    image: caddy:2
+    image: caddy:2@sha256:df7f1c2fb114453b951de51a98efc010db1655a92c2e86be6706714e2417a78d
     restart: unless-stopped
     ports:
       - "80:80"
@@ -109,7 +110,14 @@ services:
       mcp:
         condition: service_healthy
       keycloak:
-        condition: service_healthy
+        # DELIBERATELY service_started, not service_healthy — the one exception to the rule above.
+        # Caddy is the ONLY service that publishes a port, so gating it on Keycloak's health means an
+        # auth-only failure takes down the app, the API, and mcp with it. That is exactly what happened
+        # on 2026-08-28: Keycloak crash-looped, caddy never left `Created`, and every public endpoint
+        # went dark even though frontend/backend/mcp were all healthy. Starting anyway degrades LOGIN
+        # (auth routes 502 until Keycloak is ready) instead of blacking out the whole site. The deploy's
+        # step-7 health checks still fail loudly on a sick Keycloak, so this hides nothing.
+        condition: service_started
 
   frontend:
     image: sethcondie/the-game-pensieve-web:1.0.5 # built + pushed from the-game-pensieve-web-v2 (OIDC BFF)
@@ -206,7 +214,7 @@ services:
         condition: service_healthy
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7
+    image: quay.io/keycloak/keycloak:26.7@sha256:9d1f1b2b7261ff53c66cb1092dfcdc34a5fb77e81f9e6a6e75b8b6a795de8067
     restart: unless-stopped
     # start (production mode) + import the realm on first boot. Behind Caddy: TLS is terminated at the edge,
     # so HTTP is enabled internally and Keycloak trusts the X-Forwarded-* headers. KC_HOSTNAME pins the
@@ -270,12 +278,23 @@ services:
 
   # Both databases stay on the 16.x line. A MINOR bump (16.x -> 17.x) is not a restart — Postgres refuses
   # to start against a data directory written by a different major version, and migrating means a dump and
-  # restore with the stack down. Patch releases inside 16.x are drop-in. Patch cadence for the pinned
-  # third-party images, all three of which are checked out at the version tag and so need a release to
-  # change: postgres exactly (16.15-alpine), keycloak by minor (26.7 -> latest 26.7.x on pull), caddy by
-  # major (2). Review them at each release; bump postgres deliberately, never automatically.
+  # restore with the stack down. Patch releases inside 16.x are drop-in.
+  #
+  # EVERY third-party image is pinned BY DIGEST (@sha256:...), not by tag. The tag is kept alongside it for
+  # human readability only; the digest is what actually resolves. This is not belt-and-braces — it is the
+  # fix for a real outage (2026-08-28, deploying 1.0.5): `keycloak:26.7` was a MOVING tag, upstream
+  # published a new 26.7 build, and the deploy's `docker compose pull` silently swapped a core service
+  # nobody had asked to upgrade. The new build rejected the blank KC_ADMIN_* steady state, Keycloak
+  # crash-looped, and because caddy gated on its health the whole site went dark. Rollback could not fix it
+  # either: `deploy VERSION=<previous>` rolls back OUR images, but the moving tag had already re-resolved,
+  # so the previous version recreated the same broken container. Digests make a deploy reproducible and
+  # make rollback actually roll back.
+  #
+  # To upgrade one of these, do it DELIBERATELY, in its own reviewed commit:
+  #   docker buildx imagetools inspect <image>:<tag> --format '{{.Manifest.Digest}}'
+  # then update BOTH the tag and the digest here, and rehearse (`make rehearse`) before releasing.
   db:
-    image: postgres:16.15-alpine
+    image: postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
     restart: unless-stopped
     # Loopback-only publish: 127.0.0.1 binding means this is unreachable from the internet regardless of
     # firewall rules — only a shell already on the Droplet (i.e. an SSH tunnel) can connect. Exists so an
@@ -301,7 +320,7 @@ services:
     cpus: 1.0
 
   keycloak-db:
-    image: postgres:16.15-alpine
+    image: postgres:16.15-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
     restart: unless-stopped
     # NO ports: private. Keycloak's own store, separate from the app database.
     # ⚠️ keycloak_db_data is the irreplaceable volume: users.keycloak_sub in the APP database is a unique

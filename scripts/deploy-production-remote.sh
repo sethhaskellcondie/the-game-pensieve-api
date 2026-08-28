@@ -126,6 +126,27 @@ AUTH_DOMAIN="$(env_val AUTH_DOMAIN)"
 [[ -n "$APP_DOMAIN" && -n "$MCP_DOMAIN" && -n "$AUTH_DOMAIN" ]] \
     || fail ".env is missing APP_DOMAIN / MCP_DOMAIN / AUTH_DOMAIN"
 
+# KC_ADMIN_* must BOTH be non-empty. This is not belt-and-braces; it is the guard for the 2026-08-28
+# outage. compose.production.yaml passes ${KC_ADMIN_USER}/${KC_ADMIN_PASSWORD} straight through as
+# KC_BOOTSTRAP_ADMIN_*, and compose has NO way to omit an empty variable — a blank value is passed as an
+# EMPTY STRING, not as "absent". Current Keycloak treats a present-but-empty username as *provided* and
+# then refuses to boot because no password accompanies it:
+#     bootstrap-admin-username available only when bootstrap admin password is set
+# Blanking these in steady state (which this script used to describe as normal) is therefore no longer
+# safe: it crash-loops Keycloak on the next container recreate. Set them to the REAL master-realm admin
+# credentials — the bootstrap admin is only ever CREATED when the realm has no admin yet, so on an
+# established keycloak-db these are inert for bootstrap purposes and are simply reused by the step-7
+# master-realm hardening below. Catching this here costs a second; missing it costs the whole site,
+# because caddy cannot serve until Keycloak starts.
+KC_ADMIN_USER_VAL="$(env_val KC_ADMIN_USER)"
+KC_ADMIN_PW_VAL="$(env_val KC_ADMIN_PASSWORD)"
+if [[ -z "$KC_ADMIN_USER_VAL" || -z "$KC_ADMIN_PW_VAL" ]]; then
+    fail "KC_ADMIN_USER and KC_ADMIN_PASSWORD must BOTH be non-empty in $ENV_FILE (user='$KC_ADMIN_USER_VAL', password $( [[ -n "$KC_ADMIN_PW_VAL" ]] && echo set || echo empty )).
+       compose passes them through as KC_BOOTSTRAP_ADMIN_*, and an empty value is passed as an empty
+       string, which current Keycloak rejects at startup — it crash-loops and takes the whole site with
+       it. Set both to the real master-realm admin credentials (password manager) and re-run."
+fi
+
 # ================================================================================================
 step "2. record what is running"
 # ================================================================================================
@@ -249,10 +270,12 @@ else
     # Brute-force detection on the MASTER realm is runtime realm config: it is not in any import file,
     # and a rebuild with a fresh keycloak-db silently reverts it to Keycloak's default (OFF). Since the
     # basic-auth gate was removed (2026-08-18), it is one of the three controls protecting the admin
-    # login — so a rebuild must not be able to forget it. The trick: a fresh keycloak-db is exactly the
-    # state where .env MUST carry KC_ADMIN_* (the bootstrap admin only materializes from them on first
-    # boot), and steady state is exactly where they are blanked. So assert the setting whenever the
-    # credentials exist, and skip when they don't — the risk window and the credential window coincide.
+    # login — so a rebuild must not be able to forget it. KC_ADMIN_* are now REQUIRED to be non-empty
+    # (step 1 enforces it — blanking them crash-loops Keycloak, see there), so unlike before this branch
+    # runs on every deploy rather than only on a fresh keycloak-db bootstrap. That is the better default:
+    # brute-force detection gets re-asserted each time instead of only when someone happens to rebuild.
+    # It only works if the credentials are the REAL master-realm admin's; if they are a placeholder,
+    # kcadm cannot log in and you get the WARNING below rather than a failed deploy.
     # kcadm runs INSIDE the keycloak container (the image has no curl; localhost needs no TLS).
     KC_HARDEN_USER="$(env_val KC_ADMIN_USER)"
     KC_HARDEN_PW="$(env_val KC_ADMIN_PASSWORD)"
@@ -271,7 +294,8 @@ else
             printf 'WARNING: realm needs hand attention: verify brute-force detection is ON (Realm settings -> Security defenses).\n'
         fi
     else
-        printf 'master-realm hardening: skipped — KC_ADMIN_* blanked in .env (steady state; the setting persists in keycloak-db).\n'
+        # Unreachable in practice: step 1 fails the deploy on a blank KC_ADMIN_*. Kept as a backstop.
+        printf 'WARNING: master-realm hardening skipped — KC_ADMIN_* blank. Verify brute-force detection by hand.\n'
     fi
 fi
 
