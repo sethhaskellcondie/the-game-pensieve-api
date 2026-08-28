@@ -87,7 +87,8 @@ public class AuthSecuredProfileTests extends SecuredProfileTest {
                 .andExpectAll(
                         status().isOk(),
                         jsonPath("$.data.message").value("thump thump"),
-                        jsonPath("$.data.secureMode").value(true));
+                        jsonPath("$.data.secureMode").value(true),
+                        jsonPath("$.data.version").isNotEmpty());
     }
 
     // --- Protected (write) routes require authentication ---

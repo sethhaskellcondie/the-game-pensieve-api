@@ -5,14 +5,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<!-- Keep this on the current 3.5.x patch release. 3.5.0 was the first release of the line and the
-		     secured chain permitAll()s the public search endpoints, so a pre-auth framework CVE is reachable
-		     without a token. Review at every release; 3.5.x -> 3.5.y is a patch bump, 3.5 -> 4.x is not. -->
 		<version>3.5.16</version>
 	</parent>
 	<groupId>com.sethhaskellcondie</groupId>
 	<artifactId>the-game-pensieve-api</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.6</version>
 	<name>the-game-pensieve-api</name>
 	<description>This project will store information about different games in a database along with an api to access that data.</description>
 	<properties>

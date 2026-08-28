@@ -37,8 +37,17 @@ make release VERSION=1.4.0                      # the Makefile fills in sibling 
 
 The whole of Pipeline A in one command, across all three repos (api, web, mcp):
 
-1. **Preflight** — version shape (`X.Y.Z[-suffix]`), clean working trees in all three repos, tag not already
-   taken, buildx builder present, `docker login` live, smoke ports free, required tools installed.
+1. **Preflight** — version shape (`X.Y.Z[-suffix]`), **each repo's declared version matches the release
+   version**, clean working trees in all three repos, tag not already taken, buildx builder present,
+   `docker login` live, smoke ports free, required tools installed.
+
+   The declared-version check reads `pom.xml` (via `mvn help:evaluate`, because the pom carries the
+   Spring Boot parent's version too) and `package.json` in web and mcp. Those declarations are baked into
+   the builds — the api's is filtered into `application.properties` and reported by `GET /v1/heartbeat`,
+   which the web UI displays — and **nothing in this script rewrites them**, so a stale one ships a build
+   that misreports which release it is while every gate stays green. All three are reported at once, then
+   the run stops. The fix is deliberately manual: bump and commit, then rerun.
+
 2. **Unit gates** — `./mvnw test` (api, Testcontainers, checkstyle runs bound to validate) · `npm test` (web,
    Jest) · `npm test` (mcp, Vitest).
 3. **Build local images** — single-arch, host platform, tagged `:$VERSION`. These are what the gates run.

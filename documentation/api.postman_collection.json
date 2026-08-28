@@ -40,7 +40,8 @@
 					"mode": "raw",
 					"raw": ""
 				},
-				"url": "http://localhost:8080/v1/heartbeat"
+				"url": "http://localhost:8080/v1/heartbeat",
+				"description": "Health check. Returns `message` (\"thump thump\"), `secureMode` (true when the backend runs the authenticated `secured` profile build), and `version` (the release version of the running backend)."
 			},
 			"response": []
 		},

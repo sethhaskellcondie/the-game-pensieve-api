@@ -126,7 +126,8 @@ paths:
       description: |
         Simple health check. Returns a `message` of "thump thump" alongside `secureMode`, which reports the
         security posture the server is enforcing: `true` when the backend runs the authenticated (`secured`
-        profile) build where protected routes require a Bearer token, `false` for the default permit-all build.
+        profile) build where protected routes require a Bearer token, `false` for the default permit-all build,
+        and `version`, the release version of the running backend.
       security: []
       responses:
         '200':
@@ -146,6 +147,12 @@ paths:
                         type: boolean
                         description: True when the backend is running the authenticated (`secured` profile) build.
                         example: false
+                      version:
+                        type: string
+                        description: |
+                          Release version of the running backend, baked in at build time from the Maven project
+                          version. Reports `unknown` if the build skipped resource filtering.
+                        example: "1.0.5"
                   errors:
                     type: 'null'
                   roundTripMs:
@@ -155,6 +162,7 @@ paths:
                 data:
                   message: "thump thump"
                   secureMode: false
+                  version: "1.0.5"
                 errors: null
                 roundTripMs: 0
 

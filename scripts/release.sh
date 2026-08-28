@@ -5,7 +5,8 @@
 #   ./scripts/release.sh <version> <web-repo-path> <mcp-repo-path>
 #   e.g.  make release VERSION=1.4.0        (the Makefile fills in sibling repo paths)
 #
-#   1. Preflight        clean trees ×3, version shape, tag free, buildx builder, docker login
+#   1. Preflight        clean trees ×3, version shape, declared versions ×3 match, tag free, buildx
+#                       builder, docker login
 #   2. Unit gates       ./mvnw test (api, Testcontainers) · npm test (web, Jest) · npm test (mcp, Vitest)
 #   3. Build local      docker build ×3, single-arch (host platform), tagged :$VERSION
 #   4. Gate A: secured  scripts/e2e-gate.sh secured — seeded stack, full Playwright, SECURED_BACKEND=1
@@ -102,11 +103,39 @@ step "1. preflight"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]] \
     || fail "version '$VERSION' is not X.Y.Z (optionally -suffix, e.g. 0.9.0-rc1)"
 [[ -f "$WEB_REPO/playwright.config.ts" ]] || fail "'$WEB_REPO' does not look like the web repo"
+[[ -f "$WEB_REPO/package.json" ]] || fail "'$WEB_REPO/package.json' not found - it declares the web version"
 [[ -f "$MCP_REPO/package.json" ]] || fail "'$MCP_REPO' does not look like the mcp repo"
 command -v jq >/dev/null || fail "jq is required"
 command -v curl >/dev/null || fail "curl is required"
 command -v perl >/dev/null || fail "perl is required (portable in-place edit of the compose pins)"
 docker info >/dev/null 2>&1 || fail "docker daemon is not running"
+
+# Every repo declares its own version - pom.xml here, package.json in web and mcp - and each is baked
+# into its build: the API's is filtered into application.properties and reported by GET /v1/heartbeat,
+# which the web UI displays. NOTHING in this script rewrites those files, so a stale declaration ships a
+# build that misreports which release it is, and the image tag, the git tag, and the running service all
+# disagree while every gate stays green. Checked here, before ~30 minutes of gates, and never auto-fixed:
+# the bump belongs in a commit of its own, made deliberately, not as a side effect of a release run.
+declared_mismatch=0
+check_declared_version() {
+    local label="$1" file="$2" declared="$3"
+    if [[ "$declared" != "$VERSION" ]]; then
+        printf 'ERROR: %s declares version %s, this release is %s - bump it in %s\n' \
+            "$label" "${declared:-<unreadable>}" "$VERSION" "$file" >&2
+        declared_mismatch=1
+    fi
+}
+# help:evaluate rather than grepping <version> out of the pom: the pom has TWO of them (the
+# spring-boot-starter-parent pin and the project's own) and only Maven knows which is which.
+# `|| true` keeps a Maven failure from aborting under `set -e` - it lands as an empty, mismatching
+# value and is reported alongside any others instead of as a bare stack trace.
+API_DECLARED="$( (cd "$REPO_ROOT" && ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout 2>/dev/null || true) | tail -n 1 )"
+check_declared_version "api" "$REPO_ROOT/pom.xml" "${API_DECLARED//[[:space:]]/}"
+check_declared_version "web" "$WEB_REPO/package.json" "$(jq -r '.version // empty' "$WEB_REPO/package.json")"
+check_declared_version "mcp" "$MCP_REPO/package.json" "$(jq -r '.version // empty' "$MCP_REPO/package.json")"
+[[ "$declared_mismatch" -eq 0 ]] \
+    || fail "declared project version(s) do not match release $VERSION - bump, commit, and rerun"
+
 # Step 8 is the last thing that runs, ~30 minutes of gates after this point. Assert its target is where
 # this script thinks it is now, rather than discovering a moved compose file at the very end.
 [[ -f "$REPO_ROOT/$PROD_COMPOSE" ]] || fail "$PROD_COMPOSE not found — step 8 pins the images there"

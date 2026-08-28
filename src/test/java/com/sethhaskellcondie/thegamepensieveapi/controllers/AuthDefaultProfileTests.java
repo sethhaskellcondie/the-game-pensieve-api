@@ -40,7 +40,10 @@ public class AuthDefaultProfileTests {
                 .andExpectAll(
                         status().isOk(),
                         jsonPath("$.data.message").value("thump thump"),
-                        jsonPath("$.data.secureMode").value(false));
+                        jsonPath("$.data.secureMode").value(false),
+                        //the value is the Maven project version, filtered in at build time, so assert that it
+                        //is reported at all rather than pinning a number that changes every release
+                        jsonPath("$.data.version").isNotEmpty());
     }
 
     @Test
